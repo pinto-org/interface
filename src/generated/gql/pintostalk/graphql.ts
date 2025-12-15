@@ -17,21 +17,15 @@ export type Scalars = {
   BigDecimal: { input: any; output: any; }
   BigInt: { input: any; output: any; }
   Bytes: { input: any; output: any; }
-  /**
-   * 8 bytes signed integer
-   *
-   */
+  /** 8 bytes signed integer */
   Int8: { input: any; output: any; }
-  /**
-   * A string representation of microseconds UNIX timestamp (16 digits)
-   *
-   */
+  /** A string representation of microseconds UNIX timestamp (16 digits) */
   Timestamp: { input: any; output: any; }
 };
 
-export enum Aggregation_Interval {
-  Day = 'day',
-  Hour = 'hour'
+export enum AggregationInterval {
+  day = 'day',
+  hour = 'hour'
 }
 
 export type Beanstalk = {
@@ -61,22 +55,22 @@ export type Beanstalk = {
 
 export type BeanstalkSeasonsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Season_OrderBy>;
+  orderBy?: InputMaybe<SeasonOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Season_Filter>;
+  where?: InputMaybe<SeasonFilter>;
 };
 
 
 export type BeanstalkWrappedDepositTokensArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20_OrderBy>;
+  orderBy?: InputMaybe<WrappedDepositErc20OrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WrappedDepositErc20_Filter>;
+  where?: InputMaybe<WrappedDepositErc20Filter>;
 };
 
-export type Beanstalk_Filter = {
+export type BeanstalkFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   activeFarmers?: InputMaybe<Array<Scalars['Bytes']['input']>>;
@@ -85,7 +79,7 @@ export type Beanstalk_Filter = {
   activeFarmers_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   activeFarmers_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   activeFarmers_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<Beanstalk_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanstalkFilter>>>;
   farmersToUpdate?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmersToUpdate_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmersToUpdate_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
@@ -102,7 +96,7 @@ export type Beanstalk_Filter = {
   fertilizer1155_not?: InputMaybe<Scalars['Bytes']['input']>;
   fertilizer1155_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   fertilizer1155_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  field_?: InputMaybe<Field_Filter>;
+  field_?: InputMaybe<FieldFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -119,9 +113,9 @@ export type Beanstalk_Filter = {
   lastSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Beanstalk_Filter>>>;
-  seasons_?: InputMaybe<Season_Filter>;
-  silo_?: InputMaybe<Silo_Filter>;
+  or?: InputMaybe<Array<InputMaybe<BeanstalkFilter>>>;
+  seasons_?: InputMaybe<SeasonFilter>;
+  silo_?: InputMaybe<SiloFilter>;
   token?: InputMaybe<Scalars['Bytes']['input']>;
   token_contains?: InputMaybe<Scalars['Bytes']['input']>;
   token_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -132,69 +126,70 @@ export type Beanstalk_Filter = {
   token_not?: InputMaybe<Scalars['Bytes']['input']>;
   token_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   token_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  wrappedDepositTokens_?: InputMaybe<WrappedDepositErc20_Filter>;
+  wrappedDepositTokens_?: InputMaybe<WrappedDepositErc20Filter>;
 };
 
-export enum Beanstalk_OrderBy {
-  ActiveFarmers = 'activeFarmers',
-  FarmersToUpdate = 'farmersToUpdate',
-  Fertilizer1155 = 'fertilizer1155',
-  Field = 'field',
-  FieldCultivationFactor = 'field__cultivationFactor',
-  FieldCultivationTemperature = 'field__cultivationTemperature',
-  FieldHarvestableIndex = 'field__harvestableIndex',
-  FieldHarvestablePods = 'field__harvestablePods',
-  FieldHarvestedPods = 'field__harvestedPods',
-  FieldId = 'field__id',
-  FieldLastDailySnapshotDay = 'field__lastDailySnapshotDay',
-  FieldLastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
-  FieldNumberOfSowers = 'field__numberOfSowers',
-  FieldNumberOfSows = 'field__numberOfSows',
-  FieldPodIndex = 'field__podIndex',
-  FieldPodRate = 'field__podRate',
-  FieldRealRateOfReturn = 'field__realRateOfReturn',
-  FieldSeason = 'field__season',
-  FieldSoil = 'field__soil',
-  FieldSownBeans = 'field__sownBeans',
-  FieldTemperature = 'field__temperature',
-  FieldUnharvestablePods = 'field__unharvestablePods',
-  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
-  Id = 'id',
-  LastSeason = 'lastSeason',
-  Seasons = 'seasons',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  Token = 'token',
-  WrappedDepositTokens = 'wrappedDepositTokens'
+export enum BeanstalkOrderBy {
+  activeFarmers = 'activeFarmers',
+  farmersToUpdate = 'farmersToUpdate',
+  fertilizer1155 = 'fertilizer1155',
+  field = 'field',
+  field__cultivationFactor = 'field__cultivationFactor',
+  field__cultivationTemperature = 'field__cultivationTemperature',
+  field__fieldId = 'field__fieldId',
+  field__harvestableIndex = 'field__harvestableIndex',
+  field__harvestablePods = 'field__harvestablePods',
+  field__harvestedPods = 'field__harvestedPods',
+  field__id = 'field__id',
+  field__lastDailySnapshotDay = 'field__lastDailySnapshotDay',
+  field__lastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
+  field__numberOfSowers = 'field__numberOfSowers',
+  field__numberOfSows = 'field__numberOfSows',
+  field__podIndex = 'field__podIndex',
+  field__podRate = 'field__podRate',
+  field__realRateOfReturn = 'field__realRateOfReturn',
+  field__season = 'field__season',
+  field__soil = 'field__soil',
+  field__sownBeans = 'field__sownBeans',
+  field__temperature = 'field__temperature',
+  field__unharvestablePods = 'field__unharvestablePods',
+  field__unmigratedL1Pods = 'field__unmigratedL1Pods',
+  id = 'id',
+  lastSeason = 'lastSeason',
+  seasons = 'seasons',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  token = 'token',
+  wrappedDepositTokens = 'wrappedDepositTokens'
 }
 
 export type BlockChangedFilter = {
   number_gte: Scalars['Int']['input'];
 };
 
-export type Block_Height = {
+export type BlockHeight = {
   hash?: InputMaybe<Scalars['Bytes']['input']>;
   number?: InputMaybe<Scalars['Int']['input']>;
   number_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -228,10 +223,10 @@ export type Chop = {
   unripeToken: UnripeToken;
 };
 
-export type Chop_Filter = {
+export type ChopFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Chop_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<ChopFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -257,7 +252,7 @@ export type Chop_Filter = {
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -295,7 +290,7 @@ export type Chop_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Chop_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<ChopFilter>>>;
   underlyingAmount?: InputMaybe<Scalars['BigInt']['input']>;
   underlyingAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   underlyingAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -313,7 +308,7 @@ export type Chop_Filter = {
   underlyingBdv_not?: InputMaybe<Scalars['BigInt']['input']>;
   underlyingBdv_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   underlyingToken?: InputMaybe<Scalars['String']['input']>;
-  underlyingToken_?: InputMaybe<WhitelistTokenSetting_Filter>;
+  underlyingToken_?: InputMaybe<WhitelistTokenSettingFilter>;
   underlyingToken_contains?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -350,7 +345,7 @@ export type Chop_Filter = {
   unripeBdv_not?: InputMaybe<Scalars['BigInt']['input']>;
   unripeBdv_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   unripeToken?: InputMaybe<Scalars['String']['input']>;
-  unripeToken_?: InputMaybe<UnripeToken_Filter>;
+  unripeToken_?: InputMaybe<UnripeTokenFilter>;
   unripeToken_contains?: InputMaybe<Scalars['String']['input']>;
   unripeToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   unripeToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -372,53 +367,55 @@ export type Chop_Filter = {
   unripeToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Chop_OrderBy {
-  BlockNumber = 'blockNumber',
-  ChopRate = 'chopRate',
-  CreatedAt = 'createdAt',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  Hash = 'hash',
-  Id = 'id',
-  UnderlyingAmount = 'underlyingAmount',
-  UnderlyingBdv = 'underlyingBdv',
-  UnderlyingToken = 'underlyingToken',
-  UnderlyingTokenDecimals = 'underlyingToken__decimals',
-  UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenId = 'underlyingToken__id',
-  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
-  UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
-  UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
-  UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
-  UnderlyingTokenSelector = 'underlyingToken__selector',
-  UnderlyingTokenStalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
-  UnderlyingTokenStalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
-  UnderlyingTokenStemTip = 'underlyingToken__stemTip',
-  UnderlyingTokenUpdatedAt = 'underlyingToken__updatedAt',
-  UnripeAmount = 'unripeAmount',
-  UnripeBdv = 'unripeBdv',
-  UnripeToken = 'unripeToken',
-  UnripeTokenAmountUnderlyingOne = 'unripeToken__amountUnderlyingOne',
-  UnripeTokenBdvUnderlyingOne = 'unripeToken__bdvUnderlyingOne',
-  UnripeTokenChopRate = 'unripeToken__chopRate',
-  UnripeTokenChoppableAmountOne = 'unripeToken__choppableAmountOne',
-  UnripeTokenChoppableBdvOne = 'unripeToken__choppableBdvOne',
-  UnripeTokenId = 'unripeToken__id',
-  UnripeTokenLastDailySnapshotDay = 'unripeToken__lastDailySnapshotDay',
-  UnripeTokenLastHourlySnapshotSeason = 'unripeToken__lastHourlySnapshotSeason',
-  UnripeTokenRecapPercent = 'unripeToken__recapPercent',
-  UnripeTokenTotalChoppedAmount = 'unripeToken__totalChoppedAmount',
-  UnripeTokenTotalChoppedBdv = 'unripeToken__totalChoppedBdv',
-  UnripeTokenTotalChoppedBdvReceived = 'unripeToken__totalChoppedBdvReceived',
-  UnripeTokenTotalUnderlying = 'unripeToken__totalUnderlying'
+export enum ChopOrderBy {
+  blockNumber = 'blockNumber',
+  chopRate = 'chopRate',
+  createdAt = 'createdAt',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  hash = 'hash',
+  id = 'id',
+  underlyingAmount = 'underlyingAmount',
+  underlyingBdv = 'underlyingBdv',
+  underlyingToken = 'underlyingToken',
+  underlyingToken__decimals = 'underlyingToken__decimals',
+  underlyingToken__gaugePoints = 'underlyingToken__gaugePoints',
+  underlyingToken__id = 'underlyingToken__id',
+  underlyingToken__isGaugeEnabled = 'underlyingToken__isGaugeEnabled',
+  underlyingToken__lastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
+  underlyingToken__lastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
+  underlyingToken__milestoneSeason = 'underlyingToken__milestoneSeason',
+  underlyingToken__optimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
+  underlyingToken__selector = 'underlyingToken__selector',
+  underlyingToken__stalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
+  underlyingToken__stalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
+  underlyingToken__stemTip = 'underlyingToken__stemTip',
+  underlyingToken__updatedAt = 'underlyingToken__updatedAt',
+  unripeAmount = 'unripeAmount',
+  unripeBdv = 'unripeBdv',
+  unripeToken = 'unripeToken',
+  unripeToken__amountUnderlyingOne = 'unripeToken__amountUnderlyingOne',
+  unripeToken__bdvUnderlyingOne = 'unripeToken__bdvUnderlyingOne',
+  unripeToken__chopRate = 'unripeToken__chopRate',
+  unripeToken__choppableAmountOne = 'unripeToken__choppableAmountOne',
+  unripeToken__choppableBdvOne = 'unripeToken__choppableBdvOne',
+  unripeToken__id = 'unripeToken__id',
+  unripeToken__lastDailySnapshotDay = 'unripeToken__lastDailySnapshotDay',
+  unripeToken__lastHourlySnapshotSeason = 'unripeToken__lastHourlySnapshotSeason',
+  unripeToken__recapPercent = 'unripeToken__recapPercent',
+  unripeToken__totalChoppedAmount = 'unripeToken__totalChoppedAmount',
+  unripeToken__totalChoppedBdv = 'unripeToken__totalChoppedBdv',
+  unripeToken__totalChoppedBdvReceived = 'unripeToken__totalChoppedBdvReceived',
+  unripeToken__totalUnderlying = 'unripeToken__totalUnderlying'
 }
 
 export enum EmaWindow {
-  Rolling_7Day = 'ROLLING_7_DAY',
-  Rolling_24Hour = 'ROLLING_24_HOUR',
-  Rolling_30Day = 'ROLLING_30_DAY'
+  ROLLING_7_DAY = 'ROLLING_7_DAY',
+  ROLLING_24_HOUR = 'ROLLING_24_HOUR',
+  ROLLING_30_DAY = 'ROLLING_30_DAY'
 }
 
 export type Farmer = {
@@ -434,77 +431,81 @@ export type Farmer = {
   listings: Array<PodListing>;
   orders: Array<PodOrder>;
   plots: Array<Plot>;
+  /** Number of accounts this farmer has referred */
+  refereeCount: Scalars['Int']['output'];
   silo?: Maybe<Silo>;
+  /** Total pods this farmer has received as referral rewards */
+  totalReferralRewardPodsReceived: Scalars['BigInt']['output'];
   withdraws: Array<SiloWithdraw>;
 };
 
 
 export type FarmerDepositsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloDeposit_OrderBy>;
+  orderBy?: InputMaybe<SiloDepositOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<SiloDeposit_Filter>;
+  where?: InputMaybe<SiloDepositFilter>;
 };
 
 
 export type FarmerFertilizersArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerBalance_OrderBy>;
+  orderBy?: InputMaybe<FertilizerBalanceOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<FertilizerBalance_Filter>;
+  where?: InputMaybe<FertilizerBalanceFilter>;
 };
 
 
 export type FarmerFillsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodFill_OrderBy>;
+  orderBy?: InputMaybe<PodFillOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodFill_Filter>;
+  where?: InputMaybe<PodFillFilter>;
 };
 
 
 export type FarmerListingsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListing_OrderBy>;
+  orderBy?: InputMaybe<PodListingOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodListing_Filter>;
+  where?: InputMaybe<PodListingFilter>;
 };
 
 
 export type FarmerOrdersArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrder_OrderBy>;
+  orderBy?: InputMaybe<PodOrderOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodOrder_Filter>;
+  where?: InputMaybe<PodOrderFilter>;
 };
 
 
 export type FarmerPlotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Plot_OrderBy>;
+  orderBy?: InputMaybe<PlotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Plot_Filter>;
+  where?: InputMaybe<PlotFilter>;
 };
 
 
 export type FarmerWithdrawsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloWithdraw_OrderBy>;
+  orderBy?: InputMaybe<SiloWithdrawOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<SiloWithdraw_Filter>;
+  where?: InputMaybe<SiloWithdrawFilter>;
 };
 
-export type Farmer_Filter = {
+export type FarmerFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Farmer_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FarmerFilter>>>;
   creationBlock?: InputMaybe<Scalars['BigInt']['input']>;
   creationBlock_gt?: InputMaybe<Scalars['BigInt']['input']>;
   creationBlock_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -513,10 +514,10 @@ export type Farmer_Filter = {
   creationBlock_lte?: InputMaybe<Scalars['BigInt']['input']>;
   creationBlock_not?: InputMaybe<Scalars['BigInt']['input']>;
   creationBlock_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deposits_?: InputMaybe<SiloDeposit_Filter>;
-  fertilizers_?: InputMaybe<FertilizerBalance_Filter>;
-  field_?: InputMaybe<Field_Filter>;
-  fills_?: InputMaybe<PodFill_Filter>;
+  deposits_?: InputMaybe<SiloDepositFilter>;
+  fertilizers_?: InputMaybe<FertilizerBalanceFilter>;
+  field_?: InputMaybe<FieldFilter>;
+  fills_?: InputMaybe<PodFillFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -527,68 +528,87 @@ export type Farmer_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  listings_?: InputMaybe<PodListing_Filter>;
-  or?: InputMaybe<Array<InputMaybe<Farmer_Filter>>>;
-  orders_?: InputMaybe<PodOrder_Filter>;
-  plots_?: InputMaybe<Plot_Filter>;
-  silo_?: InputMaybe<Silo_Filter>;
-  withdraws_?: InputMaybe<SiloWithdraw_Filter>;
+  listings_?: InputMaybe<PodListingFilter>;
+  or?: InputMaybe<Array<InputMaybe<FarmerFilter>>>;
+  orders_?: InputMaybe<PodOrderFilter>;
+  plots_?: InputMaybe<PlotFilter>;
+  refereeCount?: InputMaybe<Scalars['Int']['input']>;
+  refereeCount_gt?: InputMaybe<Scalars['Int']['input']>;
+  refereeCount_gte?: InputMaybe<Scalars['Int']['input']>;
+  refereeCount_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  refereeCount_lt?: InputMaybe<Scalars['Int']['input']>;
+  refereeCount_lte?: InputMaybe<Scalars['Int']['input']>;
+  refereeCount_not?: InputMaybe<Scalars['Int']['input']>;
+  refereeCount_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  silo_?: InputMaybe<SiloFilter>;
+  totalReferralRewardPodsReceived?: InputMaybe<Scalars['BigInt']['input']>;
+  totalReferralRewardPodsReceived_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  totalReferralRewardPodsReceived_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  totalReferralRewardPodsReceived_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  totalReferralRewardPodsReceived_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  totalReferralRewardPodsReceived_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  totalReferralRewardPodsReceived_not?: InputMaybe<Scalars['BigInt']['input']>;
+  totalReferralRewardPodsReceived_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  withdraws_?: InputMaybe<SiloWithdrawFilter>;
 };
 
-export enum Farmer_OrderBy {
-  CreationBlock = 'creationBlock',
-  Deposits = 'deposits',
-  Fertilizers = 'fertilizers',
-  Field = 'field',
-  FieldCultivationFactor = 'field__cultivationFactor',
-  FieldCultivationTemperature = 'field__cultivationTemperature',
-  FieldHarvestableIndex = 'field__harvestableIndex',
-  FieldHarvestablePods = 'field__harvestablePods',
-  FieldHarvestedPods = 'field__harvestedPods',
-  FieldId = 'field__id',
-  FieldLastDailySnapshotDay = 'field__lastDailySnapshotDay',
-  FieldLastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
-  FieldNumberOfSowers = 'field__numberOfSowers',
-  FieldNumberOfSows = 'field__numberOfSows',
-  FieldPodIndex = 'field__podIndex',
-  FieldPodRate = 'field__podRate',
-  FieldRealRateOfReturn = 'field__realRateOfReturn',
-  FieldSeason = 'field__season',
-  FieldSoil = 'field__soil',
-  FieldSownBeans = 'field__sownBeans',
-  FieldTemperature = 'field__temperature',
-  FieldUnharvestablePods = 'field__unharvestablePods',
-  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
-  Fills = 'fills',
-  Id = 'id',
-  Listings = 'listings',
-  Orders = 'orders',
-  Plots = 'plots',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  Withdraws = 'withdraws'
+export enum FarmerOrderBy {
+  creationBlock = 'creationBlock',
+  deposits = 'deposits',
+  fertilizers = 'fertilizers',
+  field = 'field',
+  field__cultivationFactor = 'field__cultivationFactor',
+  field__cultivationTemperature = 'field__cultivationTemperature',
+  field__fieldId = 'field__fieldId',
+  field__harvestableIndex = 'field__harvestableIndex',
+  field__harvestablePods = 'field__harvestablePods',
+  field__harvestedPods = 'field__harvestedPods',
+  field__id = 'field__id',
+  field__lastDailySnapshotDay = 'field__lastDailySnapshotDay',
+  field__lastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
+  field__numberOfSowers = 'field__numberOfSowers',
+  field__numberOfSows = 'field__numberOfSows',
+  field__podIndex = 'field__podIndex',
+  field__podRate = 'field__podRate',
+  field__realRateOfReturn = 'field__realRateOfReturn',
+  field__season = 'field__season',
+  field__soil = 'field__soil',
+  field__sownBeans = 'field__sownBeans',
+  field__temperature = 'field__temperature',
+  field__unharvestablePods = 'field__unharvestablePods',
+  field__unmigratedL1Pods = 'field__unmigratedL1Pods',
+  fills = 'fills',
+  id = 'id',
+  listings = 'listings',
+  orders = 'orders',
+  plots = 'plots',
+  refereeCount = 'refereeCount',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  totalReferralRewardPodsReceived = 'totalReferralRewardPodsReceived',
+  withdraws = 'withdraws'
 }
 
 export type Fertilizer = {
@@ -607,10 +627,10 @@ export type Fertilizer = {
 
 export type FertilizerTokensArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerToken_OrderBy>;
+  orderBy?: InputMaybe<FertilizerTokenOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<FertilizerToken_Filter>;
+  where?: InputMaybe<FertilizerTokenFilter>;
 };
 
 export type FertilizerBalance = {
@@ -623,7 +643,7 @@ export type FertilizerBalance = {
   id: Scalars['ID']['output'];
 };
 
-export type FertilizerBalance_Filter = {
+export type FertilizerBalanceFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
@@ -634,9 +654,9 @@ export type FertilizerBalance_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<FertilizerBalance_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FertilizerBalanceFilter>>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -657,7 +677,7 @@ export type FertilizerBalance_Filter = {
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   fertilizerToken?: InputMaybe<Scalars['String']['input']>;
-  fertilizerToken_?: InputMaybe<FertilizerToken_Filter>;
+  fertilizerToken_?: InputMaybe<FertilizerTokenFilter>;
   fertilizerToken_contains?: InputMaybe<Scalars['String']['input']>;
   fertilizerToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   fertilizerToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -685,22 +705,24 @@ export type FertilizerBalance_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FertilizerBalance_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FertilizerBalanceFilter>>>;
 };
 
-export enum FertilizerBalance_OrderBy {
-  Amount = 'amount',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  FertilizerToken = 'fertilizerToken',
-  FertilizerTokenEndBpf = 'fertilizerToken__endBpf',
-  FertilizerTokenHumidity = 'fertilizerToken__humidity',
-  FertilizerTokenId = 'fertilizerToken__id',
-  FertilizerTokenSeason = 'fertilizerToken__season',
-  FertilizerTokenStartBpf = 'fertilizerToken__startBpf',
-  FertilizerTokenSupply = 'fertilizerToken__supply',
-  Id = 'id'
+export enum FertilizerBalanceOrderBy {
+  amount = 'amount',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  fertilizerToken = 'fertilizerToken',
+  fertilizerToken__endBpf = 'fertilizerToken__endBpf',
+  fertilizerToken__humidity = 'fertilizerToken__humidity',
+  fertilizerToken__id = 'fertilizerToken__id',
+  fertilizerToken__season = 'fertilizerToken__season',
+  fertilizerToken__startBpf = 'fertilizerToken__startBpf',
+  fertilizerToken__supply = 'fertilizerToken__supply',
+  id = 'id'
 }
 
 export type FertilizerToken = {
@@ -724,17 +746,17 @@ export type FertilizerToken = {
 
 export type FertilizerTokenBalancesArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerBalance_OrderBy>;
+  orderBy?: InputMaybe<FertilizerBalanceOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<FertilizerBalance_Filter>;
+  where?: InputMaybe<FertilizerBalanceFilter>;
 };
 
-export type FertilizerToken_Filter = {
+export type FertilizerTokenFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<FertilizerToken_Filter>>>;
-  balances_?: InputMaybe<FertilizerBalance_Filter>;
+  and?: InputMaybe<Array<InputMaybe<FertilizerTokenFilter>>>;
+  balances_?: InputMaybe<FertilizerBalanceFilter>;
   endBpf?: InputMaybe<Scalars['BigInt']['input']>;
   endBpf_gt?: InputMaybe<Scalars['BigInt']['input']>;
   endBpf_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -744,7 +766,7 @@ export type FertilizerToken_Filter = {
   endBpf_not?: InputMaybe<Scalars['BigInt']['input']>;
   endBpf_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   fertilizer?: InputMaybe<Scalars['String']['input']>;
-  fertilizer_?: InputMaybe<Fertilizer_Filter>;
+  fertilizer_?: InputMaybe<FertilizerFilter>;
   fertilizer_contains?: InputMaybe<Scalars['String']['input']>;
   fertilizer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   fertilizer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -780,7 +802,7 @@ export type FertilizerToken_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FertilizerToken_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FertilizerTokenFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -807,19 +829,19 @@ export type FertilizerToken_Filter = {
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum FertilizerToken_OrderBy {
-  Balances = 'balances',
-  EndBpf = 'endBpf',
-  Fertilizer = 'fertilizer',
-  FertilizerBeanstalk = 'fertilizer__beanstalk',
-  FertilizerId = 'fertilizer__id',
-  FertilizerSupply = 'fertilizer__supply',
-  FertilizerUnmigratedL1Supply = 'fertilizer__unmigratedL1Supply',
-  Humidity = 'humidity',
-  Id = 'id',
-  Season = 'season',
-  StartBpf = 'startBpf',
-  Supply = 'supply'
+export enum FertilizerTokenOrderBy {
+  balances = 'balances',
+  endBpf = 'endBpf',
+  fertilizer = 'fertilizer',
+  fertilizer__beanstalk = 'fertilizer__beanstalk',
+  fertilizer__id = 'fertilizer__id',
+  fertilizer__supply = 'fertilizer__supply',
+  fertilizer__unmigratedL1Supply = 'fertilizer__unmigratedL1Supply',
+  humidity = 'humidity',
+  id = 'id',
+  season = 'season',
+  startBpf = 'startBpf',
+  supply = 'supply'
 }
 
 export type FertilizerYield = {
@@ -844,10 +866,10 @@ export type FertilizerYield = {
   simpleAPY: Scalars['BigDecimal']['output'];
 };
 
-export type FertilizerYield_Filter = {
+export type FertilizerYieldFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<FertilizerYield_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FertilizerYieldFilter>>>;
   beansPerSeasonEMA?: InputMaybe<Scalars['BigDecimal']['input']>;
   beansPerSeasonEMA_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   beansPerSeasonEMA_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -892,7 +914,7 @@ export type FertilizerYield_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FertilizerYield_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FertilizerYieldFilter>>>;
   outstandingFert?: InputMaybe<Scalars['BigInt']['input']>;
   outstandingFert_gt?: InputMaybe<Scalars['BigInt']['input']>;
   outstandingFert_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -919,22 +941,22 @@ export type FertilizerYield_Filter = {
   simpleAPY_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
 };
 
-export enum FertilizerYield_OrderBy {
-  BeansPerSeasonEma = 'beansPerSeasonEMA',
-  CreatedAt = 'createdAt',
-  DeltaBpf = 'deltaBpf',
-  EmaWindow = 'emaWindow',
-  Humidity = 'humidity',
-  Id = 'id',
-  OutstandingFert = 'outstandingFert',
-  Season = 'season',
-  SimpleApy = 'simpleAPY'
+export enum FertilizerYieldOrderBy {
+  beansPerSeasonEMA = 'beansPerSeasonEMA',
+  createdAt = 'createdAt',
+  deltaBpf = 'deltaBpf',
+  emaWindow = 'emaWindow',
+  humidity = 'humidity',
+  id = 'id',
+  outstandingFert = 'outstandingFert',
+  season = 'season',
+  simpleAPY = 'simpleAPY'
 }
 
-export type Fertilizer_Filter = {
+export type FertilizerFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Fertilizer_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FertilizerFilter>>>;
   beanstalk?: InputMaybe<Scalars['String']['input']>;
   beanstalk_contains?: InputMaybe<Scalars['String']['input']>;
   beanstalk_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -965,7 +987,7 @@ export type Fertilizer_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Fertilizer_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FertilizerFilter>>>;
   supply?: InputMaybe<Scalars['BigInt']['input']>;
   supply_gt?: InputMaybe<Scalars['BigInt']['input']>;
   supply_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -974,7 +996,7 @@ export type Fertilizer_Filter = {
   supply_lte?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  tokens_?: InputMaybe<FertilizerToken_Filter>;
+  tokens_?: InputMaybe<FertilizerTokenFilter>;
   unmigratedL1Supply?: InputMaybe<Scalars['BigInt']['input']>;
   unmigratedL1Supply_gt?: InputMaybe<Scalars['BigInt']['input']>;
   unmigratedL1Supply_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -985,12 +1007,12 @@ export type Fertilizer_Filter = {
   unmigratedL1Supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Fertilizer_OrderBy {
-  Beanstalk = 'beanstalk',
-  Id = 'id',
-  Supply = 'supply',
-  Tokens = 'tokens',
-  UnmigratedL1Supply = 'unmigratedL1Supply'
+export enum FertilizerOrderBy {
+  beanstalk = 'beanstalk',
+  id = 'id',
+  supply = 'supply',
+  tokens = 'tokens',
+  unmigratedL1Supply = 'unmigratedL1Supply'
 }
 
 export type Field = {
@@ -1005,6 +1027,8 @@ export type Field = {
   dailySnapshots: Array<FieldDailySnapshot>;
   /** Farmer address if applicable */
   farmer?: Maybe<Farmer>;
+  /** Numeric identifier of the field emitted on protocol events */
+  fieldId: Scalars['BigInt']['output'];
   /** Current harvestable index */
   harvestableIndex: Scalars['BigInt']['output'];
   /** Current harvestable pods */
@@ -1013,8 +1037,8 @@ export type Field = {
   harvestedPods: Scalars['BigInt']['output'];
   /** Link to hourly snapshot data */
   hourlySnapshots: Array<FieldHourlySnapshot>;
-  /** Contract address for this field or farmer */
-  id: Scalars['Bytes']['output'];
+  /** Contract address for this field or farmer when fieldId is zero. Otherwise address:fieldId */
+  id: Scalars['ID']['output'];
   /** Day of when the previous daily snapshot was taken/updated */
   lastDailySnapshotDay?: Maybe<Scalars['BigInt']['output']>;
   /** Season when the previous hourly snapshot was taken/updated */
@@ -1048,19 +1072,19 @@ export type Field = {
 
 export type FieldDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FieldDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FieldDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<FieldDailySnapshot_Filter>;
+  where?: InputMaybe<FieldDailySnapshotFilter>;
 };
 
 
 export type FieldHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FieldHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FieldHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<FieldHourlySnapshot_Filter>;
+  where?: InputMaybe<FieldHourlySnapshotFilter>;
 };
 
 export type FieldDailySnapshot = {
@@ -1088,6 +1112,8 @@ export type FieldDailySnapshot = {
   deltaUnharvestablePods: Scalars['BigInt']['output'];
   /** Field associated with this snapshot */
   field: Field;
+  /** Numeric identifier of the field */
+  fieldId: Scalars['BigInt']['output'];
   /** Point in time harvestable index */
   harvestableIndex: Scalars['BigInt']['output'];
   /** Point in time harvestable pods */
@@ -1122,10 +1148,10 @@ export type FieldDailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type FieldDailySnapshot_Filter = {
+export type FieldDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<FieldDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FieldDailySnapshotFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1271,7 +1297,15 @@ export type FieldDailySnapshot_Filter = {
   deltaUnharvestablePods_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaUnharvestablePods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   field?: InputMaybe<Scalars['String']['input']>;
-  field_?: InputMaybe<Field_Filter>;
+  fieldId?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  fieldId_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  field_?: InputMaybe<FieldFilter>;
   field_contains?: InputMaybe<Scalars['String']['input']>;
   field_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   field_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1347,7 +1381,7 @@ export type FieldDailySnapshot_Filter = {
   numberOfSows_lte?: InputMaybe<Scalars['Int']['input']>;
   numberOfSows_not?: InputMaybe<Scalars['Int']['input']>;
   numberOfSows_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FieldDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FieldDailySnapshotFilter>>>;
   podIndex?: InputMaybe<Scalars['BigInt']['input']>;
   podIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
   podIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1422,61 +1456,63 @@ export type FieldDailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum FieldDailySnapshot_OrderBy {
-  CreatedAt = 'createdAt',
-  CultivationFactor = 'cultivationFactor',
-  CultivationTemperature = 'cultivationTemperature',
-  DeltaCultivationFactor = 'deltaCultivationFactor',
-  DeltaCultivationTemperature = 'deltaCultivationTemperature',
-  DeltaHarvestableIndex = 'deltaHarvestableIndex',
-  DeltaHarvestablePods = 'deltaHarvestablePods',
-  DeltaHarvestedPods = 'deltaHarvestedPods',
-  DeltaIssuedSoil = 'deltaIssuedSoil',
-  DeltaNumberOfSowers = 'deltaNumberOfSowers',
-  DeltaNumberOfSows = 'deltaNumberOfSows',
-  DeltaPodIndex = 'deltaPodIndex',
-  DeltaPodRate = 'deltaPodRate',
-  DeltaRealRateOfReturn = 'deltaRealRateOfReturn',
-  DeltaSoil = 'deltaSoil',
-  DeltaSownBeans = 'deltaSownBeans',
-  DeltaTemperature = 'deltaTemperature',
-  DeltaUnharvestablePods = 'deltaUnharvestablePods',
-  Field = 'field',
-  FieldCultivationFactor = 'field__cultivationFactor',
-  FieldCultivationTemperature = 'field__cultivationTemperature',
-  FieldHarvestableIndex = 'field__harvestableIndex',
-  FieldHarvestablePods = 'field__harvestablePods',
-  FieldHarvestedPods = 'field__harvestedPods',
-  FieldId = 'field__id',
-  FieldLastDailySnapshotDay = 'field__lastDailySnapshotDay',
-  FieldLastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
-  FieldNumberOfSowers = 'field__numberOfSowers',
-  FieldNumberOfSows = 'field__numberOfSows',
-  FieldPodIndex = 'field__podIndex',
-  FieldPodRate = 'field__podRate',
-  FieldRealRateOfReturn = 'field__realRateOfReturn',
-  FieldSeason = 'field__season',
-  FieldSoil = 'field__soil',
-  FieldSownBeans = 'field__sownBeans',
-  FieldTemperature = 'field__temperature',
-  FieldUnharvestablePods = 'field__unharvestablePods',
-  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
-  HarvestableIndex = 'harvestableIndex',
-  HarvestablePods = 'harvestablePods',
-  HarvestedPods = 'harvestedPods',
-  Id = 'id',
-  IssuedSoil = 'issuedSoil',
-  NumberOfSowers = 'numberOfSowers',
-  NumberOfSows = 'numberOfSows',
-  PodIndex = 'podIndex',
-  PodRate = 'podRate',
-  RealRateOfReturn = 'realRateOfReturn',
-  Season = 'season',
-  Soil = 'soil',
-  SownBeans = 'sownBeans',
-  Temperature = 'temperature',
-  UnharvestablePods = 'unharvestablePods',
-  UpdatedAt = 'updatedAt'
+export enum FieldDailySnapshotOrderBy {
+  createdAt = 'createdAt',
+  cultivationFactor = 'cultivationFactor',
+  cultivationTemperature = 'cultivationTemperature',
+  deltaCultivationFactor = 'deltaCultivationFactor',
+  deltaCultivationTemperature = 'deltaCultivationTemperature',
+  deltaHarvestableIndex = 'deltaHarvestableIndex',
+  deltaHarvestablePods = 'deltaHarvestablePods',
+  deltaHarvestedPods = 'deltaHarvestedPods',
+  deltaIssuedSoil = 'deltaIssuedSoil',
+  deltaNumberOfSowers = 'deltaNumberOfSowers',
+  deltaNumberOfSows = 'deltaNumberOfSows',
+  deltaPodIndex = 'deltaPodIndex',
+  deltaPodRate = 'deltaPodRate',
+  deltaRealRateOfReturn = 'deltaRealRateOfReturn',
+  deltaSoil = 'deltaSoil',
+  deltaSownBeans = 'deltaSownBeans',
+  deltaTemperature = 'deltaTemperature',
+  deltaUnharvestablePods = 'deltaUnharvestablePods',
+  field = 'field',
+  fieldId = 'fieldId',
+  field__cultivationFactor = 'field__cultivationFactor',
+  field__cultivationTemperature = 'field__cultivationTemperature',
+  field__fieldId = 'field__fieldId',
+  field__harvestableIndex = 'field__harvestableIndex',
+  field__harvestablePods = 'field__harvestablePods',
+  field__harvestedPods = 'field__harvestedPods',
+  field__id = 'field__id',
+  field__lastDailySnapshotDay = 'field__lastDailySnapshotDay',
+  field__lastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
+  field__numberOfSowers = 'field__numberOfSowers',
+  field__numberOfSows = 'field__numberOfSows',
+  field__podIndex = 'field__podIndex',
+  field__podRate = 'field__podRate',
+  field__realRateOfReturn = 'field__realRateOfReturn',
+  field__season = 'field__season',
+  field__soil = 'field__soil',
+  field__sownBeans = 'field__sownBeans',
+  field__temperature = 'field__temperature',
+  field__unharvestablePods = 'field__unharvestablePods',
+  field__unmigratedL1Pods = 'field__unmigratedL1Pods',
+  harvestableIndex = 'harvestableIndex',
+  harvestablePods = 'harvestablePods',
+  harvestedPods = 'harvestedPods',
+  id = 'id',
+  issuedSoil = 'issuedSoil',
+  numberOfSowers = 'numberOfSowers',
+  numberOfSows = 'numberOfSows',
+  podIndex = 'podIndex',
+  podRate = 'podRate',
+  realRateOfReturn = 'realRateOfReturn',
+  season = 'season',
+  soil = 'soil',
+  sownBeans = 'sownBeans',
+  temperature = 'temperature',
+  unharvestablePods = 'unharvestablePods',
+  updatedAt = 'updatedAt'
 }
 
 export type FieldHourlySnapshot = {
@@ -1510,6 +1546,8 @@ export type FieldHourlySnapshot = {
   deltaUnharvestablePods: Scalars['BigInt']['output'];
   /** Field associated with this snapshot */
   field: Field;
+  /** Numeric identifier of the field */
+  fieldId: Scalars['BigInt']['output'];
   /** Point in time harvestable index */
   harvestableIndex: Scalars['BigInt']['output'];
   /** Point in time harvestable pods */
@@ -1548,10 +1586,10 @@ export type FieldHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type FieldHourlySnapshot_Filter = {
+export type FieldHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<FieldHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FieldHourlySnapshotFilter>>>;
   blocksToSoldOutSoil?: InputMaybe<Scalars['BigInt']['input']>;
   blocksToSoldOutSoil_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blocksToSoldOutSoil_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1721,7 +1759,15 @@ export type FieldHourlySnapshot_Filter = {
   deltaUnharvestablePods_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaUnharvestablePods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   field?: InputMaybe<Scalars['String']['input']>;
-  field_?: InputMaybe<Field_Filter>;
+  fieldId?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  fieldId_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  field_?: InputMaybe<FieldFilter>;
   field_contains?: InputMaybe<Scalars['String']['input']>;
   field_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   field_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1797,7 +1843,7 @@ export type FieldHourlySnapshot_Filter = {
   numberOfSows_lte?: InputMaybe<Scalars['Int']['input']>;
   numberOfSows_not?: InputMaybe<Scalars['Int']['input']>;
   numberOfSows_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FieldHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FieldHourlySnapshotFilter>>>;
   podIndex?: InputMaybe<Scalars['BigInt']['input']>;
   podIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
   podIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1884,74 +1930,76 @@ export type FieldHourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum FieldHourlySnapshot_OrderBy {
-  BlocksToSoldOutSoil = 'blocksToSoldOutSoil',
-  CaseId = 'caseId',
-  CreatedAt = 'createdAt',
-  CultivationFactor = 'cultivationFactor',
-  CultivationTemperature = 'cultivationTemperature',
-  DeltaCultivationFactor = 'deltaCultivationFactor',
-  DeltaCultivationTemperature = 'deltaCultivationTemperature',
-  DeltaHarvestableIndex = 'deltaHarvestableIndex',
-  DeltaHarvestablePods = 'deltaHarvestablePods',
-  DeltaHarvestedPods = 'deltaHarvestedPods',
-  DeltaIssuedSoil = 'deltaIssuedSoil',
-  DeltaNumberOfSowers = 'deltaNumberOfSowers',
-  DeltaNumberOfSows = 'deltaNumberOfSows',
-  DeltaPodDemand = 'deltaPodDemand',
-  DeltaPodIndex = 'deltaPodIndex',
-  DeltaPodRate = 'deltaPodRate',
-  DeltaRealRateOfReturn = 'deltaRealRateOfReturn',
-  DeltaSoil = 'deltaSoil',
-  DeltaSownBeans = 'deltaSownBeans',
-  DeltaTemperature = 'deltaTemperature',
-  DeltaUnharvestablePods = 'deltaUnharvestablePods',
-  Field = 'field',
-  FieldCultivationFactor = 'field__cultivationFactor',
-  FieldCultivationTemperature = 'field__cultivationTemperature',
-  FieldHarvestableIndex = 'field__harvestableIndex',
-  FieldHarvestablePods = 'field__harvestablePods',
-  FieldHarvestedPods = 'field__harvestedPods',
-  FieldId = 'field__id',
-  FieldLastDailySnapshotDay = 'field__lastDailySnapshotDay',
-  FieldLastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
-  FieldNumberOfSowers = 'field__numberOfSowers',
-  FieldNumberOfSows = 'field__numberOfSows',
-  FieldPodIndex = 'field__podIndex',
-  FieldPodRate = 'field__podRate',
-  FieldRealRateOfReturn = 'field__realRateOfReturn',
-  FieldSeason = 'field__season',
-  FieldSoil = 'field__soil',
-  FieldSownBeans = 'field__sownBeans',
-  FieldTemperature = 'field__temperature',
-  FieldUnharvestablePods = 'field__unharvestablePods',
-  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
-  HarvestableIndex = 'harvestableIndex',
-  HarvestablePods = 'harvestablePods',
-  HarvestedPods = 'harvestedPods',
-  Id = 'id',
-  IssuedSoil = 'issuedSoil',
-  NumberOfSowers = 'numberOfSowers',
-  NumberOfSows = 'numberOfSows',
-  PodIndex = 'podIndex',
-  PodRate = 'podRate',
-  RealRateOfReturn = 'realRateOfReturn',
-  Season = 'season',
-  SeasonBlock = 'seasonBlock',
-  Soil = 'soil',
-  SoilSoldOut = 'soilSoldOut',
-  SownBeans = 'sownBeans',
-  Temperature = 'temperature',
-  UnharvestablePods = 'unharvestablePods',
-  UpdatedAt = 'updatedAt'
+export enum FieldHourlySnapshotOrderBy {
+  blocksToSoldOutSoil = 'blocksToSoldOutSoil',
+  caseId = 'caseId',
+  createdAt = 'createdAt',
+  cultivationFactor = 'cultivationFactor',
+  cultivationTemperature = 'cultivationTemperature',
+  deltaCultivationFactor = 'deltaCultivationFactor',
+  deltaCultivationTemperature = 'deltaCultivationTemperature',
+  deltaHarvestableIndex = 'deltaHarvestableIndex',
+  deltaHarvestablePods = 'deltaHarvestablePods',
+  deltaHarvestedPods = 'deltaHarvestedPods',
+  deltaIssuedSoil = 'deltaIssuedSoil',
+  deltaNumberOfSowers = 'deltaNumberOfSowers',
+  deltaNumberOfSows = 'deltaNumberOfSows',
+  deltaPodDemand = 'deltaPodDemand',
+  deltaPodIndex = 'deltaPodIndex',
+  deltaPodRate = 'deltaPodRate',
+  deltaRealRateOfReturn = 'deltaRealRateOfReturn',
+  deltaSoil = 'deltaSoil',
+  deltaSownBeans = 'deltaSownBeans',
+  deltaTemperature = 'deltaTemperature',
+  deltaUnharvestablePods = 'deltaUnharvestablePods',
+  field = 'field',
+  fieldId = 'fieldId',
+  field__cultivationFactor = 'field__cultivationFactor',
+  field__cultivationTemperature = 'field__cultivationTemperature',
+  field__fieldId = 'field__fieldId',
+  field__harvestableIndex = 'field__harvestableIndex',
+  field__harvestablePods = 'field__harvestablePods',
+  field__harvestedPods = 'field__harvestedPods',
+  field__id = 'field__id',
+  field__lastDailySnapshotDay = 'field__lastDailySnapshotDay',
+  field__lastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
+  field__numberOfSowers = 'field__numberOfSowers',
+  field__numberOfSows = 'field__numberOfSows',
+  field__podIndex = 'field__podIndex',
+  field__podRate = 'field__podRate',
+  field__realRateOfReturn = 'field__realRateOfReturn',
+  field__season = 'field__season',
+  field__soil = 'field__soil',
+  field__sownBeans = 'field__sownBeans',
+  field__temperature = 'field__temperature',
+  field__unharvestablePods = 'field__unharvestablePods',
+  field__unmigratedL1Pods = 'field__unmigratedL1Pods',
+  harvestableIndex = 'harvestableIndex',
+  harvestablePods = 'harvestablePods',
+  harvestedPods = 'harvestedPods',
+  id = 'id',
+  issuedSoil = 'issuedSoil',
+  numberOfSowers = 'numberOfSowers',
+  numberOfSows = 'numberOfSows',
+  podIndex = 'podIndex',
+  podRate = 'podRate',
+  realRateOfReturn = 'realRateOfReturn',
+  season = 'season',
+  seasonBlock = 'seasonBlock',
+  soil = 'soil',
+  soilSoldOut = 'soilSoldOut',
+  sownBeans = 'sownBeans',
+  temperature = 'temperature',
+  unharvestablePods = 'unharvestablePods',
+  updatedAt = 'updatedAt'
 }
 
-export type Field_Filter = {
+export type FieldFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Field_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FieldFilter>>>;
   beanstalk?: InputMaybe<Scalars['String']['input']>;
-  beanstalk_?: InputMaybe<Beanstalk_Filter>;
+  beanstalk_?: InputMaybe<BeanstalkFilter>;
   beanstalk_contains?: InputMaybe<Scalars['String']['input']>;
   beanstalk_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   beanstalk_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1987,9 +2035,9 @@ export type Field_Filter = {
   cultivationTemperature_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   cultivationTemperature_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   cultivationTemperature_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  dailySnapshots_?: InputMaybe<FieldDailySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<FieldDailySnapshotFilter>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2009,6 +2057,14 @@ export type Field_Filter = {
   farmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  fieldId?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  fieldId_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   harvestableIndex?: InputMaybe<Scalars['BigInt']['input']>;
   harvestableIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
   harvestableIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2033,17 +2089,15 @@ export type Field_Filter = {
   harvestedPods_lte?: InputMaybe<Scalars['BigInt']['input']>;
   harvestedPods_not?: InputMaybe<Scalars['BigInt']['input']>;
   harvestedPods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hourlySnapshots_?: InputMaybe<FieldHourlySnapshot_Filter>;
-  id?: InputMaybe<Scalars['Bytes']['input']>;
-  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  id_not?: InputMaybe<Scalars['Bytes']['input']>;
-  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hourlySnapshots_?: InputMaybe<FieldHourlySnapshotFilter>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
   lastDailySnapshotDay?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gt?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2076,7 +2130,7 @@ export type Field_Filter = {
   numberOfSows_lte?: InputMaybe<Scalars['Int']['input']>;
   numberOfSows_not?: InputMaybe<Scalars['Int']['input']>;
   numberOfSows_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Field_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FieldFilter>>>;
   plotIndexes?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   plotIndexes_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   plotIndexes_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
@@ -2157,37 +2211,40 @@ export type Field_Filter = {
   unmigratedL1Pods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Field_OrderBy {
-  Beanstalk = 'beanstalk',
-  BeanstalkFertilizer1155 = 'beanstalk__fertilizer1155',
-  BeanstalkId = 'beanstalk__id',
-  BeanstalkLastSeason = 'beanstalk__lastSeason',
-  BeanstalkToken = 'beanstalk__token',
-  CultivationFactor = 'cultivationFactor',
-  CultivationTemperature = 'cultivationTemperature',
-  DailySnapshots = 'dailySnapshots',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  HarvestableIndex = 'harvestableIndex',
-  HarvestablePods = 'harvestablePods',
-  HarvestedPods = 'harvestedPods',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  NumberOfSowers = 'numberOfSowers',
-  NumberOfSows = 'numberOfSows',
-  PlotIndexes = 'plotIndexes',
-  PodIndex = 'podIndex',
-  PodRate = 'podRate',
-  RealRateOfReturn = 'realRateOfReturn',
-  Season = 'season',
-  Soil = 'soil',
-  SownBeans = 'sownBeans',
-  Temperature = 'temperature',
-  UnharvestablePods = 'unharvestablePods',
-  UnmigratedL1Pods = 'unmigratedL1Pods'
+export enum FieldOrderBy {
+  beanstalk = 'beanstalk',
+  beanstalk__fertilizer1155 = 'beanstalk__fertilizer1155',
+  beanstalk__id = 'beanstalk__id',
+  beanstalk__lastSeason = 'beanstalk__lastSeason',
+  beanstalk__token = 'beanstalk__token',
+  cultivationFactor = 'cultivationFactor',
+  cultivationTemperature = 'cultivationTemperature',
+  dailySnapshots = 'dailySnapshots',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  fieldId = 'fieldId',
+  harvestableIndex = 'harvestableIndex',
+  harvestablePods = 'harvestablePods',
+  harvestedPods = 'harvestedPods',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  numberOfSowers = 'numberOfSowers',
+  numberOfSows = 'numberOfSows',
+  plotIndexes = 'plotIndexes',
+  podIndex = 'podIndex',
+  podRate = 'podRate',
+  realRateOfReturn = 'realRateOfReturn',
+  season = 'season',
+  soil = 'soil',
+  sownBeans = 'sownBeans',
+  temperature = 'temperature',
+  unharvestablePods = 'unharvestablePods',
+  unmigratedL1Pods = 'unmigratedL1Pods'
 }
 
 export type GaugesInfo = {
@@ -2227,19 +2284,19 @@ export type GaugesInfo = {
 
 export type GaugesInfoDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfoDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<GaugesInfoDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<GaugesInfoDailySnapshot_Filter>;
+  where?: InputMaybe<GaugesInfoDailySnapshotFilter>;
 };
 
 
 export type GaugesInfoHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfoHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<GaugesInfoHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<GaugesInfoHourlySnapshot_Filter>;
+  where?: InputMaybe<GaugesInfoHourlySnapshotFilter>;
 };
 
 export type GaugesInfoDailySnapshot = {
@@ -2276,10 +2333,10 @@ export type GaugesInfoDailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type GaugesInfoDailySnapshot_Filter = {
+export type GaugesInfoDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<GaugesInfoDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<GaugesInfoDailySnapshotFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2425,7 +2482,7 @@ export type GaugesInfoDailySnapshot_Filter = {
   g2MaxTwaDeltaB_not?: InputMaybe<Scalars['BigInt']['input']>;
   g2MaxTwaDeltaB_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   gaugesInfo?: InputMaybe<Scalars['String']['input']>;
-  gaugesInfo_?: InputMaybe<GaugesInfo_Filter>;
+  gaugesInfo_?: InputMaybe<GaugesInfoFilter>;
   gaugesInfo_contains?: InputMaybe<Scalars['String']['input']>;
   gaugesInfo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   gaugesInfo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2453,7 +2510,7 @@ export type GaugesInfoDailySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<GaugesInfoDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<GaugesInfoDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -2472,45 +2529,45 @@ export type GaugesInfoDailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum GaugesInfoDailySnapshot_OrderBy {
-  CreatedAt = 'createdAt',
-  DeltaG0CultivationFactor = 'deltaG0CultivationFactor',
-  DeltaG0IsActive = 'deltaG0IsActive',
-  DeltaG1BlightFactor = 'deltaG1BlightFactor',
-  DeltaG1ConvertDownPenalty = 'deltaG1ConvertDownPenalty',
-  DeltaG1IsActive = 'deltaG1IsActive',
-  DeltaG2BdvConvertedThisSeason = 'deltaG2BdvConvertedThisSeason',
-  DeltaG2BonusStalkPerBdv = 'deltaG2BonusStalkPerBdv',
-  DeltaG2IsActive = 'deltaG2IsActive',
-  DeltaG2MaxConvertCapacity = 'deltaG2MaxConvertCapacity',
-  DeltaG2MaxTwaDeltaB = 'deltaG2MaxTwaDeltaB',
-  G0CultivationFactor = 'g0CultivationFactor',
-  G0IsActive = 'g0IsActive',
-  G1BlightFactor = 'g1BlightFactor',
-  G1ConvertDownPenalty = 'g1ConvertDownPenalty',
-  G1IsActive = 'g1IsActive',
-  G2BdvConvertedThisSeason = 'g2BdvConvertedThisSeason',
-  G2BonusStalkPerBdv = 'g2BonusStalkPerBdv',
-  G2IsActive = 'g2IsActive',
-  G2MaxConvertCapacity = 'g2MaxConvertCapacity',
-  G2MaxTwaDeltaB = 'g2MaxTwaDeltaB',
-  GaugesInfo = 'gaugesInfo',
-  GaugesInfoG0CultivationFactor = 'gaugesInfo__g0CultivationFactor',
-  GaugesInfoG0IsActive = 'gaugesInfo__g0IsActive',
-  GaugesInfoG1BlightFactor = 'gaugesInfo__g1BlightFactor',
-  GaugesInfoG1ConvertDownPenalty = 'gaugesInfo__g1ConvertDownPenalty',
-  GaugesInfoG1IsActive = 'gaugesInfo__g1IsActive',
-  GaugesInfoG2BdvConvertedThisSeason = 'gaugesInfo__g2BdvConvertedThisSeason',
-  GaugesInfoG2BonusStalkPerBdv = 'gaugesInfo__g2BonusStalkPerBdv',
-  GaugesInfoG2IsActive = 'gaugesInfo__g2IsActive',
-  GaugesInfoG2MaxConvertCapacity = 'gaugesInfo__g2MaxConvertCapacity',
-  GaugesInfoG2MaxTwaDeltaB = 'gaugesInfo__g2MaxTwaDeltaB',
-  GaugesInfoId = 'gaugesInfo__id',
-  GaugesInfoLastDailySnapshotDay = 'gaugesInfo__lastDailySnapshotDay',
-  GaugesInfoLastHourlySnapshotSeason = 'gaugesInfo__lastHourlySnapshotSeason',
-  Id = 'id',
-  Season = 'season',
-  UpdatedAt = 'updatedAt'
+export enum GaugesInfoDailySnapshotOrderBy {
+  createdAt = 'createdAt',
+  deltaG0CultivationFactor = 'deltaG0CultivationFactor',
+  deltaG0IsActive = 'deltaG0IsActive',
+  deltaG1BlightFactor = 'deltaG1BlightFactor',
+  deltaG1ConvertDownPenalty = 'deltaG1ConvertDownPenalty',
+  deltaG1IsActive = 'deltaG1IsActive',
+  deltaG2BdvConvertedThisSeason = 'deltaG2BdvConvertedThisSeason',
+  deltaG2BonusStalkPerBdv = 'deltaG2BonusStalkPerBdv',
+  deltaG2IsActive = 'deltaG2IsActive',
+  deltaG2MaxConvertCapacity = 'deltaG2MaxConvertCapacity',
+  deltaG2MaxTwaDeltaB = 'deltaG2MaxTwaDeltaB',
+  g0CultivationFactor = 'g0CultivationFactor',
+  g0IsActive = 'g0IsActive',
+  g1BlightFactor = 'g1BlightFactor',
+  g1ConvertDownPenalty = 'g1ConvertDownPenalty',
+  g1IsActive = 'g1IsActive',
+  g2BdvConvertedThisSeason = 'g2BdvConvertedThisSeason',
+  g2BonusStalkPerBdv = 'g2BonusStalkPerBdv',
+  g2IsActive = 'g2IsActive',
+  g2MaxConvertCapacity = 'g2MaxConvertCapacity',
+  g2MaxTwaDeltaB = 'g2MaxTwaDeltaB',
+  gaugesInfo = 'gaugesInfo',
+  gaugesInfo__g0CultivationFactor = 'gaugesInfo__g0CultivationFactor',
+  gaugesInfo__g0IsActive = 'gaugesInfo__g0IsActive',
+  gaugesInfo__g1BlightFactor = 'gaugesInfo__g1BlightFactor',
+  gaugesInfo__g1ConvertDownPenalty = 'gaugesInfo__g1ConvertDownPenalty',
+  gaugesInfo__g1IsActive = 'gaugesInfo__g1IsActive',
+  gaugesInfo__g2BdvConvertedThisSeason = 'gaugesInfo__g2BdvConvertedThisSeason',
+  gaugesInfo__g2BonusStalkPerBdv = 'gaugesInfo__g2BonusStalkPerBdv',
+  gaugesInfo__g2IsActive = 'gaugesInfo__g2IsActive',
+  gaugesInfo__g2MaxConvertCapacity = 'gaugesInfo__g2MaxConvertCapacity',
+  gaugesInfo__g2MaxTwaDeltaB = 'gaugesInfo__g2MaxTwaDeltaB',
+  gaugesInfo__id = 'gaugesInfo__id',
+  gaugesInfo__lastDailySnapshotDay = 'gaugesInfo__lastDailySnapshotDay',
+  gaugesInfo__lastHourlySnapshotSeason = 'gaugesInfo__lastHourlySnapshotSeason',
+  id = 'id',
+  season = 'season',
+  updatedAt = 'updatedAt'
 }
 
 export type GaugesInfoHourlySnapshot = {
@@ -2547,10 +2604,10 @@ export type GaugesInfoHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type GaugesInfoHourlySnapshot_Filter = {
+export type GaugesInfoHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<GaugesInfoHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<GaugesInfoHourlySnapshotFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2696,7 +2753,7 @@ export type GaugesInfoHourlySnapshot_Filter = {
   g2MaxTwaDeltaB_not?: InputMaybe<Scalars['BigInt']['input']>;
   g2MaxTwaDeltaB_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   gaugesInfo?: InputMaybe<Scalars['String']['input']>;
-  gaugesInfo_?: InputMaybe<GaugesInfo_Filter>;
+  gaugesInfo_?: InputMaybe<GaugesInfoFilter>;
   gaugesInfo_contains?: InputMaybe<Scalars['String']['input']>;
   gaugesInfo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   gaugesInfo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2724,7 +2781,7 @@ export type GaugesInfoHourlySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<GaugesInfoHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<GaugesInfoHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -2743,52 +2800,52 @@ export type GaugesInfoHourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum GaugesInfoHourlySnapshot_OrderBy {
-  CreatedAt = 'createdAt',
-  DeltaG0CultivationFactor = 'deltaG0CultivationFactor',
-  DeltaG0IsActive = 'deltaG0IsActive',
-  DeltaG1BlightFactor = 'deltaG1BlightFactor',
-  DeltaG1ConvertDownPenalty = 'deltaG1ConvertDownPenalty',
-  DeltaG1IsActive = 'deltaG1IsActive',
-  DeltaG2BdvConvertedThisSeason = 'deltaG2BdvConvertedThisSeason',
-  DeltaG2BonusStalkPerBdv = 'deltaG2BonusStalkPerBdv',
-  DeltaG2IsActive = 'deltaG2IsActive',
-  DeltaG2MaxConvertCapacity = 'deltaG2MaxConvertCapacity',
-  DeltaG2MaxTwaDeltaB = 'deltaG2MaxTwaDeltaB',
-  G0CultivationFactor = 'g0CultivationFactor',
-  G0IsActive = 'g0IsActive',
-  G1BlightFactor = 'g1BlightFactor',
-  G1ConvertDownPenalty = 'g1ConvertDownPenalty',
-  G1IsActive = 'g1IsActive',
-  G2BdvConvertedThisSeason = 'g2BdvConvertedThisSeason',
-  G2BonusStalkPerBdv = 'g2BonusStalkPerBdv',
-  G2IsActive = 'g2IsActive',
-  G2MaxConvertCapacity = 'g2MaxConvertCapacity',
-  G2MaxTwaDeltaB = 'g2MaxTwaDeltaB',
-  GaugesInfo = 'gaugesInfo',
-  GaugesInfoG0CultivationFactor = 'gaugesInfo__g0CultivationFactor',
-  GaugesInfoG0IsActive = 'gaugesInfo__g0IsActive',
-  GaugesInfoG1BlightFactor = 'gaugesInfo__g1BlightFactor',
-  GaugesInfoG1ConvertDownPenalty = 'gaugesInfo__g1ConvertDownPenalty',
-  GaugesInfoG1IsActive = 'gaugesInfo__g1IsActive',
-  GaugesInfoG2BdvConvertedThisSeason = 'gaugesInfo__g2BdvConvertedThisSeason',
-  GaugesInfoG2BonusStalkPerBdv = 'gaugesInfo__g2BonusStalkPerBdv',
-  GaugesInfoG2IsActive = 'gaugesInfo__g2IsActive',
-  GaugesInfoG2MaxConvertCapacity = 'gaugesInfo__g2MaxConvertCapacity',
-  GaugesInfoG2MaxTwaDeltaB = 'gaugesInfo__g2MaxTwaDeltaB',
-  GaugesInfoId = 'gaugesInfo__id',
-  GaugesInfoLastDailySnapshotDay = 'gaugesInfo__lastDailySnapshotDay',
-  GaugesInfoLastHourlySnapshotSeason = 'gaugesInfo__lastHourlySnapshotSeason',
-  Id = 'id',
-  Season = 'season',
-  UpdatedAt = 'updatedAt'
+export enum GaugesInfoHourlySnapshotOrderBy {
+  createdAt = 'createdAt',
+  deltaG0CultivationFactor = 'deltaG0CultivationFactor',
+  deltaG0IsActive = 'deltaG0IsActive',
+  deltaG1BlightFactor = 'deltaG1BlightFactor',
+  deltaG1ConvertDownPenalty = 'deltaG1ConvertDownPenalty',
+  deltaG1IsActive = 'deltaG1IsActive',
+  deltaG2BdvConvertedThisSeason = 'deltaG2BdvConvertedThisSeason',
+  deltaG2BonusStalkPerBdv = 'deltaG2BonusStalkPerBdv',
+  deltaG2IsActive = 'deltaG2IsActive',
+  deltaG2MaxConvertCapacity = 'deltaG2MaxConvertCapacity',
+  deltaG2MaxTwaDeltaB = 'deltaG2MaxTwaDeltaB',
+  g0CultivationFactor = 'g0CultivationFactor',
+  g0IsActive = 'g0IsActive',
+  g1BlightFactor = 'g1BlightFactor',
+  g1ConvertDownPenalty = 'g1ConvertDownPenalty',
+  g1IsActive = 'g1IsActive',
+  g2BdvConvertedThisSeason = 'g2BdvConvertedThisSeason',
+  g2BonusStalkPerBdv = 'g2BonusStalkPerBdv',
+  g2IsActive = 'g2IsActive',
+  g2MaxConvertCapacity = 'g2MaxConvertCapacity',
+  g2MaxTwaDeltaB = 'g2MaxTwaDeltaB',
+  gaugesInfo = 'gaugesInfo',
+  gaugesInfo__g0CultivationFactor = 'gaugesInfo__g0CultivationFactor',
+  gaugesInfo__g0IsActive = 'gaugesInfo__g0IsActive',
+  gaugesInfo__g1BlightFactor = 'gaugesInfo__g1BlightFactor',
+  gaugesInfo__g1ConvertDownPenalty = 'gaugesInfo__g1ConvertDownPenalty',
+  gaugesInfo__g1IsActive = 'gaugesInfo__g1IsActive',
+  gaugesInfo__g2BdvConvertedThisSeason = 'gaugesInfo__g2BdvConvertedThisSeason',
+  gaugesInfo__g2BonusStalkPerBdv = 'gaugesInfo__g2BonusStalkPerBdv',
+  gaugesInfo__g2IsActive = 'gaugesInfo__g2IsActive',
+  gaugesInfo__g2MaxConvertCapacity = 'gaugesInfo__g2MaxConvertCapacity',
+  gaugesInfo__g2MaxTwaDeltaB = 'gaugesInfo__g2MaxTwaDeltaB',
+  gaugesInfo__id = 'gaugesInfo__id',
+  gaugesInfo__lastDailySnapshotDay = 'gaugesInfo__lastDailySnapshotDay',
+  gaugesInfo__lastHourlySnapshotSeason = 'gaugesInfo__lastHourlySnapshotSeason',
+  id = 'id',
+  season = 'season',
+  updatedAt = 'updatedAt'
 }
 
-export type GaugesInfo_Filter = {
+export type GaugesInfoFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<GaugesInfo_Filter>>>;
-  dailySnapshots_?: InputMaybe<GaugesInfoDailySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<GaugesInfoFilter>>>;
+  dailySnapshots_?: InputMaybe<GaugesInfoDailySnapshotFilter>;
   g0CultivationFactor?: InputMaybe<Scalars['BigDecimal']['input']>;
   g0CultivationFactor_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   g0CultivationFactor_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2857,7 +2914,7 @@ export type GaugesInfo_Filter = {
   g2MaxTwaDeltaB_lte?: InputMaybe<Scalars['BigInt']['input']>;
   g2MaxTwaDeltaB_not?: InputMaybe<Scalars['BigInt']['input']>;
   g2MaxTwaDeltaB_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hourlySnapshots_?: InputMaybe<GaugesInfoHourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<GaugesInfoHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -2882,25 +2939,25 @@ export type GaugesInfo_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<GaugesInfo_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<GaugesInfoFilter>>>;
 };
 
-export enum GaugesInfo_OrderBy {
-  DailySnapshots = 'dailySnapshots',
-  G0CultivationFactor = 'g0CultivationFactor',
-  G0IsActive = 'g0IsActive',
-  G1BlightFactor = 'g1BlightFactor',
-  G1ConvertDownPenalty = 'g1ConvertDownPenalty',
-  G1IsActive = 'g1IsActive',
-  G2BdvConvertedThisSeason = 'g2BdvConvertedThisSeason',
-  G2BonusStalkPerBdv = 'g2BonusStalkPerBdv',
-  G2IsActive = 'g2IsActive',
-  G2MaxConvertCapacity = 'g2MaxConvertCapacity',
-  G2MaxTwaDeltaB = 'g2MaxTwaDeltaB',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason'
+export enum GaugesInfoOrderBy {
+  dailySnapshots = 'dailySnapshots',
+  g0CultivationFactor = 'g0CultivationFactor',
+  g0IsActive = 'g0IsActive',
+  g1BlightFactor = 'g1BlightFactor',
+  g1ConvertDownPenalty = 'g1ConvertDownPenalty',
+  g1IsActive = 'g1IsActive',
+  g2BdvConvertedThisSeason = 'g2BdvConvertedThisSeason',
+  g2BonusStalkPerBdv = 'g2BonusStalkPerBdv',
+  g2IsActive = 'g2IsActive',
+  g2MaxConvertCapacity = 'g2MaxConvertCapacity',
+  g2MaxTwaDeltaB = 'g2MaxTwaDeltaB',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason'
 }
 
 export type Germinating = {
@@ -2923,7 +2980,7 @@ export type Germinating = {
   type: Scalars['String']['output'];
 };
 
-export type Germinating_Filter = {
+export type GerminatingFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   address?: InputMaybe<Scalars['Bytes']['input']>;
@@ -2936,7 +2993,7 @@ export type Germinating_Filter = {
   address_not?: InputMaybe<Scalars['Bytes']['input']>;
   address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<Germinating_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<GerminatingFilter>>>;
   bdv?: InputMaybe<Scalars['BigInt']['input']>;
   bdv_gt?: InputMaybe<Scalars['BigInt']['input']>;
   bdv_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2957,7 +3014,7 @@ export type Germinating_Filter = {
   isFarmer_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   isFarmer_not?: InputMaybe<Scalars['Boolean']['input']>;
   isFarmer_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Germinating_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<GerminatingFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -3004,15 +3061,15 @@ export type Germinating_Filter = {
   type_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Germinating_OrderBy {
-  Address = 'address',
-  Bdv = 'bdv',
-  Id = 'id',
-  IsFarmer = 'isFarmer',
-  Season = 'season',
-  Stalk = 'stalk',
-  TokenAmount = 'tokenAmount',
-  Type = 'type'
+export enum GerminatingOrderBy {
+  address = 'address',
+  bdv = 'bdv',
+  id = 'id',
+  isFarmer = 'isFarmer',
+  season = 'season',
+  stalk = 'stalk',
+  tokenAmount = 'tokenAmount',
+  type = 'type'
 }
 
 export type MarketPerformanceSeasonal = {
@@ -3057,10 +3114,10 @@ export type MarketPerformanceSeasonal = {
   valid: Scalars['Boolean']['output'];
 };
 
-export type MarketPerformanceSeasonal_Filter = {
+export type MarketPerformanceSeasonalFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<MarketPerformanceSeasonal_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<MarketPerformanceSeasonalFilter>>>;
   cumulativePercentChange?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativePercentChange_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativePercentChange_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
@@ -3097,7 +3154,7 @@ export type MarketPerformanceSeasonal_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<MarketPerformanceSeasonal_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<MarketPerformanceSeasonalFilter>>>;
   percentChange?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   percentChange_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   percentChange_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
@@ -3139,7 +3196,7 @@ export type MarketPerformanceSeasonal_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   silo?: InputMaybe<Scalars['String']['input']>;
-  silo_?: InputMaybe<Silo_Filter>;
+  silo_?: InputMaybe<SiloFilter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
   silo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   silo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3215,59 +3272,59 @@ export type MarketPerformanceSeasonal_Filter = {
   valid_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
 };
 
-export enum MarketPerformanceSeasonal_OrderBy {
-  CumulativePercentChange = 'cumulativePercentChange',
-  CumulativeTotalPercentChange = 'cumulativeTotalPercentChange',
-  CumulativeTotalUsdChange = 'cumulativeTotalUsdChange',
-  CumulativeUsdChange = 'cumulativeUsdChange',
-  Id = 'id',
-  PercentChange = 'percentChange',
-  PrevSeasonTokenBalances = 'prevSeasonTokenBalances',
-  PrevSeasonTokenUsdPrices = 'prevSeasonTokenUsdPrices',
-  PrevSeasonTokenUsdValues = 'prevSeasonTokenUsdValues',
-  PrevSeasonTotalUsd = 'prevSeasonTotalUsd',
-  Season = 'season',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  ThisSeasonTokenUsdPrices = 'thisSeasonTokenUsdPrices',
-  ThisSeasonTokenUsdValues = 'thisSeasonTokenUsdValues',
-  ThisSeasonTotalUsd = 'thisSeasonTotalUsd',
-  Timestamp = 'timestamp',
-  TotalPercentChange = 'totalPercentChange',
-  TotalUsdChange = 'totalUsdChange',
-  UsdChange = 'usdChange',
-  Valid = 'valid'
+export enum MarketPerformanceSeasonalOrderBy {
+  cumulativePercentChange = 'cumulativePercentChange',
+  cumulativeTotalPercentChange = 'cumulativeTotalPercentChange',
+  cumulativeTotalUsdChange = 'cumulativeTotalUsdChange',
+  cumulativeUsdChange = 'cumulativeUsdChange',
+  id = 'id',
+  percentChange = 'percentChange',
+  prevSeasonTokenBalances = 'prevSeasonTokenBalances',
+  prevSeasonTokenUsdPrices = 'prevSeasonTokenUsdPrices',
+  prevSeasonTokenUsdValues = 'prevSeasonTokenUsdValues',
+  prevSeasonTotalUsd = 'prevSeasonTotalUsd',
+  season = 'season',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  thisSeasonTokenUsdPrices = 'thisSeasonTokenUsdPrices',
+  thisSeasonTokenUsdValues = 'thisSeasonTokenUsdValues',
+  thisSeasonTotalUsd = 'thisSeasonTotalUsd',
+  timestamp = 'timestamp',
+  totalPercentChange = 'totalPercentChange',
+  totalUsdChange = 'totalUsdChange',
+  usdChange = 'usdChange',
+  valid = 'valid'
 }
 
 export enum MarketStatus {
-  Active = 'ACTIVE',
-  Cancelled = 'CANCELLED',
-  CancelledPartial = 'CANCELLED_PARTIAL',
-  Expired = 'EXPIRED',
-  Filled = 'FILLED',
-  FilledPartial = 'FILLED_PARTIAL'
+  ACTIVE = 'ACTIVE',
+  CANCELLED = 'CANCELLED',
+  CANCELLED_PARTIAL = 'CANCELLED_PARTIAL',
+  EXPIRED = 'EXPIRED',
+  FILLED = 'FILLED',
+  FILLED_PARTIAL = 'FILLED_PARTIAL'
 }
 
 export type MarketplaceEvent = {
@@ -3283,10 +3340,10 @@ export type MarketplaceEvent = {
   logIndex: Scalars['Int']['output'];
 };
 
-export type MarketplaceEvent_Filter = {
+export type MarketplaceEventFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<MarketplaceEvent_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<MarketplaceEventFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3329,21 +3386,21 @@ export type MarketplaceEvent_Filter = {
   logIndex_lte?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<MarketplaceEvent_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<MarketplaceEventFilter>>>;
 };
 
-export enum MarketplaceEvent_OrderBy {
-  BlockNumber = 'blockNumber',
-  CreatedAt = 'createdAt',
-  Hash = 'hash',
-  Id = 'id',
-  LogIndex = 'logIndex'
+export enum MarketplaceEventOrderBy {
+  blockNumber = 'blockNumber',
+  createdAt = 'createdAt',
+  hash = 'hash',
+  id = 'id',
+  logIndex = 'logIndex'
 }
 
 /** Defines the order direction, either ascending or descending */
 export enum OrderDirection {
-  Asc = 'asc',
-  Desc = 'desc'
+  asc = 'asc',
+  desc = 'desc'
 }
 
 export type Plot = {
@@ -3358,6 +3415,8 @@ export type Plot = {
   farmer: Farmer;
   /** Field to which this plot belongs */
   field: Field;
+  /** Numeric identifier of the field */
+  fieldId: Scalars['BigInt']['output'];
   /** Flag for if plot is fully harvested */
   fullyHarvested: Scalars['Boolean']['output'];
   /** Timestamp of plot harvest, if it has harvested */
@@ -3368,12 +3427,14 @@ export type Plot = {
   harvestablePods: Scalars['BigInt']['output'];
   /** Number of pods harvested */
   harvestedPods: Scalars['BigInt']['output'];
-  /** Plot index */
+  /** Plot index when fieldId is 0, otherwise plotIndex:fieldId */
   id: Scalars['ID']['output'];
   /** Plot Index */
   index: Scalars['BigInt']['output'];
   /** The harvestable index at the time the plot was sown or exchanged on the marketplace */
   initialHarvestableIndex: Scalars['BigInt']['output'];
+  /** True if this plot was sown during the morning auction */
+  isMorning: Scalars['Boolean']['output'];
   /** Associated plot listing */
   listing?: Maybe<PodListing>;
   /** Total pods in plot */
@@ -3382,6 +3443,10 @@ export type Plot = {
   preTransferOwner?: Maybe<Farmer>;
   /** If `source === 'TRANSFER'`: Source SOW/MARKET of the farmer who acquired the plot. Cannot be TRANSFER. */
   preTransferSource?: Maybe<PlotSource>;
+  /** If source === 'REFERRAL': The referee who was referred. */
+  referee?: Maybe<Farmer>;
+  /** If source === 'REFERRAL': The referrer who referred the farmer. */
+  referrer?: Maybe<Farmer>;
   /** Season on entity creation (not sown) */
   season: Scalars['Int']['output'];
   /** Source for this plot */
@@ -3405,17 +3470,18 @@ export type Plot = {
 };
 
 export enum PlotSource {
-  ContractReceiverMigrated = 'CONTRACT_RECEIVER_MIGRATED',
-  Market = 'MARKET',
-  ReseedMigrated = 'RESEED_MIGRATED',
-  Sow = 'SOW',
-  Transfer = 'TRANSFER'
+  CONTRACT_RECEIVER_MIGRATED = 'CONTRACT_RECEIVER_MIGRATED',
+  MARKET = 'MARKET',
+  REFERRAL = 'REFERRAL',
+  RESEED_MIGRATED = 'RESEED_MIGRATED',
+  SOW = 'SOW',
+  TRANSFER = 'TRANSFER'
 }
 
-export type Plot_Filter = {
+export type PlotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Plot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PlotFilter>>>;
   beansPerPod?: InputMaybe<Scalars['BigInt']['input']>;
   beansPerPod_gt?: InputMaybe<Scalars['BigInt']['input']>;
   beansPerPod_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3443,7 +3509,7 @@ export type Plot_Filter = {
   creationHash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   creationHash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3464,7 +3530,15 @@ export type Plot_Filter = {
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   field?: InputMaybe<Scalars['String']['input']>;
-  field_?: InputMaybe<Field_Filter>;
+  fieldId?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  fieldId_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  field_?: InputMaybe<FieldFilter>;
   field_contains?: InputMaybe<Scalars['String']['input']>;
   field_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   field_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3546,8 +3620,12 @@ export type Plot_Filter = {
   initialHarvestableIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
   initialHarvestableIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
   initialHarvestableIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  isMorning?: InputMaybe<Scalars['Boolean']['input']>;
+  isMorning_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  isMorning_not?: InputMaybe<Scalars['Boolean']['input']>;
+  isMorning_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   listing?: InputMaybe<Scalars['String']['input']>;
-  listing_?: InputMaybe<PodListing_Filter>;
+  listing_?: InputMaybe<PodListingFilter>;
   listing_contains?: InputMaybe<Scalars['String']['input']>;
   listing_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   listing_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3567,7 +3645,7 @@ export type Plot_Filter = {
   listing_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   listing_starts_with?: InputMaybe<Scalars['String']['input']>;
   listing_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<Plot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PlotFilter>>>;
   pods?: InputMaybe<Scalars['BigInt']['input']>;
   pods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   pods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3577,7 +3655,7 @@ export type Plot_Filter = {
   pods_not?: InputMaybe<Scalars['BigInt']['input']>;
   pods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   preTransferOwner?: InputMaybe<Scalars['String']['input']>;
-  preTransferOwner_?: InputMaybe<Farmer_Filter>;
+  preTransferOwner_?: InputMaybe<FarmerFilter>;
   preTransferOwner_contains?: InputMaybe<Scalars['String']['input']>;
   preTransferOwner_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   preTransferOwner_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3601,6 +3679,48 @@ export type Plot_Filter = {
   preTransferSource_in?: InputMaybe<Array<PlotSource>>;
   preTransferSource_not?: InputMaybe<PlotSource>;
   preTransferSource_not_in?: InputMaybe<Array<PlotSource>>;
+  referee?: InputMaybe<Scalars['String']['input']>;
+  referee_?: InputMaybe<FarmerFilter>;
+  referee_contains?: InputMaybe<Scalars['String']['input']>;
+  referee_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  referee_ends_with?: InputMaybe<Scalars['String']['input']>;
+  referee_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  referee_gt?: InputMaybe<Scalars['String']['input']>;
+  referee_gte?: InputMaybe<Scalars['String']['input']>;
+  referee_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  referee_lt?: InputMaybe<Scalars['String']['input']>;
+  referee_lte?: InputMaybe<Scalars['String']['input']>;
+  referee_not?: InputMaybe<Scalars['String']['input']>;
+  referee_not_contains?: InputMaybe<Scalars['String']['input']>;
+  referee_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  referee_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  referee_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  referee_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  referee_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  referee_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  referee_starts_with?: InputMaybe<Scalars['String']['input']>;
+  referee_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  referrer?: InputMaybe<Scalars['String']['input']>;
+  referrer_?: InputMaybe<FarmerFilter>;
+  referrer_contains?: InputMaybe<Scalars['String']['input']>;
+  referrer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  referrer_ends_with?: InputMaybe<Scalars['String']['input']>;
+  referrer_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  referrer_gt?: InputMaybe<Scalars['String']['input']>;
+  referrer_gte?: InputMaybe<Scalars['String']['input']>;
+  referrer_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  referrer_lt?: InputMaybe<Scalars['String']['input']>;
+  referrer_lte?: InputMaybe<Scalars['String']['input']>;
+  referrer_not?: InputMaybe<Scalars['String']['input']>;
+  referrer_not_contains?: InputMaybe<Scalars['String']['input']>;
+  referrer_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  referrer_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  referrer_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  referrer_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  referrer_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  referrer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  referrer_starts_with?: InputMaybe<Scalars['String']['input']>;
+  referrer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -3683,78 +3803,96 @@ export type Plot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Plot_OrderBy {
-  BeansPerPod = 'beansPerPod',
-  CreatedAt = 'createdAt',
-  CreationHash = 'creationHash',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  Field = 'field',
-  FieldCultivationFactor = 'field__cultivationFactor',
-  FieldCultivationTemperature = 'field__cultivationTemperature',
-  FieldHarvestableIndex = 'field__harvestableIndex',
-  FieldHarvestablePods = 'field__harvestablePods',
-  FieldHarvestedPods = 'field__harvestedPods',
-  FieldId = 'field__id',
-  FieldLastDailySnapshotDay = 'field__lastDailySnapshotDay',
-  FieldLastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
-  FieldNumberOfSowers = 'field__numberOfSowers',
-  FieldNumberOfSows = 'field__numberOfSows',
-  FieldPodIndex = 'field__podIndex',
-  FieldPodRate = 'field__podRate',
-  FieldRealRateOfReturn = 'field__realRateOfReturn',
-  FieldSeason = 'field__season',
-  FieldSoil = 'field__soil',
-  FieldSownBeans = 'field__sownBeans',
-  FieldTemperature = 'field__temperature',
-  FieldUnharvestablePods = 'field__unharvestablePods',
-  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
-  FullyHarvested = 'fullyHarvested',
-  HarvestAt = 'harvestAt',
-  HarvestHash = 'harvestHash',
-  HarvestablePods = 'harvestablePods',
-  HarvestedPods = 'harvestedPods',
-  Id = 'id',
-  Index = 'index',
-  InitialHarvestableIndex = 'initialHarvestableIndex',
-  Listing = 'listing',
-  ListingAmount = 'listing__amount',
-  ListingCreatedAt = 'listing__createdAt',
-  ListingCreationHash = 'listing__creationHash',
-  ListingFilled = 'listing__filled',
-  ListingFilledAmount = 'listing__filledAmount',
-  ListingHistoryId = 'listing__historyID',
-  ListingId = 'listing__id',
-  ListingIndex = 'listing__index',
-  ListingMaxHarvestableIndex = 'listing__maxHarvestableIndex',
-  ListingMinFillAmount = 'listing__minFillAmount',
-  ListingMode = 'listing__mode',
-  ListingOriginalAmount = 'listing__originalAmount',
-  ListingOriginalIndex = 'listing__originalIndex',
-  ListingOriginalPlaceInLine = 'listing__originalPlaceInLine',
-  ListingPricePerPod = 'listing__pricePerPod',
-  ListingPricingFunction = 'listing__pricingFunction',
-  ListingPricingType = 'listing__pricingType',
-  ListingRemainingAmount = 'listing__remainingAmount',
-  ListingStart = 'listing__start',
-  ListingStatus = 'listing__status',
-  ListingUpdatedAt = 'listing__updatedAt',
-  Pods = 'pods',
-  PreTransferOwner = 'preTransferOwner',
-  PreTransferOwnerCreationBlock = 'preTransferOwner__creationBlock',
-  PreTransferOwnerId = 'preTransferOwner__id',
-  PreTransferSource = 'preTransferSource',
-  Season = 'season',
-  Source = 'source',
-  SourceHash = 'sourceHash',
-  SowHash = 'sowHash',
-  SowSeason = 'sowSeason',
-  SowTimestamp = 'sowTimestamp',
-  SownBeansPerPod = 'sownBeansPerPod',
-  SownInitialHarvestableIndex = 'sownInitialHarvestableIndex',
-  UpdatedAt = 'updatedAt',
-  UpdatedAtBlock = 'updatedAtBlock'
+export enum PlotOrderBy {
+  beansPerPod = 'beansPerPod',
+  createdAt = 'createdAt',
+  creationHash = 'creationHash',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  field = 'field',
+  fieldId = 'fieldId',
+  field__cultivationFactor = 'field__cultivationFactor',
+  field__cultivationTemperature = 'field__cultivationTemperature',
+  field__fieldId = 'field__fieldId',
+  field__harvestableIndex = 'field__harvestableIndex',
+  field__harvestablePods = 'field__harvestablePods',
+  field__harvestedPods = 'field__harvestedPods',
+  field__id = 'field__id',
+  field__lastDailySnapshotDay = 'field__lastDailySnapshotDay',
+  field__lastHourlySnapshotSeason = 'field__lastHourlySnapshotSeason',
+  field__numberOfSowers = 'field__numberOfSowers',
+  field__numberOfSows = 'field__numberOfSows',
+  field__podIndex = 'field__podIndex',
+  field__podRate = 'field__podRate',
+  field__realRateOfReturn = 'field__realRateOfReturn',
+  field__season = 'field__season',
+  field__soil = 'field__soil',
+  field__sownBeans = 'field__sownBeans',
+  field__temperature = 'field__temperature',
+  field__unharvestablePods = 'field__unharvestablePods',
+  field__unmigratedL1Pods = 'field__unmigratedL1Pods',
+  fullyHarvested = 'fullyHarvested',
+  harvestAt = 'harvestAt',
+  harvestHash = 'harvestHash',
+  harvestablePods = 'harvestablePods',
+  harvestedPods = 'harvestedPods',
+  id = 'id',
+  index = 'index',
+  initialHarvestableIndex = 'initialHarvestableIndex',
+  isMorning = 'isMorning',
+  listing = 'listing',
+  listing__amount = 'listing__amount',
+  listing__createdAt = 'listing__createdAt',
+  listing__creationHash = 'listing__creationHash',
+  listing__fieldId = 'listing__fieldId',
+  listing__filled = 'listing__filled',
+  listing__filledAmount = 'listing__filledAmount',
+  listing__historyID = 'listing__historyID',
+  listing__id = 'listing__id',
+  listing__index = 'listing__index',
+  listing__maxHarvestableIndex = 'listing__maxHarvestableIndex',
+  listing__minFillAmount = 'listing__minFillAmount',
+  listing__mode = 'listing__mode',
+  listing__originalAmount = 'listing__originalAmount',
+  listing__originalIndex = 'listing__originalIndex',
+  listing__originalPlaceInLine = 'listing__originalPlaceInLine',
+  listing__pricePerPod = 'listing__pricePerPod',
+  listing__pricingFunction = 'listing__pricingFunction',
+  listing__pricingType = 'listing__pricingType',
+  listing__remainingAmount = 'listing__remainingAmount',
+  listing__start = 'listing__start',
+  listing__status = 'listing__status',
+  listing__updatedAt = 'listing__updatedAt',
+  pods = 'pods',
+  preTransferOwner = 'preTransferOwner',
+  preTransferOwner__creationBlock = 'preTransferOwner__creationBlock',
+  preTransferOwner__id = 'preTransferOwner__id',
+  preTransferOwner__refereeCount = 'preTransferOwner__refereeCount',
+  preTransferOwner__totalReferralRewardPodsReceived = 'preTransferOwner__totalReferralRewardPodsReceived',
+  preTransferSource = 'preTransferSource',
+  referee = 'referee',
+  referee__creationBlock = 'referee__creationBlock',
+  referee__id = 'referee__id',
+  referee__refereeCount = 'referee__refereeCount',
+  referee__totalReferralRewardPodsReceived = 'referee__totalReferralRewardPodsReceived',
+  referrer = 'referrer',
+  referrer__creationBlock = 'referrer__creationBlock',
+  referrer__id = 'referrer__id',
+  referrer__refereeCount = 'referrer__refereeCount',
+  referrer__totalReferralRewardPodsReceived = 'referrer__totalReferralRewardPodsReceived',
+  season = 'season',
+  source = 'source',
+  sourceHash = 'sourceHash',
+  sowHash = 'sowHash',
+  sowSeason = 'sowSeason',
+  sowTimestamp = 'sowTimestamp',
+  sownBeansPerPod = 'sownBeansPerPod',
+  sownInitialHarvestableIndex = 'sownInitialHarvestableIndex',
+  updatedAt = 'updatedAt',
+  updatedAtBlock = 'updatedAtBlock'
 }
 
 export type PodFill = {
@@ -3785,7 +3923,7 @@ export type PodFill = {
   toFarmer: Farmer;
 };
 
-export type PodFill_Filter = {
+export type PodFillFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3796,7 +3934,7 @@ export type PodFill_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodFill_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodFillFilter>>>;
   costInBeans?: InputMaybe<Scalars['BigInt']['input']>;
   costInBeans_gt?: InputMaybe<Scalars['BigInt']['input']>;
   costInBeans_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3814,7 +3952,7 @@ export type PodFill_Filter = {
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   fromFarmer?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_?: InputMaybe<Farmer_Filter>;
+  fromFarmer_?: InputMaybe<FarmerFilter>;
   fromFarmer_contains?: InputMaybe<Scalars['String']['input']>;
   fromFarmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   fromFarmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3851,7 +3989,7 @@ export type PodFill_Filter = {
   index_not?: InputMaybe<Scalars['BigInt']['input']>;
   index_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   listing?: InputMaybe<Scalars['String']['input']>;
-  listing_?: InputMaybe<PodListing_Filter>;
+  listing_?: InputMaybe<PodListingFilter>;
   listing_contains?: InputMaybe<Scalars['String']['input']>;
   listing_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   listing_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3871,9 +4009,9 @@ export type PodFill_Filter = {
   listing_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   listing_starts_with?: InputMaybe<Scalars['String']['input']>;
   listing_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<PodFill_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodFillFilter>>>;
   order?: InputMaybe<Scalars['String']['input']>;
-  order_?: InputMaybe<PodOrder_Filter>;
+  order_?: InputMaybe<PodOrderFilter>;
   order_contains?: InputMaybe<Scalars['String']['input']>;
   order_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   order_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3902,7 +4040,7 @@ export type PodFill_Filter = {
   placeInLine_not?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   podMarketplace?: InputMaybe<Scalars['String']['input']>;
-  podMarketplace_?: InputMaybe<PodMarketplace_Filter>;
+  podMarketplace_?: InputMaybe<PodMarketplaceFilter>;
   podMarketplace_contains?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3931,7 +4069,7 @@ export type PodFill_Filter = {
   start_not?: InputMaybe<Scalars['BigInt']['input']>;
   start_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   toFarmer?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_?: InputMaybe<Farmer_Filter>;
+  toFarmer_?: InputMaybe<FarmerFilter>;
   toFarmer_contains?: InputMaybe<Scalars['String']['input']>;
   toFarmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   toFarmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3953,74 +4091,80 @@ export type PodFill_Filter = {
   toFarmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum PodFill_OrderBy {
-  Amount = 'amount',
-  CostInBeans = 'costInBeans',
-  CreatedAt = 'createdAt',
-  FromFarmer = 'fromFarmer',
-  FromFarmerCreationBlock = 'fromFarmer__creationBlock',
-  FromFarmerId = 'fromFarmer__id',
-  Id = 'id',
-  Index = 'index',
-  Listing = 'listing',
-  ListingAmount = 'listing__amount',
-  ListingCreatedAt = 'listing__createdAt',
-  ListingCreationHash = 'listing__creationHash',
-  ListingFilled = 'listing__filled',
-  ListingFilledAmount = 'listing__filledAmount',
-  ListingHistoryId = 'listing__historyID',
-  ListingId = 'listing__id',
-  ListingIndex = 'listing__index',
-  ListingMaxHarvestableIndex = 'listing__maxHarvestableIndex',
-  ListingMinFillAmount = 'listing__minFillAmount',
-  ListingMode = 'listing__mode',
-  ListingOriginalAmount = 'listing__originalAmount',
-  ListingOriginalIndex = 'listing__originalIndex',
-  ListingOriginalPlaceInLine = 'listing__originalPlaceInLine',
-  ListingPricePerPod = 'listing__pricePerPod',
-  ListingPricingFunction = 'listing__pricingFunction',
-  ListingPricingType = 'listing__pricingType',
-  ListingRemainingAmount = 'listing__remainingAmount',
-  ListingStart = 'listing__start',
-  ListingStatus = 'listing__status',
-  ListingUpdatedAt = 'listing__updatedAt',
-  Order = 'order',
-  OrderBeanAmount = 'order__beanAmount',
-  OrderBeanAmountFilled = 'order__beanAmountFilled',
-  OrderCreatedAt = 'order__createdAt',
-  OrderCreationHash = 'order__creationHash',
-  OrderHistoryId = 'order__historyID',
-  OrderId = 'order__id',
-  OrderMaxPlaceInLine = 'order__maxPlaceInLine',
-  OrderMinFillAmount = 'order__minFillAmount',
-  OrderPodAmountFilled = 'order__podAmountFilled',
-  OrderPricePerPod = 'order__pricePerPod',
-  OrderPricingFunction = 'order__pricingFunction',
-  OrderPricingType = 'order__pricingType',
-  OrderStatus = 'order__status',
-  OrderUpdatedAt = 'order__updatedAt',
-  PlaceInLine = 'placeInLine',
-  PodMarketplace = 'podMarketplace',
-  PodMarketplaceAvailableListedPods = 'podMarketplace__availableListedPods',
-  PodMarketplaceAvailableOrderBeans = 'podMarketplace__availableOrderBeans',
-  PodMarketplaceBeanVolume = 'podMarketplace__beanVolume',
-  PodMarketplaceCancelledListedPods = 'podMarketplace__cancelledListedPods',
-  PodMarketplaceCancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
-  PodMarketplaceExpiredListedPods = 'podMarketplace__expiredListedPods',
-  PodMarketplaceFilledListedPods = 'podMarketplace__filledListedPods',
-  PodMarketplaceFilledOrderBeans = 'podMarketplace__filledOrderBeans',
-  PodMarketplaceFilledOrderedPods = 'podMarketplace__filledOrderedPods',
-  PodMarketplaceId = 'podMarketplace__id',
-  PodMarketplaceLastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
-  PodMarketplaceLastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
-  PodMarketplaceListedPods = 'podMarketplace__listedPods',
-  PodMarketplaceOrderBeans = 'podMarketplace__orderBeans',
-  PodMarketplacePodVolume = 'podMarketplace__podVolume',
-  PodMarketplaceSeason = 'podMarketplace__season',
-  Start = 'start',
-  ToFarmer = 'toFarmer',
-  ToFarmerCreationBlock = 'toFarmer__creationBlock',
-  ToFarmerId = 'toFarmer__id'
+export enum PodFillOrderBy {
+  amount = 'amount',
+  costInBeans = 'costInBeans',
+  createdAt = 'createdAt',
+  fromFarmer = 'fromFarmer',
+  fromFarmer__creationBlock = 'fromFarmer__creationBlock',
+  fromFarmer__id = 'fromFarmer__id',
+  fromFarmer__refereeCount = 'fromFarmer__refereeCount',
+  fromFarmer__totalReferralRewardPodsReceived = 'fromFarmer__totalReferralRewardPodsReceived',
+  id = 'id',
+  index = 'index',
+  listing = 'listing',
+  listing__amount = 'listing__amount',
+  listing__createdAt = 'listing__createdAt',
+  listing__creationHash = 'listing__creationHash',
+  listing__fieldId = 'listing__fieldId',
+  listing__filled = 'listing__filled',
+  listing__filledAmount = 'listing__filledAmount',
+  listing__historyID = 'listing__historyID',
+  listing__id = 'listing__id',
+  listing__index = 'listing__index',
+  listing__maxHarvestableIndex = 'listing__maxHarvestableIndex',
+  listing__minFillAmount = 'listing__minFillAmount',
+  listing__mode = 'listing__mode',
+  listing__originalAmount = 'listing__originalAmount',
+  listing__originalIndex = 'listing__originalIndex',
+  listing__originalPlaceInLine = 'listing__originalPlaceInLine',
+  listing__pricePerPod = 'listing__pricePerPod',
+  listing__pricingFunction = 'listing__pricingFunction',
+  listing__pricingType = 'listing__pricingType',
+  listing__remainingAmount = 'listing__remainingAmount',
+  listing__start = 'listing__start',
+  listing__status = 'listing__status',
+  listing__updatedAt = 'listing__updatedAt',
+  order = 'order',
+  order__beanAmount = 'order__beanAmount',
+  order__beanAmountFilled = 'order__beanAmountFilled',
+  order__createdAt = 'order__createdAt',
+  order__creationHash = 'order__creationHash',
+  order__fieldId = 'order__fieldId',
+  order__historyID = 'order__historyID',
+  order__id = 'order__id',
+  order__maxPlaceInLine = 'order__maxPlaceInLine',
+  order__minFillAmount = 'order__minFillAmount',
+  order__podAmountFilled = 'order__podAmountFilled',
+  order__pricePerPod = 'order__pricePerPod',
+  order__pricingFunction = 'order__pricingFunction',
+  order__pricingType = 'order__pricingType',
+  order__status = 'order__status',
+  order__updatedAt = 'order__updatedAt',
+  placeInLine = 'placeInLine',
+  podMarketplace = 'podMarketplace',
+  podMarketplace__availableListedPods = 'podMarketplace__availableListedPods',
+  podMarketplace__availableOrderBeans = 'podMarketplace__availableOrderBeans',
+  podMarketplace__beanVolume = 'podMarketplace__beanVolume',
+  podMarketplace__cancelledListedPods = 'podMarketplace__cancelledListedPods',
+  podMarketplace__cancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
+  podMarketplace__expiredListedPods = 'podMarketplace__expiredListedPods',
+  podMarketplace__filledListedPods = 'podMarketplace__filledListedPods',
+  podMarketplace__filledOrderBeans = 'podMarketplace__filledOrderBeans',
+  podMarketplace__filledOrderedPods = 'podMarketplace__filledOrderedPods',
+  podMarketplace__id = 'podMarketplace__id',
+  podMarketplace__lastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
+  podMarketplace__lastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
+  podMarketplace__listedPods = 'podMarketplace__listedPods',
+  podMarketplace__orderBeans = 'podMarketplace__orderBeans',
+  podMarketplace__podVolume = 'podMarketplace__podVolume',
+  podMarketplace__season = 'podMarketplace__season',
+  start = 'start',
+  toFarmer = 'toFarmer',
+  toFarmer__creationBlock = 'toFarmer__creationBlock',
+  toFarmer__id = 'toFarmer__id',
+  toFarmer__refereeCount = 'toFarmer__refereeCount',
+  toFarmer__totalReferralRewardPodsReceived = 'toFarmer__totalReferralRewardPodsReceived'
 }
 
 export type PodListing = {
@@ -4029,7 +4173,6 @@ export type PodListing = {
    * The maximum amount of Pods remaining to be sold by *this* PodListing.
    *
    * When this PodListing is Filled or Cancelled, `amount` does NOT change.
-   *
    */
   amount: Scalars['BigInt']['output'];
   /** Timestamp of PodListing creation. */
@@ -4038,29 +4181,28 @@ export type PodListing = {
   creationHash: Scalars['Bytes']['output'];
   /** The Farmer that created the PodListing. */
   farmer: Farmer;
+  /** Numeric identifier of the field for this listing */
+  fieldId: Scalars['BigInt']['output'];
   /** Any Fills associated with this PodListing. */
   fill?: Maybe<PodFill>;
   /**
    * The amount of Pods Filled since the initial PodListing was Created.
    *
    * `0 <= filled <= originalAmount`
-   *
    */
   filled: Scalars['BigInt']['output'];
   /**
    * The number of Pods purchased from *this* PodListing.
    *
    * If not yet Filled or the PodListing is CANCELLED: `filledAmount = 0`
-   *
    */
   filledAmount: Scalars['BigInt']['output'];
   /** Historical ID for joins */
   historyID: Scalars['String']['output'];
   /**
-   * The PodListing ID is a unique subgraph ID: `{account}-{index}"
+   * The PodListing ID is a unique subgraph ID; if fieldId is 0: `{account}-{index}`, if fieldId isn't 0: `{account}-{index}:{fieldId}`
    *
    * The on-chain identifier for a PodListing is the `index`.
-   *
    */
   id: Scalars['ID']['output'];
   /**
@@ -4073,29 +4215,21 @@ export type PodListing = {
    *    0         the first Pod issued
    *    100,000   harvestableIndex
    *    150,000   index
-   *
    */
   index: Scalars['BigInt']['output'];
-  /**
-   * When the `harvestableIndex` reaches this number, the Listing becomes EXPIRED.
-   *
-   */
+  /** When the `harvestableIndex` reaches this number, the Listing becomes EXPIRED. */
   maxHarvestableIndex: Scalars['BigInt']['output'];
   /** Minimum number of Beans required to perform a Fill. */
   minFillAmount: Scalars['BigInt']['output'];
   /** Where Beans are sent when the PodListing is Filled. See `FarmToMode`. */
   mode: Scalars['Int']['output'];
-  /**
-   * The total number of Pods listed during the first emission of PodListingCreated.
-   *
-   */
+  /** The total number of Pods listed during the first emission of PodListingCreated. */
   originalAmount: Scalars['BigInt']['output'];
   /**
    * The original index from the first emission of PodListingCreated in a chain.
    *
    * If `originalIndex !== index`, then this PodListing was created when a parent
    * PodListing was partially filled.
-   *
    */
   originalIndex: Scalars['BigInt']['output'];
   /** The place of this plot in the pod line at the time it was listed */
@@ -4110,14 +4244,12 @@ export type PodListing = {
    * Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
    *
    * If `pricingType = 1`, this field is set to `0` and should be ignored.
-   *
    */
   pricePerPod: Scalars['Int']['output'];
   /**
    * [V2] The FIXED or DYNAMIC pricing function, encoded as bytes.
    *
    * This must be decoded client-side, see `LibPolynomial.sol` for more info.
-   *
    */
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /**
@@ -4126,7 +4258,6 @@ export type PodListing = {
    * null = V1 FIXED  = use `pricePerPod`
    * 0    = V2 FIXED  = use `pricePerPod`
    * 1    = V2 DYNAMIC = use `pricingFunction`
-   *
    */
   pricingType?: Maybe<Scalars['Int']['output']>;
   /**
@@ -4139,14 +4270,12 @@ export type PodListing = {
    * If this PodListing has NOT been Filled: `remainingAmount = amount`
    * If this PodListing has been Filled: `remainingAmount < amount`
    * If this PodListing has been Cancelled: `remainingAmount = 0`
-   *
    */
   remainingAmount: Scalars['BigInt']['output'];
   /**
    * The position within the Plot from which to sell Pods.
    *
    * 0 <= `start` <= (plot size - `amount`)
-   *
    */
   start: Scalars['BigInt']['output'];
   /** Current market status of listing */
@@ -4177,7 +4306,7 @@ export type PodListingCancelled = MarketplaceEvent & {
   placeInLine: Scalars['BigInt']['output'];
 };
 
-export type PodListingCancelled_Filter = {
+export type PodListingCancelledFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   account?: InputMaybe<Scalars['Bytes']['input']>;
@@ -4190,7 +4319,7 @@ export type PodListingCancelled_Filter = {
   account_not?: InputMaybe<Scalars['Bytes']['input']>;
   account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodListingCancelled_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodListingCancelledFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4261,7 +4390,7 @@ export type PodListingCancelled_Filter = {
   logIndex_lte?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodListingCancelled_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodListingCancelledFilter>>>;
   placeInLine?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gt?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4272,16 +4401,16 @@ export type PodListingCancelled_Filter = {
   placeInLine_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PodListingCancelled_OrderBy {
-  Account = 'account',
-  BlockNumber = 'blockNumber',
-  CreatedAt = 'createdAt',
-  Hash = 'hash',
-  HistoryId = 'historyID',
-  Id = 'id',
-  Index = 'index',
-  LogIndex = 'logIndex',
-  PlaceInLine = 'placeInLine'
+export enum PodListingCancelledOrderBy {
+  account = 'account',
+  blockNumber = 'blockNumber',
+  createdAt = 'createdAt',
+  hash = 'hash',
+  historyID = 'historyID',
+  id = 'id',
+  index = 'index',
+  logIndex = 'logIndex',
+  placeInLine = 'placeInLine'
 }
 
 export type PodListingCreated = MarketplaceEvent & {
@@ -4322,7 +4451,7 @@ export type PodListingCreated = MarketplaceEvent & {
   start: Scalars['BigInt']['output'];
 };
 
-export type PodListingCreated_Filter = {
+export type PodListingCreatedFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   account?: InputMaybe<Scalars['Bytes']['input']>;
@@ -4343,7 +4472,7 @@ export type PodListingCreated_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodListingCreated_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodListingCreatedFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4438,7 +4567,7 @@ export type PodListingCreated_Filter = {
   mode_lte?: InputMaybe<Scalars['Int']['input']>;
   mode_not?: InputMaybe<Scalars['Int']['input']>;
   mode_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodListingCreated_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodListingCreatedFilter>>>;
   placeInLine?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gt?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4483,24 +4612,24 @@ export type PodListingCreated_Filter = {
   start_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PodListingCreated_OrderBy {
-  Account = 'account',
-  Amount = 'amount',
-  BlockNumber = 'blockNumber',
-  CreatedAt = 'createdAt',
-  Hash = 'hash',
-  HistoryId = 'historyID',
-  Id = 'id',
-  Index = 'index',
-  LogIndex = 'logIndex',
-  MaxHarvestableIndex = 'maxHarvestableIndex',
-  MinFillAmount = 'minFillAmount',
-  Mode = 'mode',
-  PlaceInLine = 'placeInLine',
-  PricePerPod = 'pricePerPod',
-  PricingFunction = 'pricingFunction',
-  PricingType = 'pricingType',
-  Start = 'start'
+export enum PodListingCreatedOrderBy {
+  account = 'account',
+  amount = 'amount',
+  blockNumber = 'blockNumber',
+  createdAt = 'createdAt',
+  hash = 'hash',
+  historyID = 'historyID',
+  id = 'id',
+  index = 'index',
+  logIndex = 'logIndex',
+  maxHarvestableIndex = 'maxHarvestableIndex',
+  minFillAmount = 'minFillAmount',
+  mode = 'mode',
+  placeInLine = 'placeInLine',
+  pricePerPod = 'pricePerPod',
+  pricingFunction = 'pricingFunction',
+  pricingType = 'pricingType',
+  start = 'start'
 }
 
 export type PodListingFilled = MarketplaceEvent & {
@@ -4533,7 +4662,7 @@ export type PodListingFilled = MarketplaceEvent & {
   toFarmer: Scalars['Bytes']['output'];
 };
 
-export type PodListingFilled_Filter = {
+export type PodListingFilledFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4544,7 +4673,7 @@ export type PodListingFilled_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodListingFilled_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodListingFilledFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4633,7 +4762,7 @@ export type PodListingFilled_Filter = {
   logIndex_lte?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodListingFilled_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodListingFilledFilter>>>;
   placeInLine?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gt?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4662,23 +4791,23 @@ export type PodListingFilled_Filter = {
   toFarmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
-export enum PodListingFilled_OrderBy {
-  Amount = 'amount',
-  BlockNumber = 'blockNumber',
-  CostInBeans = 'costInBeans',
-  CreatedAt = 'createdAt',
-  FromFarmer = 'fromFarmer',
-  Hash = 'hash',
-  HistoryId = 'historyID',
-  Id = 'id',
-  Index = 'index',
-  LogIndex = 'logIndex',
-  PlaceInLine = 'placeInLine',
-  Start = 'start',
-  ToFarmer = 'toFarmer'
+export enum PodListingFilledOrderBy {
+  amount = 'amount',
+  blockNumber = 'blockNumber',
+  costInBeans = 'costInBeans',
+  createdAt = 'createdAt',
+  fromFarmer = 'fromFarmer',
+  hash = 'hash',
+  historyID = 'historyID',
+  id = 'id',
+  index = 'index',
+  logIndex = 'logIndex',
+  placeInLine = 'placeInLine',
+  start = 'start',
+  toFarmer = 'toFarmer'
 }
 
-export type PodListing_Filter = {
+export type PodListingFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4689,7 +4818,7 @@ export type PodListing_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodListing_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodListingFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4709,7 +4838,7 @@ export type PodListing_Filter = {
   creationHash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   creationHash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4729,8 +4858,16 @@ export type PodListing_Filter = {
   farmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  fieldId?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  fieldId_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   fill?: InputMaybe<Scalars['String']['input']>;
-  fill_?: InputMaybe<PodFill_Filter>;
+  fill_?: InputMaybe<PodFillFilter>;
   fill_contains?: InputMaybe<Scalars['String']['input']>;
   fill_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   fill_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4826,7 +4963,7 @@ export type PodListing_Filter = {
   mode_lte?: InputMaybe<Scalars['Int']['input']>;
   mode_not?: InputMaybe<Scalars['Int']['input']>;
   mode_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodListing_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodListingFilter>>>;
   originalAmount?: InputMaybe<Scalars['BigInt']['input']>;
   originalAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   originalAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4852,7 +4989,7 @@ export type PodListing_Filter = {
   originalPlaceInLine_not?: InputMaybe<Scalars['BigInt']['input']>;
   originalPlaceInLine_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   plot?: InputMaybe<Scalars['String']['input']>;
-  plot_?: InputMaybe<Plot_Filter>;
+  plot_?: InputMaybe<PlotFilter>;
   plot_contains?: InputMaybe<Scalars['String']['input']>;
   plot_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   plot_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4873,7 +5010,7 @@ export type PodListing_Filter = {
   plot_starts_with?: InputMaybe<Scalars['String']['input']>;
   plot_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   podMarketplace?: InputMaybe<Scalars['String']['input']>;
-  podMarketplace_?: InputMaybe<PodMarketplace_Filter>;
+  podMarketplace_?: InputMaybe<PodMarketplaceFilter>;
   podMarketplace_contains?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4949,80 +5086,85 @@ export type PodListing_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PodListing_OrderBy {
-  Amount = 'amount',
-  CreatedAt = 'createdAt',
-  CreationHash = 'creationHash',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  Fill = 'fill',
-  FillAmount = 'fill__amount',
-  FillCostInBeans = 'fill__costInBeans',
-  FillCreatedAt = 'fill__createdAt',
-  FillId = 'fill__id',
-  FillIndex = 'fill__index',
-  FillPlaceInLine = 'fill__placeInLine',
-  FillStart = 'fill__start',
-  Filled = 'filled',
-  FilledAmount = 'filledAmount',
-  HistoryId = 'historyID',
-  Id = 'id',
-  Index = 'index',
-  MaxHarvestableIndex = 'maxHarvestableIndex',
-  MinFillAmount = 'minFillAmount',
-  Mode = 'mode',
-  OriginalAmount = 'originalAmount',
-  OriginalIndex = 'originalIndex',
-  OriginalPlaceInLine = 'originalPlaceInLine',
-  Plot = 'plot',
-  PlotBeansPerPod = 'plot__beansPerPod',
-  PlotCreatedAt = 'plot__createdAt',
-  PlotCreationHash = 'plot__creationHash',
-  PlotFullyHarvested = 'plot__fullyHarvested',
-  PlotHarvestAt = 'plot__harvestAt',
-  PlotHarvestHash = 'plot__harvestHash',
-  PlotHarvestablePods = 'plot__harvestablePods',
-  PlotHarvestedPods = 'plot__harvestedPods',
-  PlotId = 'plot__id',
-  PlotIndex = 'plot__index',
-  PlotInitialHarvestableIndex = 'plot__initialHarvestableIndex',
-  PlotPods = 'plot__pods',
-  PlotPreTransferSource = 'plot__preTransferSource',
-  PlotSeason = 'plot__season',
-  PlotSource = 'plot__source',
-  PlotSourceHash = 'plot__sourceHash',
-  PlotSowHash = 'plot__sowHash',
-  PlotSowSeason = 'plot__sowSeason',
-  PlotSowTimestamp = 'plot__sowTimestamp',
-  PlotSownBeansPerPod = 'plot__sownBeansPerPod',
-  PlotSownInitialHarvestableIndex = 'plot__sownInitialHarvestableIndex',
-  PlotUpdatedAt = 'plot__updatedAt',
-  PlotUpdatedAtBlock = 'plot__updatedAtBlock',
-  PodMarketplace = 'podMarketplace',
-  PodMarketplaceAvailableListedPods = 'podMarketplace__availableListedPods',
-  PodMarketplaceAvailableOrderBeans = 'podMarketplace__availableOrderBeans',
-  PodMarketplaceBeanVolume = 'podMarketplace__beanVolume',
-  PodMarketplaceCancelledListedPods = 'podMarketplace__cancelledListedPods',
-  PodMarketplaceCancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
-  PodMarketplaceExpiredListedPods = 'podMarketplace__expiredListedPods',
-  PodMarketplaceFilledListedPods = 'podMarketplace__filledListedPods',
-  PodMarketplaceFilledOrderBeans = 'podMarketplace__filledOrderBeans',
-  PodMarketplaceFilledOrderedPods = 'podMarketplace__filledOrderedPods',
-  PodMarketplaceId = 'podMarketplace__id',
-  PodMarketplaceLastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
-  PodMarketplaceLastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
-  PodMarketplaceListedPods = 'podMarketplace__listedPods',
-  PodMarketplaceOrderBeans = 'podMarketplace__orderBeans',
-  PodMarketplacePodVolume = 'podMarketplace__podVolume',
-  PodMarketplaceSeason = 'podMarketplace__season',
-  PricePerPod = 'pricePerPod',
-  PricingFunction = 'pricingFunction',
-  PricingType = 'pricingType',
-  RemainingAmount = 'remainingAmount',
-  Start = 'start',
-  Status = 'status',
-  UpdatedAt = 'updatedAt'
+export enum PodListingOrderBy {
+  amount = 'amount',
+  createdAt = 'createdAt',
+  creationHash = 'creationHash',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  fieldId = 'fieldId',
+  fill = 'fill',
+  fill__amount = 'fill__amount',
+  fill__costInBeans = 'fill__costInBeans',
+  fill__createdAt = 'fill__createdAt',
+  fill__id = 'fill__id',
+  fill__index = 'fill__index',
+  fill__placeInLine = 'fill__placeInLine',
+  fill__start = 'fill__start',
+  filled = 'filled',
+  filledAmount = 'filledAmount',
+  historyID = 'historyID',
+  id = 'id',
+  index = 'index',
+  maxHarvestableIndex = 'maxHarvestableIndex',
+  minFillAmount = 'minFillAmount',
+  mode = 'mode',
+  originalAmount = 'originalAmount',
+  originalIndex = 'originalIndex',
+  originalPlaceInLine = 'originalPlaceInLine',
+  plot = 'plot',
+  plot__beansPerPod = 'plot__beansPerPod',
+  plot__createdAt = 'plot__createdAt',
+  plot__creationHash = 'plot__creationHash',
+  plot__fieldId = 'plot__fieldId',
+  plot__fullyHarvested = 'plot__fullyHarvested',
+  plot__harvestAt = 'plot__harvestAt',
+  plot__harvestHash = 'plot__harvestHash',
+  plot__harvestablePods = 'plot__harvestablePods',
+  plot__harvestedPods = 'plot__harvestedPods',
+  plot__id = 'plot__id',
+  plot__index = 'plot__index',
+  plot__initialHarvestableIndex = 'plot__initialHarvestableIndex',
+  plot__isMorning = 'plot__isMorning',
+  plot__pods = 'plot__pods',
+  plot__preTransferSource = 'plot__preTransferSource',
+  plot__season = 'plot__season',
+  plot__source = 'plot__source',
+  plot__sourceHash = 'plot__sourceHash',
+  plot__sowHash = 'plot__sowHash',
+  plot__sowSeason = 'plot__sowSeason',
+  plot__sowTimestamp = 'plot__sowTimestamp',
+  plot__sownBeansPerPod = 'plot__sownBeansPerPod',
+  plot__sownInitialHarvestableIndex = 'plot__sownInitialHarvestableIndex',
+  plot__updatedAt = 'plot__updatedAt',
+  plot__updatedAtBlock = 'plot__updatedAtBlock',
+  podMarketplace = 'podMarketplace',
+  podMarketplace__availableListedPods = 'podMarketplace__availableListedPods',
+  podMarketplace__availableOrderBeans = 'podMarketplace__availableOrderBeans',
+  podMarketplace__beanVolume = 'podMarketplace__beanVolume',
+  podMarketplace__cancelledListedPods = 'podMarketplace__cancelledListedPods',
+  podMarketplace__cancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
+  podMarketplace__expiredListedPods = 'podMarketplace__expiredListedPods',
+  podMarketplace__filledListedPods = 'podMarketplace__filledListedPods',
+  podMarketplace__filledOrderBeans = 'podMarketplace__filledOrderBeans',
+  podMarketplace__filledOrderedPods = 'podMarketplace__filledOrderedPods',
+  podMarketplace__id = 'podMarketplace__id',
+  podMarketplace__lastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
+  podMarketplace__lastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
+  podMarketplace__listedPods = 'podMarketplace__listedPods',
+  podMarketplace__orderBeans = 'podMarketplace__orderBeans',
+  podMarketplace__podVolume = 'podMarketplace__podVolume',
+  podMarketplace__season = 'podMarketplace__season',
+  pricePerPod = 'pricePerPod',
+  pricingFunction = 'pricingFunction',
+  pricingType = 'pricingType',
+  remainingAmount = 'remainingAmount',
+  start = 'start',
+  status = 'status',
+  updatedAt = 'updatedAt'
 }
 
 export type PodMarketplace = {
@@ -5078,46 +5220,46 @@ export type PodMarketplace = {
 
 export type PodMarketplaceAllListingsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListing_OrderBy>;
+  orderBy?: InputMaybe<PodListingOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodListing_Filter>;
+  where?: InputMaybe<PodListingFilter>;
 };
 
 
 export type PodMarketplaceAllOrdersArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrder_OrderBy>;
+  orderBy?: InputMaybe<PodOrderOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodOrder_Filter>;
+  where?: InputMaybe<PodOrderFilter>;
 };
 
 
 export type PodMarketplaceDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplaceDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PodMarketplaceDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodMarketplaceDailySnapshot_Filter>;
+  where?: InputMaybe<PodMarketplaceDailySnapshotFilter>;
 };
 
 
 export type PodMarketplaceFillsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodFill_OrderBy>;
+  orderBy?: InputMaybe<PodFillOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodFill_Filter>;
+  where?: InputMaybe<PodFillFilter>;
 };
 
 
 export type PodMarketplaceHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplaceHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PodMarketplaceHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodMarketplaceHourlySnapshot_Filter>;
+  where?: InputMaybe<PodMarketplaceHourlySnapshotFilter>;
 };
 
 export type PodMarketplaceDailySnapshot = {
@@ -5170,10 +5312,10 @@ export type PodMarketplaceDailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type PodMarketplaceDailySnapshot_Filter = {
+export type PodMarketplaceDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<PodMarketplaceDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodMarketplaceDailySnapshotFilter>>>;
   availableListedPods?: InputMaybe<Scalars['BigInt']['input']>;
   availableListedPods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   availableListedPods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -5366,7 +5508,7 @@ export type PodMarketplaceDailySnapshot_Filter = {
   listedPods_lte?: InputMaybe<Scalars['BigInt']['input']>;
   listedPods_not?: InputMaybe<Scalars['BigInt']['input']>;
   listedPods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodMarketplaceDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodMarketplaceDailySnapshotFilter>>>;
   orderBeans?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_gt?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -5376,7 +5518,7 @@ export type PodMarketplaceDailySnapshot_Filter = {
   orderBeans_not?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   podMarketplace?: InputMaybe<Scalars['String']['input']>;
-  podMarketplace_?: InputMaybe<PodMarketplace_Filter>;
+  podMarketplace_?: InputMaybe<PodMarketplaceFilter>;
   podMarketplace_contains?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -5422,52 +5564,52 @@ export type PodMarketplaceDailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PodMarketplaceDailySnapshot_OrderBy {
-  AvailableListedPods = 'availableListedPods',
-  AvailableOrderBeans = 'availableOrderBeans',
-  BeanVolume = 'beanVolume',
-  CancelledListedPods = 'cancelledListedPods',
-  CancelledOrderBeans = 'cancelledOrderBeans',
-  CreatedAt = 'createdAt',
-  DeltaAvailableListedPods = 'deltaAvailableListedPods',
-  DeltaAvailableOrderBeans = 'deltaAvailableOrderBeans',
-  DeltaBeanVolume = 'deltaBeanVolume',
-  DeltaCancelledListedPods = 'deltaCancelledListedPods',
-  DeltaCancelledOrderBeans = 'deltaCancelledOrderBeans',
-  DeltaExpiredListedPods = 'deltaExpiredListedPods',
-  DeltaFilledListedPods = 'deltaFilledListedPods',
-  DeltaFilledOrderBeans = 'deltaFilledOrderBeans',
-  DeltaFilledOrderedPods = 'deltaFilledOrderedPods',
-  DeltaListedPods = 'deltaListedPods',
-  DeltaOrderBeans = 'deltaOrderBeans',
-  DeltaPodVolume = 'deltaPodVolume',
-  ExpiredListedPods = 'expiredListedPods',
-  FilledListedPods = 'filledListedPods',
-  FilledOrderBeans = 'filledOrderBeans',
-  FilledOrderedPods = 'filledOrderedPods',
-  Id = 'id',
-  ListedPods = 'listedPods',
-  OrderBeans = 'orderBeans',
-  PodMarketplace = 'podMarketplace',
-  PodMarketplaceAvailableListedPods = 'podMarketplace__availableListedPods',
-  PodMarketplaceAvailableOrderBeans = 'podMarketplace__availableOrderBeans',
-  PodMarketplaceBeanVolume = 'podMarketplace__beanVolume',
-  PodMarketplaceCancelledListedPods = 'podMarketplace__cancelledListedPods',
-  PodMarketplaceCancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
-  PodMarketplaceExpiredListedPods = 'podMarketplace__expiredListedPods',
-  PodMarketplaceFilledListedPods = 'podMarketplace__filledListedPods',
-  PodMarketplaceFilledOrderBeans = 'podMarketplace__filledOrderBeans',
-  PodMarketplaceFilledOrderedPods = 'podMarketplace__filledOrderedPods',
-  PodMarketplaceId = 'podMarketplace__id',
-  PodMarketplaceLastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
-  PodMarketplaceLastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
-  PodMarketplaceListedPods = 'podMarketplace__listedPods',
-  PodMarketplaceOrderBeans = 'podMarketplace__orderBeans',
-  PodMarketplacePodVolume = 'podMarketplace__podVolume',
-  PodMarketplaceSeason = 'podMarketplace__season',
-  PodVolume = 'podVolume',
-  Season = 'season',
-  UpdatedAt = 'updatedAt'
+export enum PodMarketplaceDailySnapshotOrderBy {
+  availableListedPods = 'availableListedPods',
+  availableOrderBeans = 'availableOrderBeans',
+  beanVolume = 'beanVolume',
+  cancelledListedPods = 'cancelledListedPods',
+  cancelledOrderBeans = 'cancelledOrderBeans',
+  createdAt = 'createdAt',
+  deltaAvailableListedPods = 'deltaAvailableListedPods',
+  deltaAvailableOrderBeans = 'deltaAvailableOrderBeans',
+  deltaBeanVolume = 'deltaBeanVolume',
+  deltaCancelledListedPods = 'deltaCancelledListedPods',
+  deltaCancelledOrderBeans = 'deltaCancelledOrderBeans',
+  deltaExpiredListedPods = 'deltaExpiredListedPods',
+  deltaFilledListedPods = 'deltaFilledListedPods',
+  deltaFilledOrderBeans = 'deltaFilledOrderBeans',
+  deltaFilledOrderedPods = 'deltaFilledOrderedPods',
+  deltaListedPods = 'deltaListedPods',
+  deltaOrderBeans = 'deltaOrderBeans',
+  deltaPodVolume = 'deltaPodVolume',
+  expiredListedPods = 'expiredListedPods',
+  filledListedPods = 'filledListedPods',
+  filledOrderBeans = 'filledOrderBeans',
+  filledOrderedPods = 'filledOrderedPods',
+  id = 'id',
+  listedPods = 'listedPods',
+  orderBeans = 'orderBeans',
+  podMarketplace = 'podMarketplace',
+  podMarketplace__availableListedPods = 'podMarketplace__availableListedPods',
+  podMarketplace__availableOrderBeans = 'podMarketplace__availableOrderBeans',
+  podMarketplace__beanVolume = 'podMarketplace__beanVolume',
+  podMarketplace__cancelledListedPods = 'podMarketplace__cancelledListedPods',
+  podMarketplace__cancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
+  podMarketplace__expiredListedPods = 'podMarketplace__expiredListedPods',
+  podMarketplace__filledListedPods = 'podMarketplace__filledListedPods',
+  podMarketplace__filledOrderBeans = 'podMarketplace__filledOrderBeans',
+  podMarketplace__filledOrderedPods = 'podMarketplace__filledOrderedPods',
+  podMarketplace__id = 'podMarketplace__id',
+  podMarketplace__lastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
+  podMarketplace__lastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
+  podMarketplace__listedPods = 'podMarketplace__listedPods',
+  podMarketplace__orderBeans = 'podMarketplace__orderBeans',
+  podMarketplace__podVolume = 'podMarketplace__podVolume',
+  podMarketplace__season = 'podMarketplace__season',
+  podVolume = 'podVolume',
+  season = 'season',
+  updatedAt = 'updatedAt'
 }
 
 export type PodMarketplaceHourlySnapshot = {
@@ -5520,10 +5662,10 @@ export type PodMarketplaceHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type PodMarketplaceHourlySnapshot_Filter = {
+export type PodMarketplaceHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<PodMarketplaceHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodMarketplaceHourlySnapshotFilter>>>;
   availableListedPods?: InputMaybe<Scalars['BigInt']['input']>;
   availableListedPods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   availableListedPods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -5716,7 +5858,7 @@ export type PodMarketplaceHourlySnapshot_Filter = {
   listedPods_lte?: InputMaybe<Scalars['BigInt']['input']>;
   listedPods_not?: InputMaybe<Scalars['BigInt']['input']>;
   listedPods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodMarketplaceHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodMarketplaceHourlySnapshotFilter>>>;
   orderBeans?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_gt?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -5726,7 +5868,7 @@ export type PodMarketplaceHourlySnapshot_Filter = {
   orderBeans_not?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   podMarketplace?: InputMaybe<Scalars['String']['input']>;
-  podMarketplace_?: InputMaybe<PodMarketplace_Filter>;
+  podMarketplace_?: InputMaybe<PodMarketplaceFilter>;
   podMarketplace_contains?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -5772,55 +5914,55 @@ export type PodMarketplaceHourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PodMarketplaceHourlySnapshot_OrderBy {
-  AvailableListedPods = 'availableListedPods',
-  AvailableOrderBeans = 'availableOrderBeans',
-  BeanVolume = 'beanVolume',
-  CancelledListedPods = 'cancelledListedPods',
-  CancelledOrderBeans = 'cancelledOrderBeans',
-  CreatedAt = 'createdAt',
-  DeltaAvailableListedPods = 'deltaAvailableListedPods',
-  DeltaAvailableOrderBeans = 'deltaAvailableOrderBeans',
-  DeltaBeanVolume = 'deltaBeanVolume',
-  DeltaCancelledListedPods = 'deltaCancelledListedPods',
-  DeltaCancelledOrderBeans = 'deltaCancelledOrderBeans',
-  DeltaExpiredListedPods = 'deltaExpiredListedPods',
-  DeltaFilledListedPods = 'deltaFilledListedPods',
-  DeltaFilledOrderBeans = 'deltaFilledOrderBeans',
-  DeltaFilledOrderedPods = 'deltaFilledOrderedPods',
-  DeltaListedPods = 'deltaListedPods',
-  DeltaOrderBeans = 'deltaOrderBeans',
-  DeltaPodVolume = 'deltaPodVolume',
-  ExpiredListedPods = 'expiredListedPods',
-  FilledListedPods = 'filledListedPods',
-  FilledOrderBeans = 'filledOrderBeans',
-  FilledOrderedPods = 'filledOrderedPods',
-  Id = 'id',
-  ListedPods = 'listedPods',
-  OrderBeans = 'orderBeans',
-  PodMarketplace = 'podMarketplace',
-  PodMarketplaceAvailableListedPods = 'podMarketplace__availableListedPods',
-  PodMarketplaceAvailableOrderBeans = 'podMarketplace__availableOrderBeans',
-  PodMarketplaceBeanVolume = 'podMarketplace__beanVolume',
-  PodMarketplaceCancelledListedPods = 'podMarketplace__cancelledListedPods',
-  PodMarketplaceCancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
-  PodMarketplaceExpiredListedPods = 'podMarketplace__expiredListedPods',
-  PodMarketplaceFilledListedPods = 'podMarketplace__filledListedPods',
-  PodMarketplaceFilledOrderBeans = 'podMarketplace__filledOrderBeans',
-  PodMarketplaceFilledOrderedPods = 'podMarketplace__filledOrderedPods',
-  PodMarketplaceId = 'podMarketplace__id',
-  PodMarketplaceLastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
-  PodMarketplaceLastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
-  PodMarketplaceListedPods = 'podMarketplace__listedPods',
-  PodMarketplaceOrderBeans = 'podMarketplace__orderBeans',
-  PodMarketplacePodVolume = 'podMarketplace__podVolume',
-  PodMarketplaceSeason = 'podMarketplace__season',
-  PodVolume = 'podVolume',
-  Season = 'season',
-  UpdatedAt = 'updatedAt'
+export enum PodMarketplaceHourlySnapshotOrderBy {
+  availableListedPods = 'availableListedPods',
+  availableOrderBeans = 'availableOrderBeans',
+  beanVolume = 'beanVolume',
+  cancelledListedPods = 'cancelledListedPods',
+  cancelledOrderBeans = 'cancelledOrderBeans',
+  createdAt = 'createdAt',
+  deltaAvailableListedPods = 'deltaAvailableListedPods',
+  deltaAvailableOrderBeans = 'deltaAvailableOrderBeans',
+  deltaBeanVolume = 'deltaBeanVolume',
+  deltaCancelledListedPods = 'deltaCancelledListedPods',
+  deltaCancelledOrderBeans = 'deltaCancelledOrderBeans',
+  deltaExpiredListedPods = 'deltaExpiredListedPods',
+  deltaFilledListedPods = 'deltaFilledListedPods',
+  deltaFilledOrderBeans = 'deltaFilledOrderBeans',
+  deltaFilledOrderedPods = 'deltaFilledOrderedPods',
+  deltaListedPods = 'deltaListedPods',
+  deltaOrderBeans = 'deltaOrderBeans',
+  deltaPodVolume = 'deltaPodVolume',
+  expiredListedPods = 'expiredListedPods',
+  filledListedPods = 'filledListedPods',
+  filledOrderBeans = 'filledOrderBeans',
+  filledOrderedPods = 'filledOrderedPods',
+  id = 'id',
+  listedPods = 'listedPods',
+  orderBeans = 'orderBeans',
+  podMarketplace = 'podMarketplace',
+  podMarketplace__availableListedPods = 'podMarketplace__availableListedPods',
+  podMarketplace__availableOrderBeans = 'podMarketplace__availableOrderBeans',
+  podMarketplace__beanVolume = 'podMarketplace__beanVolume',
+  podMarketplace__cancelledListedPods = 'podMarketplace__cancelledListedPods',
+  podMarketplace__cancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
+  podMarketplace__expiredListedPods = 'podMarketplace__expiredListedPods',
+  podMarketplace__filledListedPods = 'podMarketplace__filledListedPods',
+  podMarketplace__filledOrderBeans = 'podMarketplace__filledOrderBeans',
+  podMarketplace__filledOrderedPods = 'podMarketplace__filledOrderedPods',
+  podMarketplace__id = 'podMarketplace__id',
+  podMarketplace__lastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
+  podMarketplace__lastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
+  podMarketplace__listedPods = 'podMarketplace__listedPods',
+  podMarketplace__orderBeans = 'podMarketplace__orderBeans',
+  podMarketplace__podVolume = 'podMarketplace__podVolume',
+  podMarketplace__season = 'podMarketplace__season',
+  podVolume = 'podVolume',
+  season = 'season',
+  updatedAt = 'updatedAt'
 }
 
-export type PodMarketplace_Filter = {
+export type PodMarketplaceFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   activeListings?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -5835,9 +5977,9 @@ export type PodMarketplace_Filter = {
   activeOrders_not?: InputMaybe<Array<Scalars['String']['input']>>;
   activeOrders_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   activeOrders_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  allListings_?: InputMaybe<PodListing_Filter>;
-  allOrders_?: InputMaybe<PodOrder_Filter>;
-  and?: InputMaybe<Array<InputMaybe<PodMarketplace_Filter>>>;
+  allListings_?: InputMaybe<PodListingFilter>;
+  allOrders_?: InputMaybe<PodOrderFilter>;
+  and?: InputMaybe<Array<InputMaybe<PodMarketplaceFilter>>>;
   availableListedPods?: InputMaybe<Scalars['BigInt']['input']>;
   availableListedPods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   availableListedPods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -5878,7 +6020,7 @@ export type PodMarketplace_Filter = {
   cancelledOrderBeans_lte?: InputMaybe<Scalars['BigInt']['input']>;
   cancelledOrderBeans_not?: InputMaybe<Scalars['BigInt']['input']>;
   cancelledOrderBeans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  dailySnapshots_?: InputMaybe<PodMarketplaceDailySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<PodMarketplaceDailySnapshotFilter>;
   expiredListedPods?: InputMaybe<Scalars['BigInt']['input']>;
   expiredListedPods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   expiredListedPods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -5911,8 +6053,8 @@ export type PodMarketplace_Filter = {
   filledOrderedPods_lte?: InputMaybe<Scalars['BigInt']['input']>;
   filledOrderedPods_not?: InputMaybe<Scalars['BigInt']['input']>;
   filledOrderedPods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  fills_?: InputMaybe<PodFill_Filter>;
-  hourlySnapshots_?: InputMaybe<PodMarketplaceHourlySnapshot_Filter>;
+  fills_?: InputMaybe<PodFillFilter>;
+  hourlySnapshots_?: InputMaybe<PodMarketplaceHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -5945,7 +6087,7 @@ export type PodMarketplace_Filter = {
   listedPods_lte?: InputMaybe<Scalars['BigInt']['input']>;
   listedPods_not?: InputMaybe<Scalars['BigInt']['input']>;
   listedPods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodMarketplace_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodMarketplaceFilter>>>;
   orderBeans?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_gt?: InputMaybe<Scalars['BigInt']['input']>;
   orderBeans_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -5972,30 +6114,30 @@ export type PodMarketplace_Filter = {
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
-export enum PodMarketplace_OrderBy {
-  ActiveListings = 'activeListings',
-  ActiveOrders = 'activeOrders',
-  AllListings = 'allListings',
-  AllOrders = 'allOrders',
-  AvailableListedPods = 'availableListedPods',
-  AvailableOrderBeans = 'availableOrderBeans',
-  BeanVolume = 'beanVolume',
-  CancelledListedPods = 'cancelledListedPods',
-  CancelledOrderBeans = 'cancelledOrderBeans',
-  DailySnapshots = 'dailySnapshots',
-  ExpiredListedPods = 'expiredListedPods',
-  FilledListedPods = 'filledListedPods',
-  FilledOrderBeans = 'filledOrderBeans',
-  FilledOrderedPods = 'filledOrderedPods',
-  Fills = 'fills',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  ListedPods = 'listedPods',
-  OrderBeans = 'orderBeans',
-  PodVolume = 'podVolume',
-  Season = 'season'
+export enum PodMarketplaceOrderBy {
+  activeListings = 'activeListings',
+  activeOrders = 'activeOrders',
+  allListings = 'allListings',
+  allOrders = 'allOrders',
+  availableListedPods = 'availableListedPods',
+  availableOrderBeans = 'availableOrderBeans',
+  beanVolume = 'beanVolume',
+  cancelledListedPods = 'cancelledListedPods',
+  cancelledOrderBeans = 'cancelledOrderBeans',
+  dailySnapshots = 'dailySnapshots',
+  expiredListedPods = 'expiredListedPods',
+  filledListedPods = 'filledListedPods',
+  filledOrderBeans = 'filledOrderBeans',
+  filledOrderedPods = 'filledOrderedPods',
+  fills = 'fills',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  listedPods = 'listedPods',
+  orderBeans = 'orderBeans',
+  podVolume = 'podVolume',
+  season = 'season'
 }
 
 export type PodOrder = {
@@ -6009,7 +6151,6 @@ export type PodOrder = {
    * If FIXED (V1): `amount * pricePerPod` fields emitted in PodOrderCreated.
    * If FIXED (V2): `amount` field emitted in PodOrderCreated.
    * If DYNAMIC (V2): `amount` field emitted in PodOrderCreated.
-   *
    */
   beanAmount: Scalars['BigInt']['output'];
   /**
@@ -6019,7 +6160,6 @@ export type PodOrder = {
    * `0 <= beanAmountFilled <= beanAmount`
    *
    * Upon PodOrder cancellation, this value is locked.
-   *
    */
   beanAmountFilled: Scalars['BigInt']['output'];
   /** Timestamp of PodOrder creation. */
@@ -6028,24 +6168,21 @@ export type PodOrder = {
   creationHash: Scalars['Bytes']['output'];
   /** The Farmer that created the Pod Order. */
   farmer: Farmer;
+  /** Numeric identifier of the field for this order */
+  fieldId: Scalars['BigInt']['output'];
   /** All Fills associated with this PodOrder. */
   fills: Array<PodFill>;
-  /**
-   * Historical ID for joins: `{account}-{createdAt}`
-   *
-   */
+  /** Historical ID for joins: `{account}-{createdAt}` */
   historyID: Scalars['String']['output'];
   /**
    * The PodOrder ID matchces the `id` stored on-chain:
    *
    * `keccak256(abi.encodePacked(account, pricePerPod, maxPlaceInLine, minFillAmount))`
-   *
    */
   id: Scalars['ID']['output'];
   /**
    * The Farmer is willing to buy any Pod that is before maxPlaceInLine at pricePerPod.
    * As the Pod Line moves, this value stays the same because new Pods meet the criteria.
-   *
    */
   maxPlaceInLine: Scalars['BigInt']['output'];
   /** Minimum number of Pods required to perform a Fill. */
@@ -6058,7 +6195,6 @@ export type PodOrder = {
    * If pricingType = DYNAMIC: No constraint, since `podAmount` is unknown.
    *
    * Upon PodOrder cancellation, this value is locked.
-   *
    */
   podAmountFilled: Scalars['BigInt']['output'];
   /** Marketplace used for Pod Order. */
@@ -6069,7 +6205,6 @@ export type PodOrder = {
    * Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
    *
    * If `pricingType = 1`, this field is initialized to `0` and should be ignored.
-   *
    */
   pricePerPod: Scalars['Int']['output'];
   /**
@@ -6080,7 +6215,6 @@ export type PodOrder = {
    * null    = V1 FIXED    = use `pricePerPod`
    * "0x"    = V2 FIXED    = use `pricePerPod`
    * "0x..." = V2 DYNAMIC  = use `pricingFunction`
-   *
    */
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /**
@@ -6089,7 +6223,6 @@ export type PodOrder = {
    * null = V1 FIXED  = use `pricePerPod`
    * 0    = V2 FIXED  = use `pricePerPod`
    * 1    = V2 DYNAMIC = use `pricingFunction`
-   *
    */
   pricingType?: Maybe<Scalars['Int']['output']>;
   /** Current status of order. */
@@ -6101,10 +6234,10 @@ export type PodOrder = {
 
 export type PodOrderFillsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodFill_OrderBy>;
+  orderBy?: InputMaybe<PodFillOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PodFill_Filter>;
+  where?: InputMaybe<PodFillFilter>;
 };
 
 export type PodOrderCancelled = MarketplaceEvent & {
@@ -6127,7 +6260,7 @@ export type PodOrderCancelled = MarketplaceEvent & {
   orderId: Scalars['String']['output'];
 };
 
-export type PodOrderCancelled_Filter = {
+export type PodOrderCancelledFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   account?: InputMaybe<Scalars['Bytes']['input']>;
@@ -6140,7 +6273,7 @@ export type PodOrderCancelled_Filter = {
   account_not?: InputMaybe<Scalars['Bytes']['input']>;
   account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodOrderCancelled_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodOrderCancelledFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6203,7 +6336,7 @@ export type PodOrderCancelled_Filter = {
   logIndex_lte?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodOrderCancelled_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodOrderCancelledFilter>>>;
   orderId?: InputMaybe<Scalars['String']['input']>;
   orderId_contains?: InputMaybe<Scalars['String']['input']>;
   orderId_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -6226,15 +6359,15 @@ export type PodOrderCancelled_Filter = {
   orderId_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum PodOrderCancelled_OrderBy {
-  Account = 'account',
-  BlockNumber = 'blockNumber',
-  CreatedAt = 'createdAt',
-  Hash = 'hash',
-  HistoryId = 'historyID',
-  Id = 'id',
-  LogIndex = 'logIndex',
-  OrderId = 'orderId'
+export enum PodOrderCancelledOrderBy {
+  account = 'account',
+  blockNumber = 'blockNumber',
+  createdAt = 'createdAt',
+  hash = 'hash',
+  historyID = 'historyID',
+  id = 'id',
+  logIndex = 'logIndex',
+  orderId = 'orderId'
 }
 
 export type PodOrderCreated = MarketplaceEvent & {
@@ -6245,7 +6378,6 @@ export type PodOrderCreated = MarketplaceEvent & {
    * The represented value emitted with this event changed with BIP-29 at block 15277986
    * Pre  BIP-29: The number of pods ordered is emitted
    * Post BIP-29: The number of beans supplied for the order is emitted.
-   *
    */
   amount: Scalars['BigInt']['output'];
   /** Block number of this event */
@@ -6272,7 +6404,7 @@ export type PodOrderCreated = MarketplaceEvent & {
   pricingType?: Maybe<Scalars['Int']['output']>;
 };
 
-export type PodOrderCreated_Filter = {
+export type PodOrderCreatedFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   account?: InputMaybe<Scalars['Bytes']['input']>;
@@ -6293,7 +6425,7 @@ export type PodOrderCreated_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodOrderCreated_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodOrderCreatedFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6364,7 +6496,7 @@ export type PodOrderCreated_Filter = {
   maxPlaceInLine_lte?: InputMaybe<Scalars['BigInt']['input']>;
   maxPlaceInLine_not?: InputMaybe<Scalars['BigInt']['input']>;
   maxPlaceInLine_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodOrderCreated_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodOrderCreatedFilter>>>;
   orderId?: InputMaybe<Scalars['String']['input']>;
   orderId_contains?: InputMaybe<Scalars['String']['input']>;
   orderId_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -6413,20 +6545,20 @@ export type PodOrderCreated_Filter = {
   pricingType_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
-export enum PodOrderCreated_OrderBy {
-  Account = 'account',
-  Amount = 'amount',
-  BlockNumber = 'blockNumber',
-  CreatedAt = 'createdAt',
-  Hash = 'hash',
-  HistoryId = 'historyID',
-  Id = 'id',
-  LogIndex = 'logIndex',
-  MaxPlaceInLine = 'maxPlaceInLine',
-  OrderId = 'orderId',
-  PricePerPod = 'pricePerPod',
-  PricingFunction = 'pricingFunction',
-  PricingType = 'pricingType'
+export enum PodOrderCreatedOrderBy {
+  account = 'account',
+  amount = 'amount',
+  blockNumber = 'blockNumber',
+  createdAt = 'createdAt',
+  hash = 'hash',
+  historyID = 'historyID',
+  id = 'id',
+  logIndex = 'logIndex',
+  maxPlaceInLine = 'maxPlaceInLine',
+  orderId = 'orderId',
+  pricePerPod = 'pricePerPod',
+  pricingFunction = 'pricingFunction',
+  pricingType = 'pricingType'
 }
 
 export type PodOrderFilled = MarketplaceEvent & {
@@ -6459,7 +6591,7 @@ export type PodOrderFilled = MarketplaceEvent & {
   toFarmer: Scalars['Bytes']['output'];
 };
 
-export type PodOrderFilled_Filter = {
+export type PodOrderFilledFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6470,7 +6602,7 @@ export type PodOrderFilled_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PodOrderFilled_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodOrderFilledFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6559,7 +6691,7 @@ export type PodOrderFilled_Filter = {
   logIndex_lte?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodOrderFilled_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodOrderFilledFilter>>>;
   placeInLine?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gt?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6588,26 +6720,26 @@ export type PodOrderFilled_Filter = {
   toFarmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
-export enum PodOrderFilled_OrderBy {
-  Amount = 'amount',
-  BlockNumber = 'blockNumber',
-  CostInBeans = 'costInBeans',
-  CreatedAt = 'createdAt',
-  FromFarmer = 'fromFarmer',
-  Hash = 'hash',
-  HistoryId = 'historyID',
-  Id = 'id',
-  Index = 'index',
-  LogIndex = 'logIndex',
-  PlaceInLine = 'placeInLine',
-  Start = 'start',
-  ToFarmer = 'toFarmer'
+export enum PodOrderFilledOrderBy {
+  amount = 'amount',
+  blockNumber = 'blockNumber',
+  costInBeans = 'costInBeans',
+  createdAt = 'createdAt',
+  fromFarmer = 'fromFarmer',
+  hash = 'hash',
+  historyID = 'historyID',
+  id = 'id',
+  index = 'index',
+  logIndex = 'logIndex',
+  placeInLine = 'placeInLine',
+  start = 'start',
+  toFarmer = 'toFarmer'
 }
 
-export type PodOrder_Filter = {
+export type PodOrderFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<PodOrder_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PodOrderFilter>>>;
   beanAmount?: InputMaybe<Scalars['BigInt']['input']>;
   beanAmountFilled?: InputMaybe<Scalars['BigInt']['input']>;
   beanAmountFilled_gt?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6643,7 +6775,7 @@ export type PodOrder_Filter = {
   creationHash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   creationHash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -6663,8 +6795,16 @@ export type PodOrder_Filter = {
   farmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  fieldId?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  fieldId_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not?: InputMaybe<Scalars['BigInt']['input']>;
+  fieldId_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   fills?: InputMaybe<Array<Scalars['String']['input']>>;
-  fills_?: InputMaybe<PodFill_Filter>;
+  fills_?: InputMaybe<PodFillFilter>;
   fills_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   fills_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   fills_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -6714,7 +6854,7 @@ export type PodOrder_Filter = {
   minFillAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   minFillAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
   minFillAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PodOrder_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PodOrderFilter>>>;
   podAmountFilled?: InputMaybe<Scalars['BigInt']['input']>;
   podAmountFilled_gt?: InputMaybe<Scalars['BigInt']['input']>;
   podAmountFilled_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6724,7 +6864,7 @@ export type PodOrder_Filter = {
   podAmountFilled_not?: InputMaybe<Scalars['BigInt']['input']>;
   podAmountFilled_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   podMarketplace?: InputMaybe<Scalars['String']['input']>;
-  podMarketplace_?: InputMaybe<PodMarketplace_Filter>;
+  podMarketplace_?: InputMaybe<PodMarketplaceFilter>;
   podMarketplace_contains?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   podMarketplace_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -6784,42 +6924,45 @@ export type PodOrder_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PodOrder_OrderBy {
-  BeanAmount = 'beanAmount',
-  BeanAmountFilled = 'beanAmountFilled',
-  CreatedAt = 'createdAt',
-  CreationHash = 'creationHash',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  Fills = 'fills',
-  HistoryId = 'historyID',
-  Id = 'id',
-  MaxPlaceInLine = 'maxPlaceInLine',
-  MinFillAmount = 'minFillAmount',
-  PodAmountFilled = 'podAmountFilled',
-  PodMarketplace = 'podMarketplace',
-  PodMarketplaceAvailableListedPods = 'podMarketplace__availableListedPods',
-  PodMarketplaceAvailableOrderBeans = 'podMarketplace__availableOrderBeans',
-  PodMarketplaceBeanVolume = 'podMarketplace__beanVolume',
-  PodMarketplaceCancelledListedPods = 'podMarketplace__cancelledListedPods',
-  PodMarketplaceCancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
-  PodMarketplaceExpiredListedPods = 'podMarketplace__expiredListedPods',
-  PodMarketplaceFilledListedPods = 'podMarketplace__filledListedPods',
-  PodMarketplaceFilledOrderBeans = 'podMarketplace__filledOrderBeans',
-  PodMarketplaceFilledOrderedPods = 'podMarketplace__filledOrderedPods',
-  PodMarketplaceId = 'podMarketplace__id',
-  PodMarketplaceLastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
-  PodMarketplaceLastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
-  PodMarketplaceListedPods = 'podMarketplace__listedPods',
-  PodMarketplaceOrderBeans = 'podMarketplace__orderBeans',
-  PodMarketplacePodVolume = 'podMarketplace__podVolume',
-  PodMarketplaceSeason = 'podMarketplace__season',
-  PricePerPod = 'pricePerPod',
-  PricingFunction = 'pricingFunction',
-  PricingType = 'pricingType',
-  Status = 'status',
-  UpdatedAt = 'updatedAt'
+export enum PodOrderOrderBy {
+  beanAmount = 'beanAmount',
+  beanAmountFilled = 'beanAmountFilled',
+  createdAt = 'createdAt',
+  creationHash = 'creationHash',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  fieldId = 'fieldId',
+  fills = 'fills',
+  historyID = 'historyID',
+  id = 'id',
+  maxPlaceInLine = 'maxPlaceInLine',
+  minFillAmount = 'minFillAmount',
+  podAmountFilled = 'podAmountFilled',
+  podMarketplace = 'podMarketplace',
+  podMarketplace__availableListedPods = 'podMarketplace__availableListedPods',
+  podMarketplace__availableOrderBeans = 'podMarketplace__availableOrderBeans',
+  podMarketplace__beanVolume = 'podMarketplace__beanVolume',
+  podMarketplace__cancelledListedPods = 'podMarketplace__cancelledListedPods',
+  podMarketplace__cancelledOrderBeans = 'podMarketplace__cancelledOrderBeans',
+  podMarketplace__expiredListedPods = 'podMarketplace__expiredListedPods',
+  podMarketplace__filledListedPods = 'podMarketplace__filledListedPods',
+  podMarketplace__filledOrderBeans = 'podMarketplace__filledOrderBeans',
+  podMarketplace__filledOrderedPods = 'podMarketplace__filledOrderedPods',
+  podMarketplace__id = 'podMarketplace__id',
+  podMarketplace__lastDailySnapshotDay = 'podMarketplace__lastDailySnapshotDay',
+  podMarketplace__lastHourlySnapshotSeason = 'podMarketplace__lastHourlySnapshotSeason',
+  podMarketplace__listedPods = 'podMarketplace__listedPods',
+  podMarketplace__orderBeans = 'podMarketplace__orderBeans',
+  podMarketplace__podVolume = 'podMarketplace__podVolume',
+  podMarketplace__season = 'podMarketplace__season',
+  pricePerPod = 'pricePerPod',
+  pricingFunction = 'pricingFunction',
+  pricingType = 'pricingType',
+  status = 'status',
+  updatedAt = 'updatedAt'
 }
 
 export type PrevFarmerGerminatingEvent = {
@@ -6834,10 +6977,10 @@ export type PrevFarmerGerminatingEvent = {
   logIndex: Scalars['BigInt']['output'];
 };
 
-export type PrevFarmerGerminatingEvent_Filter = {
+export type PrevFarmerGerminatingEventFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<PrevFarmerGerminatingEvent_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PrevFarmerGerminatingEventFilter>>>;
   deltaGerminatingStalk?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGerminatingStalk_gt?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGerminatingStalk_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6872,20 +7015,20 @@ export type PrevFarmerGerminatingEvent_Filter = {
   logIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
   logIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PrevFarmerGerminatingEvent_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PrevFarmerGerminatingEventFilter>>>;
 };
 
-export enum PrevFarmerGerminatingEvent_OrderBy {
-  DeltaGerminatingStalk = 'deltaGerminatingStalk',
-  EventBlock = 'eventBlock',
-  Id = 'id',
-  LogIndex = 'logIndex'
+export enum PrevFarmerGerminatingEventOrderBy {
+  deltaGerminatingStalk = 'deltaGerminatingStalk',
+  eventBlock = 'eventBlock',
+  id = 'id',
+  logIndex = 'logIndex'
 }
 
 export type Query = {
   __typename?: 'Query';
   /** Access to subgraph metadata */
-  _meta?: Maybe<_Meta_>;
+  _meta?: Maybe<Meta>;
   beanstalk?: Maybe<Beanstalk>;
   beanstalks: Array<Beanstalk>;
   chop?: Maybe<Chop>;
@@ -7001,1016 +7144,1016 @@ export type Query = {
 };
 
 
-export type Query_MetaArgs = {
-  block?: InputMaybe<Block_Height>;
+export type QueryMetaArgs = {
+  block?: InputMaybe<BlockHeight>;
 };
 
 
 export type QueryBeanstalkArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanstalksArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Beanstalk_OrderBy>;
+  orderBy?: InputMaybe<BeanstalkOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Beanstalk_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanstalkFilter>;
 };
 
 
 export type QueryChopArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryChopsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Chop_OrderBy>;
+  orderBy?: InputMaybe<ChopOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Chop_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<ChopFilter>;
 };
 
 
 export type QueryFarmerArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFarmersArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Farmer_OrderBy>;
+  orderBy?: InputMaybe<FarmerOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Farmer_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FarmerFilter>;
 };
 
 
 export type QueryFertilizerArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFertilizerBalanceArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFertilizerBalancesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerBalance_OrderBy>;
+  orderBy?: InputMaybe<FertilizerBalanceOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FertilizerBalance_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FertilizerBalanceFilter>;
 };
 
 
 export type QueryFertilizerTokenArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFertilizerTokensArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerToken_OrderBy>;
+  orderBy?: InputMaybe<FertilizerTokenOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FertilizerToken_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FertilizerTokenFilter>;
 };
 
 
 export type QueryFertilizerYieldArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFertilizerYieldsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerYield_OrderBy>;
+  orderBy?: InputMaybe<FertilizerYieldOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FertilizerYield_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FertilizerYieldFilter>;
 };
 
 
 export type QueryFertilizersArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Fertilizer_OrderBy>;
+  orderBy?: InputMaybe<FertilizerOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Fertilizer_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FertilizerFilter>;
 };
 
 
 export type QueryFieldArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFieldDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFieldDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FieldDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FieldDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FieldDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FieldDailySnapshotFilter>;
 };
 
 
 export type QueryFieldHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFieldHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FieldHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FieldHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FieldHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FieldHourlySnapshotFilter>;
 };
 
 
 export type QueryFieldsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Field_OrderBy>;
+  orderBy?: InputMaybe<FieldOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Field_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FieldFilter>;
 };
 
 
 export type QueryGaugesInfoArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryGaugesInfoDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryGaugesInfoDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfoDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<GaugesInfoDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<GaugesInfoDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<GaugesInfoDailySnapshotFilter>;
 };
 
 
 export type QueryGaugesInfoHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryGaugesInfoHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfoHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<GaugesInfoHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<GaugesInfoHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<GaugesInfoHourlySnapshotFilter>;
 };
 
 
 export type QueryGaugesInfosArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfo_OrderBy>;
+  orderBy?: InputMaybe<GaugesInfoOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<GaugesInfo_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<GaugesInfoFilter>;
 };
 
 
 export type QueryGerminatingArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryGerminatingsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Germinating_OrderBy>;
+  orderBy?: InputMaybe<GerminatingOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Germinating_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<GerminatingFilter>;
 };
 
 
 export type QueryMarketPerformanceSeasonalArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryMarketPerformanceSeasonalsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<MarketPerformanceSeasonal_OrderBy>;
+  orderBy?: InputMaybe<MarketPerformanceSeasonalOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<MarketPerformanceSeasonal_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<MarketPerformanceSeasonalFilter>;
 };
 
 
 export type QueryMarketplaceEventArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryMarketplaceEventsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<MarketplaceEvent_OrderBy>;
+  orderBy?: InputMaybe<MarketplaceEventOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<MarketplaceEvent_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<MarketplaceEventFilter>;
 };
 
 
 export type QueryPlotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPlotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Plot_OrderBy>;
+  orderBy?: InputMaybe<PlotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Plot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PlotFilter>;
 };
 
 
 export type QueryPodFillArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodFillsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodFill_OrderBy>;
+  orderBy?: InputMaybe<PodFillOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodFill_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodFillFilter>;
 };
 
 
 export type QueryPodListingArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodListingCancelledArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodListingCancelledsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListingCancelled_OrderBy>;
+  orderBy?: InputMaybe<PodListingCancelledOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListingCancelled_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodListingCancelledFilter>;
 };
 
 
 export type QueryPodListingCreatedArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodListingCreatedsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListingCreated_OrderBy>;
+  orderBy?: InputMaybe<PodListingCreatedOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListingCreated_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodListingCreatedFilter>;
 };
 
 
 export type QueryPodListingFilledArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodListingFilledsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListingFilled_OrderBy>;
+  orderBy?: InputMaybe<PodListingFilledOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListingFilled_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodListingFilledFilter>;
 };
 
 
 export type QueryPodListingsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListing_OrderBy>;
+  orderBy?: InputMaybe<PodListingOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListing_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodListingFilter>;
 };
 
 
 export type QueryPodMarketplaceArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodMarketplaceDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodMarketplaceDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplaceDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PodMarketplaceDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodMarketplaceDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodMarketplaceDailySnapshotFilter>;
 };
 
 
 export type QueryPodMarketplaceHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodMarketplaceHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplaceHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PodMarketplaceHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodMarketplaceHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodMarketplaceHourlySnapshotFilter>;
 };
 
 
 export type QueryPodMarketplacesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplace_OrderBy>;
+  orderBy?: InputMaybe<PodMarketplaceOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodMarketplace_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodMarketplaceFilter>;
 };
 
 
 export type QueryPodOrderArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodOrderCancelledArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodOrderCancelledsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrderCancelled_OrderBy>;
+  orderBy?: InputMaybe<PodOrderCancelledOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrderCancelled_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodOrderCancelledFilter>;
 };
 
 
 export type QueryPodOrderCreatedArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodOrderCreatedsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrderCreated_OrderBy>;
+  orderBy?: InputMaybe<PodOrderCreatedOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrderCreated_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodOrderCreatedFilter>;
 };
 
 
 export type QueryPodOrderFilledArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPodOrderFilledsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrderFilled_OrderBy>;
+  orderBy?: InputMaybe<PodOrderFilledOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrderFilled_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodOrderFilledFilter>;
 };
 
 
 export type QueryPodOrdersArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrder_OrderBy>;
+  orderBy?: InputMaybe<PodOrderOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrder_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PodOrderFilter>;
 };
 
 
 export type QueryPrevFarmerGerminatingEventArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPrevFarmerGerminatingEventsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PrevFarmerGerminatingEvent_OrderBy>;
+  orderBy?: InputMaybe<PrevFarmerGerminatingEventOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PrevFarmerGerminatingEvent_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PrevFarmerGerminatingEventFilter>;
 };
 
 
 export type QuerySeasonArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySeasonsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Season_OrderBy>;
+  orderBy?: InputMaybe<SeasonOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Season_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SeasonFilter>;
 };
 
 
 export type QuerySiloArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloAssetArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloAssetDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloAssetDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAssetDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloAssetDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloAssetDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloAssetDailySnapshotFilter>;
 };
 
 
 export type QuerySiloAssetHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloAssetHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAssetHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloAssetHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloAssetHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloAssetHourlySnapshotFilter>;
 };
 
 
 export type QuerySiloAssetsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAsset_OrderBy>;
+  orderBy?: InputMaybe<SiloAssetOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloAsset_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloAssetFilter>;
 };
 
 
 export type QuerySiloDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloDailySnapshotFilter>;
 };
 
 
 export type QuerySiloDepositArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloDepositsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloDeposit_OrderBy>;
+  orderBy?: InputMaybe<SiloDepositOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloDeposit_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloDepositFilter>;
 };
 
 
 export type QuerySiloHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloHourlySnapshotFilter>;
 };
 
 
 export type QuerySiloWithdrawArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloWithdrawsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloWithdraw_OrderBy>;
+  orderBy?: InputMaybe<SiloWithdrawOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloWithdraw_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloWithdrawFilter>;
 };
 
 
 export type QuerySiloYieldArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySiloYieldsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloYield_OrderBy>;
+  orderBy?: InputMaybe<SiloYieldOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloYield_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloYieldFilter>;
 };
 
 
 export type QuerySilosArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Silo_OrderBy>;
+  orderBy?: InputMaybe<SiloOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Silo_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SiloFilter>;
 };
 
 
 export type QueryTokenYieldArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTokenYieldsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenYield_OrderBy>;
+  orderBy?: InputMaybe<TokenYieldOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenYield_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TokenYieldFilter>;
 };
 
 
 export type QueryTractorArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTractorDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTractorDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TractorDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TractorDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TractorDailySnapshotFilter>;
 };
 
 
 export type QueryTractorHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTractorHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TractorHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TractorHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TractorHourlySnapshotFilter>;
 };
 
 
 export type QueryTractorRewardArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTractorRewardsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorReward_OrderBy>;
+  orderBy?: InputMaybe<TractorRewardOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TractorReward_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TractorRewardFilter>;
 };
 
 
 export type QueryTractorsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Tractor_OrderBy>;
+  orderBy?: InputMaybe<TractorOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Tractor_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TractorFilter>;
 };
 
 
 export type QueryUnripeTokenArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryUnripeTokenDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryUnripeTokenDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeTokenDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<UnripeTokenDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<UnripeTokenDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<UnripeTokenDailySnapshotFilter>;
 };
 
 
 export type QueryUnripeTokenHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryUnripeTokenHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeTokenHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<UnripeTokenHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<UnripeTokenHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<UnripeTokenHourlySnapshotFilter>;
 };
 
 
 export type QueryUnripeTokensArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeToken_OrderBy>;
+  orderBy?: InputMaybe<UnripeTokenOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<UnripeToken_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<UnripeTokenFilter>;
 };
 
 
 export type QueryVersionArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryVersionsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Version_OrderBy>;
+  orderBy?: InputMaybe<VersionOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Version_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<VersionFilter>;
 };
 
 
 export type QueryWellPlentiesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellPlenty_OrderBy>;
+  orderBy?: InputMaybe<WellPlentyOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellPlenty_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WellPlentyFilter>;
 };
 
 
 export type QueryWellPlentyArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWhitelistTokenDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWhitelistTokenDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WhitelistTokenDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WhitelistTokenDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WhitelistTokenDailySnapshotFilter>;
 };
 
 
 export type QueryWhitelistTokenHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWhitelistTokenHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WhitelistTokenHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WhitelistTokenHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WhitelistTokenHourlySnapshotFilter>;
 };
 
 
 export type QueryWhitelistTokenSettingArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWhitelistTokenSettingsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenSetting_OrderBy>;
+  orderBy?: InputMaybe<WhitelistTokenSettingOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WhitelistTokenSetting_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WhitelistTokenSettingFilter>;
 };
 
 
 export type QueryWrappedDepositErc20Args = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWrappedDepositErc20DailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWrappedDepositErc20DailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20DailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WrappedDepositErc20DailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WrappedDepositErc20DailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WrappedDepositErc20DailySnapshotFilter>;
 };
 
 
 export type QueryWrappedDepositErc20HourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWrappedDepositErc20HourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20HourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WrappedDepositErc20HourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WrappedDepositErc20HourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WrappedDepositErc20HourlySnapshotFilter>;
 };
 
 
 export type QueryWrappedDepositErc20SArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20_OrderBy>;
+  orderBy?: InputMaybe<WrappedDepositErc20OrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WrappedDepositErc20_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WrappedDepositErc20Filter>;
 };
 
 export type Season = {
@@ -8049,10 +8192,10 @@ export type Season = {
   unmigratedL1Beans?: Maybe<Scalars['BigInt']['output']>;
 };
 
-export type Season_Filter = {
+export type SeasonFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Season_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SeasonFilter>>>;
   beans?: InputMaybe<Scalars['BigInt']['input']>;
   beans_gt?: InputMaybe<Scalars['BigInt']['input']>;
   beans_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -8062,7 +8205,7 @@ export type Season_Filter = {
   beans_not?: InputMaybe<Scalars['BigInt']['input']>;
   beans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beanstalk?: InputMaybe<Scalars['String']['input']>;
-  beanstalk_?: InputMaybe<Beanstalk_Filter>;
+  beanstalk_?: InputMaybe<BeanstalkFilter>;
   beanstalk_contains?: InputMaybe<Scalars['String']['input']>;
   beanstalk_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   beanstalk_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -8146,7 +8289,7 @@ export type Season_Filter = {
   marketCap_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   marketCap_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   marketCap_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Season_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SeasonFilter>>>;
   price?: InputMaybe<Scalars['BigDecimal']['input']>;
   price_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   price_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -8193,27 +8336,27 @@ export type Season_Filter = {
   unmigratedL1Beans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Season_OrderBy {
-  Beans = 'beans',
-  Beanstalk = 'beanstalk',
-  BeanstalkFertilizer1155 = 'beanstalk__fertilizer1155',
-  BeanstalkId = 'beanstalk__id',
-  BeanstalkLastSeason = 'beanstalk__lastSeason',
-  BeanstalkToken = 'beanstalk__token',
-  CreatedAt = 'createdAt',
-  DeltaB = 'deltaB',
-  DeltaBeans = 'deltaBeans',
-  FloodFieldBeans = 'floodFieldBeans',
-  FloodSiloBeans = 'floodSiloBeans',
-  Id = 'id',
-  IncentiveBeans = 'incentiveBeans',
-  MarketCap = 'marketCap',
-  Price = 'price',
-  Raining = 'raining',
-  RewardBeans = 'rewardBeans',
-  Season = 'season',
-  SunriseBlock = 'sunriseBlock',
-  UnmigratedL1Beans = 'unmigratedL1Beans'
+export enum SeasonOrderBy {
+  beans = 'beans',
+  beanstalk = 'beanstalk',
+  beanstalk__fertilizer1155 = 'beanstalk__fertilizer1155',
+  beanstalk__id = 'beanstalk__id',
+  beanstalk__lastSeason = 'beanstalk__lastSeason',
+  beanstalk__token = 'beanstalk__token',
+  createdAt = 'createdAt',
+  deltaB = 'deltaB',
+  deltaBeans = 'deltaBeans',
+  floodFieldBeans = 'floodFieldBeans',
+  floodSiloBeans = 'floodSiloBeans',
+  id = 'id',
+  incentiveBeans = 'incentiveBeans',
+  marketCap = 'marketCap',
+  price = 'price',
+  raining = 'raining',
+  rewardBeans = 'rewardBeans',
+  season = 'season',
+  sunriseBlock = 'sunriseBlock',
+  unmigratedL1Beans = 'unmigratedL1Beans'
 }
 
 export type Silo = {
@@ -8287,37 +8430,37 @@ export type Silo = {
 
 export type SiloAssetsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAsset_OrderBy>;
+  orderBy?: InputMaybe<SiloAssetOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<SiloAsset_Filter>;
+  where?: InputMaybe<SiloAssetFilter>;
 };
 
 
 export type SiloDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<SiloDailySnapshot_Filter>;
+  where?: InputMaybe<SiloDailySnapshotFilter>;
 };
 
 
 export type SiloHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<SiloHourlySnapshot_Filter>;
+  where?: InputMaybe<SiloHourlySnapshotFilter>;
 };
 
 
 export type SiloMarketPerformanceSeasonalsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<MarketPerformanceSeasonal_OrderBy>;
+  orderBy?: InputMaybe<MarketPerformanceSeasonalOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<MarketPerformanceSeasonal_Filter>;
+  where?: InputMaybe<MarketPerformanceSeasonalFilter>;
 };
 
 export type SiloAsset = {
@@ -8347,19 +8490,19 @@ export type SiloAsset = {
 
 export type SiloAssetDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAssetDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloAssetDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<SiloAssetDailySnapshot_Filter>;
+  where?: InputMaybe<SiloAssetDailySnapshotFilter>;
 };
 
 
 export type SiloAssetHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAssetHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<SiloAssetHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<SiloAssetHourlySnapshot_Filter>;
+  where?: InputMaybe<SiloAssetHourlySnapshotFilter>;
 };
 
 export type SiloAssetDailySnapshot = {
@@ -8385,10 +8528,10 @@ export type SiloAssetDailySnapshot = {
   withdrawnAmount: Scalars['BigInt']['output'];
 };
 
-export type SiloAssetDailySnapshot_Filter = {
+export type SiloAssetDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<SiloAssetDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SiloAssetDailySnapshotFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -8445,7 +8588,7 @@ export type SiloAssetDailySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloAssetDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloAssetDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -8455,7 +8598,7 @@ export type SiloAssetDailySnapshot_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   siloAsset?: InputMaybe<Scalars['String']['input']>;
-  siloAsset_?: InputMaybe<SiloAsset_Filter>;
+  siloAsset_?: InputMaybe<SiloAssetFilter>;
   siloAsset_contains?: InputMaybe<Scalars['String']['input']>;
   siloAsset_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   siloAsset_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -8493,25 +8636,25 @@ export type SiloAssetDailySnapshot_Filter = {
   withdrawnAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum SiloAssetDailySnapshot_OrderBy {
-  CreatedAt = 'createdAt',
-  DeltaDepositedAmount = 'deltaDepositedAmount',
-  DeltaDepositedBdv = 'deltaDepositedBDV',
-  DeltaWithdrawnAmount = 'deltaWithdrawnAmount',
-  DepositedAmount = 'depositedAmount',
-  DepositedBdv = 'depositedBDV',
-  Id = 'id',
-  Season = 'season',
-  SiloAsset = 'siloAsset',
-  SiloAssetDepositedAmount = 'siloAsset__depositedAmount',
-  SiloAssetDepositedBdv = 'siloAsset__depositedBDV',
-  SiloAssetId = 'siloAsset__id',
-  SiloAssetLastDailySnapshotDay = 'siloAsset__lastDailySnapshotDay',
-  SiloAssetLastHourlySnapshotSeason = 'siloAsset__lastHourlySnapshotSeason',
-  SiloAssetToken = 'siloAsset__token',
-  SiloAssetWithdrawnAmount = 'siloAsset__withdrawnAmount',
-  UpdatedAt = 'updatedAt',
-  WithdrawnAmount = 'withdrawnAmount'
+export enum SiloAssetDailySnapshotOrderBy {
+  createdAt = 'createdAt',
+  deltaDepositedAmount = 'deltaDepositedAmount',
+  deltaDepositedBDV = 'deltaDepositedBDV',
+  deltaWithdrawnAmount = 'deltaWithdrawnAmount',
+  depositedAmount = 'depositedAmount',
+  depositedBDV = 'depositedBDV',
+  id = 'id',
+  season = 'season',
+  siloAsset = 'siloAsset',
+  siloAsset__depositedAmount = 'siloAsset__depositedAmount',
+  siloAsset__depositedBDV = 'siloAsset__depositedBDV',
+  siloAsset__id = 'siloAsset__id',
+  siloAsset__lastDailySnapshotDay = 'siloAsset__lastDailySnapshotDay',
+  siloAsset__lastHourlySnapshotSeason = 'siloAsset__lastHourlySnapshotSeason',
+  siloAsset__token = 'siloAsset__token',
+  siloAsset__withdrawnAmount = 'siloAsset__withdrawnAmount',
+  updatedAt = 'updatedAt',
+  withdrawnAmount = 'withdrawnAmount'
 }
 
 export type SiloAssetHourlySnapshot = {
@@ -8537,10 +8680,10 @@ export type SiloAssetHourlySnapshot = {
   withdrawnAmount: Scalars['BigInt']['output'];
 };
 
-export type SiloAssetHourlySnapshot_Filter = {
+export type SiloAssetHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<SiloAssetHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SiloAssetHourlySnapshotFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -8597,7 +8740,7 @@ export type SiloAssetHourlySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloAssetHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloAssetHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -8607,7 +8750,7 @@ export type SiloAssetHourlySnapshot_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   siloAsset?: InputMaybe<Scalars['String']['input']>;
-  siloAsset_?: InputMaybe<SiloAsset_Filter>;
+  siloAsset_?: InputMaybe<SiloAssetFilter>;
   siloAsset_contains?: InputMaybe<Scalars['String']['input']>;
   siloAsset_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   siloAsset_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -8645,32 +8788,32 @@ export type SiloAssetHourlySnapshot_Filter = {
   withdrawnAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum SiloAssetHourlySnapshot_OrderBy {
-  CreatedAt = 'createdAt',
-  DeltaDepositedAmount = 'deltaDepositedAmount',
-  DeltaDepositedBdv = 'deltaDepositedBDV',
-  DeltaWithdrawnAmount = 'deltaWithdrawnAmount',
-  DepositedAmount = 'depositedAmount',
-  DepositedBdv = 'depositedBDV',
-  Id = 'id',
-  Season = 'season',
-  SiloAsset = 'siloAsset',
-  SiloAssetDepositedAmount = 'siloAsset__depositedAmount',
-  SiloAssetDepositedBdv = 'siloAsset__depositedBDV',
-  SiloAssetId = 'siloAsset__id',
-  SiloAssetLastDailySnapshotDay = 'siloAsset__lastDailySnapshotDay',
-  SiloAssetLastHourlySnapshotSeason = 'siloAsset__lastHourlySnapshotSeason',
-  SiloAssetToken = 'siloAsset__token',
-  SiloAssetWithdrawnAmount = 'siloAsset__withdrawnAmount',
-  UpdatedAt = 'updatedAt',
-  WithdrawnAmount = 'withdrawnAmount'
+export enum SiloAssetHourlySnapshotOrderBy {
+  createdAt = 'createdAt',
+  deltaDepositedAmount = 'deltaDepositedAmount',
+  deltaDepositedBDV = 'deltaDepositedBDV',
+  deltaWithdrawnAmount = 'deltaWithdrawnAmount',
+  depositedAmount = 'depositedAmount',
+  depositedBDV = 'depositedBDV',
+  id = 'id',
+  season = 'season',
+  siloAsset = 'siloAsset',
+  siloAsset__depositedAmount = 'siloAsset__depositedAmount',
+  siloAsset__depositedBDV = 'siloAsset__depositedBDV',
+  siloAsset__id = 'siloAsset__id',
+  siloAsset__lastDailySnapshotDay = 'siloAsset__lastDailySnapshotDay',
+  siloAsset__lastHourlySnapshotSeason = 'siloAsset__lastHourlySnapshotSeason',
+  siloAsset__token = 'siloAsset__token',
+  siloAsset__withdrawnAmount = 'siloAsset__withdrawnAmount',
+  updatedAt = 'updatedAt',
+  withdrawnAmount = 'withdrawnAmount'
 }
 
-export type SiloAsset_Filter = {
+export type SiloAssetFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<SiloAsset_Filter>>>;
-  dailySnapshots_?: InputMaybe<SiloAssetDailySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<SiloAssetFilter>>>;
+  dailySnapshots_?: InputMaybe<SiloAssetDailySnapshotFilter>;
   depositedAmount?: InputMaybe<Scalars['BigInt']['input']>;
   depositedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   depositedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -8687,7 +8830,7 @@ export type SiloAsset_Filter = {
   depositedBDV_lte?: InputMaybe<Scalars['BigInt']['input']>;
   depositedBDV_not?: InputMaybe<Scalars['BigInt']['input']>;
   depositedBDV_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hourlySnapshots_?: InputMaybe<SiloAssetHourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<SiloAssetHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -8712,9 +8855,9 @@ export type SiloAsset_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloAsset_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloAssetFilter>>>;
   silo?: InputMaybe<Scalars['String']['input']>;
-  silo_?: InputMaybe<Silo_Filter>;
+  silo_?: InputMaybe<SiloFilter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
   silo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   silo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -8754,40 +8897,40 @@ export type SiloAsset_Filter = {
   withdrawnAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum SiloAsset_OrderBy {
-  DailySnapshots = 'dailySnapshots',
-  DepositedAmount = 'depositedAmount',
-  DepositedBdv = 'depositedBDV',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  Token = 'token',
-  WithdrawnAmount = 'withdrawnAmount'
+export enum SiloAssetOrderBy {
+  dailySnapshots = 'dailySnapshots',
+  depositedAmount = 'depositedAmount',
+  depositedBDV = 'depositedBDV',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  token = 'token',
+  withdrawnAmount = 'withdrawnAmount'
 }
 
 export type SiloDailySnapshot = {
@@ -8861,7 +9004,7 @@ export type SiloDailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type SiloDailySnapshot_Filter = {
+export type SiloDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   activeFarmers?: InputMaybe<Scalars['Int']['input']>;
@@ -8872,7 +9015,7 @@ export type SiloDailySnapshot_Filter = {
   activeFarmers_lte?: InputMaybe<Scalars['Int']['input']>;
   activeFarmers_not?: InputMaybe<Scalars['Int']['input']>;
   activeFarmers_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<SiloDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SiloDailySnapshotFilter>>>;
   avgConvertDownPenalty?: InputMaybe<Scalars['BigDecimal']['input']>;
   avgConvertDownPenalty_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   avgConvertDownPenalty_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -9121,7 +9264,7 @@ export type SiloDailySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloDailySnapshotFilter>>>;
   penalizedStalkConvertDown?: InputMaybe<Scalars['BigInt']['input']>;
   penalizedStalkConvertDown_gt?: InputMaybe<Scalars['BigInt']['input']>;
   penalizedStalkConvertDown_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -9163,7 +9306,7 @@ export type SiloDailySnapshot_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   silo?: InputMaybe<Scalars['String']['input']>;
-  silo_?: InputMaybe<Silo_Filter>;
+  silo_?: InputMaybe<SiloFilter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
   silo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   silo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -9225,73 +9368,73 @@ export type SiloDailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum SiloDailySnapshot_OrderBy {
-  ActiveFarmers = 'activeFarmers',
-  AvgConvertDownPenalty = 'avgConvertDownPenalty',
-  AvgGrownStalkPerBdvPerSeason = 'avgGrownStalkPerBdvPerSeason',
-  BeanMints = 'beanMints',
-  BeanToMaxLpGpPerBdvRatio = 'beanToMaxLpGpPerBdvRatio',
-  BonusStalkConvertUp = 'bonusStalkConvertUp',
-  ConvertDownPenalty = 'convertDownPenalty',
-  CreatedAt = 'createdAt',
-  CropRatio = 'cropRatio',
-  DeltaActiveFarmers = 'deltaActiveFarmers',
-  DeltaAvgConvertDownPenalty = 'deltaAvgConvertDownPenalty',
-  DeltaAvgGrownStalkPerBdvPerSeason = 'deltaAvgGrownStalkPerBdvPerSeason',
-  DeltaBeanMints = 'deltaBeanMints',
-  DeltaBeanToMaxLpGpPerBdvRatio = 'deltaBeanToMaxLpGpPerBdvRatio',
-  DeltaBonusStalkConvertUp = 'deltaBonusStalkConvertUp',
-  DeltaConvertDownPenalty = 'deltaConvertDownPenalty',
-  DeltaCropRatio = 'deltaCropRatio',
-  DeltaDepositedBdv = 'deltaDepositedBDV',
-  DeltaGerminatingStalk = 'deltaGerminatingStalk',
-  DeltaGrownStalkPerSeason = 'deltaGrownStalkPerSeason',
-  DeltaPenalizedStalkConvertDown = 'deltaPenalizedStalkConvertDown',
-  DeltaPlantableStalk = 'deltaPlantableStalk',
-  DeltaPlantedBeans = 'deltaPlantedBeans',
-  DeltaRoots = 'deltaRoots',
-  DeltaStalk = 'deltaStalk',
-  DeltaTotalBdvConvertUp = 'deltaTotalBdvConvertUp',
-  DeltaTotalBdvConvertUpBonus = 'deltaTotalBdvConvertUpBonus',
-  DeltaUnpenalizedStalkConvertDown = 'deltaUnpenalizedStalkConvertDown',
-  DepositedBdv = 'depositedBDV',
-  GerminatingStalk = 'germinatingStalk',
-  GrownStalkPerSeason = 'grownStalkPerSeason',
-  Id = 'id',
-  PenalizedStalkConvertDown = 'penalizedStalkConvertDown',
-  PlantableStalk = 'plantableStalk',
-  PlantedBeans = 'plantedBeans',
-  Roots = 'roots',
-  Season = 'season',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  Stalk = 'stalk',
-  TotalBdvConvertUp = 'totalBdvConvertUp',
-  TotalBdvConvertUpBonus = 'totalBdvConvertUpBonus',
-  UnpenalizedStalkConvertDown = 'unpenalizedStalkConvertDown',
-  UpdatedAt = 'updatedAt'
+export enum SiloDailySnapshotOrderBy {
+  activeFarmers = 'activeFarmers',
+  avgConvertDownPenalty = 'avgConvertDownPenalty',
+  avgGrownStalkPerBdvPerSeason = 'avgGrownStalkPerBdvPerSeason',
+  beanMints = 'beanMints',
+  beanToMaxLpGpPerBdvRatio = 'beanToMaxLpGpPerBdvRatio',
+  bonusStalkConvertUp = 'bonusStalkConvertUp',
+  convertDownPenalty = 'convertDownPenalty',
+  createdAt = 'createdAt',
+  cropRatio = 'cropRatio',
+  deltaActiveFarmers = 'deltaActiveFarmers',
+  deltaAvgConvertDownPenalty = 'deltaAvgConvertDownPenalty',
+  deltaAvgGrownStalkPerBdvPerSeason = 'deltaAvgGrownStalkPerBdvPerSeason',
+  deltaBeanMints = 'deltaBeanMints',
+  deltaBeanToMaxLpGpPerBdvRatio = 'deltaBeanToMaxLpGpPerBdvRatio',
+  deltaBonusStalkConvertUp = 'deltaBonusStalkConvertUp',
+  deltaConvertDownPenalty = 'deltaConvertDownPenalty',
+  deltaCropRatio = 'deltaCropRatio',
+  deltaDepositedBDV = 'deltaDepositedBDV',
+  deltaGerminatingStalk = 'deltaGerminatingStalk',
+  deltaGrownStalkPerSeason = 'deltaGrownStalkPerSeason',
+  deltaPenalizedStalkConvertDown = 'deltaPenalizedStalkConvertDown',
+  deltaPlantableStalk = 'deltaPlantableStalk',
+  deltaPlantedBeans = 'deltaPlantedBeans',
+  deltaRoots = 'deltaRoots',
+  deltaStalk = 'deltaStalk',
+  deltaTotalBdvConvertUp = 'deltaTotalBdvConvertUp',
+  deltaTotalBdvConvertUpBonus = 'deltaTotalBdvConvertUpBonus',
+  deltaUnpenalizedStalkConvertDown = 'deltaUnpenalizedStalkConvertDown',
+  depositedBDV = 'depositedBDV',
+  germinatingStalk = 'germinatingStalk',
+  grownStalkPerSeason = 'grownStalkPerSeason',
+  id = 'id',
+  penalizedStalkConvertDown = 'penalizedStalkConvertDown',
+  plantableStalk = 'plantableStalk',
+  plantedBeans = 'plantedBeans',
+  roots = 'roots',
+  season = 'season',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  stalk = 'stalk',
+  totalBdvConvertUp = 'totalBdvConvertUp',
+  totalBdvConvertUpBonus = 'totalBdvConvertUpBonus',
+  unpenalizedStalkConvertDown = 'unpenalizedStalkConvertDown',
+  updatedAt = 'updatedAt'
 }
 
 export type SiloDeposit = {
@@ -9310,10 +9453,7 @@ export type SiloDeposit = {
   farmer: Farmer;
   /** Transaction hashes pertaining to this deposit */
   hashes: Array<Scalars['Bytes']['output']>;
-  /**
-   * Account - Token Address - Deposit Version - (Season|Stem)
-   *
-   */
+  /** Account - Token Address - Deposit Version - (Season|Stem) */
   id: Scalars['ID']['output'];
   /** Season of deposit */
   season?: Maybe<Scalars['Int']['output']>;
@@ -9329,10 +9469,10 @@ export type SiloDeposit = {
   updatedBlock: Scalars['BigInt']['output'];
 };
 
-export type SiloDeposit_Filter = {
+export type SiloDepositFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<SiloDeposit_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SiloDepositFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -9386,7 +9526,7 @@ export type SiloDeposit_Filter = {
   depositedBDV_not?: InputMaybe<Scalars['BigInt']['input']>;
   depositedBDV_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -9420,7 +9560,7 @@ export type SiloDeposit_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloDeposit_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloDepositFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -9473,23 +9613,25 @@ export type SiloDeposit_Filter = {
   updatedBlock_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum SiloDeposit_OrderBy {
-  CreatedAt = 'createdAt',
-  CreatedBlock = 'createdBlock',
-  DepositVersion = 'depositVersion',
-  DepositedAmount = 'depositedAmount',
-  DepositedBdv = 'depositedBDV',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  Hashes = 'hashes',
-  Id = 'id',
-  Season = 'season',
-  Stem = 'stem',
-  StemV31 = 'stemV31',
-  Token = 'token',
-  UpdatedAt = 'updatedAt',
-  UpdatedBlock = 'updatedBlock'
+export enum SiloDepositOrderBy {
+  createdAt = 'createdAt',
+  createdBlock = 'createdBlock',
+  depositVersion = 'depositVersion',
+  depositedAmount = 'depositedAmount',
+  depositedBDV = 'depositedBDV',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  hashes = 'hashes',
+  id = 'id',
+  season = 'season',
+  stem = 'stem',
+  stemV31 = 'stemV31',
+  token = 'token',
+  updatedAt = 'updatedAt',
+  updatedBlock = 'updatedBlock'
 }
 
 export type SiloHourlySnapshot = {
@@ -9565,7 +9707,7 @@ export type SiloHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type SiloHourlySnapshot_Filter = {
+export type SiloHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   activeFarmers?: InputMaybe<Scalars['Int']['input']>;
@@ -9576,7 +9718,7 @@ export type SiloHourlySnapshot_Filter = {
   activeFarmers_lte?: InputMaybe<Scalars['Int']['input']>;
   activeFarmers_not?: InputMaybe<Scalars['Int']['input']>;
   activeFarmers_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<SiloHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SiloHourlySnapshotFilter>>>;
   avgConvertDownPenalty?: InputMaybe<Scalars['BigDecimal']['input']>;
   avgConvertDownPenalty_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   avgConvertDownPenalty_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -9833,7 +9975,7 @@ export type SiloHourlySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloHourlySnapshotFilter>>>;
   penalizedStalkConvertDown?: InputMaybe<Scalars['BigInt']['input']>;
   penalizedStalkConvertDown_gt?: InputMaybe<Scalars['BigInt']['input']>;
   penalizedStalkConvertDown_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -9875,7 +10017,7 @@ export type SiloHourlySnapshot_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   silo?: InputMaybe<Scalars['String']['input']>;
-  silo_?: InputMaybe<Silo_Filter>;
+  silo_?: InputMaybe<SiloFilter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
   silo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   silo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -9937,74 +10079,74 @@ export type SiloHourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum SiloHourlySnapshot_OrderBy {
-  ActiveFarmers = 'activeFarmers',
-  AvgConvertDownPenalty = 'avgConvertDownPenalty',
-  AvgGrownStalkPerBdvPerSeason = 'avgGrownStalkPerBdvPerSeason',
-  BeanMints = 'beanMints',
-  BeanToMaxLpGpPerBdvRatio = 'beanToMaxLpGpPerBdvRatio',
-  BonusStalkConvertUp = 'bonusStalkConvertUp',
-  CaseId = 'caseId',
-  ConvertDownPenalty = 'convertDownPenalty',
-  CreatedAt = 'createdAt',
-  CropRatio = 'cropRatio',
-  DeltaActiveFarmers = 'deltaActiveFarmers',
-  DeltaAvgConvertDownPenalty = 'deltaAvgConvertDownPenalty',
-  DeltaAvgGrownStalkPerBdvPerSeason = 'deltaAvgGrownStalkPerBdvPerSeason',
-  DeltaBeanMints = 'deltaBeanMints',
-  DeltaBeanToMaxLpGpPerBdvRatio = 'deltaBeanToMaxLpGpPerBdvRatio',
-  DeltaBonusStalkConvertUp = 'deltaBonusStalkConvertUp',
-  DeltaConvertDownPenalty = 'deltaConvertDownPenalty',
-  DeltaCropRatio = 'deltaCropRatio',
-  DeltaDepositedBdv = 'deltaDepositedBDV',
-  DeltaGerminatingStalk = 'deltaGerminatingStalk',
-  DeltaGrownStalkPerSeason = 'deltaGrownStalkPerSeason',
-  DeltaPenalizedStalkConvertDown = 'deltaPenalizedStalkConvertDown',
-  DeltaPlantableStalk = 'deltaPlantableStalk',
-  DeltaPlantedBeans = 'deltaPlantedBeans',
-  DeltaRoots = 'deltaRoots',
-  DeltaStalk = 'deltaStalk',
-  DeltaTotalBdvConvertUp = 'deltaTotalBdvConvertUp',
-  DeltaTotalBdvConvertUpBonus = 'deltaTotalBdvConvertUpBonus',
-  DeltaUnpenalizedStalkConvertDown = 'deltaUnpenalizedStalkConvertDown',
-  DepositedBdv = 'depositedBDV',
-  GerminatingStalk = 'germinatingStalk',
-  GrownStalkPerSeason = 'grownStalkPerSeason',
-  Id = 'id',
-  PenalizedStalkConvertDown = 'penalizedStalkConvertDown',
-  PlantableStalk = 'plantableStalk',
-  PlantedBeans = 'plantedBeans',
-  Roots = 'roots',
-  Season = 'season',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  Stalk = 'stalk',
-  TotalBdvConvertUp = 'totalBdvConvertUp',
-  TotalBdvConvertUpBonus = 'totalBdvConvertUpBonus',
-  UnpenalizedStalkConvertDown = 'unpenalizedStalkConvertDown',
-  UpdatedAt = 'updatedAt'
+export enum SiloHourlySnapshotOrderBy {
+  activeFarmers = 'activeFarmers',
+  avgConvertDownPenalty = 'avgConvertDownPenalty',
+  avgGrownStalkPerBdvPerSeason = 'avgGrownStalkPerBdvPerSeason',
+  beanMints = 'beanMints',
+  beanToMaxLpGpPerBdvRatio = 'beanToMaxLpGpPerBdvRatio',
+  bonusStalkConvertUp = 'bonusStalkConvertUp',
+  caseId = 'caseId',
+  convertDownPenalty = 'convertDownPenalty',
+  createdAt = 'createdAt',
+  cropRatio = 'cropRatio',
+  deltaActiveFarmers = 'deltaActiveFarmers',
+  deltaAvgConvertDownPenalty = 'deltaAvgConvertDownPenalty',
+  deltaAvgGrownStalkPerBdvPerSeason = 'deltaAvgGrownStalkPerBdvPerSeason',
+  deltaBeanMints = 'deltaBeanMints',
+  deltaBeanToMaxLpGpPerBdvRatio = 'deltaBeanToMaxLpGpPerBdvRatio',
+  deltaBonusStalkConvertUp = 'deltaBonusStalkConvertUp',
+  deltaConvertDownPenalty = 'deltaConvertDownPenalty',
+  deltaCropRatio = 'deltaCropRatio',
+  deltaDepositedBDV = 'deltaDepositedBDV',
+  deltaGerminatingStalk = 'deltaGerminatingStalk',
+  deltaGrownStalkPerSeason = 'deltaGrownStalkPerSeason',
+  deltaPenalizedStalkConvertDown = 'deltaPenalizedStalkConvertDown',
+  deltaPlantableStalk = 'deltaPlantableStalk',
+  deltaPlantedBeans = 'deltaPlantedBeans',
+  deltaRoots = 'deltaRoots',
+  deltaStalk = 'deltaStalk',
+  deltaTotalBdvConvertUp = 'deltaTotalBdvConvertUp',
+  deltaTotalBdvConvertUpBonus = 'deltaTotalBdvConvertUpBonus',
+  deltaUnpenalizedStalkConvertDown = 'deltaUnpenalizedStalkConvertDown',
+  depositedBDV = 'depositedBDV',
+  germinatingStalk = 'germinatingStalk',
+  grownStalkPerSeason = 'grownStalkPerSeason',
+  id = 'id',
+  penalizedStalkConvertDown = 'penalizedStalkConvertDown',
+  plantableStalk = 'plantableStalk',
+  plantedBeans = 'plantedBeans',
+  roots = 'roots',
+  season = 'season',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  stalk = 'stalk',
+  totalBdvConvertUp = 'totalBdvConvertUp',
+  totalBdvConvertUpBonus = 'totalBdvConvertUpBonus',
+  unpenalizedStalkConvertDown = 'unpenalizedStalkConvertDown',
+  updatedAt = 'updatedAt'
 }
 
 export type SiloWithdraw = {
@@ -10027,7 +10169,7 @@ export type SiloWithdraw = {
   withdrawSeason: Scalars['Int']['output'];
 };
 
-export type SiloWithdraw_Filter = {
+export type SiloWithdrawFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10038,7 +10180,7 @@ export type SiloWithdraw_Filter = {
   amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not?: InputMaybe<Scalars['BigInt']['input']>;
   amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<SiloWithdraw_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SiloWithdrawFilter>>>;
   claimableSeason?: InputMaybe<Scalars['Int']['input']>;
   claimableSeason_gt?: InputMaybe<Scalars['Int']['input']>;
   claimableSeason_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -10060,7 +10202,7 @@ export type SiloWithdraw_Filter = {
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -10088,7 +10230,7 @@ export type SiloWithdraw_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloWithdraw_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloWithdrawFilter>>>;
   token?: InputMaybe<Scalars['Bytes']['input']>;
   token_contains?: InputMaybe<Scalars['Bytes']['input']>;
   token_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -10109,17 +10251,19 @@ export type SiloWithdraw_Filter = {
   withdrawSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
-export enum SiloWithdraw_OrderBy {
-  Amount = 'amount',
-  ClaimableSeason = 'claimableSeason',
-  Claimed = 'claimed',
-  CreatedAt = 'createdAt',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  Id = 'id',
-  Token = 'token',
-  WithdrawSeason = 'withdrawSeason'
+export enum SiloWithdrawOrderBy {
+  amount = 'amount',
+  claimableSeason = 'claimableSeason',
+  claimed = 'claimed',
+  createdAt = 'createdAt',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  id = 'id',
+  token = 'token',
+  withdrawSeason = 'withdrawSeason'
 }
 
 export type SiloYield = {
@@ -10147,16 +10291,16 @@ export type SiloYield = {
 
 export type SiloYieldTokenApysArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenYield_OrderBy>;
+  orderBy?: InputMaybe<TokenYieldOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<TokenYield_Filter>;
+  where?: InputMaybe<TokenYieldFilter>;
 };
 
-export type SiloYield_Filter = {
+export type SiloYieldFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<SiloYield_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SiloYieldFilter>>>;
   beansPerSeasonEMA?: InputMaybe<Scalars['BigDecimal']['input']>;
   beansPerSeasonEMA_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   beansPerSeasonEMA_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -10193,7 +10337,7 @@ export type SiloYield_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<SiloYield_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SiloYieldFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -10202,7 +10346,7 @@ export type SiloYield_Filter = {
   season_lte?: InputMaybe<Scalars['Int']['input']>;
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  tokenAPYS_?: InputMaybe<TokenYield_Filter>;
+  tokenAPYS_?: InputMaybe<TokenYieldFilter>;
   u?: InputMaybe<Scalars['Int']['input']>;
   u_gt?: InputMaybe<Scalars['Int']['input']>;
   u_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -10219,19 +10363,19 @@ export type SiloYield_Filter = {
   whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
-export enum SiloYield_OrderBy {
-  BeansPerSeasonEma = 'beansPerSeasonEMA',
-  Beta = 'beta',
-  CreatedAt = 'createdAt',
-  EmaWindow = 'emaWindow',
-  Id = 'id',
-  Season = 'season',
-  TokenApys = 'tokenAPYS',
-  U = 'u',
-  WhitelistedTokens = 'whitelistedTokens'
+export enum SiloYieldOrderBy {
+  beansPerSeasonEMA = 'beansPerSeasonEMA',
+  beta = 'beta',
+  createdAt = 'createdAt',
+  emaWindow = 'emaWindow',
+  id = 'id',
+  season = 'season',
+  tokenAPYS = 'tokenAPYS',
+  u = 'u',
+  whitelistedTokens = 'whitelistedTokens'
 }
 
-export type Silo_Filter = {
+export type SiloFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   activeFarmers?: InputMaybe<Scalars['Int']['input']>;
@@ -10248,8 +10392,8 @@ export type Silo_Filter = {
   allWhitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   allWhitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   allWhitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<Silo_Filter>>>;
-  assets_?: InputMaybe<SiloAsset_Filter>;
+  and?: InputMaybe<Array<InputMaybe<SiloFilter>>>;
+  assets_?: InputMaybe<SiloAssetFilter>;
   avgConvertDownPenalty?: InputMaybe<Scalars['BigDecimal']['input']>;
   avgConvertDownPenalty_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   avgConvertDownPenalty_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -10283,7 +10427,7 @@ export type Silo_Filter = {
   beanToMaxLpGpPerBdvRatio_not?: InputMaybe<Scalars['BigInt']['input']>;
   beanToMaxLpGpPerBdvRatio_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beanstalk?: InputMaybe<Scalars['String']['input']>;
-  beanstalk_?: InputMaybe<Beanstalk_Filter>;
+  beanstalk_?: InputMaybe<BeanstalkFilter>;
   beanstalk_contains?: InputMaybe<Scalars['String']['input']>;
   beanstalk_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   beanstalk_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -10327,7 +10471,7 @@ export type Silo_Filter = {
   cropRatio_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   cropRatio_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   cropRatio_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  dailySnapshots_?: InputMaybe<SiloDailySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<SiloDailySnapshotFilter>;
   depositedBDV?: InputMaybe<Scalars['BigInt']['input']>;
   depositedBDV_gt?: InputMaybe<Scalars['BigInt']['input']>;
   depositedBDV_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10343,7 +10487,7 @@ export type Silo_Filter = {
   dewhitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   dewhitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -10379,7 +10523,7 @@ export type Silo_Filter = {
   grownStalkPerSeason_lte?: InputMaybe<Scalars['BigInt']['input']>;
   grownStalkPerSeason_not?: InputMaybe<Scalars['BigInt']['input']>;
   grownStalkPerSeason_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hourlySnapshots_?: InputMaybe<SiloHourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<SiloHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -10406,8 +10550,8 @@ export type Silo_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  marketPerformanceSeasonals_?: InputMaybe<MarketPerformanceSeasonal_Filter>;
-  or?: InputMaybe<Array<InputMaybe<Silo_Filter>>>;
+  marketPerformanceSeasonals_?: InputMaybe<MarketPerformanceSeasonalFilter>;
+  or?: InputMaybe<Array<InputMaybe<SiloFilter>>>;
   penalizedStalkConvertDown?: InputMaybe<Scalars['BigInt']['input']>;
   penalizedStalkConvertDown_gt?: InputMaybe<Scalars['BigInt']['input']>;
   penalizedStalkConvertDown_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10488,1177 +10632,48 @@ export type Silo_Filter = {
   whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
-export enum Silo_OrderBy {
-  ActiveFarmers = 'activeFarmers',
-  AllWhitelistedTokens = 'allWhitelistedTokens',
-  Assets = 'assets',
-  AvgConvertDownPenalty = 'avgConvertDownPenalty',
-  AvgGrownStalkPerBdvPerSeason = 'avgGrownStalkPerBdvPerSeason',
-  BeanMints = 'beanMints',
-  BeanToMaxLpGpPerBdvRatio = 'beanToMaxLpGpPerBdvRatio',
-  Beanstalk = 'beanstalk',
-  BeanstalkFertilizer1155 = 'beanstalk__fertilizer1155',
-  BeanstalkId = 'beanstalk__id',
-  BeanstalkLastSeason = 'beanstalk__lastSeason',
-  BeanstalkToken = 'beanstalk__token',
-  BonusStalkConvertUp = 'bonusStalkConvertUp',
-  ConvertDownPenalty = 'convertDownPenalty',
-  CropRatio = 'cropRatio',
-  DailySnapshots = 'dailySnapshots',
-  DepositedBdv = 'depositedBDV',
-  DewhitelistedTokens = 'dewhitelistedTokens',
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  GerminatingStalk = 'germinatingStalk',
-  GrownStalkPerSeason = 'grownStalkPerSeason',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  MarketPerformanceSeasonals = 'marketPerformanceSeasonals',
-  PenalizedStalkConvertDown = 'penalizedStalkConvertDown',
-  PlantableStalk = 'plantableStalk',
-  PlantedBeans = 'plantedBeans',
-  Roots = 'roots',
-  Stalk = 'stalk',
-  TotalBdvConvertUp = 'totalBdvConvertUp',
-  TotalBdvConvertUpBonus = 'totalBdvConvertUpBonus',
-  UnmigratedL1DepositedBdv = 'unmigratedL1DepositedBdv',
-  UnpenalizedStalkConvertDown = 'unpenalizedStalkConvertDown',
-  WhitelistedTokens = 'whitelistedTokens'
+export enum SiloOrderBy {
+  activeFarmers = 'activeFarmers',
+  allWhitelistedTokens = 'allWhitelistedTokens',
+  assets = 'assets',
+  avgConvertDownPenalty = 'avgConvertDownPenalty',
+  avgGrownStalkPerBdvPerSeason = 'avgGrownStalkPerBdvPerSeason',
+  beanMints = 'beanMints',
+  beanToMaxLpGpPerBdvRatio = 'beanToMaxLpGpPerBdvRatio',
+  beanstalk = 'beanstalk',
+  beanstalk__fertilizer1155 = 'beanstalk__fertilizer1155',
+  beanstalk__id = 'beanstalk__id',
+  beanstalk__lastSeason = 'beanstalk__lastSeason',
+  beanstalk__token = 'beanstalk__token',
+  bonusStalkConvertUp = 'bonusStalkConvertUp',
+  convertDownPenalty = 'convertDownPenalty',
+  cropRatio = 'cropRatio',
+  dailySnapshots = 'dailySnapshots',
+  depositedBDV = 'depositedBDV',
+  dewhitelistedTokens = 'dewhitelistedTokens',
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  germinatingStalk = 'germinatingStalk',
+  grownStalkPerSeason = 'grownStalkPerSeason',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  marketPerformanceSeasonals = 'marketPerformanceSeasonals',
+  penalizedStalkConvertDown = 'penalizedStalkConvertDown',
+  plantableStalk = 'plantableStalk',
+  plantedBeans = 'plantedBeans',
+  roots = 'roots',
+  stalk = 'stalk',
+  totalBdvConvertUp = 'totalBdvConvertUp',
+  totalBdvConvertUpBonus = 'totalBdvConvertUpBonus',
+  unmigratedL1DepositedBdv = 'unmigratedL1DepositedBdv',
+  unpenalizedStalkConvertDown = 'unpenalizedStalkConvertDown',
+  whitelistedTokens = 'whitelistedTokens'
 }
-
-export type Subscription = {
-  __typename?: 'Subscription';
-  /** Access to subgraph metadata */
-  _meta?: Maybe<_Meta_>;
-  beanstalk?: Maybe<Beanstalk>;
-  beanstalks: Array<Beanstalk>;
-  chop?: Maybe<Chop>;
-  chops: Array<Chop>;
-  farmer?: Maybe<Farmer>;
-  farmers: Array<Farmer>;
-  fertilizer?: Maybe<Fertilizer>;
-  fertilizerBalance?: Maybe<FertilizerBalance>;
-  fertilizerBalances: Array<FertilizerBalance>;
-  fertilizerToken?: Maybe<FertilizerToken>;
-  fertilizerTokens: Array<FertilizerToken>;
-  fertilizerYield?: Maybe<FertilizerYield>;
-  fertilizerYields: Array<FertilizerYield>;
-  fertilizers: Array<Fertilizer>;
-  field?: Maybe<Field>;
-  fieldDailySnapshot?: Maybe<FieldDailySnapshot>;
-  fieldDailySnapshots: Array<FieldDailySnapshot>;
-  fieldHourlySnapshot?: Maybe<FieldHourlySnapshot>;
-  fieldHourlySnapshots: Array<FieldHourlySnapshot>;
-  fields: Array<Field>;
-  gaugesInfo?: Maybe<GaugesInfo>;
-  gaugesInfoDailySnapshot?: Maybe<GaugesInfoDailySnapshot>;
-  gaugesInfoDailySnapshots: Array<GaugesInfoDailySnapshot>;
-  gaugesInfoHourlySnapshot?: Maybe<GaugesInfoHourlySnapshot>;
-  gaugesInfoHourlySnapshots: Array<GaugesInfoHourlySnapshot>;
-  gaugesInfos: Array<GaugesInfo>;
-  germinating?: Maybe<Germinating>;
-  germinatings: Array<Germinating>;
-  marketPerformanceSeasonal?: Maybe<MarketPerformanceSeasonal>;
-  marketPerformanceSeasonals: Array<MarketPerformanceSeasonal>;
-  marketplaceEvent?: Maybe<MarketplaceEvent>;
-  marketplaceEvents: Array<MarketplaceEvent>;
-  plot?: Maybe<Plot>;
-  plots: Array<Plot>;
-  podFill?: Maybe<PodFill>;
-  podFills: Array<PodFill>;
-  podListing?: Maybe<PodListing>;
-  podListingCancelled?: Maybe<PodListingCancelled>;
-  podListingCancelleds: Array<PodListingCancelled>;
-  podListingCreated?: Maybe<PodListingCreated>;
-  podListingCreateds: Array<PodListingCreated>;
-  podListingFilled?: Maybe<PodListingFilled>;
-  podListingFilleds: Array<PodListingFilled>;
-  podListings: Array<PodListing>;
-  podMarketplace?: Maybe<PodMarketplace>;
-  podMarketplaceDailySnapshot?: Maybe<PodMarketplaceDailySnapshot>;
-  podMarketplaceDailySnapshots: Array<PodMarketplaceDailySnapshot>;
-  podMarketplaceHourlySnapshot?: Maybe<PodMarketplaceHourlySnapshot>;
-  podMarketplaceHourlySnapshots: Array<PodMarketplaceHourlySnapshot>;
-  podMarketplaces: Array<PodMarketplace>;
-  podOrder?: Maybe<PodOrder>;
-  podOrderCancelled?: Maybe<PodOrderCancelled>;
-  podOrderCancelleds: Array<PodOrderCancelled>;
-  podOrderCreated?: Maybe<PodOrderCreated>;
-  podOrderCreateds: Array<PodOrderCreated>;
-  podOrderFilled?: Maybe<PodOrderFilled>;
-  podOrderFilleds: Array<PodOrderFilled>;
-  podOrders: Array<PodOrder>;
-  prevFarmerGerminatingEvent?: Maybe<PrevFarmerGerminatingEvent>;
-  prevFarmerGerminatingEvents: Array<PrevFarmerGerminatingEvent>;
-  season?: Maybe<Season>;
-  seasons: Array<Season>;
-  silo?: Maybe<Silo>;
-  siloAsset?: Maybe<SiloAsset>;
-  siloAssetDailySnapshot?: Maybe<SiloAssetDailySnapshot>;
-  siloAssetDailySnapshots: Array<SiloAssetDailySnapshot>;
-  siloAssetHourlySnapshot?: Maybe<SiloAssetHourlySnapshot>;
-  siloAssetHourlySnapshots: Array<SiloAssetHourlySnapshot>;
-  siloAssets: Array<SiloAsset>;
-  siloDailySnapshot?: Maybe<SiloDailySnapshot>;
-  siloDailySnapshots: Array<SiloDailySnapshot>;
-  siloDeposit?: Maybe<SiloDeposit>;
-  siloDeposits: Array<SiloDeposit>;
-  siloHourlySnapshot?: Maybe<SiloHourlySnapshot>;
-  siloHourlySnapshots: Array<SiloHourlySnapshot>;
-  siloWithdraw?: Maybe<SiloWithdraw>;
-  siloWithdraws: Array<SiloWithdraw>;
-  siloYield?: Maybe<SiloYield>;
-  siloYields: Array<SiloYield>;
-  silos: Array<Silo>;
-  tokenYield?: Maybe<TokenYield>;
-  tokenYields: Array<TokenYield>;
-  tractor?: Maybe<Tractor>;
-  tractorDailySnapshot?: Maybe<TractorDailySnapshot>;
-  tractorDailySnapshots: Array<TractorDailySnapshot>;
-  tractorHourlySnapshot?: Maybe<TractorHourlySnapshot>;
-  tractorHourlySnapshots: Array<TractorHourlySnapshot>;
-  tractorReward?: Maybe<TractorReward>;
-  tractorRewards: Array<TractorReward>;
-  tractors: Array<Tractor>;
-  unripeToken?: Maybe<UnripeToken>;
-  unripeTokenDailySnapshot?: Maybe<UnripeTokenDailySnapshot>;
-  unripeTokenDailySnapshots: Array<UnripeTokenDailySnapshot>;
-  unripeTokenHourlySnapshot?: Maybe<UnripeTokenHourlySnapshot>;
-  unripeTokenHourlySnapshots: Array<UnripeTokenHourlySnapshot>;
-  unripeTokens: Array<UnripeToken>;
-  version?: Maybe<Version>;
-  versions: Array<Version>;
-  wellPlenties: Array<WellPlenty>;
-  wellPlenty?: Maybe<WellPlenty>;
-  whitelistTokenDailySnapshot?: Maybe<WhitelistTokenDailySnapshot>;
-  whitelistTokenDailySnapshots: Array<WhitelistTokenDailySnapshot>;
-  whitelistTokenHourlySnapshot?: Maybe<WhitelistTokenHourlySnapshot>;
-  whitelistTokenHourlySnapshots: Array<WhitelistTokenHourlySnapshot>;
-  whitelistTokenSetting?: Maybe<WhitelistTokenSetting>;
-  whitelistTokenSettings: Array<WhitelistTokenSetting>;
-  wrappedDepositERC20?: Maybe<WrappedDepositErc20>;
-  wrappedDepositERC20DailySnapshot?: Maybe<WrappedDepositErc20DailySnapshot>;
-  wrappedDepositERC20DailySnapshots: Array<WrappedDepositErc20DailySnapshot>;
-  wrappedDepositERC20HourlySnapshot?: Maybe<WrappedDepositErc20HourlySnapshot>;
-  wrappedDepositERC20HourlySnapshots: Array<WrappedDepositErc20HourlySnapshot>;
-  wrappedDepositERC20S: Array<WrappedDepositErc20>;
-};
-
-
-export type Subscription_MetaArgs = {
-  block?: InputMaybe<Block_Height>;
-};
-
-
-export type SubscriptionBeanstalkArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanstalksArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Beanstalk_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Beanstalk_Filter>;
-};
-
-
-export type SubscriptionChopArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionChopsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Chop_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Chop_Filter>;
-};
-
-
-export type SubscriptionFarmerArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFarmersArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Farmer_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Farmer_Filter>;
-};
-
-
-export type SubscriptionFertilizerArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFertilizerBalanceArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFertilizerBalancesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerBalance_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FertilizerBalance_Filter>;
-};
-
-
-export type SubscriptionFertilizerTokenArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFertilizerTokensArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerToken_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FertilizerToken_Filter>;
-};
-
-
-export type SubscriptionFertilizerYieldArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFertilizerYieldsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FertilizerYield_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FertilizerYield_Filter>;
-};
-
-
-export type SubscriptionFertilizersArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Fertilizer_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Fertilizer_Filter>;
-};
-
-
-export type SubscriptionFieldArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFieldDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFieldDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FieldDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FieldDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionFieldHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFieldHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FieldHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FieldHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionFieldsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Field_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Field_Filter>;
-};
-
-
-export type SubscriptionGaugesInfoArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionGaugesInfoDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionGaugesInfoDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfoDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<GaugesInfoDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionGaugesInfoHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionGaugesInfoHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfoHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<GaugesInfoHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionGaugesInfosArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<GaugesInfo_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<GaugesInfo_Filter>;
-};
-
-
-export type SubscriptionGerminatingArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionGerminatingsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Germinating_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Germinating_Filter>;
-};
-
-
-export type SubscriptionMarketPerformanceSeasonalArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionMarketPerformanceSeasonalsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<MarketPerformanceSeasonal_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<MarketPerformanceSeasonal_Filter>;
-};
-
-
-export type SubscriptionMarketplaceEventArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionMarketplaceEventsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<MarketplaceEvent_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<MarketplaceEvent_Filter>;
-};
-
-
-export type SubscriptionPlotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPlotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Plot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Plot_Filter>;
-};
-
-
-export type SubscriptionPodFillArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodFillsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodFill_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodFill_Filter>;
-};
-
-
-export type SubscriptionPodListingArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodListingCancelledArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodListingCancelledsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListingCancelled_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListingCancelled_Filter>;
-};
-
-
-export type SubscriptionPodListingCreatedArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodListingCreatedsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListingCreated_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListingCreated_Filter>;
-};
-
-
-export type SubscriptionPodListingFilledArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodListingFilledsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListingFilled_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListingFilled_Filter>;
-};
-
-
-export type SubscriptionPodListingsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodListing_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodListing_Filter>;
-};
-
-
-export type SubscriptionPodMarketplaceArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodMarketplaceDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodMarketplaceDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplaceDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodMarketplaceDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionPodMarketplaceHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodMarketplaceHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplaceHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodMarketplaceHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionPodMarketplacesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodMarketplace_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodMarketplace_Filter>;
-};
-
-
-export type SubscriptionPodOrderArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodOrderCancelledArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodOrderCancelledsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrderCancelled_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrderCancelled_Filter>;
-};
-
-
-export type SubscriptionPodOrderCreatedArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodOrderCreatedsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrderCreated_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrderCreated_Filter>;
-};
-
-
-export type SubscriptionPodOrderFilledArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPodOrderFilledsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrderFilled_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrderFilled_Filter>;
-};
-
-
-export type SubscriptionPodOrdersArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PodOrder_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PodOrder_Filter>;
-};
-
-
-export type SubscriptionPrevFarmerGerminatingEventArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPrevFarmerGerminatingEventsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PrevFarmerGerminatingEvent_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PrevFarmerGerminatingEvent_Filter>;
-};
-
-
-export type SubscriptionSeasonArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSeasonsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Season_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Season_Filter>;
-};
-
-
-export type SubscriptionSiloArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloAssetArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloAssetDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloAssetDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAssetDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloAssetDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionSiloAssetHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloAssetHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAssetHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloAssetHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionSiloAssetsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloAsset_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloAsset_Filter>;
-};
-
-
-export type SubscriptionSiloDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionSiloDepositArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloDepositsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloDeposit_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloDeposit_Filter>;
-};
-
-
-export type SubscriptionSiloHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionSiloWithdrawArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloWithdrawsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloWithdraw_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloWithdraw_Filter>;
-};
-
-
-export type SubscriptionSiloYieldArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSiloYieldsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SiloYield_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<SiloYield_Filter>;
-};
-
-
-export type SubscriptionSilosArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Silo_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Silo_Filter>;
-};
-
-
-export type SubscriptionTokenYieldArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTokenYieldsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenYield_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenYield_Filter>;
-};
-
-
-export type SubscriptionTractorArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTractorDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTractorDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TractorDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionTractorHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTractorHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TractorHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionTractorRewardArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTractorRewardsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorReward_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TractorReward_Filter>;
-};
-
-
-export type SubscriptionTractorsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Tractor_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Tractor_Filter>;
-};
-
-
-export type SubscriptionUnripeTokenArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionUnripeTokenDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionUnripeTokenDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeTokenDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<UnripeTokenDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionUnripeTokenHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionUnripeTokenHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeTokenHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<UnripeTokenHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionUnripeTokensArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeToken_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<UnripeToken_Filter>;
-};
-
-
-export type SubscriptionVersionArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionVersionsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Version_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Version_Filter>;
-};
-
-
-export type SubscriptionWellPlentiesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellPlenty_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellPlenty_Filter>;
-};
-
-
-export type SubscriptionWellPlentyArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWhitelistTokenDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWhitelistTokenDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WhitelistTokenDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionWhitelistTokenHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWhitelistTokenHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WhitelistTokenHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionWhitelistTokenSettingArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWhitelistTokenSettingsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenSetting_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WhitelistTokenSetting_Filter>;
-};
-
-
-export type SubscriptionWrappedDepositErc20Args = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWrappedDepositErc20DailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWrappedDepositErc20DailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20DailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WrappedDepositErc20DailySnapshot_Filter>;
-};
-
-
-export type SubscriptionWrappedDepositErc20HourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWrappedDepositErc20HourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20HourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WrappedDepositErc20HourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionWrappedDepositErc20SArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WrappedDepositErc20_Filter>;
-};
 
 export type TokenYield = {
   __typename?: 'TokenYield';
@@ -11678,10 +10693,10 @@ export type TokenYield = {
   token: Scalars['Bytes']['output'];
 };
 
-export type TokenYield_Filter = {
+export type TokenYieldFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<TokenYield_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TokenYieldFilter>>>;
   beanAPY?: InputMaybe<Scalars['BigDecimal']['input']>;
   beanAPY_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   beanAPY_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -11708,7 +10723,7 @@ export type TokenYield_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<TokenYield_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TokenYieldFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -11718,7 +10733,7 @@ export type TokenYield_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   siloYield?: InputMaybe<Scalars['String']['input']>;
-  siloYield_?: InputMaybe<SiloYield_Filter>;
+  siloYield_?: InputMaybe<SiloYieldFilter>;
   siloYield_contains?: InputMaybe<Scalars['String']['input']>;
   siloYield_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   siloYield_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -11758,21 +10773,21 @@ export type TokenYield_Filter = {
   token_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
-export enum TokenYield_OrderBy {
-  BeanApy = 'beanAPY',
-  CreatedAt = 'createdAt',
-  Id = 'id',
-  Season = 'season',
-  SiloYield = 'siloYield',
-  SiloYieldBeansPerSeasonEma = 'siloYield__beansPerSeasonEMA',
-  SiloYieldBeta = 'siloYield__beta',
-  SiloYieldCreatedAt = 'siloYield__createdAt',
-  SiloYieldEmaWindow = 'siloYield__emaWindow',
-  SiloYieldId = 'siloYield__id',
-  SiloYieldSeason = 'siloYield__season',
-  SiloYieldU = 'siloYield__u',
-  StalkApy = 'stalkAPY',
-  Token = 'token'
+export enum TokenYieldOrderBy {
+  beanAPY = 'beanAPY',
+  createdAt = 'createdAt',
+  id = 'id',
+  season = 'season',
+  siloYield = 'siloYield',
+  siloYield__beansPerSeasonEMA = 'siloYield__beansPerSeasonEMA',
+  siloYield__beta = 'siloYield__beta',
+  siloYield__createdAt = 'siloYield__createdAt',
+  siloYield__emaWindow = 'siloYield__emaWindow',
+  siloYield__id = 'siloYield__id',
+  siloYield__season = 'siloYield__season',
+  siloYield__u = 'siloYield__u',
+  stalkAPY = 'stalkAPY',
+  token = 'token'
 }
 
 export type Tractor = {
@@ -11798,19 +10813,19 @@ export type Tractor = {
 
 export type TractorDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TractorDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<TractorDailySnapshot_Filter>;
+  where?: InputMaybe<TractorDailySnapshotFilter>;
 };
 
 
 export type TractorHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TractorHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TractorHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<TractorHourlySnapshot_Filter>;
+  where?: InputMaybe<TractorHourlySnapshotFilter>;
 };
 
 export type TractorDailySnapshot = {
@@ -11836,10 +10851,10 @@ export type TractorDailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type TractorDailySnapshot_Filter = {
+export type TractorDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<TractorDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TractorDailySnapshotFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -11880,7 +10895,7 @@ export type TractorDailySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<TractorDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TractorDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -11914,7 +10929,7 @@ export type TractorDailySnapshot_Filter = {
   totalPosBeanTips_not?: InputMaybe<Scalars['BigInt']['input']>;
   totalPosBeanTips_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tractor?: InputMaybe<Scalars['String']['input']>;
-  tractor_?: InputMaybe<Tractor_Filter>;
+  tractor_?: InputMaybe<TractorFilter>;
   tractor_contains?: InputMaybe<Scalars['String']['input']>;
   tractor_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   tractor_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -11944,24 +10959,24 @@ export type TractorDailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum TractorDailySnapshot_OrderBy {
-  CreatedAt = 'createdAt',
-  DeltaTotalExecutions = 'deltaTotalExecutions',
-  DeltaTotalNegBeanTips = 'deltaTotalNegBeanTips',
-  DeltaTotalPosBeanTips = 'deltaTotalPosBeanTips',
-  Id = 'id',
-  Season = 'season',
-  TotalExecutions = 'totalExecutions',
-  TotalNegBeanTips = 'totalNegBeanTips',
-  TotalPosBeanTips = 'totalPosBeanTips',
-  Tractor = 'tractor',
-  TractorId = 'tractor__id',
-  TractorLastDailySnapshotDay = 'tractor__lastDailySnapshotDay',
-  TractorLastHourlySnapshotSeason = 'tractor__lastHourlySnapshotSeason',
-  TractorTotalExecutions = 'tractor__totalExecutions',
-  TractorTotalNegBeanTips = 'tractor__totalNegBeanTips',
-  TractorTotalPosBeanTips = 'tractor__totalPosBeanTips',
-  UpdatedAt = 'updatedAt'
+export enum TractorDailySnapshotOrderBy {
+  createdAt = 'createdAt',
+  deltaTotalExecutions = 'deltaTotalExecutions',
+  deltaTotalNegBeanTips = 'deltaTotalNegBeanTips',
+  deltaTotalPosBeanTips = 'deltaTotalPosBeanTips',
+  id = 'id',
+  season = 'season',
+  totalExecutions = 'totalExecutions',
+  totalNegBeanTips = 'totalNegBeanTips',
+  totalPosBeanTips = 'totalPosBeanTips',
+  tractor = 'tractor',
+  tractor__id = 'tractor__id',
+  tractor__lastDailySnapshotDay = 'tractor__lastDailySnapshotDay',
+  tractor__lastHourlySnapshotSeason = 'tractor__lastHourlySnapshotSeason',
+  tractor__totalExecutions = 'tractor__totalExecutions',
+  tractor__totalNegBeanTips = 'tractor__totalNegBeanTips',
+  tractor__totalPosBeanTips = 'tractor__totalPosBeanTips',
+  updatedAt = 'updatedAt'
 }
 
 export type TractorHourlySnapshot = {
@@ -11987,10 +11002,10 @@ export type TractorHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type TractorHourlySnapshot_Filter = {
+export type TractorHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<TractorHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TractorHourlySnapshotFilter>>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -12031,7 +11046,7 @@ export type TractorHourlySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<TractorHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TractorHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -12065,7 +11080,7 @@ export type TractorHourlySnapshot_Filter = {
   totalPosBeanTips_not?: InputMaybe<Scalars['BigInt']['input']>;
   totalPosBeanTips_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tractor?: InputMaybe<Scalars['String']['input']>;
-  tractor_?: InputMaybe<Tractor_Filter>;
+  tractor_?: InputMaybe<TractorFilter>;
   tractor_contains?: InputMaybe<Scalars['String']['input']>;
   tractor_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   tractor_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -12095,24 +11110,24 @@ export type TractorHourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum TractorHourlySnapshot_OrderBy {
-  CreatedAt = 'createdAt',
-  DeltaTotalExecutions = 'deltaTotalExecutions',
-  DeltaTotalNegBeanTips = 'deltaTotalNegBeanTips',
-  DeltaTotalPosBeanTips = 'deltaTotalPosBeanTips',
-  Id = 'id',
-  Season = 'season',
-  TotalExecutions = 'totalExecutions',
-  TotalNegBeanTips = 'totalNegBeanTips',
-  TotalPosBeanTips = 'totalPosBeanTips',
-  Tractor = 'tractor',
-  TractorId = 'tractor__id',
-  TractorLastDailySnapshotDay = 'tractor__lastDailySnapshotDay',
-  TractorLastHourlySnapshotSeason = 'tractor__lastHourlySnapshotSeason',
-  TractorTotalExecutions = 'tractor__totalExecutions',
-  TractorTotalNegBeanTips = 'tractor__totalNegBeanTips',
-  TractorTotalPosBeanTips = 'tractor__totalPosBeanTips',
-  UpdatedAt = 'updatedAt'
+export enum TractorHourlySnapshotOrderBy {
+  createdAt = 'createdAt',
+  deltaTotalExecutions = 'deltaTotalExecutions',
+  deltaTotalNegBeanTips = 'deltaTotalNegBeanTips',
+  deltaTotalPosBeanTips = 'deltaTotalPosBeanTips',
+  id = 'id',
+  season = 'season',
+  totalExecutions = 'totalExecutions',
+  totalNegBeanTips = 'totalNegBeanTips',
+  totalPosBeanTips = 'totalPosBeanTips',
+  tractor = 'tractor',
+  tractor__id = 'tractor__id',
+  tractor__lastDailySnapshotDay = 'tractor__lastDailySnapshotDay',
+  tractor__lastHourlySnapshotSeason = 'tractor__lastHourlySnapshotSeason',
+  tractor__totalExecutions = 'tractor__totalExecutions',
+  tractor__totalNegBeanTips = 'tractor__totalNegBeanTips',
+  tractor__totalPosBeanTips = 'tractor__totalPosBeanTips',
+  updatedAt = 'updatedAt'
 }
 
 export type TractorReward = {
@@ -12139,12 +11154,12 @@ export type TractorReward = {
   rewardType: Scalars['Int']['output'];
 };
 
-export type TractorReward_Filter = {
+export type TractorRewardFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<TractorReward_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TractorRewardFilter>>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
-  farmer_?: InputMaybe<Farmer_Filter>;
+  farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
   farmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -12196,7 +11211,7 @@ export type TractorReward_Filter = {
   operatorPosAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
   operatorPosAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
   operatorPosAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<TractorReward_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TractorRewardFilter>>>;
   publisherExecutions?: InputMaybe<Scalars['Int']['input']>;
   publisherExecutions_gt?: InputMaybe<Scalars['Int']['input']>;
   publisherExecutions_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -12241,27 +11256,29 @@ export type TractorReward_Filter = {
   rewardType_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
-export enum TractorReward_OrderBy {
-  Farmer = 'farmer',
-  FarmerCreationBlock = 'farmer__creationBlock',
-  FarmerId = 'farmer__id',
-  Id = 'id',
-  OperatorExecutions = 'operatorExecutions',
-  OperatorNegAmount = 'operatorNegAmount',
-  OperatorPosAmount = 'operatorPosAmount',
-  PublisherExecutions = 'publisherExecutions',
-  PublisherNegAmount = 'publisherNegAmount',
-  PublisherPosAmount = 'publisherPosAmount',
-  RewardToken = 'rewardToken',
-  RewardType = 'rewardType'
+export enum TractorRewardOrderBy {
+  farmer = 'farmer',
+  farmer__creationBlock = 'farmer__creationBlock',
+  farmer__id = 'farmer__id',
+  farmer__refereeCount = 'farmer__refereeCount',
+  farmer__totalReferralRewardPodsReceived = 'farmer__totalReferralRewardPodsReceived',
+  id = 'id',
+  operatorExecutions = 'operatorExecutions',
+  operatorNegAmount = 'operatorNegAmount',
+  operatorPosAmount = 'operatorPosAmount',
+  publisherExecutions = 'publisherExecutions',
+  publisherNegAmount = 'publisherNegAmount',
+  publisherPosAmount = 'publisherPosAmount',
+  rewardToken = 'rewardToken',
+  rewardType = 'rewardType'
 }
 
-export type Tractor_Filter = {
+export type TractorFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Tractor_Filter>>>;
-  dailySnapshots_?: InputMaybe<TractorDailySnapshot_Filter>;
-  hourlySnapshots_?: InputMaybe<TractorHourlySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<TractorFilter>>>;
+  dailySnapshots_?: InputMaybe<TractorDailySnapshotFilter>;
+  hourlySnapshots_?: InputMaybe<TractorHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -12286,7 +11303,7 @@ export type Tractor_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Tractor_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TractorFilter>>>;
   totalExecutions?: InputMaybe<Scalars['Int']['input']>;
   totalExecutions_gt?: InputMaybe<Scalars['Int']['input']>;
   totalExecutions_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -12313,15 +11330,15 @@ export type Tractor_Filter = {
   totalPosBeanTips_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Tractor_OrderBy {
-  DailySnapshots = 'dailySnapshots',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  TotalExecutions = 'totalExecutions',
-  TotalNegBeanTips = 'totalNegBeanTips',
-  TotalPosBeanTips = 'totalPosBeanTips'
+export enum TractorOrderBy {
+  dailySnapshots = 'dailySnapshots',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  totalExecutions = 'totalExecutions',
+  totalNegBeanTips = 'totalNegBeanTips',
+  totalPosBeanTips = 'totalPosBeanTips'
 }
 
 export type UnripeToken = {
@@ -12363,19 +11380,19 @@ export type UnripeToken = {
 
 export type UnripeTokenDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeTokenDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<UnripeTokenDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<UnripeTokenDailySnapshot_Filter>;
+  where?: InputMaybe<UnripeTokenDailySnapshotFilter>;
 };
 
 
 export type UnripeTokenHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<UnripeTokenHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<UnripeTokenHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<UnripeTokenHourlySnapshot_Filter>;
+  where?: InputMaybe<UnripeTokenHourlySnapshotFilter>;
 };
 
 export type UnripeTokenDailySnapshot = {
@@ -12428,7 +11445,7 @@ export type UnripeTokenDailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type UnripeTokenDailySnapshot_Filter = {
+export type UnripeTokenDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amountUnderlyingOne?: InputMaybe<Scalars['BigInt']['input']>;
@@ -12439,7 +11456,7 @@ export type UnripeTokenDailySnapshot_Filter = {
   amountUnderlyingOne_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amountUnderlyingOne_not?: InputMaybe<Scalars['BigInt']['input']>;
   amountUnderlyingOne_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<UnripeTokenDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<UnripeTokenDailySnapshotFilter>>>;
   bdvUnderlyingOne?: InputMaybe<Scalars['BigInt']['input']>;
   bdvUnderlyingOne_gt?: InputMaybe<Scalars['BigInt']['input']>;
   bdvUnderlyingOne_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -12572,7 +11589,7 @@ export type UnripeTokenDailySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<UnripeTokenDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<UnripeTokenDailySnapshotFilter>>>;
   recapPercent?: InputMaybe<Scalars['BigDecimal']['input']>;
   recapPercent_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   recapPercent_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -12622,7 +11639,7 @@ export type UnripeTokenDailySnapshot_Filter = {
   totalUnderlying_not?: InputMaybe<Scalars['BigInt']['input']>;
   totalUnderlying_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   underlyingToken?: InputMaybe<Scalars['String']['input']>;
-  underlyingToken_?: InputMaybe<WhitelistTokenSetting_Filter>;
+  underlyingToken_?: InputMaybe<WhitelistTokenSettingFilter>;
   underlyingToken_contains?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -12643,7 +11660,7 @@ export type UnripeTokenDailySnapshot_Filter = {
   underlyingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   unripeToken?: InputMaybe<Scalars['String']['input']>;
-  unripeToken_?: InputMaybe<UnripeToken_Filter>;
+  unripeToken_?: InputMaybe<UnripeTokenFilter>;
   unripeToken_contains?: InputMaybe<Scalars['String']['input']>;
   unripeToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   unripeToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -12673,60 +11690,60 @@ export type UnripeTokenDailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum UnripeTokenDailySnapshot_OrderBy {
-  AmountUnderlyingOne = 'amountUnderlyingOne',
-  BdvUnderlyingOne = 'bdvUnderlyingOne',
-  ChopRate = 'chopRate',
-  ChoppableAmountOne = 'choppableAmountOne',
-  ChoppableBdvOne = 'choppableBdvOne',
-  CreatedAt = 'createdAt',
-  DeltaAmountUnderlyingOne = 'deltaAmountUnderlyingOne',
-  DeltaBdvUnderlyingOne = 'deltaBdvUnderlyingOne',
-  DeltaChopRate = 'deltaChopRate',
-  DeltaChoppableAmountOne = 'deltaChoppableAmountOne',
-  DeltaChoppableBdvOne = 'deltaChoppableBdvOne',
-  DeltaRecapPercent = 'deltaRecapPercent',
-  DeltaTotalChoppedAmount = 'deltaTotalChoppedAmount',
-  DeltaTotalChoppedBdv = 'deltaTotalChoppedBdv',
-  DeltaTotalChoppedBdvReceived = 'deltaTotalChoppedBdvReceived',
-  DeltaTotalUnderlying = 'deltaTotalUnderlying',
-  DeltaUnderlyingToken = 'deltaUnderlyingToken',
-  Id = 'id',
-  RecapPercent = 'recapPercent',
-  Season = 'season',
-  TotalChoppedAmount = 'totalChoppedAmount',
-  TotalChoppedBdv = 'totalChoppedBdv',
-  TotalChoppedBdvReceived = 'totalChoppedBdvReceived',
-  TotalUnderlying = 'totalUnderlying',
-  UnderlyingToken = 'underlyingToken',
-  UnderlyingTokenDecimals = 'underlyingToken__decimals',
-  UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenId = 'underlyingToken__id',
-  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
-  UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
-  UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
-  UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
-  UnderlyingTokenSelector = 'underlyingToken__selector',
-  UnderlyingTokenStalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
-  UnderlyingTokenStalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
-  UnderlyingTokenStemTip = 'underlyingToken__stemTip',
-  UnderlyingTokenUpdatedAt = 'underlyingToken__updatedAt',
-  UnripeToken = 'unripeToken',
-  UnripeTokenAmountUnderlyingOne = 'unripeToken__amountUnderlyingOne',
-  UnripeTokenBdvUnderlyingOne = 'unripeToken__bdvUnderlyingOne',
-  UnripeTokenChopRate = 'unripeToken__chopRate',
-  UnripeTokenChoppableAmountOne = 'unripeToken__choppableAmountOne',
-  UnripeTokenChoppableBdvOne = 'unripeToken__choppableBdvOne',
-  UnripeTokenId = 'unripeToken__id',
-  UnripeTokenLastDailySnapshotDay = 'unripeToken__lastDailySnapshotDay',
-  UnripeTokenLastHourlySnapshotSeason = 'unripeToken__lastHourlySnapshotSeason',
-  UnripeTokenRecapPercent = 'unripeToken__recapPercent',
-  UnripeTokenTotalChoppedAmount = 'unripeToken__totalChoppedAmount',
-  UnripeTokenTotalChoppedBdv = 'unripeToken__totalChoppedBdv',
-  UnripeTokenTotalChoppedBdvReceived = 'unripeToken__totalChoppedBdvReceived',
-  UnripeTokenTotalUnderlying = 'unripeToken__totalUnderlying',
-  UpdatedAt = 'updatedAt'
+export enum UnripeTokenDailySnapshotOrderBy {
+  amountUnderlyingOne = 'amountUnderlyingOne',
+  bdvUnderlyingOne = 'bdvUnderlyingOne',
+  chopRate = 'chopRate',
+  choppableAmountOne = 'choppableAmountOne',
+  choppableBdvOne = 'choppableBdvOne',
+  createdAt = 'createdAt',
+  deltaAmountUnderlyingOne = 'deltaAmountUnderlyingOne',
+  deltaBdvUnderlyingOne = 'deltaBdvUnderlyingOne',
+  deltaChopRate = 'deltaChopRate',
+  deltaChoppableAmountOne = 'deltaChoppableAmountOne',
+  deltaChoppableBdvOne = 'deltaChoppableBdvOne',
+  deltaRecapPercent = 'deltaRecapPercent',
+  deltaTotalChoppedAmount = 'deltaTotalChoppedAmount',
+  deltaTotalChoppedBdv = 'deltaTotalChoppedBdv',
+  deltaTotalChoppedBdvReceived = 'deltaTotalChoppedBdvReceived',
+  deltaTotalUnderlying = 'deltaTotalUnderlying',
+  deltaUnderlyingToken = 'deltaUnderlyingToken',
+  id = 'id',
+  recapPercent = 'recapPercent',
+  season = 'season',
+  totalChoppedAmount = 'totalChoppedAmount',
+  totalChoppedBdv = 'totalChoppedBdv',
+  totalChoppedBdvReceived = 'totalChoppedBdvReceived',
+  totalUnderlying = 'totalUnderlying',
+  underlyingToken = 'underlyingToken',
+  underlyingToken__decimals = 'underlyingToken__decimals',
+  underlyingToken__gaugePoints = 'underlyingToken__gaugePoints',
+  underlyingToken__id = 'underlyingToken__id',
+  underlyingToken__isGaugeEnabled = 'underlyingToken__isGaugeEnabled',
+  underlyingToken__lastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
+  underlyingToken__lastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
+  underlyingToken__milestoneSeason = 'underlyingToken__milestoneSeason',
+  underlyingToken__optimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
+  underlyingToken__selector = 'underlyingToken__selector',
+  underlyingToken__stalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
+  underlyingToken__stalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
+  underlyingToken__stemTip = 'underlyingToken__stemTip',
+  underlyingToken__updatedAt = 'underlyingToken__updatedAt',
+  unripeToken = 'unripeToken',
+  unripeToken__amountUnderlyingOne = 'unripeToken__amountUnderlyingOne',
+  unripeToken__bdvUnderlyingOne = 'unripeToken__bdvUnderlyingOne',
+  unripeToken__chopRate = 'unripeToken__chopRate',
+  unripeToken__choppableAmountOne = 'unripeToken__choppableAmountOne',
+  unripeToken__choppableBdvOne = 'unripeToken__choppableBdvOne',
+  unripeToken__id = 'unripeToken__id',
+  unripeToken__lastDailySnapshotDay = 'unripeToken__lastDailySnapshotDay',
+  unripeToken__lastHourlySnapshotSeason = 'unripeToken__lastHourlySnapshotSeason',
+  unripeToken__recapPercent = 'unripeToken__recapPercent',
+  unripeToken__totalChoppedAmount = 'unripeToken__totalChoppedAmount',
+  unripeToken__totalChoppedBdv = 'unripeToken__totalChoppedBdv',
+  unripeToken__totalChoppedBdvReceived = 'unripeToken__totalChoppedBdvReceived',
+  unripeToken__totalUnderlying = 'unripeToken__totalUnderlying',
+  updatedAt = 'updatedAt'
 }
 
 export type UnripeTokenHourlySnapshot = {
@@ -12779,7 +11796,7 @@ export type UnripeTokenHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type UnripeTokenHourlySnapshot_Filter = {
+export type UnripeTokenHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amountUnderlyingOne?: InputMaybe<Scalars['BigInt']['input']>;
@@ -12790,7 +11807,7 @@ export type UnripeTokenHourlySnapshot_Filter = {
   amountUnderlyingOne_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amountUnderlyingOne_not?: InputMaybe<Scalars['BigInt']['input']>;
   amountUnderlyingOne_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<UnripeTokenHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<UnripeTokenHourlySnapshotFilter>>>;
   bdvUnderlyingOne?: InputMaybe<Scalars['BigInt']['input']>;
   bdvUnderlyingOne_gt?: InputMaybe<Scalars['BigInt']['input']>;
   bdvUnderlyingOne_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -12923,7 +11940,7 @@ export type UnripeTokenHourlySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<UnripeTokenHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<UnripeTokenHourlySnapshotFilter>>>;
   recapPercent?: InputMaybe<Scalars['BigDecimal']['input']>;
   recapPercent_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   recapPercent_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -12973,7 +11990,7 @@ export type UnripeTokenHourlySnapshot_Filter = {
   totalUnderlying_not?: InputMaybe<Scalars['BigInt']['input']>;
   totalUnderlying_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   underlyingToken?: InputMaybe<Scalars['String']['input']>;
-  underlyingToken_?: InputMaybe<WhitelistTokenSetting_Filter>;
+  underlyingToken_?: InputMaybe<WhitelistTokenSettingFilter>;
   underlyingToken_contains?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -12994,7 +12011,7 @@ export type UnripeTokenHourlySnapshot_Filter = {
   underlyingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   unripeToken?: InputMaybe<Scalars['String']['input']>;
-  unripeToken_?: InputMaybe<UnripeToken_Filter>;
+  unripeToken_?: InputMaybe<UnripeTokenFilter>;
   unripeToken_contains?: InputMaybe<Scalars['String']['input']>;
   unripeToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   unripeToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -13024,63 +12041,63 @@ export type UnripeTokenHourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum UnripeTokenHourlySnapshot_OrderBy {
-  AmountUnderlyingOne = 'amountUnderlyingOne',
-  BdvUnderlyingOne = 'bdvUnderlyingOne',
-  ChopRate = 'chopRate',
-  ChoppableAmountOne = 'choppableAmountOne',
-  ChoppableBdvOne = 'choppableBdvOne',
-  CreatedAt = 'createdAt',
-  DeltaAmountUnderlyingOne = 'deltaAmountUnderlyingOne',
-  DeltaBdvUnderlyingOne = 'deltaBdvUnderlyingOne',
-  DeltaChopRate = 'deltaChopRate',
-  DeltaChoppableAmountOne = 'deltaChoppableAmountOne',
-  DeltaChoppableBdvOne = 'deltaChoppableBdvOne',
-  DeltaRecapPercent = 'deltaRecapPercent',
-  DeltaTotalChoppedAmount = 'deltaTotalChoppedAmount',
-  DeltaTotalChoppedBdv = 'deltaTotalChoppedBdv',
-  DeltaTotalChoppedBdvReceived = 'deltaTotalChoppedBdvReceived',
-  DeltaTotalUnderlying = 'deltaTotalUnderlying',
-  DeltaUnderlyingToken = 'deltaUnderlyingToken',
-  Id = 'id',
-  RecapPercent = 'recapPercent',
-  Season = 'season',
-  TotalChoppedAmount = 'totalChoppedAmount',
-  TotalChoppedBdv = 'totalChoppedBdv',
-  TotalChoppedBdvReceived = 'totalChoppedBdvReceived',
-  TotalUnderlying = 'totalUnderlying',
-  UnderlyingToken = 'underlyingToken',
-  UnderlyingTokenDecimals = 'underlyingToken__decimals',
-  UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenId = 'underlyingToken__id',
-  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
-  UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
-  UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
-  UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
-  UnderlyingTokenSelector = 'underlyingToken__selector',
-  UnderlyingTokenStalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
-  UnderlyingTokenStalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
-  UnderlyingTokenStemTip = 'underlyingToken__stemTip',
-  UnderlyingTokenUpdatedAt = 'underlyingToken__updatedAt',
-  UnripeToken = 'unripeToken',
-  UnripeTokenAmountUnderlyingOne = 'unripeToken__amountUnderlyingOne',
-  UnripeTokenBdvUnderlyingOne = 'unripeToken__bdvUnderlyingOne',
-  UnripeTokenChopRate = 'unripeToken__chopRate',
-  UnripeTokenChoppableAmountOne = 'unripeToken__choppableAmountOne',
-  UnripeTokenChoppableBdvOne = 'unripeToken__choppableBdvOne',
-  UnripeTokenId = 'unripeToken__id',
-  UnripeTokenLastDailySnapshotDay = 'unripeToken__lastDailySnapshotDay',
-  UnripeTokenLastHourlySnapshotSeason = 'unripeToken__lastHourlySnapshotSeason',
-  UnripeTokenRecapPercent = 'unripeToken__recapPercent',
-  UnripeTokenTotalChoppedAmount = 'unripeToken__totalChoppedAmount',
-  UnripeTokenTotalChoppedBdv = 'unripeToken__totalChoppedBdv',
-  UnripeTokenTotalChoppedBdvReceived = 'unripeToken__totalChoppedBdvReceived',
-  UnripeTokenTotalUnderlying = 'unripeToken__totalUnderlying',
-  UpdatedAt = 'updatedAt'
+export enum UnripeTokenHourlySnapshotOrderBy {
+  amountUnderlyingOne = 'amountUnderlyingOne',
+  bdvUnderlyingOne = 'bdvUnderlyingOne',
+  chopRate = 'chopRate',
+  choppableAmountOne = 'choppableAmountOne',
+  choppableBdvOne = 'choppableBdvOne',
+  createdAt = 'createdAt',
+  deltaAmountUnderlyingOne = 'deltaAmountUnderlyingOne',
+  deltaBdvUnderlyingOne = 'deltaBdvUnderlyingOne',
+  deltaChopRate = 'deltaChopRate',
+  deltaChoppableAmountOne = 'deltaChoppableAmountOne',
+  deltaChoppableBdvOne = 'deltaChoppableBdvOne',
+  deltaRecapPercent = 'deltaRecapPercent',
+  deltaTotalChoppedAmount = 'deltaTotalChoppedAmount',
+  deltaTotalChoppedBdv = 'deltaTotalChoppedBdv',
+  deltaTotalChoppedBdvReceived = 'deltaTotalChoppedBdvReceived',
+  deltaTotalUnderlying = 'deltaTotalUnderlying',
+  deltaUnderlyingToken = 'deltaUnderlyingToken',
+  id = 'id',
+  recapPercent = 'recapPercent',
+  season = 'season',
+  totalChoppedAmount = 'totalChoppedAmount',
+  totalChoppedBdv = 'totalChoppedBdv',
+  totalChoppedBdvReceived = 'totalChoppedBdvReceived',
+  totalUnderlying = 'totalUnderlying',
+  underlyingToken = 'underlyingToken',
+  underlyingToken__decimals = 'underlyingToken__decimals',
+  underlyingToken__gaugePoints = 'underlyingToken__gaugePoints',
+  underlyingToken__id = 'underlyingToken__id',
+  underlyingToken__isGaugeEnabled = 'underlyingToken__isGaugeEnabled',
+  underlyingToken__lastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
+  underlyingToken__lastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
+  underlyingToken__milestoneSeason = 'underlyingToken__milestoneSeason',
+  underlyingToken__optimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
+  underlyingToken__selector = 'underlyingToken__selector',
+  underlyingToken__stalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
+  underlyingToken__stalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
+  underlyingToken__stemTip = 'underlyingToken__stemTip',
+  underlyingToken__updatedAt = 'underlyingToken__updatedAt',
+  unripeToken = 'unripeToken',
+  unripeToken__amountUnderlyingOne = 'unripeToken__amountUnderlyingOne',
+  unripeToken__bdvUnderlyingOne = 'unripeToken__bdvUnderlyingOne',
+  unripeToken__chopRate = 'unripeToken__chopRate',
+  unripeToken__choppableAmountOne = 'unripeToken__choppableAmountOne',
+  unripeToken__choppableBdvOne = 'unripeToken__choppableBdvOne',
+  unripeToken__id = 'unripeToken__id',
+  unripeToken__lastDailySnapshotDay = 'unripeToken__lastDailySnapshotDay',
+  unripeToken__lastHourlySnapshotSeason = 'unripeToken__lastHourlySnapshotSeason',
+  unripeToken__recapPercent = 'unripeToken__recapPercent',
+  unripeToken__totalChoppedAmount = 'unripeToken__totalChoppedAmount',
+  unripeToken__totalChoppedBdv = 'unripeToken__totalChoppedBdv',
+  unripeToken__totalChoppedBdvReceived = 'unripeToken__totalChoppedBdvReceived',
+  unripeToken__totalUnderlying = 'unripeToken__totalUnderlying',
+  updatedAt = 'updatedAt'
 }
 
-export type UnripeToken_Filter = {
+export type UnripeTokenFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   amountUnderlyingOne?: InputMaybe<Scalars['BigInt']['input']>;
@@ -13091,7 +12108,7 @@ export type UnripeToken_Filter = {
   amountUnderlyingOne_lte?: InputMaybe<Scalars['BigInt']['input']>;
   amountUnderlyingOne_not?: InputMaybe<Scalars['BigInt']['input']>;
   amountUnderlyingOne_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<UnripeToken_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<UnripeTokenFilter>>>;
   bdvUnderlyingOne?: InputMaybe<Scalars['BigInt']['input']>;
   bdvUnderlyingOne_gt?: InputMaybe<Scalars['BigInt']['input']>;
   bdvUnderlyingOne_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -13124,8 +12141,8 @@ export type UnripeToken_Filter = {
   choppableBdvOne_lte?: InputMaybe<Scalars['BigInt']['input']>;
   choppableBdvOne_not?: InputMaybe<Scalars['BigInt']['input']>;
   choppableBdvOne_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  dailySnapshots_?: InputMaybe<UnripeTokenDailySnapshot_Filter>;
-  hourlySnapshots_?: InputMaybe<UnripeTokenHourlySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<UnripeTokenDailySnapshotFilter>;
+  hourlySnapshots_?: InputMaybe<UnripeTokenHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -13152,7 +12169,7 @@ export type UnripeToken_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<UnripeToken_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<UnripeTokenFilter>>>;
   recapPercent?: InputMaybe<Scalars['BigDecimal']['input']>;
   recapPercent_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   recapPercent_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -13194,7 +12211,7 @@ export type UnripeToken_Filter = {
   totalUnderlying_not?: InputMaybe<Scalars['BigInt']['input']>;
   totalUnderlying_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   underlyingToken?: InputMaybe<Scalars['String']['input']>;
-  underlyingToken_?: InputMaybe<WhitelistTokenSetting_Filter>;
+  underlyingToken_?: InputMaybe<WhitelistTokenSettingFilter>;
   underlyingToken_contains?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   underlyingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -13216,36 +12233,36 @@ export type UnripeToken_Filter = {
   underlyingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum UnripeToken_OrderBy {
-  AmountUnderlyingOne = 'amountUnderlyingOne',
-  BdvUnderlyingOne = 'bdvUnderlyingOne',
-  ChopRate = 'chopRate',
-  ChoppableAmountOne = 'choppableAmountOne',
-  ChoppableBdvOne = 'choppableBdvOne',
-  DailySnapshots = 'dailySnapshots',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  RecapPercent = 'recapPercent',
-  TotalChoppedAmount = 'totalChoppedAmount',
-  TotalChoppedBdv = 'totalChoppedBdv',
-  TotalChoppedBdvReceived = 'totalChoppedBdvReceived',
-  TotalUnderlying = 'totalUnderlying',
-  UnderlyingToken = 'underlyingToken',
-  UnderlyingTokenDecimals = 'underlyingToken__decimals',
-  UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenId = 'underlyingToken__id',
-  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
-  UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
-  UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
-  UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
-  UnderlyingTokenSelector = 'underlyingToken__selector',
-  UnderlyingTokenStalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
-  UnderlyingTokenStalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
-  UnderlyingTokenStemTip = 'underlyingToken__stemTip',
-  UnderlyingTokenUpdatedAt = 'underlyingToken__updatedAt'
+export enum UnripeTokenOrderBy {
+  amountUnderlyingOne = 'amountUnderlyingOne',
+  bdvUnderlyingOne = 'bdvUnderlyingOne',
+  chopRate = 'chopRate',
+  choppableAmountOne = 'choppableAmountOne',
+  choppableBdvOne = 'choppableBdvOne',
+  dailySnapshots = 'dailySnapshots',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  recapPercent = 'recapPercent',
+  totalChoppedAmount = 'totalChoppedAmount',
+  totalChoppedBdv = 'totalChoppedBdv',
+  totalChoppedBdvReceived = 'totalChoppedBdvReceived',
+  totalUnderlying = 'totalUnderlying',
+  underlyingToken = 'underlyingToken',
+  underlyingToken__decimals = 'underlyingToken__decimals',
+  underlyingToken__gaugePoints = 'underlyingToken__gaugePoints',
+  underlyingToken__id = 'underlyingToken__id',
+  underlyingToken__isGaugeEnabled = 'underlyingToken__isGaugeEnabled',
+  underlyingToken__lastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
+  underlyingToken__lastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
+  underlyingToken__milestoneSeason = 'underlyingToken__milestoneSeason',
+  underlyingToken__optimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
+  underlyingToken__selector = 'underlyingToken__selector',
+  underlyingToken__stalkEarnedPerSeason = 'underlyingToken__stalkEarnedPerSeason',
+  underlyingToken__stalkIssuedPerBdv = 'underlyingToken__stalkIssuedPerBdv',
+  underlyingToken__stemTip = 'underlyingToken__stemTip',
+  underlyingToken__updatedAt = 'underlyingToken__updatedAt'
 }
 
 export type Version = {
@@ -13262,10 +12279,10 @@ export type Version = {
   versionNumber: Scalars['String']['output'];
 };
 
-export type Version_Filter = {
+export type VersionFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Version_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<VersionFilter>>>;
   chain?: InputMaybe<Scalars['String']['input']>;
   chain_contains?: InputMaybe<Scalars['String']['input']>;
   chain_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -13294,7 +12311,7 @@ export type Version_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Version_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<VersionFilter>>>;
   protocolAddress?: InputMaybe<Scalars['Bytes']['input']>;
   protocolAddress_contains?: InputMaybe<Scalars['Bytes']['input']>;
   protocolAddress_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -13347,12 +12364,12 @@ export type Version_Filter = {
   versionNumber_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Version_OrderBy {
-  Chain = 'chain',
-  Id = 'id',
-  ProtocolAddress = 'protocolAddress',
-  SubgraphName = 'subgraphName',
-  VersionNumber = 'versionNumber'
+export enum VersionOrderBy {
+  chain = 'chain',
+  id = 'id',
+  protocolAddress = 'protocolAddress',
+  subgraphName = 'subgraphName',
+  versionNumber = 'versionNumber'
 }
 
 export type WellPlenty = {
@@ -13369,10 +12386,10 @@ export type WellPlenty = {
   unclaimedAmount: Scalars['BigInt']['output'];
 };
 
-export type WellPlenty_Filter = {
+export type WellPlentyFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WellPlenty_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WellPlentyFilter>>>;
   claimedAmount?: InputMaybe<Scalars['BigInt']['input']>;
   claimedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   claimedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -13389,9 +12406,9 @@ export type WellPlenty_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WellPlenty_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WellPlentyFilter>>>;
   silo?: InputMaybe<Scalars['String']['input']>;
-  silo_?: InputMaybe<Silo_Filter>;
+  silo_?: InputMaybe<SiloFilter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
   silo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   silo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -13431,35 +12448,35 @@ export type WellPlenty_Filter = {
   unclaimedAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum WellPlenty_OrderBy {
-  ClaimedAmount = 'claimedAmount',
-  Id = 'id',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  Token = 'token',
-  UnclaimedAmount = 'unclaimedAmount'
+export enum WellPlentyOrderBy {
+  claimedAmount = 'claimedAmount',
+  id = 'id',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  token = 'token',
+  unclaimedAmount = 'unclaimedAmount'
 }
 
 export type WhitelistTokenDailySnapshot = {
@@ -13502,10 +12519,10 @@ export type WhitelistTokenDailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type WhitelistTokenDailySnapshot_Filter = {
+export type WhitelistTokenDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WhitelistTokenDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WhitelistTokenDailySnapshotFilter>>>;
   bdv?: InputMaybe<Scalars['BigInt']['input']>;
   bdv_gt?: InputMaybe<Scalars['BigInt']['input']>;
   bdv_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -13618,7 +12635,7 @@ export type WhitelistTokenDailySnapshot_Filter = {
   optimalPercentDepositedBdv_lte?: InputMaybe<Scalars['BigInt']['input']>;
   optimalPercentDepositedBdv_not?: InputMaybe<Scalars['BigInt']['input']>;
   optimalPercentDepositedBdv_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WhitelistTokenDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WhitelistTokenDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -13662,7 +12679,7 @@ export type WhitelistTokenDailySnapshot_Filter = {
   stemTip_not?: InputMaybe<Scalars['BigInt']['input']>;
   stemTip_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   token?: InputMaybe<Scalars['String']['input']>;
-  token_?: InputMaybe<WhitelistTokenSetting_Filter>;
+  token_?: InputMaybe<WhitelistTokenSettingFilter>;
   token_contains?: InputMaybe<Scalars['String']['input']>;
   token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   token_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -13692,42 +12709,42 @@ export type WhitelistTokenDailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum WhitelistTokenDailySnapshot_OrderBy {
-  Bdv = 'bdv',
-  CreatedAt = 'createdAt',
-  DeltaBdv = 'deltaBdv',
-  DeltaGaugePoints = 'deltaGaugePoints',
-  DeltaIsGaugeEnabled = 'deltaIsGaugeEnabled',
-  DeltaMilestoneSeason = 'deltaMilestoneSeason',
-  DeltaOptimalPercentDepositedBdv = 'deltaOptimalPercentDepositedBdv',
-  DeltaStalkEarnedPerSeason = 'deltaStalkEarnedPerSeason',
-  DeltaStalkIssuedPerBdv = 'deltaStalkIssuedPerBdv',
-  DeltaStemTip = 'deltaStemTip',
-  GaugePoints = 'gaugePoints',
-  Id = 'id',
-  IsGaugeEnabled = 'isGaugeEnabled',
-  MilestoneSeason = 'milestoneSeason',
-  OptimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
-  Season = 'season',
-  Selector = 'selector',
-  StalkEarnedPerSeason = 'stalkEarnedPerSeason',
-  StalkIssuedPerBdv = 'stalkIssuedPerBdv',
-  StemTip = 'stemTip',
-  Token = 'token',
-  TokenDecimals = 'token__decimals',
-  TokenGaugePoints = 'token__gaugePoints',
-  TokenId = 'token__id',
-  TokenIsGaugeEnabled = 'token__isGaugeEnabled',
-  TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
-  TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenMilestoneSeason = 'token__milestoneSeason',
-  TokenOptimalPercentDepositedBdv = 'token__optimalPercentDepositedBdv',
-  TokenSelector = 'token__selector',
-  TokenStalkEarnedPerSeason = 'token__stalkEarnedPerSeason',
-  TokenStalkIssuedPerBdv = 'token__stalkIssuedPerBdv',
-  TokenStemTip = 'token__stemTip',
-  TokenUpdatedAt = 'token__updatedAt',
-  UpdatedAt = 'updatedAt'
+export enum WhitelistTokenDailySnapshotOrderBy {
+  bdv = 'bdv',
+  createdAt = 'createdAt',
+  deltaBdv = 'deltaBdv',
+  deltaGaugePoints = 'deltaGaugePoints',
+  deltaIsGaugeEnabled = 'deltaIsGaugeEnabled',
+  deltaMilestoneSeason = 'deltaMilestoneSeason',
+  deltaOptimalPercentDepositedBdv = 'deltaOptimalPercentDepositedBdv',
+  deltaStalkEarnedPerSeason = 'deltaStalkEarnedPerSeason',
+  deltaStalkIssuedPerBdv = 'deltaStalkIssuedPerBdv',
+  deltaStemTip = 'deltaStemTip',
+  gaugePoints = 'gaugePoints',
+  id = 'id',
+  isGaugeEnabled = 'isGaugeEnabled',
+  milestoneSeason = 'milestoneSeason',
+  optimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
+  season = 'season',
+  selector = 'selector',
+  stalkEarnedPerSeason = 'stalkEarnedPerSeason',
+  stalkIssuedPerBdv = 'stalkIssuedPerBdv',
+  stemTip = 'stemTip',
+  token = 'token',
+  token__decimals = 'token__decimals',
+  token__gaugePoints = 'token__gaugePoints',
+  token__id = 'token__id',
+  token__isGaugeEnabled = 'token__isGaugeEnabled',
+  token__lastDailySnapshotDay = 'token__lastDailySnapshotDay',
+  token__lastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
+  token__milestoneSeason = 'token__milestoneSeason',
+  token__optimalPercentDepositedBdv = 'token__optimalPercentDepositedBdv',
+  token__selector = 'token__selector',
+  token__stalkEarnedPerSeason = 'token__stalkEarnedPerSeason',
+  token__stalkIssuedPerBdv = 'token__stalkIssuedPerBdv',
+  token__stemTip = 'token__stemTip',
+  token__updatedAt = 'token__updatedAt',
+  updatedAt = 'updatedAt'
 }
 
 export type WhitelistTokenHourlySnapshot = {
@@ -13770,10 +12787,10 @@ export type WhitelistTokenHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type WhitelistTokenHourlySnapshot_Filter = {
+export type WhitelistTokenHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WhitelistTokenHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WhitelistTokenHourlySnapshotFilter>>>;
   bdv?: InputMaybe<Scalars['BigInt']['input']>;
   bdv_gt?: InputMaybe<Scalars['BigInt']['input']>;
   bdv_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -13886,7 +12903,7 @@ export type WhitelistTokenHourlySnapshot_Filter = {
   optimalPercentDepositedBdv_lte?: InputMaybe<Scalars['BigInt']['input']>;
   optimalPercentDepositedBdv_not?: InputMaybe<Scalars['BigInt']['input']>;
   optimalPercentDepositedBdv_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WhitelistTokenHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WhitelistTokenHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -13930,7 +12947,7 @@ export type WhitelistTokenHourlySnapshot_Filter = {
   stemTip_not?: InputMaybe<Scalars['BigInt']['input']>;
   stemTip_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   token?: InputMaybe<Scalars['String']['input']>;
-  token_?: InputMaybe<WhitelistTokenSetting_Filter>;
+  token_?: InputMaybe<WhitelistTokenSettingFilter>;
   token_contains?: InputMaybe<Scalars['String']['input']>;
   token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   token_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -13960,42 +12977,42 @@ export type WhitelistTokenHourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum WhitelistTokenHourlySnapshot_OrderBy {
-  Bdv = 'bdv',
-  CreatedAt = 'createdAt',
-  DeltaBdv = 'deltaBdv',
-  DeltaGaugePoints = 'deltaGaugePoints',
-  DeltaIsGaugeEnabled = 'deltaIsGaugeEnabled',
-  DeltaMilestoneSeason = 'deltaMilestoneSeason',
-  DeltaOptimalPercentDepositedBdv = 'deltaOptimalPercentDepositedBdv',
-  DeltaStalkEarnedPerSeason = 'deltaStalkEarnedPerSeason',
-  DeltaStalkIssuedPerBdv = 'deltaStalkIssuedPerBdv',
-  DeltaStemTip = 'deltaStemTip',
-  GaugePoints = 'gaugePoints',
-  Id = 'id',
-  IsGaugeEnabled = 'isGaugeEnabled',
-  MilestoneSeason = 'milestoneSeason',
-  OptimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
-  Season = 'season',
-  Selector = 'selector',
-  StalkEarnedPerSeason = 'stalkEarnedPerSeason',
-  StalkIssuedPerBdv = 'stalkIssuedPerBdv',
-  StemTip = 'stemTip',
-  Token = 'token',
-  TokenDecimals = 'token__decimals',
-  TokenGaugePoints = 'token__gaugePoints',
-  TokenId = 'token__id',
-  TokenIsGaugeEnabled = 'token__isGaugeEnabled',
-  TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
-  TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenMilestoneSeason = 'token__milestoneSeason',
-  TokenOptimalPercentDepositedBdv = 'token__optimalPercentDepositedBdv',
-  TokenSelector = 'token__selector',
-  TokenStalkEarnedPerSeason = 'token__stalkEarnedPerSeason',
-  TokenStalkIssuedPerBdv = 'token__stalkIssuedPerBdv',
-  TokenStemTip = 'token__stemTip',
-  TokenUpdatedAt = 'token__updatedAt',
-  UpdatedAt = 'updatedAt'
+export enum WhitelistTokenHourlySnapshotOrderBy {
+  bdv = 'bdv',
+  createdAt = 'createdAt',
+  deltaBdv = 'deltaBdv',
+  deltaGaugePoints = 'deltaGaugePoints',
+  deltaIsGaugeEnabled = 'deltaIsGaugeEnabled',
+  deltaMilestoneSeason = 'deltaMilestoneSeason',
+  deltaOptimalPercentDepositedBdv = 'deltaOptimalPercentDepositedBdv',
+  deltaStalkEarnedPerSeason = 'deltaStalkEarnedPerSeason',
+  deltaStalkIssuedPerBdv = 'deltaStalkIssuedPerBdv',
+  deltaStemTip = 'deltaStemTip',
+  gaugePoints = 'gaugePoints',
+  id = 'id',
+  isGaugeEnabled = 'isGaugeEnabled',
+  milestoneSeason = 'milestoneSeason',
+  optimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
+  season = 'season',
+  selector = 'selector',
+  stalkEarnedPerSeason = 'stalkEarnedPerSeason',
+  stalkIssuedPerBdv = 'stalkIssuedPerBdv',
+  stemTip = 'stemTip',
+  token = 'token',
+  token__decimals = 'token__decimals',
+  token__gaugePoints = 'token__gaugePoints',
+  token__id = 'token__id',
+  token__isGaugeEnabled = 'token__isGaugeEnabled',
+  token__lastDailySnapshotDay = 'token__lastDailySnapshotDay',
+  token__lastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
+  token__milestoneSeason = 'token__milestoneSeason',
+  token__optimalPercentDepositedBdv = 'token__optimalPercentDepositedBdv',
+  token__selector = 'token__selector',
+  token__stalkEarnedPerSeason = 'token__stalkEarnedPerSeason',
+  token__stalkIssuedPerBdv = 'token__stalkIssuedPerBdv',
+  token__stemTip = 'token__stemTip',
+  token__updatedAt = 'token__updatedAt',
+  updatedAt = 'updatedAt'
 }
 
 export type WhitelistTokenSetting = {
@@ -14035,26 +13052,26 @@ export type WhitelistTokenSetting = {
 
 export type WhitelistTokenSettingDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WhitelistTokenDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WhitelistTokenDailySnapshot_Filter>;
+  where?: InputMaybe<WhitelistTokenDailySnapshotFilter>;
 };
 
 
 export type WhitelistTokenSettingHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WhitelistTokenHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WhitelistTokenHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WhitelistTokenHourlySnapshot_Filter>;
+  where?: InputMaybe<WhitelistTokenHourlySnapshotFilter>;
 };
 
-export type WhitelistTokenSetting_Filter = {
+export type WhitelistTokenSettingFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WhitelistTokenSetting_Filter>>>;
-  dailySnapshots_?: InputMaybe<WhitelistTokenDailySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<WhitelistTokenSettingFilter>>>;
+  dailySnapshots_?: InputMaybe<WhitelistTokenDailySnapshotFilter>;
   decimals?: InputMaybe<Scalars['Int']['input']>;
   decimals_gt?: InputMaybe<Scalars['Int']['input']>;
   decimals_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -14071,7 +13088,7 @@ export type WhitelistTokenSetting_Filter = {
   gaugePoints_lte?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hourlySnapshots_?: InputMaybe<WhitelistTokenHourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<WhitelistTokenHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -14118,7 +13135,7 @@ export type WhitelistTokenSetting_Filter = {
   optimalPercentDepositedBdv_lte?: InputMaybe<Scalars['BigInt']['input']>;
   optimalPercentDepositedBdv_not?: InputMaybe<Scalars['BigInt']['input']>;
   optimalPercentDepositedBdv_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WhitelistTokenSetting_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WhitelistTokenSettingFilter>>>;
   selector?: InputMaybe<Scalars['Bytes']['input']>;
   selector_contains?: InputMaybe<Scalars['Bytes']['input']>;
   selector_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -14163,22 +13180,22 @@ export type WhitelistTokenSetting_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum WhitelistTokenSetting_OrderBy {
-  DailySnapshots = 'dailySnapshots',
-  Decimals = 'decimals',
-  GaugePoints = 'gaugePoints',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  IsGaugeEnabled = 'isGaugeEnabled',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  MilestoneSeason = 'milestoneSeason',
-  OptimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
-  Selector = 'selector',
-  StalkEarnedPerSeason = 'stalkEarnedPerSeason',
-  StalkIssuedPerBdv = 'stalkIssuedPerBdv',
-  StemTip = 'stemTip',
-  UpdatedAt = 'updatedAt'
+export enum WhitelistTokenSettingOrderBy {
+  dailySnapshots = 'dailySnapshots',
+  decimals = 'decimals',
+  gaugePoints = 'gaugePoints',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  isGaugeEnabled = 'isGaugeEnabled',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  milestoneSeason = 'milestoneSeason',
+  optimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
+  selector = 'selector',
+  stalkEarnedPerSeason = 'stalkEarnedPerSeason',
+  stalkIssuedPerBdv = 'stalkIssuedPerBdv',
+  stemTip = 'stemTip',
+  updatedAt = 'updatedAt'
 }
 
 export type WrappedDepositErc20 = {
@@ -14218,19 +13235,19 @@ export type WrappedDepositErc20 = {
 
 export type WrappedDepositErc20DailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20DailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WrappedDepositErc20DailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WrappedDepositErc20DailySnapshot_Filter>;
+  where?: InputMaybe<WrappedDepositErc20DailySnapshotFilter>;
 };
 
 
 export type WrappedDepositErc20HourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WrappedDepositErc20HourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WrappedDepositErc20HourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WrappedDepositErc20HourlySnapshot_Filter>;
+  where?: InputMaybe<WrappedDepositErc20HourlySnapshotFilter>;
 };
 
 export type WrappedDepositErc20DailySnapshot = {
@@ -14265,10 +13282,10 @@ export type WrappedDepositErc20DailySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type WrappedDepositErc20DailySnapshot_Filter = {
+export type WrappedDepositErc20DailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WrappedDepositErc20DailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WrappedDepositErc20DailySnapshotFilter>>>;
   apy7d?: InputMaybe<Scalars['BigDecimal']['input']>;
   apy7d_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   apy7d_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -14333,7 +13350,7 @@ export type WrappedDepositErc20DailySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WrappedDepositErc20DailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WrappedDepositErc20DailySnapshotFilter>>>;
   redeemRate?: InputMaybe<Scalars['BigInt']['input']>;
   redeemRate_gt?: InputMaybe<Scalars['BigInt']['input']>;
   redeemRate_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -14351,7 +13368,7 @@ export type WrappedDepositErc20DailySnapshot_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   siloDailySnapshot?: InputMaybe<Scalars['String']['input']>;
-  siloDailySnapshot_?: InputMaybe<SiloHourlySnapshot_Filter>;
+  siloDailySnapshot_?: InputMaybe<SiloHourlySnapshotFilter>;
   siloDailySnapshot_contains?: InputMaybe<Scalars['String']['input']>;
   siloDailySnapshot_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   siloDailySnapshot_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -14380,7 +13397,7 @@ export type WrappedDepositErc20DailySnapshot_Filter = {
   supply_not?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   token?: InputMaybe<Scalars['String']['input']>;
-  token_?: InputMaybe<WrappedDepositErc20_Filter>;
+  token_?: InputMaybe<WrappedDepositErc20Filter>;
   token_contains?: InputMaybe<Scalars['String']['input']>;
   token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   token_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -14410,74 +13427,74 @@ export type WrappedDepositErc20DailySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum WrappedDepositErc20DailySnapshot_OrderBy {
-  Apy7d = 'apy7d',
-  Apy24h = 'apy24h',
-  Apy30d = 'apy30d',
-  Apy90d = 'apy90d',
-  CreatedAt = 'createdAt',
-  DeltaRedeemRate = 'deltaRedeemRate',
-  DeltaSupply = 'deltaSupply',
-  Id = 'id',
-  RedeemRate = 'redeemRate',
-  Season = 'season',
-  SiloDailySnapshot = 'siloDailySnapshot',
-  SiloDailySnapshotActiveFarmers = 'siloDailySnapshot__activeFarmers',
-  SiloDailySnapshotAvgConvertDownPenalty = 'siloDailySnapshot__avgConvertDownPenalty',
-  SiloDailySnapshotAvgGrownStalkPerBdvPerSeason = 'siloDailySnapshot__avgGrownStalkPerBdvPerSeason',
-  SiloDailySnapshotBeanMints = 'siloDailySnapshot__beanMints',
-  SiloDailySnapshotBeanToMaxLpGpPerBdvRatio = 'siloDailySnapshot__beanToMaxLpGpPerBdvRatio',
-  SiloDailySnapshotBonusStalkConvertUp = 'siloDailySnapshot__bonusStalkConvertUp',
-  SiloDailySnapshotCaseId = 'siloDailySnapshot__caseId',
-  SiloDailySnapshotConvertDownPenalty = 'siloDailySnapshot__convertDownPenalty',
-  SiloDailySnapshotCreatedAt = 'siloDailySnapshot__createdAt',
-  SiloDailySnapshotCropRatio = 'siloDailySnapshot__cropRatio',
-  SiloDailySnapshotDeltaActiveFarmers = 'siloDailySnapshot__deltaActiveFarmers',
-  SiloDailySnapshotDeltaAvgConvertDownPenalty = 'siloDailySnapshot__deltaAvgConvertDownPenalty',
-  SiloDailySnapshotDeltaAvgGrownStalkPerBdvPerSeason = 'siloDailySnapshot__deltaAvgGrownStalkPerBdvPerSeason',
-  SiloDailySnapshotDeltaBeanMints = 'siloDailySnapshot__deltaBeanMints',
-  SiloDailySnapshotDeltaBeanToMaxLpGpPerBdvRatio = 'siloDailySnapshot__deltaBeanToMaxLpGpPerBdvRatio',
-  SiloDailySnapshotDeltaBonusStalkConvertUp = 'siloDailySnapshot__deltaBonusStalkConvertUp',
-  SiloDailySnapshotDeltaConvertDownPenalty = 'siloDailySnapshot__deltaConvertDownPenalty',
-  SiloDailySnapshotDeltaCropRatio = 'siloDailySnapshot__deltaCropRatio',
-  SiloDailySnapshotDeltaDepositedBdv = 'siloDailySnapshot__deltaDepositedBDV',
-  SiloDailySnapshotDeltaGerminatingStalk = 'siloDailySnapshot__deltaGerminatingStalk',
-  SiloDailySnapshotDeltaGrownStalkPerSeason = 'siloDailySnapshot__deltaGrownStalkPerSeason',
-  SiloDailySnapshotDeltaPenalizedStalkConvertDown = 'siloDailySnapshot__deltaPenalizedStalkConvertDown',
-  SiloDailySnapshotDeltaPlantableStalk = 'siloDailySnapshot__deltaPlantableStalk',
-  SiloDailySnapshotDeltaPlantedBeans = 'siloDailySnapshot__deltaPlantedBeans',
-  SiloDailySnapshotDeltaRoots = 'siloDailySnapshot__deltaRoots',
-  SiloDailySnapshotDeltaStalk = 'siloDailySnapshot__deltaStalk',
-  SiloDailySnapshotDeltaTotalBdvConvertUp = 'siloDailySnapshot__deltaTotalBdvConvertUp',
-  SiloDailySnapshotDeltaTotalBdvConvertUpBonus = 'siloDailySnapshot__deltaTotalBdvConvertUpBonus',
-  SiloDailySnapshotDeltaUnpenalizedStalkConvertDown = 'siloDailySnapshot__deltaUnpenalizedStalkConvertDown',
-  SiloDailySnapshotDepositedBdv = 'siloDailySnapshot__depositedBDV',
-  SiloDailySnapshotGerminatingStalk = 'siloDailySnapshot__germinatingStalk',
-  SiloDailySnapshotGrownStalkPerSeason = 'siloDailySnapshot__grownStalkPerSeason',
-  SiloDailySnapshotId = 'siloDailySnapshot__id',
-  SiloDailySnapshotPenalizedStalkConvertDown = 'siloDailySnapshot__penalizedStalkConvertDown',
-  SiloDailySnapshotPlantableStalk = 'siloDailySnapshot__plantableStalk',
-  SiloDailySnapshotPlantedBeans = 'siloDailySnapshot__plantedBeans',
-  SiloDailySnapshotRoots = 'siloDailySnapshot__roots',
-  SiloDailySnapshotSeason = 'siloDailySnapshot__season',
-  SiloDailySnapshotStalk = 'siloDailySnapshot__stalk',
-  SiloDailySnapshotTotalBdvConvertUp = 'siloDailySnapshot__totalBdvConvertUp',
-  SiloDailySnapshotTotalBdvConvertUpBonus = 'siloDailySnapshot__totalBdvConvertUpBonus',
-  SiloDailySnapshotUnpenalizedStalkConvertDown = 'siloDailySnapshot__unpenalizedStalkConvertDown',
-  SiloDailySnapshotUpdatedAt = 'siloDailySnapshot__updatedAt',
-  Supply = 'supply',
-  Token = 'token',
-  TokenApy7d = 'token__apy7d',
-  TokenApy24h = 'token__apy24h',
-  TokenApy30d = 'token__apy30d',
-  TokenApy90d = 'token__apy90d',
-  TokenDecimals = 'token__decimals',
-  TokenId = 'token__id',
-  TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
-  TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenRedeemRate = 'token__redeemRate',
-  TokenSupply = 'token__supply',
-  UpdatedAt = 'updatedAt'
+export enum WrappedDepositErc20DailySnapshotOrderBy {
+  apy7d = 'apy7d',
+  apy24h = 'apy24h',
+  apy30d = 'apy30d',
+  apy90d = 'apy90d',
+  createdAt = 'createdAt',
+  deltaRedeemRate = 'deltaRedeemRate',
+  deltaSupply = 'deltaSupply',
+  id = 'id',
+  redeemRate = 'redeemRate',
+  season = 'season',
+  siloDailySnapshot = 'siloDailySnapshot',
+  siloDailySnapshot__activeFarmers = 'siloDailySnapshot__activeFarmers',
+  siloDailySnapshot__avgConvertDownPenalty = 'siloDailySnapshot__avgConvertDownPenalty',
+  siloDailySnapshot__avgGrownStalkPerBdvPerSeason = 'siloDailySnapshot__avgGrownStalkPerBdvPerSeason',
+  siloDailySnapshot__beanMints = 'siloDailySnapshot__beanMints',
+  siloDailySnapshot__beanToMaxLpGpPerBdvRatio = 'siloDailySnapshot__beanToMaxLpGpPerBdvRatio',
+  siloDailySnapshot__bonusStalkConvertUp = 'siloDailySnapshot__bonusStalkConvertUp',
+  siloDailySnapshot__caseId = 'siloDailySnapshot__caseId',
+  siloDailySnapshot__convertDownPenalty = 'siloDailySnapshot__convertDownPenalty',
+  siloDailySnapshot__createdAt = 'siloDailySnapshot__createdAt',
+  siloDailySnapshot__cropRatio = 'siloDailySnapshot__cropRatio',
+  siloDailySnapshot__deltaActiveFarmers = 'siloDailySnapshot__deltaActiveFarmers',
+  siloDailySnapshot__deltaAvgConvertDownPenalty = 'siloDailySnapshot__deltaAvgConvertDownPenalty',
+  siloDailySnapshot__deltaAvgGrownStalkPerBdvPerSeason = 'siloDailySnapshot__deltaAvgGrownStalkPerBdvPerSeason',
+  siloDailySnapshot__deltaBeanMints = 'siloDailySnapshot__deltaBeanMints',
+  siloDailySnapshot__deltaBeanToMaxLpGpPerBdvRatio = 'siloDailySnapshot__deltaBeanToMaxLpGpPerBdvRatio',
+  siloDailySnapshot__deltaBonusStalkConvertUp = 'siloDailySnapshot__deltaBonusStalkConvertUp',
+  siloDailySnapshot__deltaConvertDownPenalty = 'siloDailySnapshot__deltaConvertDownPenalty',
+  siloDailySnapshot__deltaCropRatio = 'siloDailySnapshot__deltaCropRatio',
+  siloDailySnapshot__deltaDepositedBDV = 'siloDailySnapshot__deltaDepositedBDV',
+  siloDailySnapshot__deltaGerminatingStalk = 'siloDailySnapshot__deltaGerminatingStalk',
+  siloDailySnapshot__deltaGrownStalkPerSeason = 'siloDailySnapshot__deltaGrownStalkPerSeason',
+  siloDailySnapshot__deltaPenalizedStalkConvertDown = 'siloDailySnapshot__deltaPenalizedStalkConvertDown',
+  siloDailySnapshot__deltaPlantableStalk = 'siloDailySnapshot__deltaPlantableStalk',
+  siloDailySnapshot__deltaPlantedBeans = 'siloDailySnapshot__deltaPlantedBeans',
+  siloDailySnapshot__deltaRoots = 'siloDailySnapshot__deltaRoots',
+  siloDailySnapshot__deltaStalk = 'siloDailySnapshot__deltaStalk',
+  siloDailySnapshot__deltaTotalBdvConvertUp = 'siloDailySnapshot__deltaTotalBdvConvertUp',
+  siloDailySnapshot__deltaTotalBdvConvertUpBonus = 'siloDailySnapshot__deltaTotalBdvConvertUpBonus',
+  siloDailySnapshot__deltaUnpenalizedStalkConvertDown = 'siloDailySnapshot__deltaUnpenalizedStalkConvertDown',
+  siloDailySnapshot__depositedBDV = 'siloDailySnapshot__depositedBDV',
+  siloDailySnapshot__germinatingStalk = 'siloDailySnapshot__germinatingStalk',
+  siloDailySnapshot__grownStalkPerSeason = 'siloDailySnapshot__grownStalkPerSeason',
+  siloDailySnapshot__id = 'siloDailySnapshot__id',
+  siloDailySnapshot__penalizedStalkConvertDown = 'siloDailySnapshot__penalizedStalkConvertDown',
+  siloDailySnapshot__plantableStalk = 'siloDailySnapshot__plantableStalk',
+  siloDailySnapshot__plantedBeans = 'siloDailySnapshot__plantedBeans',
+  siloDailySnapshot__roots = 'siloDailySnapshot__roots',
+  siloDailySnapshot__season = 'siloDailySnapshot__season',
+  siloDailySnapshot__stalk = 'siloDailySnapshot__stalk',
+  siloDailySnapshot__totalBdvConvertUp = 'siloDailySnapshot__totalBdvConvertUp',
+  siloDailySnapshot__totalBdvConvertUpBonus = 'siloDailySnapshot__totalBdvConvertUpBonus',
+  siloDailySnapshot__unpenalizedStalkConvertDown = 'siloDailySnapshot__unpenalizedStalkConvertDown',
+  siloDailySnapshot__updatedAt = 'siloDailySnapshot__updatedAt',
+  supply = 'supply',
+  token = 'token',
+  token__apy7d = 'token__apy7d',
+  token__apy24h = 'token__apy24h',
+  token__apy30d = 'token__apy30d',
+  token__apy90d = 'token__apy90d',
+  token__decimals = 'token__decimals',
+  token__id = 'token__id',
+  token__lastDailySnapshotDay = 'token__lastDailySnapshotDay',
+  token__lastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
+  token__redeemRate = 'token__redeemRate',
+  token__supply = 'token__supply',
+  updatedAt = 'updatedAt'
 }
 
 export type WrappedDepositErc20HourlySnapshot = {
@@ -14512,10 +13529,10 @@ export type WrappedDepositErc20HourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type WrappedDepositErc20HourlySnapshot_Filter = {
+export type WrappedDepositErc20HourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WrappedDepositErc20HourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WrappedDepositErc20HourlySnapshotFilter>>>;
   apy7d?: InputMaybe<Scalars['BigDecimal']['input']>;
   apy7d_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   apy7d_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -14580,7 +13597,7 @@ export type WrappedDepositErc20HourlySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WrappedDepositErc20HourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WrappedDepositErc20HourlySnapshotFilter>>>;
   redeemRate?: InputMaybe<Scalars['BigInt']['input']>;
   redeemRate_gt?: InputMaybe<Scalars['BigInt']['input']>;
   redeemRate_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -14598,7 +13615,7 @@ export type WrappedDepositErc20HourlySnapshot_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   siloHourlySnapshot?: InputMaybe<Scalars['String']['input']>;
-  siloHourlySnapshot_?: InputMaybe<SiloHourlySnapshot_Filter>;
+  siloHourlySnapshot_?: InputMaybe<SiloHourlySnapshotFilter>;
   siloHourlySnapshot_contains?: InputMaybe<Scalars['String']['input']>;
   siloHourlySnapshot_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   siloHourlySnapshot_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -14627,7 +13644,7 @@ export type WrappedDepositErc20HourlySnapshot_Filter = {
   supply_not?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   token?: InputMaybe<Scalars['String']['input']>;
-  token_?: InputMaybe<WrappedDepositErc20_Filter>;
+  token_?: InputMaybe<WrappedDepositErc20Filter>;
   token_contains?: InputMaybe<Scalars['String']['input']>;
   token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   token_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -14657,80 +13674,80 @@ export type WrappedDepositErc20HourlySnapshot_Filter = {
   updatedAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum WrappedDepositErc20HourlySnapshot_OrderBy {
-  Apy7d = 'apy7d',
-  Apy24h = 'apy24h',
-  Apy30d = 'apy30d',
-  Apy90d = 'apy90d',
-  CreatedAt = 'createdAt',
-  DeltaRedeemRate = 'deltaRedeemRate',
-  DeltaSupply = 'deltaSupply',
-  Id = 'id',
-  RedeemRate = 'redeemRate',
-  Season = 'season',
-  SiloHourlySnapshot = 'siloHourlySnapshot',
-  SiloHourlySnapshotActiveFarmers = 'siloHourlySnapshot__activeFarmers',
-  SiloHourlySnapshotAvgConvertDownPenalty = 'siloHourlySnapshot__avgConvertDownPenalty',
-  SiloHourlySnapshotAvgGrownStalkPerBdvPerSeason = 'siloHourlySnapshot__avgGrownStalkPerBdvPerSeason',
-  SiloHourlySnapshotBeanMints = 'siloHourlySnapshot__beanMints',
-  SiloHourlySnapshotBeanToMaxLpGpPerBdvRatio = 'siloHourlySnapshot__beanToMaxLpGpPerBdvRatio',
-  SiloHourlySnapshotBonusStalkConvertUp = 'siloHourlySnapshot__bonusStalkConvertUp',
-  SiloHourlySnapshotCaseId = 'siloHourlySnapshot__caseId',
-  SiloHourlySnapshotConvertDownPenalty = 'siloHourlySnapshot__convertDownPenalty',
-  SiloHourlySnapshotCreatedAt = 'siloHourlySnapshot__createdAt',
-  SiloHourlySnapshotCropRatio = 'siloHourlySnapshot__cropRatio',
-  SiloHourlySnapshotDeltaActiveFarmers = 'siloHourlySnapshot__deltaActiveFarmers',
-  SiloHourlySnapshotDeltaAvgConvertDownPenalty = 'siloHourlySnapshot__deltaAvgConvertDownPenalty',
-  SiloHourlySnapshotDeltaAvgGrownStalkPerBdvPerSeason = 'siloHourlySnapshot__deltaAvgGrownStalkPerBdvPerSeason',
-  SiloHourlySnapshotDeltaBeanMints = 'siloHourlySnapshot__deltaBeanMints',
-  SiloHourlySnapshotDeltaBeanToMaxLpGpPerBdvRatio = 'siloHourlySnapshot__deltaBeanToMaxLpGpPerBdvRatio',
-  SiloHourlySnapshotDeltaBonusStalkConvertUp = 'siloHourlySnapshot__deltaBonusStalkConvertUp',
-  SiloHourlySnapshotDeltaConvertDownPenalty = 'siloHourlySnapshot__deltaConvertDownPenalty',
-  SiloHourlySnapshotDeltaCropRatio = 'siloHourlySnapshot__deltaCropRatio',
-  SiloHourlySnapshotDeltaDepositedBdv = 'siloHourlySnapshot__deltaDepositedBDV',
-  SiloHourlySnapshotDeltaGerminatingStalk = 'siloHourlySnapshot__deltaGerminatingStalk',
-  SiloHourlySnapshotDeltaGrownStalkPerSeason = 'siloHourlySnapshot__deltaGrownStalkPerSeason',
-  SiloHourlySnapshotDeltaPenalizedStalkConvertDown = 'siloHourlySnapshot__deltaPenalizedStalkConvertDown',
-  SiloHourlySnapshotDeltaPlantableStalk = 'siloHourlySnapshot__deltaPlantableStalk',
-  SiloHourlySnapshotDeltaPlantedBeans = 'siloHourlySnapshot__deltaPlantedBeans',
-  SiloHourlySnapshotDeltaRoots = 'siloHourlySnapshot__deltaRoots',
-  SiloHourlySnapshotDeltaStalk = 'siloHourlySnapshot__deltaStalk',
-  SiloHourlySnapshotDeltaTotalBdvConvertUp = 'siloHourlySnapshot__deltaTotalBdvConvertUp',
-  SiloHourlySnapshotDeltaTotalBdvConvertUpBonus = 'siloHourlySnapshot__deltaTotalBdvConvertUpBonus',
-  SiloHourlySnapshotDeltaUnpenalizedStalkConvertDown = 'siloHourlySnapshot__deltaUnpenalizedStalkConvertDown',
-  SiloHourlySnapshotDepositedBdv = 'siloHourlySnapshot__depositedBDV',
-  SiloHourlySnapshotGerminatingStalk = 'siloHourlySnapshot__germinatingStalk',
-  SiloHourlySnapshotGrownStalkPerSeason = 'siloHourlySnapshot__grownStalkPerSeason',
-  SiloHourlySnapshotId = 'siloHourlySnapshot__id',
-  SiloHourlySnapshotPenalizedStalkConvertDown = 'siloHourlySnapshot__penalizedStalkConvertDown',
-  SiloHourlySnapshotPlantableStalk = 'siloHourlySnapshot__plantableStalk',
-  SiloHourlySnapshotPlantedBeans = 'siloHourlySnapshot__plantedBeans',
-  SiloHourlySnapshotRoots = 'siloHourlySnapshot__roots',
-  SiloHourlySnapshotSeason = 'siloHourlySnapshot__season',
-  SiloHourlySnapshotStalk = 'siloHourlySnapshot__stalk',
-  SiloHourlySnapshotTotalBdvConvertUp = 'siloHourlySnapshot__totalBdvConvertUp',
-  SiloHourlySnapshotTotalBdvConvertUpBonus = 'siloHourlySnapshot__totalBdvConvertUpBonus',
-  SiloHourlySnapshotUnpenalizedStalkConvertDown = 'siloHourlySnapshot__unpenalizedStalkConvertDown',
-  SiloHourlySnapshotUpdatedAt = 'siloHourlySnapshot__updatedAt',
-  Supply = 'supply',
-  Token = 'token',
-  TokenApy7d = 'token__apy7d',
-  TokenApy24h = 'token__apy24h',
-  TokenApy30d = 'token__apy30d',
-  TokenApy90d = 'token__apy90d',
-  TokenDecimals = 'token__decimals',
-  TokenId = 'token__id',
-  TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
-  TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenRedeemRate = 'token__redeemRate',
-  TokenSupply = 'token__supply',
-  UpdatedAt = 'updatedAt'
+export enum WrappedDepositErc20HourlySnapshotOrderBy {
+  apy7d = 'apy7d',
+  apy24h = 'apy24h',
+  apy30d = 'apy30d',
+  apy90d = 'apy90d',
+  createdAt = 'createdAt',
+  deltaRedeemRate = 'deltaRedeemRate',
+  deltaSupply = 'deltaSupply',
+  id = 'id',
+  redeemRate = 'redeemRate',
+  season = 'season',
+  siloHourlySnapshot = 'siloHourlySnapshot',
+  siloHourlySnapshot__activeFarmers = 'siloHourlySnapshot__activeFarmers',
+  siloHourlySnapshot__avgConvertDownPenalty = 'siloHourlySnapshot__avgConvertDownPenalty',
+  siloHourlySnapshot__avgGrownStalkPerBdvPerSeason = 'siloHourlySnapshot__avgGrownStalkPerBdvPerSeason',
+  siloHourlySnapshot__beanMints = 'siloHourlySnapshot__beanMints',
+  siloHourlySnapshot__beanToMaxLpGpPerBdvRatio = 'siloHourlySnapshot__beanToMaxLpGpPerBdvRatio',
+  siloHourlySnapshot__bonusStalkConvertUp = 'siloHourlySnapshot__bonusStalkConvertUp',
+  siloHourlySnapshot__caseId = 'siloHourlySnapshot__caseId',
+  siloHourlySnapshot__convertDownPenalty = 'siloHourlySnapshot__convertDownPenalty',
+  siloHourlySnapshot__createdAt = 'siloHourlySnapshot__createdAt',
+  siloHourlySnapshot__cropRatio = 'siloHourlySnapshot__cropRatio',
+  siloHourlySnapshot__deltaActiveFarmers = 'siloHourlySnapshot__deltaActiveFarmers',
+  siloHourlySnapshot__deltaAvgConvertDownPenalty = 'siloHourlySnapshot__deltaAvgConvertDownPenalty',
+  siloHourlySnapshot__deltaAvgGrownStalkPerBdvPerSeason = 'siloHourlySnapshot__deltaAvgGrownStalkPerBdvPerSeason',
+  siloHourlySnapshot__deltaBeanMints = 'siloHourlySnapshot__deltaBeanMints',
+  siloHourlySnapshot__deltaBeanToMaxLpGpPerBdvRatio = 'siloHourlySnapshot__deltaBeanToMaxLpGpPerBdvRatio',
+  siloHourlySnapshot__deltaBonusStalkConvertUp = 'siloHourlySnapshot__deltaBonusStalkConvertUp',
+  siloHourlySnapshot__deltaConvertDownPenalty = 'siloHourlySnapshot__deltaConvertDownPenalty',
+  siloHourlySnapshot__deltaCropRatio = 'siloHourlySnapshot__deltaCropRatio',
+  siloHourlySnapshot__deltaDepositedBDV = 'siloHourlySnapshot__deltaDepositedBDV',
+  siloHourlySnapshot__deltaGerminatingStalk = 'siloHourlySnapshot__deltaGerminatingStalk',
+  siloHourlySnapshot__deltaGrownStalkPerSeason = 'siloHourlySnapshot__deltaGrownStalkPerSeason',
+  siloHourlySnapshot__deltaPenalizedStalkConvertDown = 'siloHourlySnapshot__deltaPenalizedStalkConvertDown',
+  siloHourlySnapshot__deltaPlantableStalk = 'siloHourlySnapshot__deltaPlantableStalk',
+  siloHourlySnapshot__deltaPlantedBeans = 'siloHourlySnapshot__deltaPlantedBeans',
+  siloHourlySnapshot__deltaRoots = 'siloHourlySnapshot__deltaRoots',
+  siloHourlySnapshot__deltaStalk = 'siloHourlySnapshot__deltaStalk',
+  siloHourlySnapshot__deltaTotalBdvConvertUp = 'siloHourlySnapshot__deltaTotalBdvConvertUp',
+  siloHourlySnapshot__deltaTotalBdvConvertUpBonus = 'siloHourlySnapshot__deltaTotalBdvConvertUpBonus',
+  siloHourlySnapshot__deltaUnpenalizedStalkConvertDown = 'siloHourlySnapshot__deltaUnpenalizedStalkConvertDown',
+  siloHourlySnapshot__depositedBDV = 'siloHourlySnapshot__depositedBDV',
+  siloHourlySnapshot__germinatingStalk = 'siloHourlySnapshot__germinatingStalk',
+  siloHourlySnapshot__grownStalkPerSeason = 'siloHourlySnapshot__grownStalkPerSeason',
+  siloHourlySnapshot__id = 'siloHourlySnapshot__id',
+  siloHourlySnapshot__penalizedStalkConvertDown = 'siloHourlySnapshot__penalizedStalkConvertDown',
+  siloHourlySnapshot__plantableStalk = 'siloHourlySnapshot__plantableStalk',
+  siloHourlySnapshot__plantedBeans = 'siloHourlySnapshot__plantedBeans',
+  siloHourlySnapshot__roots = 'siloHourlySnapshot__roots',
+  siloHourlySnapshot__season = 'siloHourlySnapshot__season',
+  siloHourlySnapshot__stalk = 'siloHourlySnapshot__stalk',
+  siloHourlySnapshot__totalBdvConvertUp = 'siloHourlySnapshot__totalBdvConvertUp',
+  siloHourlySnapshot__totalBdvConvertUpBonus = 'siloHourlySnapshot__totalBdvConvertUpBonus',
+  siloHourlySnapshot__unpenalizedStalkConvertDown = 'siloHourlySnapshot__unpenalizedStalkConvertDown',
+  siloHourlySnapshot__updatedAt = 'siloHourlySnapshot__updatedAt',
+  supply = 'supply',
+  token = 'token',
+  token__apy7d = 'token__apy7d',
+  token__apy24h = 'token__apy24h',
+  token__apy30d = 'token__apy30d',
+  token__apy90d = 'token__apy90d',
+  token__decimals = 'token__decimals',
+  token__id = 'token__id',
+  token__lastDailySnapshotDay = 'token__lastDailySnapshotDay',
+  token__lastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
+  token__redeemRate = 'token__redeemRate',
+  token__supply = 'token__supply',
+  updatedAt = 'updatedAt'
 }
 
-export type WrappedDepositErc20_Filter = {
+export type WrappedDepositErc20Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WrappedDepositErc20_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WrappedDepositErc20Filter>>>;
   apy7d?: InputMaybe<Scalars['BigDecimal']['input']>;
   apy7d_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   apy7d_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -14764,7 +13781,7 @@ export type WrappedDepositErc20_Filter = {
   apy90d_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   apy90d_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   beanstalk?: InputMaybe<Scalars['String']['input']>;
-  beanstalk_?: InputMaybe<Beanstalk_Filter>;
+  beanstalk_?: InputMaybe<BeanstalkFilter>;
   beanstalk_contains?: InputMaybe<Scalars['String']['input']>;
   beanstalk_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   beanstalk_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -14784,7 +13801,7 @@ export type WrappedDepositErc20_Filter = {
   beanstalk_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   beanstalk_starts_with?: InputMaybe<Scalars['String']['input']>;
   beanstalk_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  dailySnapshots_?: InputMaybe<WrappedDepositErc20DailySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<WrappedDepositErc20DailySnapshotFilter>;
   decimals?: InputMaybe<Scalars['Int']['input']>;
   decimals_gt?: InputMaybe<Scalars['Int']['input']>;
   decimals_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -14793,7 +13810,7 @@ export type WrappedDepositErc20_Filter = {
   decimals_lte?: InputMaybe<Scalars['Int']['input']>;
   decimals_not?: InputMaybe<Scalars['Int']['input']>;
   decimals_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  hourlySnapshots_?: InputMaybe<WrappedDepositErc20HourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<WrappedDepositErc20HourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -14820,7 +13837,7 @@ export type WrappedDepositErc20_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WrappedDepositErc20_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WrappedDepositErc20Filter>>>;
   redeemRate?: InputMaybe<Scalars['BigInt']['input']>;
   redeemRate_gt?: InputMaybe<Scalars['BigInt']['input']>;
   redeemRate_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -14830,7 +13847,7 @@ export type WrappedDepositErc20_Filter = {
   redeemRate_not?: InputMaybe<Scalars['BigInt']['input']>;
   redeemRate_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   silo?: InputMaybe<Scalars['String']['input']>;
-  silo_?: InputMaybe<Silo_Filter>;
+  silo_?: InputMaybe<SiloFilter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
   silo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   silo_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -14859,7 +13876,7 @@ export type WrappedDepositErc20_Filter = {
   supply_not?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   underlyingAsset?: InputMaybe<Scalars['String']['input']>;
-  underlyingAsset_?: InputMaybe<WhitelistTokenSetting_Filter>;
+  underlyingAsset_?: InputMaybe<WhitelistTokenSettingFilter>;
   underlyingAsset_contains?: InputMaybe<Scalars['String']['input']>;
   underlyingAsset_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   underlyingAsset_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -14881,65 +13898,65 @@ export type WrappedDepositErc20_Filter = {
   underlyingAsset_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum WrappedDepositErc20_OrderBy {
-  Apy7d = 'apy7d',
-  Apy24h = 'apy24h',
-  Apy30d = 'apy30d',
-  Apy90d = 'apy90d',
-  Beanstalk = 'beanstalk',
-  BeanstalkFertilizer1155 = 'beanstalk__fertilizer1155',
-  BeanstalkId = 'beanstalk__id',
-  BeanstalkLastSeason = 'beanstalk__lastSeason',
-  BeanstalkToken = 'beanstalk__token',
-  DailySnapshots = 'dailySnapshots',
-  Decimals = 'decimals',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  RedeemRate = 'redeemRate',
-  Silo = 'silo',
-  SiloActiveFarmers = 'silo__activeFarmers',
-  SiloAvgConvertDownPenalty = 'silo__avgConvertDownPenalty',
-  SiloAvgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
-  SiloBeanMints = 'silo__beanMints',
-  SiloBeanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
-  SiloBonusStalkConvertUp = 'silo__bonusStalkConvertUp',
-  SiloConvertDownPenalty = 'silo__convertDownPenalty',
-  SiloCropRatio = 'silo__cropRatio',
-  SiloDepositedBdv = 'silo__depositedBDV',
-  SiloGerminatingStalk = 'silo__germinatingStalk',
-  SiloGrownStalkPerSeason = 'silo__grownStalkPerSeason',
-  SiloId = 'silo__id',
-  SiloLastDailySnapshotDay = 'silo__lastDailySnapshotDay',
-  SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
-  SiloPenalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
-  SiloPlantableStalk = 'silo__plantableStalk',
-  SiloPlantedBeans = 'silo__plantedBeans',
-  SiloRoots = 'silo__roots',
-  SiloStalk = 'silo__stalk',
-  SiloTotalBdvConvertUp = 'silo__totalBdvConvertUp',
-  SiloTotalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
-  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
-  SiloUnpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
-  Supply = 'supply',
-  UnderlyingAsset = 'underlyingAsset',
-  UnderlyingAssetDecimals = 'underlyingAsset__decimals',
-  UnderlyingAssetGaugePoints = 'underlyingAsset__gaugePoints',
-  UnderlyingAssetId = 'underlyingAsset__id',
-  UnderlyingAssetIsGaugeEnabled = 'underlyingAsset__isGaugeEnabled',
-  UnderlyingAssetLastDailySnapshotDay = 'underlyingAsset__lastDailySnapshotDay',
-  UnderlyingAssetLastHourlySnapshotSeason = 'underlyingAsset__lastHourlySnapshotSeason',
-  UnderlyingAssetMilestoneSeason = 'underlyingAsset__milestoneSeason',
-  UnderlyingAssetOptimalPercentDepositedBdv = 'underlyingAsset__optimalPercentDepositedBdv',
-  UnderlyingAssetSelector = 'underlyingAsset__selector',
-  UnderlyingAssetStalkEarnedPerSeason = 'underlyingAsset__stalkEarnedPerSeason',
-  UnderlyingAssetStalkIssuedPerBdv = 'underlyingAsset__stalkIssuedPerBdv',
-  UnderlyingAssetStemTip = 'underlyingAsset__stemTip',
-  UnderlyingAssetUpdatedAt = 'underlyingAsset__updatedAt'
+export enum WrappedDepositErc20OrderBy {
+  apy7d = 'apy7d',
+  apy24h = 'apy24h',
+  apy30d = 'apy30d',
+  apy90d = 'apy90d',
+  beanstalk = 'beanstalk',
+  beanstalk__fertilizer1155 = 'beanstalk__fertilizer1155',
+  beanstalk__id = 'beanstalk__id',
+  beanstalk__lastSeason = 'beanstalk__lastSeason',
+  beanstalk__token = 'beanstalk__token',
+  dailySnapshots = 'dailySnapshots',
+  decimals = 'decimals',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  redeemRate = 'redeemRate',
+  silo = 'silo',
+  silo__activeFarmers = 'silo__activeFarmers',
+  silo__avgConvertDownPenalty = 'silo__avgConvertDownPenalty',
+  silo__avgGrownStalkPerBdvPerSeason = 'silo__avgGrownStalkPerBdvPerSeason',
+  silo__beanMints = 'silo__beanMints',
+  silo__beanToMaxLpGpPerBdvRatio = 'silo__beanToMaxLpGpPerBdvRatio',
+  silo__bonusStalkConvertUp = 'silo__bonusStalkConvertUp',
+  silo__convertDownPenalty = 'silo__convertDownPenalty',
+  silo__cropRatio = 'silo__cropRatio',
+  silo__depositedBDV = 'silo__depositedBDV',
+  silo__germinatingStalk = 'silo__germinatingStalk',
+  silo__grownStalkPerSeason = 'silo__grownStalkPerSeason',
+  silo__id = 'silo__id',
+  silo__lastDailySnapshotDay = 'silo__lastDailySnapshotDay',
+  silo__lastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
+  silo__penalizedStalkConvertDown = 'silo__penalizedStalkConvertDown',
+  silo__plantableStalk = 'silo__plantableStalk',
+  silo__plantedBeans = 'silo__plantedBeans',
+  silo__roots = 'silo__roots',
+  silo__stalk = 'silo__stalk',
+  silo__totalBdvConvertUp = 'silo__totalBdvConvertUp',
+  silo__totalBdvConvertUpBonus = 'silo__totalBdvConvertUpBonus',
+  silo__unmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
+  silo__unpenalizedStalkConvertDown = 'silo__unpenalizedStalkConvertDown',
+  supply = 'supply',
+  underlyingAsset = 'underlyingAsset',
+  underlyingAsset__decimals = 'underlyingAsset__decimals',
+  underlyingAsset__gaugePoints = 'underlyingAsset__gaugePoints',
+  underlyingAsset__id = 'underlyingAsset__id',
+  underlyingAsset__isGaugeEnabled = 'underlyingAsset__isGaugeEnabled',
+  underlyingAsset__lastDailySnapshotDay = 'underlyingAsset__lastDailySnapshotDay',
+  underlyingAsset__lastHourlySnapshotSeason = 'underlyingAsset__lastHourlySnapshotSeason',
+  underlyingAsset__milestoneSeason = 'underlyingAsset__milestoneSeason',
+  underlyingAsset__optimalPercentDepositedBdv = 'underlyingAsset__optimalPercentDepositedBdv',
+  underlyingAsset__selector = 'underlyingAsset__selector',
+  underlyingAsset__stalkEarnedPerSeason = 'underlyingAsset__stalkEarnedPerSeason',
+  underlyingAsset__stalkIssuedPerBdv = 'underlyingAsset__stalkIssuedPerBdv',
+  underlyingAsset__stemTip = 'underlyingAsset__stemTip',
+  underlyingAsset__updatedAt = 'underlyingAsset__updatedAt'
 }
 
-export type _Block_ = {
+export type Block = {
   __typename?: '_Block_';
   /** The hash of the block */
   hash?: Maybe<Scalars['Bytes']['output']>;
@@ -14952,27 +13969,26 @@ export type _Block_ = {
 };
 
 /** The type for the top-level _meta field */
-export type _Meta_ = {
+export type Meta = {
   __typename?: '_Meta_';
   /**
    * Information about a specific subgraph block. The hash of the block
    * will be null if the _meta field has a block constraint that asks for
    * a block number. It will be filled if the _meta field has no block constraint
    * and therefore asks for the latest  block
-   *
    */
-  block: _Block_;
+  block: Block;
   /** The deployment ID */
   deployment: Scalars['String']['output'];
   /** If `true`, the subgraph encountered indexing errors at some past block */
   hasIndexingErrors: Scalars['Boolean']['output'];
 };
 
-export enum _SubgraphErrorPolicy_ {
+export enum SubgraphErrorPolicy {
   /** Data will be returned even if the subgraph has indexing errors */
-  Allow = 'allow',
+  allow = 'allow',
   /** If the subgraph has indexing errors, data will be omitted. The default. */
-  Deny = 'deny'
+  deny = 'deny'
 }
 
 export type BeanstalkAdvancedChartQueryVariables = Exact<{
@@ -14981,7 +13997,7 @@ export type BeanstalkAdvancedChartQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkAdvancedChartQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'Season', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, raining: boolean, season: number, createdAt: any }>, fieldHourlySnapshots: Array<{ __typename?: 'FieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, deltaPodDemand: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: any, deltaTemperature: any, season: number, cultivationFactor?: any | null, cultivationTemperature?: any | null, harvestableIndex: any, harvestablePods: any, harvestedPods: any, numberOfSowers: number, numberOfSows: number, podIndex: any, realRateOfReturn: any, seasonBlock: any, soil: any, soilSoldOut: boolean, unharvestablePods: any }>, siloHourlySnapshots: Array<{ __typename?: 'SiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio: any, deltaBeanToMaxLpGpPerBdvRatio: any, season: number, stalk: any }> };
+export type BeanstalkAdvancedChartQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'Season', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, raining: boolean, season: number, createdAt: any }>, fieldHourlySnapshots: Array<{ __typename?: 'FieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, deltaPodDemand: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: any, deltaTemperature: any, season: number, cultivationTemperature?: any | null, harvestableIndex: any, harvestablePods: any, harvestedPods: any, numberOfSowers: number, numberOfSows: number, podIndex: any, realRateOfReturn: any, seasonBlock: any, soil: any, soilSoldOut: boolean, unharvestablePods: any }>, siloHourlySnapshots: Array<{ __typename?: 'SiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio: any, deltaBeanToMaxLpGpPerBdvRatio: any, season: number, stalk: any, cropRatio: any, deltaCropRatio: any }>, gaugesInfoHourlySnapshots: Array<{ __typename?: 'GaugesInfoHourlySnapshot', id: string, g0CultivationFactor?: any | null, g1BlightFactor?: any | null, g1ConvertDownPenalty?: any | null, g2BdvConvertedThisSeason?: any | null, g2BonusStalkPerBdv?: any | null, g2MaxConvertCapacity?: any | null }> };
 
 export type FarmerPlotsQueryVariables = Exact<{
   account: Scalars['ID']['input'];
@@ -15007,7 +14023,7 @@ export type FieldIssuedSoilQueryVariables = Exact<{
 export type FieldIssuedSoilQuery = { __typename?: 'Query', fieldHourlySnapshots: Array<{ __typename?: 'FieldHourlySnapshot', issuedSoil: any, season: number, soil: any }> };
 
 export type FieldSnapshotsQueryVariables = Exact<{
-  fieldId: Scalars['Bytes']['input'];
+  fieldId: Scalars['ID']['input'];
   first: Scalars['Int']['input'];
 }>;
 
@@ -15080,6 +14096,22 @@ export type PodFillFragment = { __typename?: 'PodFill', id: string, placeInLine:
 export type PodListingFragment = { __typename?: 'PodListing', id: string, historyID: string, index: any, start: any, mode: number, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxHarvestableIndex: any, minFillAmount: any, originalIndex: any, originalPlaceInLine: any, originalAmount: any, filled: any, amount: any, remainingAmount: any, filledAmount: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any }, fill?: { __typename?: 'PodFill', placeInLine: any } | null };
 
 export type PodOrderFragment = { __typename?: 'PodOrder', id: string, historyID: string, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxPlaceInLine: any, minFillAmount: any, beanAmount: any, podAmountFilled: any, beanAmountFilled: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any } };
+
+export type FarmerReferralQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type FarmerReferralQuery = { __typename?: 'Query', farmer?: { __typename?: 'Farmer', id: any, totalReferralRewardPodsReceived: any, refereeCount: number } | null };
+
+export type ReferralLeaderboardQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  skip: Scalars['Int']['input'];
+  block?: InputMaybe<BlockHeight>;
+}>;
+
+
+export type ReferralLeaderboardQuery = { __typename?: 'Query', farmers: Array<{ __typename?: 'Farmer', id: any, refereeCount: number, totalReferralRewardPodsReceived: any }> };
 
 export type FarmerSeasonalSiloQueryVariables = Exact<{
   from?: InputMaybe<Scalars['Int']['input']>;
@@ -15160,11 +14192,11 @@ export type BeanstalkSeasonalWrappedDepositErc20Query = { __typename?: 'Query', 
 export const PodFillFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodFill"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodFill"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"placeInLine"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"costInBeans"}},{"kind":"Field","name":{"kind":"Name","value":"fromFarmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"toFarmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"listing"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"originalAmount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]} as unknown as DocumentNode<PodFillFragment, unknown>;
 export const PodListingFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodListing"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodListing"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"mode"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxHarvestableIndex"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"originalIndex"}},{"kind":"Field","name":{"kind":"Name","value":"originalPlaceInLine"}},{"kind":"Field","name":{"kind":"Name","value":"originalAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filled"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"remainingAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filledAmount"}},{"kind":"Field","name":{"kind":"Name","value":"fill"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"placeInLine"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}}]} as unknown as DocumentNode<PodListingFragment, unknown>;
 export const PodOrderFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodOrder"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodOrder"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxPlaceInLine"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmount"}},{"kind":"Field","name":{"kind":"Name","value":"podAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}}]} as unknown as DocumentNode<PodOrderFragment, unknown>;
-export const BeanstalkAdvancedChartDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BeanstalkAdvancedChart"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"from"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"to"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"seasons"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sunriseBlock"}},{"kind":"Field","name":{"kind":"Name","value":"rewardBeans"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeans"}},{"kind":"Field","name":{"kind":"Name","value":"raining"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"fieldHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"field"},"value":{"kind":"StringValue","value":"0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"caseId"}},{"kind":"Field","name":{"kind":"Name","value":"issuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"sownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"deltaPodDemand"}},{"kind":"Field","name":{"kind":"Name","value":"blocksToSoldOutSoil"}},{"kind":"Field","name":{"kind":"Name","value":"podRate"}},{"kind":"Field","name":{"kind":"Name","value":"temperature"}},{"kind":"Field","name":{"kind":"Name","value":"deltaTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"cultivationFactor"}},{"kind":"Field","name":{"kind":"Name","value":"cultivationTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"harvestableIndex"}},{"kind":"Field","name":{"kind":"Name","value":"harvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSowers"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSows"}},{"kind":"Field","name":{"kind":"Name","value":"podIndex"}},{"kind":"Field","name":{"kind":"Name","value":"realRateOfReturn"}},{"kind":"Field","name":{"kind":"Name","value":"seasonBlock"}},{"kind":"Field","name":{"kind":"Name","value":"soil"}},{"kind":"Field","name":{"kind":"Name","value":"soilSoldOut"}},{"kind":"Field","name":{"kind":"Name","value":"unharvestablePods"}}]}},{"kind":"Field","name":{"kind":"Name","value":"siloHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"silo"},"value":{"kind":"StringValue","value":"0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"beanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"stalk"}}]}}]}}]} as unknown as DocumentNode<BeanstalkAdvancedChartQuery, BeanstalkAdvancedChartQueryVariables>;
+export const BeanstalkAdvancedChartDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BeanstalkAdvancedChart"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"from"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"to"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"seasons"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sunriseBlock"}},{"kind":"Field","name":{"kind":"Name","value":"rewardBeans"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeans"}},{"kind":"Field","name":{"kind":"Name","value":"raining"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"fieldHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"field"},"value":{"kind":"StringValue","value":"0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"caseId"}},{"kind":"Field","name":{"kind":"Name","value":"issuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"sownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"deltaPodDemand"}},{"kind":"Field","name":{"kind":"Name","value":"blocksToSoldOutSoil"}},{"kind":"Field","name":{"kind":"Name","value":"podRate"}},{"kind":"Field","name":{"kind":"Name","value":"temperature"}},{"kind":"Field","name":{"kind":"Name","value":"deltaTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"cultivationTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"harvestableIndex"}},{"kind":"Field","name":{"kind":"Name","value":"harvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSowers"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSows"}},{"kind":"Field","name":{"kind":"Name","value":"podIndex"}},{"kind":"Field","name":{"kind":"Name","value":"realRateOfReturn"}},{"kind":"Field","name":{"kind":"Name","value":"seasonBlock"}},{"kind":"Field","name":{"kind":"Name","value":"soil"}},{"kind":"Field","name":{"kind":"Name","value":"soilSoldOut"}},{"kind":"Field","name":{"kind":"Name","value":"unharvestablePods"}}]}},{"kind":"Field","name":{"kind":"Name","value":"siloHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"silo"},"value":{"kind":"StringValue","value":"0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"beanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"stalk"}},{"kind":"Field","name":{"kind":"Name","value":"cropRatio"}},{"kind":"Field","name":{"kind":"Name","value":"deltaCropRatio"}}]}},{"kind":"Field","name":{"kind":"Name","value":"gaugesInfoHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"g0CultivationFactor"}},{"kind":"Field","name":{"kind":"Name","value":"g1BlightFactor"}},{"kind":"Field","name":{"kind":"Name","value":"g1ConvertDownPenalty"}},{"kind":"Field","name":{"kind":"Name","value":"g2BdvConvertedThisSeason"}},{"kind":"Field","name":{"kind":"Name","value":"g2BonusStalkPerBdv"}},{"kind":"Field","name":{"kind":"Name","value":"g2MaxConvertCapacity"}}]}}]}}]} as unknown as DocumentNode<BeanstalkAdvancedChartQuery, BeanstalkAdvancedChartQueryVariables>;
 export const FarmerPlotsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FarmerPlots"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"account"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"farmer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"account"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"pods_gt"},"value":{"kind":"StringValue","value":"50","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"fullyHarvested"},"value":{"kind":"BooleanValue","value":false}}]}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"index"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"asc"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"beansPerPod"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}},{"kind":"Field","name":{"kind":"Name","value":"fullyHarvested"}},{"kind":"Field","name":{"kind":"Name","value":"harvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"pods"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"sourceHash"}},{"kind":"Field","name":{"kind":"Name","value":"preTransferSource"}},{"kind":"Field","name":{"kind":"Name","value":"preTransferOwner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAtBlock"}},{"kind":"Field","name":{"kind":"Name","value":"listing"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]}}]}}]} as unknown as DocumentNode<FarmerPlotsQuery, FarmerPlotsQueryVariables>;
 export const FarmerSiloBalancesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FarmerSiloBalances"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"account"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"season"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"farmer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"account"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"deposited"},"name":{"kind":"Name","value":"deposits"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"asc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"depositedAmount_gt"},"value":{"kind":"IntValue","value":"0"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"stem"}},{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"depositedAmount"}},{"kind":"Field","name":{"kind":"Name","value":"depositedBDV"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"withdrawn"},"name":{"kind":"Name","value":"withdraws"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"withdrawSeason"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"asc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"claimableSeason_gt"},"value":{"kind":"Variable","name":{"kind":"Name","value":"season"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"claimed"},"value":{"kind":"BooleanValue","value":false}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"season"},"name":{"kind":"Name","value":"withdrawSeason"}},{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"claimable"},"name":{"kind":"Name","value":"withdraws"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"withdrawSeason"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"asc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"claimableSeason_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"season"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"claimed"},"value":{"kind":"BooleanValue","value":false}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"season"},"name":{"kind":"Name","value":"withdrawSeason"}},{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}}]}}]}}]}}]} as unknown as DocumentNode<FarmerSiloBalancesQuery, FarmerSiloBalancesQueryVariables>;
 export const FieldIssuedSoilDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"fieldIssuedSoil"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"season"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"field_contains_nocase"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fieldHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"season"},"value":{"kind":"Variable","name":{"kind":"Name","value":"season"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"field_contains_nocase"},"value":{"kind":"Variable","name":{"kind":"Name","value":"field_contains_nocase"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"issuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"soil"}}]}}]}}]} as unknown as DocumentNode<FieldIssuedSoilQuery, FieldIssuedSoilQueryVariables>;
-export const FieldSnapshotsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FieldSnapshots"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fieldId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Bytes"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fieldHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"field_"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fieldId"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"blocksToSoldOutSoil"}},{"kind":"Field","name":{"kind":"Name","value":"caseId"}},{"kind":"Field","name":{"kind":"Name","value":"deltaHarvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"deltaHarvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"deltaIssuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaNumberOfSowers"}},{"kind":"Field","name":{"kind":"Name","value":"deltaNumberOfSows"}},{"kind":"Field","name":{"kind":"Name","value":"deltaPodIndex"}},{"kind":"Field","name":{"kind":"Name","value":"deltaPodRate"}},{"kind":"Field","name":{"kind":"Name","value":"deltaRealRateOfReturn"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"deltaTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"deltaUnharvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"issuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSowers"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSows"}},{"kind":"Field","name":{"kind":"Name","value":"podIndex"}},{"kind":"Field","name":{"kind":"Name","value":"podRate"}},{"kind":"Field","name":{"kind":"Name","value":"realRateOfReturn"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonBlock"}},{"kind":"Field","name":{"kind":"Name","value":"soil"}},{"kind":"Field","name":{"kind":"Name","value":"soilSoldOut"}},{"kind":"Field","name":{"kind":"Name","value":"sownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"temperature"}},{"kind":"Field","name":{"kind":"Name","value":"unharvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<FieldSnapshotsQuery, FieldSnapshotsQueryVariables>;
+export const FieldSnapshotsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FieldSnapshots"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fieldId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fieldHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"field_"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fieldId"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"blocksToSoldOutSoil"}},{"kind":"Field","name":{"kind":"Name","value":"caseId"}},{"kind":"Field","name":{"kind":"Name","value":"deltaHarvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"deltaHarvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"deltaIssuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaNumberOfSowers"}},{"kind":"Field","name":{"kind":"Name","value":"deltaNumberOfSows"}},{"kind":"Field","name":{"kind":"Name","value":"deltaPodIndex"}},{"kind":"Field","name":{"kind":"Name","value":"deltaPodRate"}},{"kind":"Field","name":{"kind":"Name","value":"deltaRealRateOfReturn"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"deltaTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"deltaUnharvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"issuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSowers"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSows"}},{"kind":"Field","name":{"kind":"Name","value":"podIndex"}},{"kind":"Field","name":{"kind":"Name","value":"podRate"}},{"kind":"Field","name":{"kind":"Name","value":"realRateOfReturn"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonBlock"}},{"kind":"Field","name":{"kind":"Name","value":"soil"}},{"kind":"Field","name":{"kind":"Name","value":"soilSoldOut"}},{"kind":"Field","name":{"kind":"Name","value":"sownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"temperature"}},{"kind":"Field","name":{"kind":"Name","value":"unharvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<FieldSnapshotsQuery, FieldSnapshotsQueryVariables>;
 export const BeanstalkSeasonsTableDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BeanstalkSeasonsTable"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"from"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"to"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"seasons"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sunriseBlock"}},{"kind":"Field","name":{"kind":"Name","value":"rewardBeans"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeans"}},{"kind":"Field","name":{"kind":"Name","value":"raining"}},{"kind":"Field","name":{"kind":"Name","value":"season"}}]}},{"kind":"Field","name":{"kind":"Name","value":"fieldHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"field"},"value":{"kind":"StringValue","value":"0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"caseId"}},{"kind":"Field","name":{"kind":"Name","value":"issuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"sownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"deltaPodDemand"}},{"kind":"Field","name":{"kind":"Name","value":"blocksToSoldOutSoil"}},{"kind":"Field","name":{"kind":"Name","value":"podRate"}},{"kind":"Field","name":{"kind":"Name","value":"temperature"}},{"kind":"Field","name":{"kind":"Name","value":"deltaTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"season"}}]}},{"kind":"Field","name":{"kind":"Name","value":"siloHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"silo"},"value":{"kind":"StringValue","value":"0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"beanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"season"}}]}}]}}]} as unknown as DocumentNode<BeanstalkSeasonsTableQuery, BeanstalkSeasonsTableQueryVariables>;
 export const SiloSnapshotsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SiloSnapshots"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Bytes"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"siloHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"silo_"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"beanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeanMints"}},{"kind":"Field","name":{"kind":"Name","value":"season"}}]}}]}}]} as unknown as DocumentNode<SiloSnapshotsQuery, SiloSnapshotsQueryVariables>;
 export const SiloYieldsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SiloYields"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"siloYields"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"emaWindow"},"value":{"kind":"EnumValue","value":"ROLLING_30_DAY"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"beansPerSeasonEMA"}},{"kind":"Field","name":{"kind":"Name","value":"beta"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"u"}},{"kind":"Field","name":{"kind":"Name","value":"whitelistedTokens"}},{"kind":"Field","name":{"kind":"Name","value":"emaWindow"}},{"kind":"Field","name":{"kind":"Name","value":"tokenAPYS"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"beanAPY"}},{"kind":"Field","name":{"kind":"Name","value":"stalkAPY"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"token"}}]}}]}}]}}]} as unknown as DocumentNode<SiloYieldsQuery, SiloYieldsQueryVariables>;
@@ -15172,6 +14204,8 @@ export const AllMarketActivityDocument = {"kind":"Document","definitions":[{"kin
 export const AllPodListingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AllPodListings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"1000"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"MarketStatus"}},"defaultValue":{"kind":"EnumValue","value":"ACTIVE"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"maxHarvestableIndex"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"BigInt"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"0"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"podListings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"maxHarvestableIndex_gt"},"value":{"kind":"Variable","name":{"kind":"Name","value":"maxHarvestableIndex"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"remainingAmount_gt"},"value":{"kind":"StringValue","value":"100000","block":false}}]}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"index"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"asc"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PodListing"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodListing"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodListing"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"mode"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxHarvestableIndex"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"originalIndex"}},{"kind":"Field","name":{"kind":"Name","value":"originalPlaceInLine"}},{"kind":"Field","name":{"kind":"Name","value":"originalAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filled"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"remainingAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filledAmount"}},{"kind":"Field","name":{"kind":"Name","value":"fill"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"placeInLine"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}}]} as unknown as DocumentNode<AllPodListingsQuery, AllPodListingsQueryVariables>;
 export const AllPodOrdersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AllPodOrders"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"1000"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"MarketStatus"}},"defaultValue":{"kind":"EnumValue","value":"ACTIVE"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"0"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"podOrders"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"createdAt"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PodOrder"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodOrder"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodOrder"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxPlaceInLine"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmount"}},{"kind":"Field","name":{"kind":"Name","value":"podAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}}]} as unknown as DocumentNode<AllPodOrdersQuery, AllPodOrdersQueryVariables>;
 export const FarmerMarketActivityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FarmerMarketActivity"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"1000"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"account"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"listings_createdAt_gt"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"BigInt"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orders_createdAt_gt"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"BigInt"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fill_createdAt_gt"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"BigInt"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"podListings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"farmer"},"value":{"kind":"Variable","name":{"kind":"Name","value":"account"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"createdAt_gt"},"value":{"kind":"Variable","name":{"kind":"Name","value":"listings_createdAt_gt"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"status_not"},"value":{"kind":"EnumValue","value":"FILLED_PARTIAL"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PodListing"}}]}},{"kind":"Field","name":{"kind":"Name","value":"podOrders"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"createdAt"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"farmer"},"value":{"kind":"Variable","name":{"kind":"Name","value":"account"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"createdAt_gt"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orders_createdAt_gt"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PodOrder"}}]}},{"kind":"Field","name":{"kind":"Name","value":"podFills"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"and"},"value":{"kind":"ListValue","values":[{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"createdAt_gt"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fill_createdAt_gt"}}}]},{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"or"},"value":{"kind":"ListValue","values":[{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"fromFarmer"},"value":{"kind":"Variable","name":{"kind":"Name","value":"account"}}}]},{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"toFarmer"},"value":{"kind":"Variable","name":{"kind":"Name","value":"account"}}}]}]}}]}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PodFill"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodListing"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodListing"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"mode"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxHarvestableIndex"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"originalIndex"}},{"kind":"Field","name":{"kind":"Name","value":"originalPlaceInLine"}},{"kind":"Field","name":{"kind":"Name","value":"originalAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filled"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"remainingAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filledAmount"}},{"kind":"Field","name":{"kind":"Name","value":"fill"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"placeInLine"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodOrder"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodOrder"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxPlaceInLine"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmount"}},{"kind":"Field","name":{"kind":"Name","value":"podAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodFill"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodFill"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"placeInLine"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"costInBeans"}},{"kind":"Field","name":{"kind":"Name","value":"fromFarmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"toFarmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"listing"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"originalAmount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"order"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]} as unknown as DocumentNode<FarmerMarketActivityQuery, FarmerMarketActivityQueryVariables>;
+export const FarmerReferralDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FarmerReferral"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"farmer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"totalReferralRewardPodsReceived"}},{"kind":"Field","name":{"kind":"Name","value":"refereeCount"}}]}}]}}]} as unknown as DocumentNode<FarmerReferralQuery, FarmerReferralQueryVariables>;
+export const ReferralLeaderboardDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ReferralLeaderboard"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skip"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"block"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Block_height"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"farmers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"skip"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skip"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"totalReferralRewardPodsReceived"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}},{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"refereeCount_gte"},"value":{"kind":"IntValue","value":"0"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"block"},"value":{"kind":"Variable","name":{"kind":"Name","value":"block"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"refereeCount"}},{"kind":"Field","name":{"kind":"Name","value":"totalReferralRewardPodsReceived"}}]}}]}}]} as unknown as DocumentNode<ReferralLeaderboardQuery, ReferralLeaderboardQueryVariables>;
 export const FarmerSeasonalSiloDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FarmerSeasonalSilo"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"from"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"to"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"account"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"siloHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"silo"},"value":{"kind":"Variable","name":{"kind":"Name","value":"account"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"asc"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"plantedBeans"}},{"kind":"Field","name":{"kind":"Name","value":"stalk"}},{"kind":"Field","name":{"kind":"Name","value":"germinatingStalk"}},{"kind":"Field","name":{"kind":"Name","value":"depositedBDV"}}]}}]}}]} as unknown as DocumentNode<FarmerSeasonalSiloQuery, FarmerSeasonalSiloQueryVariables>;
 export const FarmerSeasonalSiloAssetTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FarmerSeasonalSiloAssetToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"from"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"to"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"siloAsset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"siloAssetHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"siloAsset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"siloAsset"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"asc"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"depositedAmount"}},{"kind":"Field","name":{"kind":"Name","value":"depositedBDV"}},{"kind":"Field","name":{"kind":"Name","value":"deltaDepositedBDV"}},{"kind":"Field","name":{"kind":"Name","value":"deltaDepositedAmount"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<FarmerSeasonalSiloAssetTokenQuery, FarmerSeasonalSiloAssetTokenQueryVariables>;
 export const BeanstalkSeasonalSiloActiveFarmersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BeanstalkSeasonalSiloActiveFarmers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"from"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"to"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"silo"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"siloHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"season_gte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"from"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"season_lte"},"value":{"kind":"Variable","name":{"kind":"Name","value":"to"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"silo"},"value":{"kind":"Variable","name":{"kind":"Name","value":"silo"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"stalk_gt"},"value":{"kind":"IntValue","value":"0"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"IntValue","value":"1000"}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"EnumValue","value":"season"}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"EnumValue","value":"desc"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"activeFarmers"}}]}}]}}]} as unknown as DocumentNode<BeanstalkSeasonalSiloActiveFarmersQuery, BeanstalkSeasonalSiloActiveFarmersQueryVariables>;

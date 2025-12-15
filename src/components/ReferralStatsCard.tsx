@@ -1,11 +1,12 @@
 import FrameAnimator from "@/components/LoadingSpinner";
-import { useUserReferralProfile } from "@/state/referral";
+import { useFarmerReferralData, useReferralLeaderboard } from "@/state/referral";
 import { formatter } from "@/utils/format";
 
 export function ReferralStatsCard() {
-  const { data, isLoading } = useUserReferralProfile();
+  const { data, isLoading } = useFarmerReferralData();
+  const { data: leaderboardData, userRank, isLoading: isLeaderboardLoading } = useReferralLeaderboard();
 
-  if (isLoading) {
+  if (isLoading || isLeaderboardLoading) {
     return (
       <div className="space-y-4">
         <div className="pinto-h3 sm:pinto-h2">Your Referral Stats</div>
@@ -24,23 +25,13 @@ export function ReferralStatsCard() {
     },
     {
       label: "Total successful referrals",
-      value: data?.totalSuccessfulReferrals ?? 0,
+      value: data?.refereeCount ?? 0,
       description: "Number of users who used your link",
     },
     {
       label: "Referral Ranking",
-      value: data?.rankDisplay ?? "-",
+      value: userRank && leaderboardData ? `#${userRank}/${leaderboardData.length}` : "-",
       description: "Your rank among all referrers",
-    },
-    {
-      label: "Total Pods created from referrals",
-      value: data ? formatter.noDec(data.totalPodsCreatedFromReferrals) : "0",
-      description: "Total Pods your referrals have earned",
-    },
-    {
-      label: "Total Pinto Sown from referrals",
-      value: data ? formatter.twoDec(data.totalPintoSownFromReferrals) : "0.00",
-      description: "Total Pinto your referrals have sown",
     },
   ];
 
