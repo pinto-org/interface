@@ -11,18 +11,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 
 /**
- * ReferralLeaderboard component displays a paginated table of top referrers ranked by Pods earned.
- *
- * Features:
- * - Client-side pagination with configurable rows per page
- * - Optimized re-rendering with memoized calculations and callbacks
- * - Comprehensive error handling with retry functionality
- * - Loading states for both initial load and pagination operations
- * - Empty state handling when no referral data exists
- * - Responsive design with mobile-friendly controls
- *
- * The component uses the useReferralLeaderboard hook which implements robust pagination
- * to prevent data inconsistencies during browsing sessions.
+ * Shows top referrers ranked by Pods earned in a paginated table.
  */
 export default function ReferralLeaderboard() {
   // Local state for client-side pagination
