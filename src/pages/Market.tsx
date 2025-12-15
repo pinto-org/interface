@@ -2,15 +2,15 @@ import PodIcon from "@/assets/protocol/Pod.png";
 import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import FrameAnimator from "@/components/LoadingSpinner";
-import ScatterChart from "@/components/charts/ScatterChart";
+import { ContextMenu } from "@/components/MarketContextMenu";
+import ScatterChart, { PointClickPayload, PointHoverPayload, ScatterChartRef } from "@/components/charts/ScatterChart";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
-import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
-import { Chart } from "chart.js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { PointStyle, TooltipOptions } from "chart.js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
@@ -146,16 +146,39 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
 export function Market() {
   const { mode, id } = useParams();
   const [tab, handleChangeTab] = useState(TABLE_SLUGS[0]);
+  const [isCrosshairFrozen, setIsCrosshairFrozen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    clickedCoords: { x: number; y: number };
+    chartBounds: DOMRect;
+  } | null>(null);
+  const [isContextMenuClosing, setIsContextMenuClosing] = useState(false);
+  const isNavigatingRef = useRef(false);
+  const isCrosshairFrozenRef = useRef(false);
+  const chartRef = useRef<ScatterChartRef>(null);
+  const hoverInfoRef = useRef<HTMLDivElement>(null);
+  const lastPositionSideRef = useRef<{ isRight: boolean; isAbove: boolean } | null>(null);
   const navigate = useNavigate();
   const { data, isLoaded } = useAllMarket();
   const podLine = usePodLine();
   const podLineAsNumber = podLine.toNumber() / 1000000;
+  // Chart rounds X max to nearest 10 (not ceil), so we need to match that for validation
+  const chartXMax = Math.round((podLineAsNumber / 10) * 10);
   const harvestableIndex = useHarvestableIndex();
 
   const scatterChartData: MarketScatterChartData[] = useMemo(
     () => shapeScatterChartData(data || [], harvestableIndex),
     [data, harvestableIndex],
   );
+
+  // Keep ref in sync with state and hide hover info when frozen
+  useEffect(() => {
+    isCrosshairFrozenRef.current = isCrosshairFrozen;
+    if (isCrosshairFrozen && hoverInfoRef.current) {
+      hoverInfoRef.current.style.display = "none";
+    }
+  }, [isCrosshairFrozen]);
 
   const toolTipOptions: Partial<TooltipOptions> = {
     enabled: false,
@@ -173,7 +196,7 @@ export function Market() {
         div.style.pointerEvents = "none";
         div.style.position = "absolute";
         div.style.transform = "translate(25px)"; // Position to right of point
-        div.style.transition = "all .1s ease";
+        div.style.transition = "opacity .25s ease"; // Only fade opacity, not position
         document.body.appendChild(div);
       } else {
         // Hide if no tooltip
@@ -271,24 +294,280 @@ export function Market() {
     [mode],
   );
 
-  const onPointClick = (event: ChartEvent, activeElements: ActiveElement[], chart: Chart) => {
-    const dataPoint = scatterChartData[activeElements[0].datasetIndex].data[activeElements[0].index] as any;
+  const onHover = useCallback(
+    (payload: PointHoverPayload | null) => {
+      if (!hoverInfoRef.current) return;
 
-    if (!dataPoint) return;
+      // Don't show hover info when crosshair is frozen (use ref for always-current value)
+      if (isCrosshairFrozenRef.current) {
+        hoverInfoRef.current.style.display = "none";
+        return;
+      }
 
-    // Track chart point click event
-    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
-      event_type: dataPoint?.eventType?.toLowerCase() ?? "unknown",
-      event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
-      price_per_pod: dataPoint?.y ?? 0,
-      place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
-      current_mode: !mode || mode === "buy" ? "buy" : "sell",
-    });
+      if (!payload) {
+        // Remove animation class and hide
+        hoverInfoRef.current.classList.remove("animate-fade-in-smooth");
+        hoverInfoRef.current.style.display = "none";
+        lastPositionSideRef.current = null;
+        return;
+      }
 
-    if (dataPoint.eventType === "LISTING") {
-      navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);
-    } else {
-      navigate(`/market/pods/sell/${dataPoint.eventId.replace(".", "")}`);
+      // Direct DOM manipulation - NO React state updates = NO re-renders!
+      const { hoverXY, pixelXY, chartBounds } = payload;
+
+      // Validate that hover is within chart bounds (min/max)
+      // Chart rounds X max to nearest 10, use chartXMax for accurate validation
+      if (hoverXY.x < 0 || hoverXY.x > chartXMax || hoverXY.y < 0 || hoverXY.y > 1) {
+        hoverInfoRef.current.style.display = "none";
+        return;
+      }
+
+      // Check if this is initial show (display was none)
+      const wasHidden = hoverInfoRef.current.style.display === "none";
+
+      // Update text content first
+      const priceSpan = hoverInfoRef.current.querySelector("[data-price]");
+      const placeSpan = hoverInfoRef.current.querySelector("[data-place]");
+
+      if (priceSpan) {
+        priceSpan.textContent = hoverXY.y.toFixed(6);
+      }
+      if (placeSpan) {
+        placeSpan.textContent = `${hoverXY.x.toFixed(2)}M`;
+      }
+
+      // Make sure element is visible for dimension calculation (but positioned off-screen temporarily)
+      hoverInfoRef.current.style.display = "flex";
+      hoverInfoRef.current.style.left = "-9999px";
+      hoverInfoRef.current.style.top = "-9999px";
+
+      // Force a reflow to get accurate dimensions
+      const rect = hoverInfoRef.current.getBoundingClientRect();
+      const infoWidth = rect.width;
+      const infoHeight = rect.height;
+
+      // Default offsets - start at (4, 4) from cursor
+      const offsetX = 4;
+      const offsetY = 4;
+
+      // Start with default position (right and above cursor)
+      let left = pixelXY.x + offsetX;
+      let top = pixelXY.y - offsetY - infoHeight; // Above cursor with offset
+
+      // Use chart bounds if available, otherwise use viewport
+      const viewportWidth = chartBounds?.right || window.innerWidth;
+      const viewportHeight = chartBounds?.bottom || window.innerHeight;
+      const minX = chartBounds?.left || 0;
+      const minY = chartBounds?.top || 0;
+
+      // Detect which edges are overflowing
+      const overflowTop = top < minY + 10;
+      const overflowRight = left + infoWidth > viewportWidth - 10;
+      const overflowBottom = top + infoHeight > viewportHeight - 10;
+      const overflowLeft = left < minX + 10;
+
+      // Handle combinations of overflows
+      if (overflowTop && overflowRight) {
+        // Top-right corner: component's top-right corner at (-4, 4)
+        left = pixelXY.x - infoWidth - 4;
+        top = pixelXY.y + 4;
+      } else if (overflowTop) {
+        // Top edge only: component's top-left corner at (4, 4)
+        left = pixelXY.x + 4;
+        top = pixelXY.y + 4;
+        // Check if also overflowing right edge while at top
+        if (left + infoWidth > viewportWidth - 10) {
+          left = pixelXY.x - infoWidth - 4;
+        }
+      } else if (overflowRight) {
+        // Right edge: default to top-right corner (2nd quadrant) at (-4, -4)
+        left = pixelXY.x - infoWidth - 4;
+        top = pixelXY.y - infoHeight - 4; // Component's bottom-right corner at mouse
+
+        // If not enough space above mouse, flip to below (3rd quadrant)
+        if (pixelXY.y - infoHeight - 4 < minY + 10) {
+          top = pixelXY.y + 4; // Component's top-right corner below mouse
+        }
+      } else if (overflowBottom) {
+        // Bottom edge only: component's bottom-left corner at (4, -4)
+        top = pixelXY.y - infoHeight - 4;
+      } else if (overflowLeft) {
+        // Left edge: push right
+        left = minX + 10;
+      }
+
+      // Make sure it's visible
+      hoverInfoRef.current.style.display = "flex";
+
+      // Round positions
+      const roundedLeft = Math.round(left);
+      const roundedTop = Math.round(top);
+
+      // Determine which side of cursor the info is on
+      const isRight = roundedLeft > pixelXY.x;
+      const isAbove = roundedTop < pixelXY.y;
+
+      // Check if we flipped sides (right/left or above/below)
+      const sideChanged =
+        lastPositionSideRef.current &&
+        (lastPositionSideRef.current.isRight !== isRight || lastPositionSideRef.current.isAbove !== isAbove);
+
+      // Apply final position
+      hoverInfoRef.current.style.left = `${roundedLeft}px`;
+      hoverInfoRef.current.style.top = `${roundedTop}px`;
+
+      // Only animate on first show or when flipping sides
+      if (wasHidden || sideChanged) {
+        // Update last side
+        lastPositionSideRef.current = { isRight, isAbove };
+
+        // Trigger animation
+        hoverInfoRef.current.classList.remove("animate-fade-in-smooth");
+        void hoverInfoRef.current.offsetHeight;
+        hoverInfoRef.current.classList.add("animate-fade-in-smooth");
+      }
+    },
+    [chartXMax],
+  );
+
+  const handleUnfreezeAndNavigate = useCallback(
+    (path: string, state: any) => {
+      // Mark that we're navigating so onClose doesn't unfreeze again
+      isNavigatingRef.current = true;
+
+      // Trigger closing animation
+      setIsContextMenuClosing(true);
+
+      // Wait for animation to complete before unfreezing and navigating
+      setTimeout(() => {
+        chartRef.current?.unfreeze();
+        setIsCrosshairFrozen(false);
+        setContextMenu(null);
+        setIsContextMenuClosing(false);
+        navigate(path, { state });
+
+        // Reset flag after navigation
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 100);
+      }, 200); // Match fade-out animation duration
+    },
+    [navigate],
+  );
+
+  const contextMenuOptions = useMemo(() => {
+    if (!contextMenu) return [];
+
+    return [
+      {
+        label: "Create Order",
+        onClick: () => {
+          handleUnfreezeAndNavigate("/market/pods/buy", {
+            prefillPrice: contextMenu.clickedCoords.y,
+            prefillPlaceInLine: contextMenu.clickedCoords.x,
+          });
+        },
+      },
+      {
+        label: "Create Listing",
+        onClick: () => {
+          handleUnfreezeAndNavigate("/market/pods/sell", {
+            prefillPrice: contextMenu.clickedCoords.y,
+            prefillPlaceInLine: contextMenu.clickedCoords.x,
+            prefillExpiresIn: contextMenu.clickedCoords.x,
+          });
+        },
+      },
+    ];
+  }, [contextMenu, handleUnfreezeAndNavigate]);
+
+  const onPointClick = (payload: PointClickPayload) => {
+    // If this click unfroze the chart, close context menu with animation
+    if (payload.wasUnfrozen) {
+      // Trigger closing animation
+      setIsContextMenuClosing(true);
+
+      // Wait for animation to complete before closing
+      setTimeout(() => {
+        setContextMenu(null);
+        setIsContextMenuClosing(false);
+      }, 200);
+
+      // If clicked on a pod while frozen, still navigate after unfreezing
+      if (payload.activeElement) {
+        const dataPoint = payload.activeElement.dataPoint as any;
+        if (!dataPoint) return;
+
+        trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
+          event_type: dataPoint?.eventType?.toLowerCase() ?? "unknown",
+          event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
+          price_per_pod: dataPoint?.y ?? 0,
+          place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
+          current_mode: !mode || mode === "buy" ? "buy" : "sell",
+        });
+
+        if (dataPoint.eventType === "LISTING") {
+          navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);
+        } else {
+          navigate(`/market/pods/sell/${dataPoint.eventId.replace(".", "")}`);
+        }
+      }
+      return;
+    }
+
+    // If clicked on a data point (and not frozen), navigate to detail page
+    if (payload.activeElement) {
+      const dataPoint = payload.activeElement.dataPoint as any;
+
+      if (!dataPoint) return;
+
+      // Track chart point click event
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
+        event_type: dataPoint?.eventType?.toLowerCase() ?? "unknown",
+        event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
+        price_per_pod: dataPoint?.y ?? 0,
+        place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
+        current_mode: !mode || mode === "buy" ? "buy" : "sell",
+      });
+
+      if (dataPoint.eventType === "LISTING") {
+        navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);
+      } else {
+        navigate(`/market/pods/sell/${dataPoint.eventId.replace(".", "")}`);
+      }
+      return;
+    }
+
+    // If clicked on empty space, sync context menu with freeze state
+    if (payload.clickedXY && payload.rawEvent.native) {
+      const nativeEvent = payload.rawEvent.native as MouseEvent;
+
+      // Check if context menu is currently open to determine action
+      if (!contextMenu) {
+        // No context menu open - open it (freezing)
+        // Track context menu open event
+        trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CONTEXT_MENU_OPEN, {
+          price_per_pod: payload.clickedXY.y,
+          place_in_line_millions: Math.floor(payload.clickedXY.x),
+          current_mode: viewMode,
+        });
+
+        setContextMenu({
+          x: nativeEvent.clientX,
+          y: nativeEvent.clientY,
+          clickedCoords: payload.clickedXY,
+          chartBounds: payload.chartBounds,
+        });
+        setIsContextMenuClosing(false); // Reset closing state for new menu
+      } else {
+        // Context menu is open - close it with animation (unfreezing)
+        setIsContextMenuClosing(true);
+
+        setTimeout(() => {
+          setContextMenu(null);
+          setIsContextMenuClosing(false);
+        }, 200);
+      }
     }
   };
 
@@ -314,10 +593,13 @@ export function Market() {
                   </div>
                 )}
                 <ScatterChart
+                  ref={chartRef}
                   data={scatterChartData}
                   xOptions={{ label: "Place in line", min: 0, max: podLineAsNumber }}
-                  yOptions={{ label: "Price per pod", min: 0, max: 100 }}
+                  yOptions={{ label: "Price per pod", min: 0, max: 1 }}
                   onPointClick={onPointClick}
+                  onHover={onHover}
+                  onFreezeChange={setIsCrosshairFrozen}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
               </div>
@@ -352,6 +634,49 @@ export function Market() {
           </div>
         </div>
       </div>
+
+      {/* Hover info - rendered once, updated via direct DOM manipulation for performance */}
+      <div
+        ref={hoverInfoRef}
+        className="fixed z-40 text-xs px-3 py-2 flex-col gap-1 text-pinto-pod-bronze pointer-events-none"
+        style={{ display: "none" }}
+      >
+        <div>
+          <span>Price per Pod:</span> <span data-price>0.000</span>
+        </div>
+        <div>
+          <span>Place in line:</span> <span data-place>0.0M</span>
+        </div>
+      </div>
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          clickedCoords={contextMenu.clickedCoords}
+          chartBounds={contextMenu.chartBounds}
+          options={contextMenuOptions}
+          isClosing={isContextMenuClosing}
+          onClose={() => {
+            // Only unfreeze if NOT navigating (closed via Escape/click outside/scroll)
+            // If navigating, handleUnfreezeAndNavigate already handles unfreeze
+            if (!isNavigatingRef.current) {
+              // Trigger closing animation
+              setIsContextMenuClosing(true);
+
+              // Wait for animation to complete before unfreezing
+              setTimeout(() => {
+                if (isCrosshairFrozen) {
+                  chartRef.current?.unfreeze();
+                  setIsCrosshairFrozen(false);
+                }
+                setContextMenu(null);
+                setIsContextMenuClosing(false);
+              }, 200); // Match fade-out animation duration
+            }
+          }}
+        />
+      )}
     </>
   );
 }

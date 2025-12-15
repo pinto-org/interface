@@ -29,8 +29,14 @@ import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
+
+interface LocationState {
+  prefillPrice?: number;
+  prefillPlaceInLine?: number;
+}
 
 const pricePerPodValidation = {
   maxValue: 1,
@@ -66,6 +72,8 @@ export default function CreateOrder() {
   const { queryKeys: balanceQKs } = useFarmerBalances();
   const { address: account } = useAccount();
   const [inputError, setInputError] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const { allPodOrders, allMarket, farmerMarket } = useQueryKeys({ account });
@@ -124,6 +132,56 @@ export default function CreateOrder() {
   const maxPlace = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
   const [maxPlaceInLine, setMaxPlaceInLine] = useState<number | undefined>(undefined);
   const [pricePerPod, setPricePerPod] = useState<number | undefined>(undefined);
+
+  // Parse location state for prefill values from context menu
+  const locationState = location.state as LocationState | undefined;
+  const prefillPrice = locationState?.prefillPrice;
+  const prefillPlaceInLine = locationState?.prefillPlaceInLine;
+
+  // Prefill from context menu - always update when new values arrive
+  useEffect(() => {
+    // Exit early if no prefill values exist
+    if (!prefillPrice && !prefillPlaceInLine) return;
+
+    let newPricePerPod: number | undefined;
+    let newMaxPlaceInLine: number | undefined;
+
+    // Calculate price per pod
+    if (
+      prefillPrice &&
+      prefillPrice >= pricePerPodValidation.minValue &&
+      prefillPrice <= pricePerPodValidation.maxValue
+    ) {
+      // Format to 6 decimals for display
+      newPricePerPod = Number(prefillPrice.toFixed(6));
+    }
+
+    // Calculate max place in line
+    if (prefillPlaceInLine && prefillPlaceInLine > 0) {
+      const placeInLineValue = Math.round(prefillPlaceInLine * 1_000_000);
+
+      if (
+        placeInLineValue >= maxPlaceInLineValidation.minValue &&
+        placeInLineValue <= maxPlaceInLineValidation.maxValue &&
+        placeInLineValue <= maxPlace
+      ) {
+        newMaxPlaceInLine = placeInLineValue;
+      }
+    }
+
+    // Set both states together (override existing values)
+    if (newPricePerPod !== undefined) {
+      setPricePerPod(newPricePerPod);
+    }
+    if (newMaxPlaceInLine !== undefined) {
+      setMaxPlaceInLine(newMaxPlaceInLine);
+    }
+
+    // Clean up location state immediately
+    if (newPricePerPod !== undefined || newMaxPlaceInLine !== undefined) {
+      navigate(location.pathname, { replace: true, state: undefined });
+    }
+  }, [prefillPrice, prefillPlaceInLine, maxPlace, navigate, location.pathname]);
 
   // set preferred token
   useEffect(() => {
