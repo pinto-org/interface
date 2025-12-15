@@ -17,15 +17,9 @@ export type Scalars = {
   BigDecimal: { input: any; output: any; }
   BigInt: { input: any; output: any; }
   Bytes: { input: any; output: any; }
-  /**
-   * 8 bytes signed integer
-   *
-   */
+  /** 8 bytes signed integer */
   Int8: { input: any; output: any; }
-  /**
-   * A string representation of microseconds UNIX timestamp (16 digits)
-   *
-   */
+  /** A string representation of microseconds UNIX timestamp (16 digits) */
   Timestamp: { input: any; output: any; }
 };
 
@@ -38,16 +32,16 @@ export type Account = {
 
 export type AccountTradesArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Trade_OrderBy>;
+  orderBy?: InputMaybe<TradeOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Trade_Filter>;
+  where?: InputMaybe<TradeFilter>;
 };
 
-export type Account_Filter = {
+export type AccountFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Account_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<AccountFilter>>>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -58,18 +52,18 @@ export type Account_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Account_Filter>>>;
-  trades_?: InputMaybe<Trade_Filter>;
+  or?: InputMaybe<Array<InputMaybe<AccountFilter>>>;
+  trades_?: InputMaybe<TradeFilter>;
 };
 
-export enum Account_OrderBy {
-  Id = 'id',
-  Trades = 'trades'
+export enum AccountOrderBy {
+  id = 'id',
+  trades = 'trades'
 }
 
-export enum Aggregation_Interval {
-  Day = 'day',
-  Hour = 'hour'
+export enum AggregationInterval {
+  day = 'day',
+  hour = 'hour'
 }
 
 export type Aquifer = {
@@ -83,16 +77,16 @@ export type Aquifer = {
 
 export type AquiferWellsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Well_Filter>;
+  where?: InputMaybe<WellFilter>;
 };
 
-export type Aquifer_Filter = {
+export type AquiferFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Aquifer_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<AquiferFilter>>>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -103,13 +97,13 @@ export type Aquifer_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Aquifer_Filter>>>;
-  wells_?: InputMaybe<Well_Filter>;
+  or?: InputMaybe<Array<InputMaybe<AquiferFilter>>>;
+  wells_?: InputMaybe<WellFilter>;
 };
 
-export enum Aquifer_OrderBy {
-  Id = 'id',
-  Wells = 'wells'
+export enum AquiferOrderBy {
+  id = 'id',
+  wells = 'wells'
 }
 
 export type Beanstalk = {
@@ -191,10 +185,10 @@ export type Beanstalk = {
 
 export type BeanstalkWellsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Well_Filter>;
+  where?: InputMaybe<WellFilter>;
 };
 
 export type BeanstalkDailySnapshot = {
@@ -258,16 +252,16 @@ export type BeanstalkDailySnapshot = {
 
 export type BeanstalkDailySnapshotWellsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Well_Filter>;
+  where?: InputMaybe<WellFilter>;
 };
 
-export type BeanstalkDailySnapshot_Filter = {
+export type BeanstalkDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<BeanstalkDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanstalkDailySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -460,9 +454,9 @@ export type BeanstalkDailySnapshot_Filter = {
   lastUpdateTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<BeanstalkDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<BeanstalkDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -491,7 +485,7 @@ export type BeanstalkDailySnapshot_Filter = {
   totalLiquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   wells?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_?: InputMaybe<Well_Filter>;
+  wells_?: InputMaybe<WellFilter>;
   wells_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -499,37 +493,37 @@ export type BeanstalkDailySnapshot_Filter = {
   wells_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
-export enum BeanstalkDailySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  CumulativeBuyVolumeUsd = 'cumulativeBuyVolumeUSD',
-  CumulativeConvertDownVolumeUsd = 'cumulativeConvertDownVolumeUSD',
-  CumulativeConvertNeutralTradeVolumeUsd = 'cumulativeConvertNeutralTradeVolumeUSD',
-  CumulativeConvertNeutralTransferVolumeUsd = 'cumulativeConvertNeutralTransferVolumeUSD',
-  CumulativeConvertUpVolumeUsd = 'cumulativeConvertUpVolumeUSD',
-  CumulativeConvertVolumeUsd = 'cumulativeConvertVolumeUSD',
-  CumulativeSellVolumeUsd = 'cumulativeSellVolumeUSD',
-  CumulativeTradeVolumeUsd = 'cumulativeTradeVolumeUSD',
-  CumulativeTransferVolumeUsd = 'cumulativeTransferVolumeUSD',
-  Day = 'day',
-  DeltaBuyVolumeUsd = 'deltaBuyVolumeUSD',
-  DeltaConvertDownVolumeUsd = 'deltaConvertDownVolumeUSD',
-  DeltaConvertNeutralTradeVolumeUsd = 'deltaConvertNeutralTradeVolumeUSD',
-  DeltaConvertNeutralTransferVolumeUsd = 'deltaConvertNeutralTransferVolumeUSD',
-  DeltaConvertUpVolumeUsd = 'deltaConvertUpVolumeUSD',
-  DeltaConvertVolumeUsd = 'deltaConvertVolumeUSD',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaSellVolumeUsd = 'deltaSellVolumeUSD',
-  DeltaTradeVolumeUsd = 'deltaTradeVolumeUSD',
-  DeltaTransferVolumeUsd = 'deltaTransferVolumeUSD',
-  Id = 'id',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TotalLiquidityUsd = 'totalLiquidityUSD',
-  Wells = 'wells'
+export enum BeanstalkDailySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  cumulativeBuyVolumeUSD = 'cumulativeBuyVolumeUSD',
+  cumulativeConvertDownVolumeUSD = 'cumulativeConvertDownVolumeUSD',
+  cumulativeConvertNeutralTradeVolumeUSD = 'cumulativeConvertNeutralTradeVolumeUSD',
+  cumulativeConvertNeutralTransferVolumeUSD = 'cumulativeConvertNeutralTransferVolumeUSD',
+  cumulativeConvertUpVolumeUSD = 'cumulativeConvertUpVolumeUSD',
+  cumulativeConvertVolumeUSD = 'cumulativeConvertVolumeUSD',
+  cumulativeSellVolumeUSD = 'cumulativeSellVolumeUSD',
+  cumulativeTradeVolumeUSD = 'cumulativeTradeVolumeUSD',
+  cumulativeTransferVolumeUSD = 'cumulativeTransferVolumeUSD',
+  day = 'day',
+  deltaBuyVolumeUSD = 'deltaBuyVolumeUSD',
+  deltaConvertDownVolumeUSD = 'deltaConvertDownVolumeUSD',
+  deltaConvertNeutralTradeVolumeUSD = 'deltaConvertNeutralTradeVolumeUSD',
+  deltaConvertNeutralTransferVolumeUSD = 'deltaConvertNeutralTransferVolumeUSD',
+  deltaConvertUpVolumeUSD = 'deltaConvertUpVolumeUSD',
+  deltaConvertVolumeUSD = 'deltaConvertVolumeUSD',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaSellVolumeUSD = 'deltaSellVolumeUSD',
+  deltaTradeVolumeUSD = 'deltaTradeVolumeUSD',
+  deltaTransferVolumeUSD = 'deltaTransferVolumeUSD',
+  id = 'id',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  totalLiquidityUSD = 'totalLiquidityUSD',
+  wells = 'wells'
 }
 
 export type BeanstalkHourlySnapshot = {
@@ -591,16 +585,16 @@ export type BeanstalkHourlySnapshot = {
 
 export type BeanstalkHourlySnapshotWellsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Well_Filter>;
+  where?: InputMaybe<WellFilter>;
 };
 
-export type BeanstalkHourlySnapshot_Filter = {
+export type BeanstalkHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<BeanstalkHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanstalkHourlySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -785,9 +779,9 @@ export type BeanstalkHourlySnapshot_Filter = {
   lastUpdateTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<BeanstalkHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<BeanstalkHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -816,7 +810,7 @@ export type BeanstalkHourlySnapshot_Filter = {
   totalLiquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   wells?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_?: InputMaybe<Well_Filter>;
+  wells_?: InputMaybe<WellFilter>;
   wells_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -824,42 +818,42 @@ export type BeanstalkHourlySnapshot_Filter = {
   wells_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
-export enum BeanstalkHourlySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  CumulativeBuyVolumeUsd = 'cumulativeBuyVolumeUSD',
-  CumulativeConvertDownVolumeUsd = 'cumulativeConvertDownVolumeUSD',
-  CumulativeConvertNeutralTradeVolumeUsd = 'cumulativeConvertNeutralTradeVolumeUSD',
-  CumulativeConvertNeutralTransferVolumeUsd = 'cumulativeConvertNeutralTransferVolumeUSD',
-  CumulativeConvertUpVolumeUsd = 'cumulativeConvertUpVolumeUSD',
-  CumulativeConvertVolumeUsd = 'cumulativeConvertVolumeUSD',
-  CumulativeSellVolumeUsd = 'cumulativeSellVolumeUSD',
-  CumulativeTradeVolumeUsd = 'cumulativeTradeVolumeUSD',
-  CumulativeTransferVolumeUsd = 'cumulativeTransferVolumeUSD',
-  DeltaBuyVolumeUsd = 'deltaBuyVolumeUSD',
-  DeltaConvertDownVolumeUsd = 'deltaConvertDownVolumeUSD',
-  DeltaConvertNeutralTradeVolumeUsd = 'deltaConvertNeutralTradeVolumeUSD',
-  DeltaConvertNeutralTransferVolumeUsd = 'deltaConvertNeutralTransferVolumeUSD',
-  DeltaConvertUpVolumeUsd = 'deltaConvertUpVolumeUSD',
-  DeltaConvertVolumeUsd = 'deltaConvertVolumeUSD',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaSellVolumeUsd = 'deltaSellVolumeUSD',
-  DeltaTradeVolumeUsd = 'deltaTradeVolumeUSD',
-  DeltaTransferVolumeUsd = 'deltaTransferVolumeUSD',
-  Id = 'id',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TotalLiquidityUsd = 'totalLiquidityUSD',
-  Wells = 'wells'
+export enum BeanstalkHourlySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  cumulativeBuyVolumeUSD = 'cumulativeBuyVolumeUSD',
+  cumulativeConvertDownVolumeUSD = 'cumulativeConvertDownVolumeUSD',
+  cumulativeConvertNeutralTradeVolumeUSD = 'cumulativeConvertNeutralTradeVolumeUSD',
+  cumulativeConvertNeutralTransferVolumeUSD = 'cumulativeConvertNeutralTransferVolumeUSD',
+  cumulativeConvertUpVolumeUSD = 'cumulativeConvertUpVolumeUSD',
+  cumulativeConvertVolumeUSD = 'cumulativeConvertVolumeUSD',
+  cumulativeSellVolumeUSD = 'cumulativeSellVolumeUSD',
+  cumulativeTradeVolumeUSD = 'cumulativeTradeVolumeUSD',
+  cumulativeTransferVolumeUSD = 'cumulativeTransferVolumeUSD',
+  deltaBuyVolumeUSD = 'deltaBuyVolumeUSD',
+  deltaConvertDownVolumeUSD = 'deltaConvertDownVolumeUSD',
+  deltaConvertNeutralTradeVolumeUSD = 'deltaConvertNeutralTradeVolumeUSD',
+  deltaConvertNeutralTransferVolumeUSD = 'deltaConvertNeutralTransferVolumeUSD',
+  deltaConvertUpVolumeUSD = 'deltaConvertUpVolumeUSD',
+  deltaConvertVolumeUSD = 'deltaConvertVolumeUSD',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaSellVolumeUSD = 'deltaSellVolumeUSD',
+  deltaTradeVolumeUSD = 'deltaTradeVolumeUSD',
+  deltaTransferVolumeUSD = 'deltaTransferVolumeUSD',
+  id = 'id',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  totalLiquidityUSD = 'totalLiquidityUSD',
+  wells = 'wells'
 }
 
-export type Beanstalk_Filter = {
+export type BeanstalkFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Beanstalk_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanstalkFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -965,7 +959,7 @@ export type Beanstalk_Filter = {
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   lastSeason?: InputMaybe<Scalars['String']['input']>;
-  lastSeason_?: InputMaybe<Season_Filter>;
+  lastSeason_?: InputMaybe<SeasonFilter>;
   lastSeason_contains?: InputMaybe<Scalars['String']['input']>;
   lastSeason_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   lastSeason_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1001,7 +995,7 @@ export type Beanstalk_Filter = {
   lastUpdateTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Beanstalk_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<BeanstalkFilter>>>;
   rollingDailyBuyVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyBuyVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyBuyVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -1155,7 +1149,7 @@ export type Beanstalk_Filter = {
   totalLiquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   wells?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_?: InputMaybe<Well_Filter>;
+  wells_?: InputMaybe<WellFilter>;
   wells_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -1163,53 +1157,53 @@ export type Beanstalk_Filter = {
   wells_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
-export enum Beanstalk_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  CumulativeBuyVolumeUsd = 'cumulativeBuyVolumeUSD',
-  CumulativeConvertDownVolumeUsd = 'cumulativeConvertDownVolumeUSD',
-  CumulativeConvertNeutralTradeVolumeUsd = 'cumulativeConvertNeutralTradeVolumeUSD',
-  CumulativeConvertNeutralTransferVolumeUsd = 'cumulativeConvertNeutralTransferVolumeUSD',
-  CumulativeConvertUpVolumeUsd = 'cumulativeConvertUpVolumeUSD',
-  CumulativeConvertVolumeUsd = 'cumulativeConvertVolumeUSD',
-  CumulativeSellVolumeUsd = 'cumulativeSellVolumeUSD',
-  CumulativeTradeVolumeUsd = 'cumulativeTradeVolumeUSD',
-  CumulativeTransferVolumeUsd = 'cumulativeTransferVolumeUSD',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  LastSeason = 'lastSeason',
-  LastSeasonId = 'lastSeason__id',
-  LastSeasonSeason = 'lastSeason__season',
-  LastSeasonTimestamp = 'lastSeason__timestamp',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  RollingDailyBuyVolumeUsd = 'rollingDailyBuyVolumeUSD',
-  RollingDailyConvertDownVolumeUsd = 'rollingDailyConvertDownVolumeUSD',
-  RollingDailyConvertNeutralTradeVolumeUsd = 'rollingDailyConvertNeutralTradeVolumeUSD',
-  RollingDailyConvertNeutralTransferVolumeUsd = 'rollingDailyConvertNeutralTransferVolumeUSD',
-  RollingDailyConvertUpVolumeUsd = 'rollingDailyConvertUpVolumeUSD',
-  RollingDailyConvertVolumeUsd = 'rollingDailyConvertVolumeUSD',
-  RollingDailySellVolumeUsd = 'rollingDailySellVolumeUSD',
-  RollingDailyTradeVolumeUsd = 'rollingDailyTradeVolumeUSD',
-  RollingDailyTransferVolumeUsd = 'rollingDailyTransferVolumeUSD',
-  RollingWeeklyBuyVolumeUsd = 'rollingWeeklyBuyVolumeUSD',
-  RollingWeeklyConvertDownVolumeUsd = 'rollingWeeklyConvertDownVolumeUSD',
-  RollingWeeklyConvertNeutralTradeVolumeUsd = 'rollingWeeklyConvertNeutralTradeVolumeUSD',
-  RollingWeeklyConvertNeutralTransferVolumeUsd = 'rollingWeeklyConvertNeutralTransferVolumeUSD',
-  RollingWeeklyConvertUpVolumeUsd = 'rollingWeeklyConvertUpVolumeUSD',
-  RollingWeeklyConvertVolumeUsd = 'rollingWeeklyConvertVolumeUSD',
-  RollingWeeklySellVolumeUsd = 'rollingWeeklySellVolumeUSD',
-  RollingWeeklyTradeVolumeUsd = 'rollingWeeklyTradeVolumeUSD',
-  RollingWeeklyTransferVolumeUsd = 'rollingWeeklyTransferVolumeUSD',
-  TotalLiquidityUsd = 'totalLiquidityUSD',
-  Wells = 'wells'
+export enum BeanstalkOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  cumulativeBuyVolumeUSD = 'cumulativeBuyVolumeUSD',
+  cumulativeConvertDownVolumeUSD = 'cumulativeConvertDownVolumeUSD',
+  cumulativeConvertNeutralTradeVolumeUSD = 'cumulativeConvertNeutralTradeVolumeUSD',
+  cumulativeConvertNeutralTransferVolumeUSD = 'cumulativeConvertNeutralTransferVolumeUSD',
+  cumulativeConvertUpVolumeUSD = 'cumulativeConvertUpVolumeUSD',
+  cumulativeConvertVolumeUSD = 'cumulativeConvertVolumeUSD',
+  cumulativeSellVolumeUSD = 'cumulativeSellVolumeUSD',
+  cumulativeTradeVolumeUSD = 'cumulativeTradeVolumeUSD',
+  cumulativeTransferVolumeUSD = 'cumulativeTransferVolumeUSD',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  lastSeason = 'lastSeason',
+  lastSeason__id = 'lastSeason__id',
+  lastSeason__season = 'lastSeason__season',
+  lastSeason__timestamp = 'lastSeason__timestamp',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  rollingDailyBuyVolumeUSD = 'rollingDailyBuyVolumeUSD',
+  rollingDailyConvertDownVolumeUSD = 'rollingDailyConvertDownVolumeUSD',
+  rollingDailyConvertNeutralTradeVolumeUSD = 'rollingDailyConvertNeutralTradeVolumeUSD',
+  rollingDailyConvertNeutralTransferVolumeUSD = 'rollingDailyConvertNeutralTransferVolumeUSD',
+  rollingDailyConvertUpVolumeUSD = 'rollingDailyConvertUpVolumeUSD',
+  rollingDailyConvertVolumeUSD = 'rollingDailyConvertVolumeUSD',
+  rollingDailySellVolumeUSD = 'rollingDailySellVolumeUSD',
+  rollingDailyTradeVolumeUSD = 'rollingDailyTradeVolumeUSD',
+  rollingDailyTransferVolumeUSD = 'rollingDailyTransferVolumeUSD',
+  rollingWeeklyBuyVolumeUSD = 'rollingWeeklyBuyVolumeUSD',
+  rollingWeeklyConvertDownVolumeUSD = 'rollingWeeklyConvertDownVolumeUSD',
+  rollingWeeklyConvertNeutralTradeVolumeUSD = 'rollingWeeklyConvertNeutralTradeVolumeUSD',
+  rollingWeeklyConvertNeutralTransferVolumeUSD = 'rollingWeeklyConvertNeutralTransferVolumeUSD',
+  rollingWeeklyConvertUpVolumeUSD = 'rollingWeeklyConvertUpVolumeUSD',
+  rollingWeeklyConvertVolumeUSD = 'rollingWeeklyConvertVolumeUSD',
+  rollingWeeklySellVolumeUSD = 'rollingWeeklySellVolumeUSD',
+  rollingWeeklyTradeVolumeUSD = 'rollingWeeklyTradeVolumeUSD',
+  rollingWeeklyTransferVolumeUSD = 'rollingWeeklyTransferVolumeUSD',
+  totalLiquidityUSD = 'totalLiquidityUSD',
+  wells = 'wells'
 }
 
 export type BlockChangedFilter = {
   number_gte: Scalars['Int']['input'];
 };
 
-export type Block_Height = {
+export type BlockHeight = {
   hash?: InputMaybe<Scalars['Bytes']['input']>;
   number?: InputMaybe<Scalars['Int']['input']>;
   number_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -1225,11 +1219,11 @@ export type ConvertCandidate = {
   removeLiquidityTrade?: Maybe<Trade>;
 };
 
-export type ConvertCandidate_Filter = {
+export type ConvertCandidateFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   addLiquidityTrade?: InputMaybe<Scalars['String']['input']>;
-  addLiquidityTrade_?: InputMaybe<Trade_Filter>;
+  addLiquidityTrade_?: InputMaybe<TradeFilter>;
   addLiquidityTrade_contains?: InputMaybe<Scalars['String']['input']>;
   addLiquidityTrade_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   addLiquidityTrade_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1249,7 +1243,7 @@ export type ConvertCandidate_Filter = {
   addLiquidityTrade_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   addLiquidityTrade_starts_with?: InputMaybe<Scalars['String']['input']>;
   addLiquidityTrade_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  and?: InputMaybe<Array<InputMaybe<ConvertCandidate_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<ConvertCandidateFilter>>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -1258,9 +1252,9 @@ export type ConvertCandidate_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<ConvertCandidate_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<ConvertCandidateFilter>>>;
   removeLiquidityTrade?: InputMaybe<Scalars['String']['input']>;
-  removeLiquidityTrade_?: InputMaybe<Trade_Filter>;
+  removeLiquidityTrade_?: InputMaybe<TradeFilter>;
   removeLiquidityTrade_contains?: InputMaybe<Scalars['String']['input']>;
   removeLiquidityTrade_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   removeLiquidityTrade_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1282,34 +1276,34 @@ export type ConvertCandidate_Filter = {
   removeLiquidityTrade_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum ConvertCandidate_OrderBy {
-  AddLiquidityTrade = 'addLiquidityTrade',
-  AddLiquidityTradeBlockNumber = 'addLiquidityTrade__blockNumber',
-  AddLiquidityTradeHash = 'addLiquidityTrade__hash',
-  AddLiquidityTradeId = 'addLiquidityTrade__id',
-  AddLiquidityTradeIsConvert = 'addLiquidityTrade__isConvert',
-  AddLiquidityTradeLiqLpTokenAmount = 'addLiquidityTrade__liqLpTokenAmount',
-  AddLiquidityTradeLogIndex = 'addLiquidityTrade__logIndex',
-  AddLiquidityTradeSwapAmountIn = 'addLiquidityTrade__swapAmountIn',
-  AddLiquidityTradeSwapAmountOut = 'addLiquidityTrade__swapAmountOut',
-  AddLiquidityTradeTimestamp = 'addLiquidityTrade__timestamp',
-  AddLiquidityTradeTradeType = 'addLiquidityTrade__tradeType',
-  AddLiquidityTradeTradeVolumeUsd = 'addLiquidityTrade__tradeVolumeUSD',
-  AddLiquidityTradeTransferVolumeUsd = 'addLiquidityTrade__transferVolumeUSD',
-  Id = 'id',
-  RemoveLiquidityTrade = 'removeLiquidityTrade',
-  RemoveLiquidityTradeBlockNumber = 'removeLiquidityTrade__blockNumber',
-  RemoveLiquidityTradeHash = 'removeLiquidityTrade__hash',
-  RemoveLiquidityTradeId = 'removeLiquidityTrade__id',
-  RemoveLiquidityTradeIsConvert = 'removeLiquidityTrade__isConvert',
-  RemoveLiquidityTradeLiqLpTokenAmount = 'removeLiquidityTrade__liqLpTokenAmount',
-  RemoveLiquidityTradeLogIndex = 'removeLiquidityTrade__logIndex',
-  RemoveLiquidityTradeSwapAmountIn = 'removeLiquidityTrade__swapAmountIn',
-  RemoveLiquidityTradeSwapAmountOut = 'removeLiquidityTrade__swapAmountOut',
-  RemoveLiquidityTradeTimestamp = 'removeLiquidityTrade__timestamp',
-  RemoveLiquidityTradeTradeType = 'removeLiquidityTrade__tradeType',
-  RemoveLiquidityTradeTradeVolumeUsd = 'removeLiquidityTrade__tradeVolumeUSD',
-  RemoveLiquidityTradeTransferVolumeUsd = 'removeLiquidityTrade__transferVolumeUSD'
+export enum ConvertCandidateOrderBy {
+  addLiquidityTrade = 'addLiquidityTrade',
+  addLiquidityTrade__blockNumber = 'addLiquidityTrade__blockNumber',
+  addLiquidityTrade__hash = 'addLiquidityTrade__hash',
+  addLiquidityTrade__id = 'addLiquidityTrade__id',
+  addLiquidityTrade__isConvert = 'addLiquidityTrade__isConvert',
+  addLiquidityTrade__liqLpTokenAmount = 'addLiquidityTrade__liqLpTokenAmount',
+  addLiquidityTrade__logIndex = 'addLiquidityTrade__logIndex',
+  addLiquidityTrade__swapAmountIn = 'addLiquidityTrade__swapAmountIn',
+  addLiquidityTrade__swapAmountOut = 'addLiquidityTrade__swapAmountOut',
+  addLiquidityTrade__timestamp = 'addLiquidityTrade__timestamp',
+  addLiquidityTrade__tradeType = 'addLiquidityTrade__tradeType',
+  addLiquidityTrade__tradeVolumeUSD = 'addLiquidityTrade__tradeVolumeUSD',
+  addLiquidityTrade__transferVolumeUSD = 'addLiquidityTrade__transferVolumeUSD',
+  id = 'id',
+  removeLiquidityTrade = 'removeLiquidityTrade',
+  removeLiquidityTrade__blockNumber = 'removeLiquidityTrade__blockNumber',
+  removeLiquidityTrade__hash = 'removeLiquidityTrade__hash',
+  removeLiquidityTrade__id = 'removeLiquidityTrade__id',
+  removeLiquidityTrade__isConvert = 'removeLiquidityTrade__isConvert',
+  removeLiquidityTrade__liqLpTokenAmount = 'removeLiquidityTrade__liqLpTokenAmount',
+  removeLiquidityTrade__logIndex = 'removeLiquidityTrade__logIndex',
+  removeLiquidityTrade__swapAmountIn = 'removeLiquidityTrade__swapAmountIn',
+  removeLiquidityTrade__swapAmountOut = 'removeLiquidityTrade__swapAmountOut',
+  removeLiquidityTrade__timestamp = 'removeLiquidityTrade__timestamp',
+  removeLiquidityTrade__tradeType = 'removeLiquidityTrade__tradeType',
+  removeLiquidityTrade__tradeVolumeUSD = 'removeLiquidityTrade__tradeVolumeUSD',
+  removeLiquidityTrade__transferVolumeUSD = 'removeLiquidityTrade__transferVolumeUSD'
 }
 
 export type Implementation = {
@@ -1323,16 +1317,16 @@ export type Implementation = {
 
 export type ImplementationWellsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Well_Filter>;
+  where?: InputMaybe<WellFilter>;
 };
 
-export type Implementation_Filter = {
+export type ImplementationFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Implementation_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<ImplementationFilter>>>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -1343,19 +1337,19 @@ export type Implementation_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Implementation_Filter>>>;
-  wells_?: InputMaybe<Well_Filter>;
+  or?: InputMaybe<Array<InputMaybe<ImplementationFilter>>>;
+  wells_?: InputMaybe<WellFilter>;
 };
 
-export enum Implementation_OrderBy {
-  Id = 'id',
-  Wells = 'wells'
+export enum ImplementationOrderBy {
+  id = 'id',
+  wells = 'wells'
 }
 
 /** Defines the order direction, either ascending or descending */
 export enum OrderDirection {
-  Asc = 'asc',
-  Desc = 'desc'
+  asc = 'asc',
+  desc = 'desc'
 }
 
 export type Pump = {
@@ -1369,16 +1363,16 @@ export type Pump = {
 
 export type PumpWellsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Well_Filter>;
+  where?: InputMaybe<WellFilter>;
 };
 
-export type Pump_Filter = {
+export type PumpFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Pump_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PumpFilter>>>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -1389,19 +1383,19 @@ export type Pump_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Pump_Filter>>>;
-  wells_?: InputMaybe<Well_Filter>;
+  or?: InputMaybe<Array<InputMaybe<PumpFilter>>>;
+  wells_?: InputMaybe<WellFilter>;
 };
 
-export enum Pump_OrderBy {
-  Id = 'id',
-  Wells = 'wells'
+export enum PumpOrderBy {
+  id = 'id',
+  wells = 'wells'
 }
 
 export type Query = {
   __typename?: 'Query';
   /** Access to subgraph metadata */
-  _meta?: Maybe<_Meta_>;
+  _meta?: Maybe<Meta>;
   account?: Maybe<Account>;
   accounts: Array<Account>;
   aquifer?: Maybe<Aquifer>;
@@ -1439,314 +1433,314 @@ export type Query = {
 };
 
 
-export type Query_MetaArgs = {
-  block?: InputMaybe<Block_Height>;
+export type QueryMetaArgs = {
+  block?: InputMaybe<BlockHeight>;
 };
 
 
 export type QueryAccountArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryAccountsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Account_OrderBy>;
+  orderBy?: InputMaybe<AccountOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Account_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<AccountFilter>;
 };
 
 
 export type QueryAquiferArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryAquifersArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Aquifer_OrderBy>;
+  orderBy?: InputMaybe<AquiferOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Aquifer_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<AquiferFilter>;
 };
 
 
 export type QueryBeanstalkArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanstalkDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanstalkDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanstalkDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanstalkDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanstalkDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanstalkDailySnapshotFilter>;
 };
 
 
 export type QueryBeanstalkHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanstalkHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanstalkHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanstalkHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanstalkHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanstalkHourlySnapshotFilter>;
 };
 
 
 export type QueryBeanstalksArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Beanstalk_OrderBy>;
+  orderBy?: InputMaybe<BeanstalkOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Beanstalk_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanstalkFilter>;
 };
 
 
 export type QueryConvertCandidateArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryConvertCandidatesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<ConvertCandidate_OrderBy>;
+  orderBy?: InputMaybe<ConvertCandidateOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<ConvertCandidate_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<ConvertCandidateFilter>;
 };
 
 
 export type QueryImplementationArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryImplementationsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Implementation_OrderBy>;
+  orderBy?: InputMaybe<ImplementationOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Implementation_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<ImplementationFilter>;
 };
 
 
 export type QueryPumpArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPumpsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pump_OrderBy>;
+  orderBy?: InputMaybe<PumpOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Pump_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PumpFilter>;
 };
 
 
 export type QuerySeasonArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySeasonsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Season_OrderBy>;
+  orderBy?: InputMaybe<SeasonOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Season_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SeasonFilter>;
 };
 
 
 export type QueryTokenArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTokensArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Token_OrderBy>;
+  orderBy?: InputMaybe<TokenOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Token_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TokenFilter>;
 };
 
 
 export type QueryTradeArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTradesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Trade_OrderBy>;
+  orderBy?: InputMaybe<TradeOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Trade_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TradeFilter>;
 };
 
 
 export type QueryVersionArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryVersionsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Version_OrderBy>;
+  orderBy?: InputMaybe<VersionOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Version_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<VersionFilter>;
 };
 
 
 export type QueryWellArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWellDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWellDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WellDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WellDailySnapshotFilter>;
 };
 
 
 export type QueryWellFunctionArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWellFunctionsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellFunction_OrderBy>;
+  orderBy?: InputMaybe<WellFunctionOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellFunction_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WellFunctionFilter>;
 };
 
 
 export type QueryWellHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWellHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WellHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WellHourlySnapshotFilter>;
 };
 
 
 export type QueryWellUpgradeHistoriesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellUpgradeHistory_OrderBy>;
+  orderBy?: InputMaybe<WellUpgradeHistoryOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellUpgradeHistory_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WellUpgradeHistoryFilter>;
 };
 
 
 export type QueryWellUpgradeHistoryArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryWellsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Well_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<WellFilter>;
 };
 
 export type Season = {
@@ -1766,45 +1760,45 @@ export type Season = {
 
 export type SeasonBeanstalkDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanstalkDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanstalkDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<BeanstalkDailySnapshot_Filter>;
+  where?: InputMaybe<BeanstalkDailySnapshotFilter>;
 };
 
 
 export type SeasonBeanstalkHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanstalkHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanstalkHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<BeanstalkHourlySnapshot_Filter>;
+  where?: InputMaybe<BeanstalkHourlySnapshotFilter>;
 };
 
 
 export type SeasonWellDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WellDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WellDailySnapshot_Filter>;
+  where?: InputMaybe<WellDailySnapshotFilter>;
 };
 
 
 export type SeasonWellHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WellHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WellHourlySnapshot_Filter>;
+  where?: InputMaybe<WellHourlySnapshotFilter>;
 };
 
-export type Season_Filter = {
+export type SeasonFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Season_Filter>>>;
-  beanstalkDailySnapshots_?: InputMaybe<BeanstalkDailySnapshot_Filter>;
-  beanstalkHourlySnapshots_?: InputMaybe<BeanstalkHourlySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<SeasonFilter>>>;
+  beanstalkDailySnapshots_?: InputMaybe<BeanstalkDailySnapshotFilter>;
+  beanstalkHourlySnapshots_?: InputMaybe<BeanstalkHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -1813,7 +1807,7 @@ export type Season_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Season_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SeasonFilter>>>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -1830,370 +1824,19 @@ export type Season_Filter = {
   timestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   timestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   timestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  wellDailySnapshots_?: InputMaybe<WellDailySnapshot_Filter>;
-  wellHourlySnapshots_?: InputMaybe<WellHourlySnapshot_Filter>;
+  wellDailySnapshots_?: InputMaybe<WellDailySnapshotFilter>;
+  wellHourlySnapshots_?: InputMaybe<WellHourlySnapshotFilter>;
 };
 
-export enum Season_OrderBy {
-  BeanstalkDailySnapshots = 'beanstalkDailySnapshots',
-  BeanstalkHourlySnapshots = 'beanstalkHourlySnapshots',
-  Id = 'id',
-  Season = 'season',
-  Timestamp = 'timestamp',
-  WellDailySnapshots = 'wellDailySnapshots',
-  WellHourlySnapshots = 'wellHourlySnapshots'
+export enum SeasonOrderBy {
+  beanstalkDailySnapshots = 'beanstalkDailySnapshots',
+  beanstalkHourlySnapshots = 'beanstalkHourlySnapshots',
+  id = 'id',
+  season = 'season',
+  timestamp = 'timestamp',
+  wellDailySnapshots = 'wellDailySnapshots',
+  wellHourlySnapshots = 'wellHourlySnapshots'
 }
-
-export type Subscription = {
-  __typename?: 'Subscription';
-  /** Access to subgraph metadata */
-  _meta?: Maybe<_Meta_>;
-  account?: Maybe<Account>;
-  accounts: Array<Account>;
-  aquifer?: Maybe<Aquifer>;
-  aquifers: Array<Aquifer>;
-  beanstalk?: Maybe<Beanstalk>;
-  beanstalkDailySnapshot?: Maybe<BeanstalkDailySnapshot>;
-  beanstalkDailySnapshots: Array<BeanstalkDailySnapshot>;
-  beanstalkHourlySnapshot?: Maybe<BeanstalkHourlySnapshot>;
-  beanstalkHourlySnapshots: Array<BeanstalkHourlySnapshot>;
-  beanstalks: Array<Beanstalk>;
-  convertCandidate?: Maybe<ConvertCandidate>;
-  convertCandidates: Array<ConvertCandidate>;
-  implementation?: Maybe<Implementation>;
-  implementations: Array<Implementation>;
-  pump?: Maybe<Pump>;
-  pumps: Array<Pump>;
-  season?: Maybe<Season>;
-  seasons: Array<Season>;
-  token?: Maybe<Token>;
-  tokens: Array<Token>;
-  trade?: Maybe<Trade>;
-  trades: Array<Trade>;
-  version?: Maybe<Version>;
-  versions: Array<Version>;
-  well?: Maybe<Well>;
-  wellDailySnapshot?: Maybe<WellDailySnapshot>;
-  wellDailySnapshots: Array<WellDailySnapshot>;
-  wellFunction?: Maybe<WellFunction>;
-  wellFunctions: Array<WellFunction>;
-  wellHourlySnapshot?: Maybe<WellHourlySnapshot>;
-  wellHourlySnapshots: Array<WellHourlySnapshot>;
-  wellUpgradeHistories: Array<WellUpgradeHistory>;
-  wellUpgradeHistory?: Maybe<WellUpgradeHistory>;
-  wells: Array<Well>;
-};
-
-
-export type Subscription_MetaArgs = {
-  block?: InputMaybe<Block_Height>;
-};
-
-
-export type SubscriptionAccountArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionAccountsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Account_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Account_Filter>;
-};
-
-
-export type SubscriptionAquiferArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionAquifersArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Aquifer_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Aquifer_Filter>;
-};
-
-
-export type SubscriptionBeanstalkArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanstalkDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanstalkDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanstalkDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanstalkDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionBeanstalkHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanstalkHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanstalkHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanstalkHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionBeanstalksArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Beanstalk_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Beanstalk_Filter>;
-};
-
-
-export type SubscriptionConvertCandidateArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionConvertCandidatesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<ConvertCandidate_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<ConvertCandidate_Filter>;
-};
-
-
-export type SubscriptionImplementationArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionImplementationsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Implementation_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Implementation_Filter>;
-};
-
-
-export type SubscriptionPumpArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPumpsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pump_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Pump_Filter>;
-};
-
-
-export type SubscriptionSeasonArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSeasonsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Season_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Season_Filter>;
-};
-
-
-export type SubscriptionTokenArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTokensArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Token_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Token_Filter>;
-};
-
-
-export type SubscriptionTradeArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTradesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Trade_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Trade_Filter>;
-};
-
-
-export type SubscriptionVersionArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionVersionsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Version_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Version_Filter>;
-};
-
-
-export type SubscriptionWellArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWellDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWellDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionWellFunctionArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWellFunctionsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellFunction_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellFunction_Filter>;
-};
-
-
-export type SubscriptionWellHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWellHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionWellUpgradeHistoriesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellUpgradeHistory_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<WellUpgradeHistory_Filter>;
-};
-
-
-export type SubscriptionWellUpgradeHistoryArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionWellsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Well_Filter>;
-};
 
 export type Token = {
   __typename?: 'Token';
@@ -2211,10 +1854,10 @@ export type Token = {
   symbol: Scalars['String']['output'];
 };
 
-export type Token_Filter = {
+export type TokenFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Token_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TokenFilter>>>;
   decimals?: InputMaybe<Scalars['Int']['input']>;
   decimals_gt?: InputMaybe<Scalars['Int']['input']>;
   decimals_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -2269,7 +1912,7 @@ export type Token_Filter = {
   name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   name_starts_with?: InputMaybe<Scalars['String']['input']>;
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<Token_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TokenFilter>>>;
   symbol?: InputMaybe<Scalars['String']['input']>;
   symbol_contains?: InputMaybe<Scalars['String']['input']>;
   symbol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -2292,13 +1935,13 @@ export type Token_Filter = {
   symbol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Token_OrderBy {
-  Decimals = 'decimals',
-  Id = 'id',
-  LastPriceBlockNumber = 'lastPriceBlockNumber',
-  LastPriceUsd = 'lastPriceUSD',
-  Name = 'name',
-  Symbol = 'symbol'
+export enum TokenOrderBy {
+  decimals = 'decimals',
+  id = 'id',
+  lastPriceBlockNumber = 'lastPriceBlockNumber',
+  lastPriceUSD = 'lastPriceUSD',
+  name = 'name',
+  symbol = 'symbol'
 }
 
 export type Trade = {
@@ -2358,16 +2001,16 @@ export type Trade = {
 };
 
 export enum TradeType {
-  AddLiquidity = 'ADD_LIQUIDITY',
-  RemoveLiquidity = 'REMOVE_LIQUIDITY',
-  Swap = 'SWAP'
+  ADD_LIQUIDITY = 'ADD_LIQUIDITY',
+  REMOVE_LIQUIDITY = 'REMOVE_LIQUIDITY',
+  SWAP = 'SWAP'
 }
 
-export type Trade_Filter = {
+export type TradeFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   account?: InputMaybe<Scalars['String']['input']>;
-  account_?: InputMaybe<Account_Filter>;
+  account_?: InputMaybe<AccountFilter>;
   account_contains?: InputMaybe<Scalars['String']['input']>;
   account_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   account_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2399,7 +2042,7 @@ export type Trade_Filter = {
   afterTokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   afterTokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   afterTokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<Trade_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TradeFilter>>>;
   beforeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beforeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beforeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
@@ -2470,7 +2113,7 @@ export type Trade_Filter = {
   logIndex_lte?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Trade_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TradeFilter>>>;
   swapAmountIn?: InputMaybe<Scalars['BigInt']['input']>;
   swapAmountIn_gt?: InputMaybe<Scalars['BigInt']['input']>;
   swapAmountIn_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2488,7 +2131,7 @@ export type Trade_Filter = {
   swapAmountOut_not?: InputMaybe<Scalars['BigInt']['input']>;
   swapAmountOut_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   swapFromToken?: InputMaybe<Scalars['String']['input']>;
-  swapFromToken_?: InputMaybe<Token_Filter>;
+  swapFromToken_?: InputMaybe<TokenFilter>;
   swapFromToken_contains?: InputMaybe<Scalars['String']['input']>;
   swapFromToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   swapFromToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2509,7 +2152,7 @@ export type Trade_Filter = {
   swapFromToken_starts_with?: InputMaybe<Scalars['String']['input']>;
   swapFromToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   swapToToken?: InputMaybe<Scalars['String']['input']>;
-  swapToToken_?: InputMaybe<Token_Filter>;
+  swapToToken_?: InputMaybe<TokenFilter>;
   swapToToken_contains?: InputMaybe<Scalars['String']['input']>;
   swapToToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   swapToToken_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2582,7 +2225,7 @@ export type Trade_Filter = {
   transferVolumeUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   transferVolumeUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   well?: InputMaybe<Scalars['String']['input']>;
-  well_?: InputMaybe<Well_Filter>;
+  well_?: InputMaybe<WellFilter>;
   well_contains?: InputMaybe<Scalars['String']['input']>;
   well_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   well_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2604,68 +2247,68 @@ export type Trade_Filter = {
   well_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Trade_OrderBy {
-  Account = 'account',
-  AccountId = 'account__id',
-  AfterReserves = 'afterReserves',
-  AfterTokenRates = 'afterTokenRates',
-  BeforeReserves = 'beforeReserves',
-  BeforeTokenRates = 'beforeTokenRates',
-  BiTradeVolumeReserves = 'biTradeVolumeReserves',
-  BlockNumber = 'blockNumber',
-  Hash = 'hash',
-  Id = 'id',
-  IsConvert = 'isConvert',
-  LiqLpTokenAmount = 'liqLpTokenAmount',
-  LiqReservesAmount = 'liqReservesAmount',
-  LogIndex = 'logIndex',
-  SwapAmountIn = 'swapAmountIn',
-  SwapAmountOut = 'swapAmountOut',
-  SwapFromToken = 'swapFromToken',
-  SwapFromTokenDecimals = 'swapFromToken__decimals',
-  SwapFromTokenId = 'swapFromToken__id',
-  SwapFromTokenLastPriceBlockNumber = 'swapFromToken__lastPriceBlockNumber',
-  SwapFromTokenLastPriceUsd = 'swapFromToken__lastPriceUSD',
-  SwapFromTokenName = 'swapFromToken__name',
-  SwapFromTokenSymbol = 'swapFromToken__symbol',
-  SwapToToken = 'swapToToken',
-  SwapToTokenDecimals = 'swapToToken__decimals',
-  SwapToTokenId = 'swapToToken__id',
-  SwapToTokenLastPriceBlockNumber = 'swapToToken__lastPriceBlockNumber',
-  SwapToTokenLastPriceUsd = 'swapToToken__lastPriceUSD',
-  SwapToTokenName = 'swapToToken__name',
-  SwapToTokenSymbol = 'swapToToken__symbol',
-  Timestamp = 'timestamp',
-  TradeType = 'tradeType',
-  TradeVolumeReserves = 'tradeVolumeReserves',
-  TradeVolumeReservesUsd = 'tradeVolumeReservesUSD',
-  TradeVolumeUsd = 'tradeVolumeUSD',
-  TransferVolumeReserves = 'transferVolumeReserves',
-  TransferVolumeReservesUsd = 'transferVolumeReservesUSD',
-  TransferVolumeUsd = 'transferVolumeUSD',
-  Well = 'well',
-  WellBoredWell = 'well__boredWell',
-  WellConvertVolumeUsd = 'well__convertVolumeUSD',
-  WellCreatedTimestamp = 'well__createdTimestamp',
-  WellCumulativeTradeVolumeUsd = 'well__cumulativeTradeVolumeUSD',
-  WellCumulativeTransferVolumeUsd = 'well__cumulativeTransferVolumeUSD',
-  WellId = 'well__id',
-  WellIsBeanstalk = 'well__isBeanstalk',
-  WellLastDailySnapshotDay = 'well__lastDailySnapshotDay',
-  WellLastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
-  WellLastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
-  WellLastUpdateTimestamp = 'well__lastUpdateTimestamp',
-  WellLpTokenSupply = 'well__lpTokenSupply',
-  WellName = 'well__name',
-  WellRollingDailyConvertVolumeUsd = 'well__rollingDailyConvertVolumeUSD',
-  WellRollingDailyTradeVolumeUsd = 'well__rollingDailyTradeVolumeUSD',
-  WellRollingDailyTransferVolumeUsd = 'well__rollingDailyTransferVolumeUSD',
-  WellRollingWeeklyConvertVolumeUsd = 'well__rollingWeeklyConvertVolumeUSD',
-  WellRollingWeeklyTradeVolumeUsd = 'well__rollingWeeklyTradeVolumeUSD',
-  WellRollingWeeklyTransferVolumeUsd = 'well__rollingWeeklyTransferVolumeUSD',
-  WellSymbol = 'well__symbol',
-  WellTotalLiquidityUsd = 'well__totalLiquidityUSD',
-  WellWellFunctionData = 'well__wellFunctionData'
+export enum TradeOrderBy {
+  account = 'account',
+  account__id = 'account__id',
+  afterReserves = 'afterReserves',
+  afterTokenRates = 'afterTokenRates',
+  beforeReserves = 'beforeReserves',
+  beforeTokenRates = 'beforeTokenRates',
+  biTradeVolumeReserves = 'biTradeVolumeReserves',
+  blockNumber = 'blockNumber',
+  hash = 'hash',
+  id = 'id',
+  isConvert = 'isConvert',
+  liqLpTokenAmount = 'liqLpTokenAmount',
+  liqReservesAmount = 'liqReservesAmount',
+  logIndex = 'logIndex',
+  swapAmountIn = 'swapAmountIn',
+  swapAmountOut = 'swapAmountOut',
+  swapFromToken = 'swapFromToken',
+  swapFromToken__decimals = 'swapFromToken__decimals',
+  swapFromToken__id = 'swapFromToken__id',
+  swapFromToken__lastPriceBlockNumber = 'swapFromToken__lastPriceBlockNumber',
+  swapFromToken__lastPriceUSD = 'swapFromToken__lastPriceUSD',
+  swapFromToken__name = 'swapFromToken__name',
+  swapFromToken__symbol = 'swapFromToken__symbol',
+  swapToToken = 'swapToToken',
+  swapToToken__decimals = 'swapToToken__decimals',
+  swapToToken__id = 'swapToToken__id',
+  swapToToken__lastPriceBlockNumber = 'swapToToken__lastPriceBlockNumber',
+  swapToToken__lastPriceUSD = 'swapToToken__lastPriceUSD',
+  swapToToken__name = 'swapToToken__name',
+  swapToToken__symbol = 'swapToToken__symbol',
+  timestamp = 'timestamp',
+  tradeType = 'tradeType',
+  tradeVolumeReserves = 'tradeVolumeReserves',
+  tradeVolumeReservesUSD = 'tradeVolumeReservesUSD',
+  tradeVolumeUSD = 'tradeVolumeUSD',
+  transferVolumeReserves = 'transferVolumeReserves',
+  transferVolumeReservesUSD = 'transferVolumeReservesUSD',
+  transferVolumeUSD = 'transferVolumeUSD',
+  well = 'well',
+  well__boredWell = 'well__boredWell',
+  well__convertVolumeUSD = 'well__convertVolumeUSD',
+  well__createdTimestamp = 'well__createdTimestamp',
+  well__cumulativeTradeVolumeUSD = 'well__cumulativeTradeVolumeUSD',
+  well__cumulativeTransferVolumeUSD = 'well__cumulativeTransferVolumeUSD',
+  well__id = 'well__id',
+  well__isBeanstalk = 'well__isBeanstalk',
+  well__lastDailySnapshotDay = 'well__lastDailySnapshotDay',
+  well__lastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
+  well__lastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
+  well__lastUpdateTimestamp = 'well__lastUpdateTimestamp',
+  well__lpTokenSupply = 'well__lpTokenSupply',
+  well__name = 'well__name',
+  well__rollingDailyConvertVolumeUSD = 'well__rollingDailyConvertVolumeUSD',
+  well__rollingDailyTradeVolumeUSD = 'well__rollingDailyTradeVolumeUSD',
+  well__rollingDailyTransferVolumeUSD = 'well__rollingDailyTransferVolumeUSD',
+  well__rollingWeeklyConvertVolumeUSD = 'well__rollingWeeklyConvertVolumeUSD',
+  well__rollingWeeklyTradeVolumeUSD = 'well__rollingWeeklyTradeVolumeUSD',
+  well__rollingWeeklyTransferVolumeUSD = 'well__rollingWeeklyTransferVolumeUSD',
+  well__symbol = 'well__symbol',
+  well__totalLiquidityUSD = 'well__totalLiquidityUSD',
+  well__wellFunctionData = 'well__wellFunctionData'
 }
 
 export type Version = {
@@ -2682,10 +2325,10 @@ export type Version = {
   versionNumber: Scalars['String']['output'];
 };
 
-export type Version_Filter = {
+export type VersionFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Version_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<VersionFilter>>>;
   chain?: InputMaybe<Scalars['String']['input']>;
   chain_contains?: InputMaybe<Scalars['String']['input']>;
   chain_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -2714,7 +2357,7 @@ export type Version_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Version_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<VersionFilter>>>;
   protocolAddress?: InputMaybe<Scalars['Bytes']['input']>;
   protocolAddress_contains?: InputMaybe<Scalars['Bytes']['input']>;
   protocolAddress_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -2767,12 +2410,12 @@ export type Version_Filter = {
   versionNumber_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Version_OrderBy {
-  Chain = 'chain',
-  Id = 'id',
-  ProtocolAddress = 'protocolAddress',
-  SubgraphName = 'subgraphName',
-  VersionNumber = 'versionNumber'
+export enum VersionOrderBy {
+  chain = 'chain',
+  id = 'id',
+  protocolAddress = 'protocolAddress',
+  subgraphName = 'subgraphName',
+  versionNumber = 'versionNumber'
 }
 
 export type Well = {
@@ -2894,55 +2537,55 @@ export type Well = {
 
 export type WellDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WellDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WellDailySnapshot_Filter>;
+  where?: InputMaybe<WellDailySnapshotFilter>;
 };
 
 
 export type WellHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<WellHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WellHourlySnapshot_Filter>;
+  where?: InputMaybe<WellHourlySnapshotFilter>;
 };
 
 
 export type WellPumpsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pump_OrderBy>;
+  orderBy?: InputMaybe<PumpOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Pump_Filter>;
+  where?: InputMaybe<PumpFilter>;
 };
 
 
 export type WellTokensArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Token_OrderBy>;
+  orderBy?: InputMaybe<TokenOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Token_Filter>;
+  where?: InputMaybe<TokenFilter>;
 };
 
 
 export type WellTradesArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Trade_OrderBy>;
+  orderBy?: InputMaybe<TradeOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Trade_Filter>;
+  where?: InputMaybe<TradeFilter>;
 };
 
 
 export type WellUpgradeHistoryArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<WellUpgradeHistory_OrderBy>;
+  orderBy?: InputMaybe<WellUpgradeHistoryOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<WellUpgradeHistory_Filter>;
+  where?: InputMaybe<WellUpgradeHistoryFilter>;
 };
 
 export type WellDailySnapshot = {
@@ -3015,10 +2658,10 @@ export type WellDailySnapshot = {
   well: Well;
 };
 
-export type WellDailySnapshot_Filter = {
+export type WellDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WellDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WellDailySnapshotFilter>>>;
   convertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
@@ -3221,9 +2864,9 @@ export type WellDailySnapshot_Filter = {
   lpTokenSupply_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lpTokenSupply_not?: InputMaybe<Scalars['BigInt']['input']>;
   lpTokenSupply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WellDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WellDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3258,7 +2901,7 @@ export type WellDailySnapshot_Filter = {
   totalLiquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   well?: InputMaybe<Scalars['String']['input']>;
-  well_?: InputMaybe<Well_Filter>;
+  well_?: InputMaybe<WellFilter>;
   well_contains?: InputMaybe<Scalars['String']['input']>;
   well_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   well_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3280,65 +2923,65 @@ export type WellDailySnapshot_Filter = {
   well_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum WellDailySnapshot_OrderBy {
-  ConvertVolumeReserves = 'convertVolumeReserves',
-  ConvertVolumeReservesUsd = 'convertVolumeReservesUSD',
-  ConvertVolumeUsd = 'convertVolumeUSD',
-  CreatedTimestamp = 'createdTimestamp',
-  CumulativeBiTradeVolumeReserves = 'cumulativeBiTradeVolumeReserves',
-  CumulativeTradeVolumeReserves = 'cumulativeTradeVolumeReserves',
-  CumulativeTradeVolumeReservesUsd = 'cumulativeTradeVolumeReservesUSD',
-  CumulativeTradeVolumeUsd = 'cumulativeTradeVolumeUSD',
-  CumulativeTransferVolumeReserves = 'cumulativeTransferVolumeReserves',
-  CumulativeTransferVolumeReservesUsd = 'cumulativeTransferVolumeReservesUSD',
-  CumulativeTransferVolumeUsd = 'cumulativeTransferVolumeUSD',
-  Day = 'day',
-  DeltaBiTradeVolumeReserves = 'deltaBiTradeVolumeReserves',
-  DeltaConvertVolumeReserves = 'deltaConvertVolumeReserves',
-  DeltaConvertVolumeReservesUsd = 'deltaConvertVolumeReservesUSD',
-  DeltaConvertVolumeUsd = 'deltaConvertVolumeUSD',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaLpTokenSupply = 'deltaLpTokenSupply',
-  DeltaTokenRates = 'deltaTokenRates',
-  DeltaTradeVolumeReserves = 'deltaTradeVolumeReserves',
-  DeltaTradeVolumeReservesUsd = 'deltaTradeVolumeReservesUSD',
-  DeltaTradeVolumeUsd = 'deltaTradeVolumeUSD',
-  DeltaTransferVolumeReserves = 'deltaTransferVolumeReserves',
-  DeltaTransferVolumeReservesUsd = 'deltaTransferVolumeReservesUSD',
-  DeltaTransferVolumeUsd = 'deltaTransferVolumeUSD',
-  Id = 'id',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LpTokenSupply = 'lpTokenSupply',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TokenRates = 'tokenRates',
-  TotalLiquidityUsd = 'totalLiquidityUSD',
-  Well = 'well',
-  WellBoredWell = 'well__boredWell',
-  WellConvertVolumeUsd = 'well__convertVolumeUSD',
-  WellCreatedTimestamp = 'well__createdTimestamp',
-  WellCumulativeTradeVolumeUsd = 'well__cumulativeTradeVolumeUSD',
-  WellCumulativeTransferVolumeUsd = 'well__cumulativeTransferVolumeUSD',
-  WellId = 'well__id',
-  WellIsBeanstalk = 'well__isBeanstalk',
-  WellLastDailySnapshotDay = 'well__lastDailySnapshotDay',
-  WellLastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
-  WellLastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
-  WellLastUpdateTimestamp = 'well__lastUpdateTimestamp',
-  WellLpTokenSupply = 'well__lpTokenSupply',
-  WellName = 'well__name',
-  WellRollingDailyConvertVolumeUsd = 'well__rollingDailyConvertVolumeUSD',
-  WellRollingDailyTradeVolumeUsd = 'well__rollingDailyTradeVolumeUSD',
-  WellRollingDailyTransferVolumeUsd = 'well__rollingDailyTransferVolumeUSD',
-  WellRollingWeeklyConvertVolumeUsd = 'well__rollingWeeklyConvertVolumeUSD',
-  WellRollingWeeklyTradeVolumeUsd = 'well__rollingWeeklyTradeVolumeUSD',
-  WellRollingWeeklyTransferVolumeUsd = 'well__rollingWeeklyTransferVolumeUSD',
-  WellSymbol = 'well__symbol',
-  WellTotalLiquidityUsd = 'well__totalLiquidityUSD',
-  WellWellFunctionData = 'well__wellFunctionData'
+export enum WellDailySnapshotOrderBy {
+  convertVolumeReserves = 'convertVolumeReserves',
+  convertVolumeReservesUSD = 'convertVolumeReservesUSD',
+  convertVolumeUSD = 'convertVolumeUSD',
+  createdTimestamp = 'createdTimestamp',
+  cumulativeBiTradeVolumeReserves = 'cumulativeBiTradeVolumeReserves',
+  cumulativeTradeVolumeReserves = 'cumulativeTradeVolumeReserves',
+  cumulativeTradeVolumeReservesUSD = 'cumulativeTradeVolumeReservesUSD',
+  cumulativeTradeVolumeUSD = 'cumulativeTradeVolumeUSD',
+  cumulativeTransferVolumeReserves = 'cumulativeTransferVolumeReserves',
+  cumulativeTransferVolumeReservesUSD = 'cumulativeTransferVolumeReservesUSD',
+  cumulativeTransferVolumeUSD = 'cumulativeTransferVolumeUSD',
+  day = 'day',
+  deltaBiTradeVolumeReserves = 'deltaBiTradeVolumeReserves',
+  deltaConvertVolumeReserves = 'deltaConvertVolumeReserves',
+  deltaConvertVolumeReservesUSD = 'deltaConvertVolumeReservesUSD',
+  deltaConvertVolumeUSD = 'deltaConvertVolumeUSD',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaLpTokenSupply = 'deltaLpTokenSupply',
+  deltaTokenRates = 'deltaTokenRates',
+  deltaTradeVolumeReserves = 'deltaTradeVolumeReserves',
+  deltaTradeVolumeReservesUSD = 'deltaTradeVolumeReservesUSD',
+  deltaTradeVolumeUSD = 'deltaTradeVolumeUSD',
+  deltaTransferVolumeReserves = 'deltaTransferVolumeReserves',
+  deltaTransferVolumeReservesUSD = 'deltaTransferVolumeReservesUSD',
+  deltaTransferVolumeUSD = 'deltaTransferVolumeUSD',
+  id = 'id',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  lpTokenSupply = 'lpTokenSupply',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  tokenRates = 'tokenRates',
+  totalLiquidityUSD = 'totalLiquidityUSD',
+  well = 'well',
+  well__boredWell = 'well__boredWell',
+  well__convertVolumeUSD = 'well__convertVolumeUSD',
+  well__createdTimestamp = 'well__createdTimestamp',
+  well__cumulativeTradeVolumeUSD = 'well__cumulativeTradeVolumeUSD',
+  well__cumulativeTransferVolumeUSD = 'well__cumulativeTransferVolumeUSD',
+  well__id = 'well__id',
+  well__isBeanstalk = 'well__isBeanstalk',
+  well__lastDailySnapshotDay = 'well__lastDailySnapshotDay',
+  well__lastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
+  well__lastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
+  well__lastUpdateTimestamp = 'well__lastUpdateTimestamp',
+  well__lpTokenSupply = 'well__lpTokenSupply',
+  well__name = 'well__name',
+  well__rollingDailyConvertVolumeUSD = 'well__rollingDailyConvertVolumeUSD',
+  well__rollingDailyTradeVolumeUSD = 'well__rollingDailyTradeVolumeUSD',
+  well__rollingDailyTransferVolumeUSD = 'well__rollingDailyTransferVolumeUSD',
+  well__rollingWeeklyConvertVolumeUSD = 'well__rollingWeeklyConvertVolumeUSD',
+  well__rollingWeeklyTradeVolumeUSD = 'well__rollingWeeklyTradeVolumeUSD',
+  well__rollingWeeklyTransferVolumeUSD = 'well__rollingWeeklyTransferVolumeUSD',
+  well__symbol = 'well__symbol',
+  well__totalLiquidityUSD = 'well__totalLiquidityUSD',
+  well__wellFunctionData = 'well__wellFunctionData'
 }
 
 export type WellFunction = {
@@ -3352,16 +2995,16 @@ export type WellFunction = {
 
 export type WellFunctionWellsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Well_OrderBy>;
+  orderBy?: InputMaybe<WellOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Well_Filter>;
+  where?: InputMaybe<WellFilter>;
 };
 
-export type WellFunction_Filter = {
+export type WellFunctionFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WellFunction_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WellFunctionFilter>>>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -3372,13 +3015,13 @@ export type WellFunction_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WellFunction_Filter>>>;
-  wells_?: InputMaybe<Well_Filter>;
+  or?: InputMaybe<Array<InputMaybe<WellFunctionFilter>>>;
+  wells_?: InputMaybe<WellFilter>;
 };
 
-export enum WellFunction_OrderBy {
-  Id = 'id',
-  Wells = 'wells'
+export enum WellFunctionOrderBy {
+  id = 'id',
+  wells = 'wells'
 }
 
 export type WellHourlySnapshot = {
@@ -3451,10 +3094,10 @@ export type WellHourlySnapshot = {
   well: Well;
 };
 
-export type WellHourlySnapshot_Filter = {
+export type WellHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WellHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WellHourlySnapshotFilter>>>;
   convertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
@@ -3657,9 +3300,9 @@ export type WellHourlySnapshot_Filter = {
   lpTokenSupply_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lpTokenSupply_not?: InputMaybe<Scalars['BigInt']['input']>;
   lpTokenSupply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<WellHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WellHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3694,7 +3337,7 @@ export type WellHourlySnapshot_Filter = {
   totalLiquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   well?: InputMaybe<Scalars['String']['input']>;
-  well_?: InputMaybe<Well_Filter>;
+  well_?: InputMaybe<WellFilter>;
   well_contains?: InputMaybe<Scalars['String']['input']>;
   well_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   well_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3716,65 +3359,65 @@ export type WellHourlySnapshot_Filter = {
   well_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum WellHourlySnapshot_OrderBy {
-  ConvertVolumeReserves = 'convertVolumeReserves',
-  ConvertVolumeReservesUsd = 'convertVolumeReservesUSD',
-  ConvertVolumeUsd = 'convertVolumeUSD',
-  CreatedTimestamp = 'createdTimestamp',
-  CumulativeBiTradeVolumeReserves = 'cumulativeBiTradeVolumeReserves',
-  CumulativeTradeVolumeReserves = 'cumulativeTradeVolumeReserves',
-  CumulativeTradeVolumeReservesUsd = 'cumulativeTradeVolumeReservesUSD',
-  CumulativeTradeVolumeUsd = 'cumulativeTradeVolumeUSD',
-  CumulativeTransferVolumeReserves = 'cumulativeTransferVolumeReserves',
-  CumulativeTransferVolumeReservesUsd = 'cumulativeTransferVolumeReservesUSD',
-  CumulativeTransferVolumeUsd = 'cumulativeTransferVolumeUSD',
-  DeltaBiTradeVolumeReserves = 'deltaBiTradeVolumeReserves',
-  DeltaConvertVolumeReserves = 'deltaConvertVolumeReserves',
-  DeltaConvertVolumeReservesUsd = 'deltaConvertVolumeReservesUSD',
-  DeltaConvertVolumeUsd = 'deltaConvertVolumeUSD',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaLpTokenSupply = 'deltaLpTokenSupply',
-  DeltaTokenRates = 'deltaTokenRates',
-  DeltaTradeVolumeReserves = 'deltaTradeVolumeReserves',
-  DeltaTradeVolumeReservesUsd = 'deltaTradeVolumeReservesUSD',
-  DeltaTradeVolumeUsd = 'deltaTradeVolumeUSD',
-  DeltaTransferVolumeReserves = 'deltaTransferVolumeReserves',
-  DeltaTransferVolumeReservesUsd = 'deltaTransferVolumeReservesUSD',
-  DeltaTransferVolumeUsd = 'deltaTransferVolumeUSD',
-  Hour = 'hour',
-  Id = 'id',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LpTokenSupply = 'lpTokenSupply',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TokenRates = 'tokenRates',
-  TotalLiquidityUsd = 'totalLiquidityUSD',
-  Well = 'well',
-  WellBoredWell = 'well__boredWell',
-  WellConvertVolumeUsd = 'well__convertVolumeUSD',
-  WellCreatedTimestamp = 'well__createdTimestamp',
-  WellCumulativeTradeVolumeUsd = 'well__cumulativeTradeVolumeUSD',
-  WellCumulativeTransferVolumeUsd = 'well__cumulativeTransferVolumeUSD',
-  WellId = 'well__id',
-  WellIsBeanstalk = 'well__isBeanstalk',
-  WellLastDailySnapshotDay = 'well__lastDailySnapshotDay',
-  WellLastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
-  WellLastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
-  WellLastUpdateTimestamp = 'well__lastUpdateTimestamp',
-  WellLpTokenSupply = 'well__lpTokenSupply',
-  WellName = 'well__name',
-  WellRollingDailyConvertVolumeUsd = 'well__rollingDailyConvertVolumeUSD',
-  WellRollingDailyTradeVolumeUsd = 'well__rollingDailyTradeVolumeUSD',
-  WellRollingDailyTransferVolumeUsd = 'well__rollingDailyTransferVolumeUSD',
-  WellRollingWeeklyConvertVolumeUsd = 'well__rollingWeeklyConvertVolumeUSD',
-  WellRollingWeeklyTradeVolumeUsd = 'well__rollingWeeklyTradeVolumeUSD',
-  WellRollingWeeklyTransferVolumeUsd = 'well__rollingWeeklyTransferVolumeUSD',
-  WellSymbol = 'well__symbol',
-  WellTotalLiquidityUsd = 'well__totalLiquidityUSD',
-  WellWellFunctionData = 'well__wellFunctionData'
+export enum WellHourlySnapshotOrderBy {
+  convertVolumeReserves = 'convertVolumeReserves',
+  convertVolumeReservesUSD = 'convertVolumeReservesUSD',
+  convertVolumeUSD = 'convertVolumeUSD',
+  createdTimestamp = 'createdTimestamp',
+  cumulativeBiTradeVolumeReserves = 'cumulativeBiTradeVolumeReserves',
+  cumulativeTradeVolumeReserves = 'cumulativeTradeVolumeReserves',
+  cumulativeTradeVolumeReservesUSD = 'cumulativeTradeVolumeReservesUSD',
+  cumulativeTradeVolumeUSD = 'cumulativeTradeVolumeUSD',
+  cumulativeTransferVolumeReserves = 'cumulativeTransferVolumeReserves',
+  cumulativeTransferVolumeReservesUSD = 'cumulativeTransferVolumeReservesUSD',
+  cumulativeTransferVolumeUSD = 'cumulativeTransferVolumeUSD',
+  deltaBiTradeVolumeReserves = 'deltaBiTradeVolumeReserves',
+  deltaConvertVolumeReserves = 'deltaConvertVolumeReserves',
+  deltaConvertVolumeReservesUSD = 'deltaConvertVolumeReservesUSD',
+  deltaConvertVolumeUSD = 'deltaConvertVolumeUSD',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaLpTokenSupply = 'deltaLpTokenSupply',
+  deltaTokenRates = 'deltaTokenRates',
+  deltaTradeVolumeReserves = 'deltaTradeVolumeReserves',
+  deltaTradeVolumeReservesUSD = 'deltaTradeVolumeReservesUSD',
+  deltaTradeVolumeUSD = 'deltaTradeVolumeUSD',
+  deltaTransferVolumeReserves = 'deltaTransferVolumeReserves',
+  deltaTransferVolumeReservesUSD = 'deltaTransferVolumeReservesUSD',
+  deltaTransferVolumeUSD = 'deltaTransferVolumeUSD',
+  hour = 'hour',
+  id = 'id',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  lpTokenSupply = 'lpTokenSupply',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  tokenRates = 'tokenRates',
+  totalLiquidityUSD = 'totalLiquidityUSD',
+  well = 'well',
+  well__boredWell = 'well__boredWell',
+  well__convertVolumeUSD = 'well__convertVolumeUSD',
+  well__createdTimestamp = 'well__createdTimestamp',
+  well__cumulativeTradeVolumeUSD = 'well__cumulativeTradeVolumeUSD',
+  well__cumulativeTransferVolumeUSD = 'well__cumulativeTransferVolumeUSD',
+  well__id = 'well__id',
+  well__isBeanstalk = 'well__isBeanstalk',
+  well__lastDailySnapshotDay = 'well__lastDailySnapshotDay',
+  well__lastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
+  well__lastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
+  well__lastUpdateTimestamp = 'well__lastUpdateTimestamp',
+  well__lpTokenSupply = 'well__lpTokenSupply',
+  well__name = 'well__name',
+  well__rollingDailyConvertVolumeUSD = 'well__rollingDailyConvertVolumeUSD',
+  well__rollingDailyTradeVolumeUSD = 'well__rollingDailyTradeVolumeUSD',
+  well__rollingDailyTransferVolumeUSD = 'well__rollingDailyTransferVolumeUSD',
+  well__rollingWeeklyConvertVolumeUSD = 'well__rollingWeeklyConvertVolumeUSD',
+  well__rollingWeeklyTradeVolumeUSD = 'well__rollingWeeklyTradeVolumeUSD',
+  well__rollingWeeklyTransferVolumeUSD = 'well__rollingWeeklyTransferVolumeUSD',
+  well__symbol = 'well__symbol',
+  well__totalLiquidityUSD = 'well__totalLiquidityUSD',
+  well__wellFunctionData = 'well__wellFunctionData'
 }
 
 export type WellUpgradeHistory = {
@@ -3799,18 +3442,18 @@ export type WellUpgradeHistory = {
 
 export type WellUpgradeHistoryPumpsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pump_OrderBy>;
+  orderBy?: InputMaybe<PumpOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Pump_Filter>;
+  where?: InputMaybe<PumpFilter>;
 };
 
-export type WellUpgradeHistory_Filter = {
+export type WellUpgradeHistoryFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<WellUpgradeHistory_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WellUpgradeHistoryFilter>>>;
   aquifer?: InputMaybe<Scalars['String']['input']>;
-  aquifer_?: InputMaybe<Aquifer_Filter>;
+  aquifer_?: InputMaybe<AquiferFilter>;
   aquifer_contains?: InputMaybe<Scalars['String']['input']>;
   aquifer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   aquifer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3865,7 +3508,7 @@ export type WellUpgradeHistory_Filter = {
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
   implementation?: InputMaybe<Scalars['String']['input']>;
-  implementation_?: InputMaybe<Implementation_Filter>;
+  implementation_?: InputMaybe<ImplementationFilter>;
   implementation_contains?: InputMaybe<Scalars['String']['input']>;
   implementation_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   implementation_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3885,7 +3528,7 @@ export type WellUpgradeHistory_Filter = {
   implementation_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   implementation_starts_with?: InputMaybe<Scalars['String']['input']>;
   implementation_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<WellUpgradeHistory_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WellUpgradeHistoryFilter>>>;
   pumpData?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
@@ -3893,7 +3536,7 @@ export type WellUpgradeHistory_Filter = {
   pumpData_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumps?: InputMaybe<Array<Scalars['String']['input']>>;
-  pumps_?: InputMaybe<Pump_Filter>;
+  pumps_?: InputMaybe<PumpFilter>;
   pumps_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -3911,7 +3554,7 @@ export type WellUpgradeHistory_Filter = {
   wellFunctionData_not?: InputMaybe<Scalars['Bytes']['input']>;
   wellFunctionData_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   wellFunctionData_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  wellFunction_?: InputMaybe<WellFunction_Filter>;
+  wellFunction_?: InputMaybe<WellFunctionFilter>;
   wellFunction_contains?: InputMaybe<Scalars['String']['input']>;
   wellFunction_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   wellFunction_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3931,7 +3574,7 @@ export type WellUpgradeHistory_Filter = {
   wellFunction_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   wellFunction_starts_with?: InputMaybe<Scalars['String']['input']>;
   wellFunction_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  well_?: InputMaybe<Well_Filter>;
+  well_?: InputMaybe<WellFilter>;
   well_contains?: InputMaybe<Scalars['String']['input']>;
   well_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   well_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -3953,51 +3596,51 @@ export type WellUpgradeHistory_Filter = {
   well_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum WellUpgradeHistory_OrderBy {
-  Aquifer = 'aquifer',
-  AquiferId = 'aquifer__id',
-  BoredWell = 'boredWell',
-  EffectiveBlock = 'effectiveBlock',
-  EffectiveTimestamp = 'effectiveTimestamp',
-  Id = 'id',
-  Implementation = 'implementation',
-  ImplementationId = 'implementation__id',
-  PumpData = 'pumpData',
-  Pumps = 'pumps',
-  Well = 'well',
-  WellFunction = 'wellFunction',
-  WellFunctionData = 'wellFunctionData',
-  WellFunctionId = 'wellFunction__id',
-  WellBoredWell = 'well__boredWell',
-  WellConvertVolumeUsd = 'well__convertVolumeUSD',
-  WellCreatedTimestamp = 'well__createdTimestamp',
-  WellCumulativeTradeVolumeUsd = 'well__cumulativeTradeVolumeUSD',
-  WellCumulativeTransferVolumeUsd = 'well__cumulativeTransferVolumeUSD',
-  WellId = 'well__id',
-  WellIsBeanstalk = 'well__isBeanstalk',
-  WellLastDailySnapshotDay = 'well__lastDailySnapshotDay',
-  WellLastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
-  WellLastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
-  WellLastUpdateTimestamp = 'well__lastUpdateTimestamp',
-  WellLpTokenSupply = 'well__lpTokenSupply',
-  WellName = 'well__name',
-  WellRollingDailyConvertVolumeUsd = 'well__rollingDailyConvertVolumeUSD',
-  WellRollingDailyTradeVolumeUsd = 'well__rollingDailyTradeVolumeUSD',
-  WellRollingDailyTransferVolumeUsd = 'well__rollingDailyTransferVolumeUSD',
-  WellRollingWeeklyConvertVolumeUsd = 'well__rollingWeeklyConvertVolumeUSD',
-  WellRollingWeeklyTradeVolumeUsd = 'well__rollingWeeklyTradeVolumeUSD',
-  WellRollingWeeklyTransferVolumeUsd = 'well__rollingWeeklyTransferVolumeUSD',
-  WellSymbol = 'well__symbol',
-  WellTotalLiquidityUsd = 'well__totalLiquidityUSD',
-  WellWellFunctionData = 'well__wellFunctionData'
+export enum WellUpgradeHistoryOrderBy {
+  aquifer = 'aquifer',
+  aquifer__id = 'aquifer__id',
+  boredWell = 'boredWell',
+  effectiveBlock = 'effectiveBlock',
+  effectiveTimestamp = 'effectiveTimestamp',
+  id = 'id',
+  implementation = 'implementation',
+  implementation__id = 'implementation__id',
+  pumpData = 'pumpData',
+  pumps = 'pumps',
+  well = 'well',
+  wellFunction = 'wellFunction',
+  wellFunctionData = 'wellFunctionData',
+  wellFunction__id = 'wellFunction__id',
+  well__boredWell = 'well__boredWell',
+  well__convertVolumeUSD = 'well__convertVolumeUSD',
+  well__createdTimestamp = 'well__createdTimestamp',
+  well__cumulativeTradeVolumeUSD = 'well__cumulativeTradeVolumeUSD',
+  well__cumulativeTransferVolumeUSD = 'well__cumulativeTransferVolumeUSD',
+  well__id = 'well__id',
+  well__isBeanstalk = 'well__isBeanstalk',
+  well__lastDailySnapshotDay = 'well__lastDailySnapshotDay',
+  well__lastHourlySnapshotHour = 'well__lastHourlySnapshotHour',
+  well__lastUpdateBlockNumber = 'well__lastUpdateBlockNumber',
+  well__lastUpdateTimestamp = 'well__lastUpdateTimestamp',
+  well__lpTokenSupply = 'well__lpTokenSupply',
+  well__name = 'well__name',
+  well__rollingDailyConvertVolumeUSD = 'well__rollingDailyConvertVolumeUSD',
+  well__rollingDailyTradeVolumeUSD = 'well__rollingDailyTradeVolumeUSD',
+  well__rollingDailyTransferVolumeUSD = 'well__rollingDailyTransferVolumeUSD',
+  well__rollingWeeklyConvertVolumeUSD = 'well__rollingWeeklyConvertVolumeUSD',
+  well__rollingWeeklyTradeVolumeUSD = 'well__rollingWeeklyTradeVolumeUSD',
+  well__rollingWeeklyTransferVolumeUSD = 'well__rollingWeeklyTransferVolumeUSD',
+  well__symbol = 'well__symbol',
+  well__totalLiquidityUSD = 'well__totalLiquidityUSD',
+  well__wellFunctionData = 'well__wellFunctionData'
 }
 
-export type Well_Filter = {
+export type WellFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Well_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<WellFilter>>>;
   aquifer?: InputMaybe<Scalars['String']['input']>;
-  aquifer_?: InputMaybe<Aquifer_Filter>;
+  aquifer_?: InputMaybe<AquiferFilter>;
   aquifer_contains?: InputMaybe<Scalars['String']['input']>;
   aquifer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   aquifer_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4101,8 +3744,8 @@ export type Well_Filter = {
   cumulativeTransferVolumeUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  dailySnapshots_?: InputMaybe<WellDailySnapshot_Filter>;
-  hourlySnapshots_?: InputMaybe<WellHourlySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<WellDailySnapshotFilter>;
+  hourlySnapshots_?: InputMaybe<WellHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -4114,7 +3757,7 @@ export type Well_Filter = {
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   implementation?: InputMaybe<Scalars['String']['input']>;
-  implementation_?: InputMaybe<Implementation_Filter>;
+  implementation_?: InputMaybe<ImplementationFilter>;
   implementation_contains?: InputMaybe<Scalars['String']['input']>;
   implementation_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   implementation_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4198,7 +3841,7 @@ export type Well_Filter = {
   name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   name_starts_with?: InputMaybe<Scalars['String']['input']>;
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<Well_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<WellFilter>>>;
   pumpData?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
@@ -4206,7 +3849,7 @@ export type Well_Filter = {
   pumpData_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumps?: InputMaybe<Array<Scalars['String']['input']>>;
-  pumps_?: InputMaybe<Pump_Filter>;
+  pumps_?: InputMaybe<PumpFilter>;
   pumps_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -4389,7 +4032,7 @@ export type Well_Filter = {
   tokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokens?: InputMaybe<Array<Scalars['String']['input']>>;
-  tokens_?: InputMaybe<Token_Filter>;
+  tokens_?: InputMaybe<TokenFilter>;
   tokens_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -4403,8 +4046,8 @@ export type Well_Filter = {
   totalLiquidityUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  trades_?: InputMaybe<Trade_Filter>;
-  upgradeHistory_?: InputMaybe<WellUpgradeHistory_Filter>;
+  trades_?: InputMaybe<TradeFilter>;
+  upgradeHistory_?: InputMaybe<WellUpgradeHistoryFilter>;
   wellFunction?: InputMaybe<Scalars['String']['input']>;
   wellFunctionData?: InputMaybe<Scalars['Bytes']['input']>;
   wellFunctionData_contains?: InputMaybe<Scalars['Bytes']['input']>;
@@ -4416,7 +4059,7 @@ export type Well_Filter = {
   wellFunctionData_not?: InputMaybe<Scalars['Bytes']['input']>;
   wellFunctionData_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   wellFunctionData_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  wellFunction_?: InputMaybe<WellFunction_Filter>;
+  wellFunction_?: InputMaybe<WellFunctionFilter>;
   wellFunction_contains?: InputMaybe<Scalars['String']['input']>;
   wellFunction_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   wellFunction_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4438,70 +4081,70 @@ export type Well_Filter = {
   wellFunction_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Well_OrderBy {
-  Aquifer = 'aquifer',
-  AquiferId = 'aquifer__id',
-  BoredWell = 'boredWell',
-  ConvertVolumeReserves = 'convertVolumeReserves',
-  ConvertVolumeReservesUsd = 'convertVolumeReservesUSD',
-  ConvertVolumeUsd = 'convertVolumeUSD',
-  CreatedTimestamp = 'createdTimestamp',
-  CumulativeBiTradeVolumeReserves = 'cumulativeBiTradeVolumeReserves',
-  CumulativeTradeVolumeReserves = 'cumulativeTradeVolumeReserves',
-  CumulativeTradeVolumeReservesUsd = 'cumulativeTradeVolumeReservesUSD',
-  CumulativeTradeVolumeUsd = 'cumulativeTradeVolumeUSD',
-  CumulativeTransferVolumeReserves = 'cumulativeTransferVolumeReserves',
-  CumulativeTransferVolumeReservesUsd = 'cumulativeTransferVolumeReservesUSD',
-  CumulativeTransferVolumeUsd = 'cumulativeTransferVolumeUSD',
-  DailySnapshots = 'dailySnapshots',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  Implementation = 'implementation',
-  ImplementationId = 'implementation__id',
-  IsBeanstalk = 'isBeanstalk',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotHour = 'lastHourlySnapshotHour',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LpTokenSupply = 'lpTokenSupply',
-  Name = 'name',
-  PumpData = 'pumpData',
-  Pumps = 'pumps',
-  Reserves = 'reserves',
-  ReservesUsd = 'reservesUSD',
-  RollingDailyBiTradeVolumeReserves = 'rollingDailyBiTradeVolumeReserves',
-  RollingDailyConvertVolumeReserves = 'rollingDailyConvertVolumeReserves',
-  RollingDailyConvertVolumeReservesUsd = 'rollingDailyConvertVolumeReservesUSD',
-  RollingDailyConvertVolumeUsd = 'rollingDailyConvertVolumeUSD',
-  RollingDailyTradeVolumeReserves = 'rollingDailyTradeVolumeReserves',
-  RollingDailyTradeVolumeReservesUsd = 'rollingDailyTradeVolumeReservesUSD',
-  RollingDailyTradeVolumeUsd = 'rollingDailyTradeVolumeUSD',
-  RollingDailyTransferVolumeReserves = 'rollingDailyTransferVolumeReserves',
-  RollingDailyTransferVolumeReservesUsd = 'rollingDailyTransferVolumeReservesUSD',
-  RollingDailyTransferVolumeUsd = 'rollingDailyTransferVolumeUSD',
-  RollingWeeklyBiTradeVolumeReserves = 'rollingWeeklyBiTradeVolumeReserves',
-  RollingWeeklyConvertVolumeReserves = 'rollingWeeklyConvertVolumeReserves',
-  RollingWeeklyConvertVolumeReservesUsd = 'rollingWeeklyConvertVolumeReservesUSD',
-  RollingWeeklyConvertVolumeUsd = 'rollingWeeklyConvertVolumeUSD',
-  RollingWeeklyTradeVolumeReserves = 'rollingWeeklyTradeVolumeReserves',
-  RollingWeeklyTradeVolumeReservesUsd = 'rollingWeeklyTradeVolumeReservesUSD',
-  RollingWeeklyTradeVolumeUsd = 'rollingWeeklyTradeVolumeUSD',
-  RollingWeeklyTransferVolumeReserves = 'rollingWeeklyTransferVolumeReserves',
-  RollingWeeklyTransferVolumeReservesUsd = 'rollingWeeklyTransferVolumeReservesUSD',
-  RollingWeeklyTransferVolumeUsd = 'rollingWeeklyTransferVolumeUSD',
-  Symbol = 'symbol',
-  TokenOrder = 'tokenOrder',
-  TokenRates = 'tokenRates',
-  Tokens = 'tokens',
-  TotalLiquidityUsd = 'totalLiquidityUSD',
-  Trades = 'trades',
-  UpgradeHistory = 'upgradeHistory',
-  WellFunction = 'wellFunction',
-  WellFunctionData = 'wellFunctionData',
-  WellFunctionId = 'wellFunction__id'
+export enum WellOrderBy {
+  aquifer = 'aquifer',
+  aquifer__id = 'aquifer__id',
+  boredWell = 'boredWell',
+  convertVolumeReserves = 'convertVolumeReserves',
+  convertVolumeReservesUSD = 'convertVolumeReservesUSD',
+  convertVolumeUSD = 'convertVolumeUSD',
+  createdTimestamp = 'createdTimestamp',
+  cumulativeBiTradeVolumeReserves = 'cumulativeBiTradeVolumeReserves',
+  cumulativeTradeVolumeReserves = 'cumulativeTradeVolumeReserves',
+  cumulativeTradeVolumeReservesUSD = 'cumulativeTradeVolumeReservesUSD',
+  cumulativeTradeVolumeUSD = 'cumulativeTradeVolumeUSD',
+  cumulativeTransferVolumeReserves = 'cumulativeTransferVolumeReserves',
+  cumulativeTransferVolumeReservesUSD = 'cumulativeTransferVolumeReservesUSD',
+  cumulativeTransferVolumeUSD = 'cumulativeTransferVolumeUSD',
+  dailySnapshots = 'dailySnapshots',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  implementation = 'implementation',
+  implementation__id = 'implementation__id',
+  isBeanstalk = 'isBeanstalk',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotHour = 'lastHourlySnapshotHour',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  lpTokenSupply = 'lpTokenSupply',
+  name = 'name',
+  pumpData = 'pumpData',
+  pumps = 'pumps',
+  reserves = 'reserves',
+  reservesUSD = 'reservesUSD',
+  rollingDailyBiTradeVolumeReserves = 'rollingDailyBiTradeVolumeReserves',
+  rollingDailyConvertVolumeReserves = 'rollingDailyConvertVolumeReserves',
+  rollingDailyConvertVolumeReservesUSD = 'rollingDailyConvertVolumeReservesUSD',
+  rollingDailyConvertVolumeUSD = 'rollingDailyConvertVolumeUSD',
+  rollingDailyTradeVolumeReserves = 'rollingDailyTradeVolumeReserves',
+  rollingDailyTradeVolumeReservesUSD = 'rollingDailyTradeVolumeReservesUSD',
+  rollingDailyTradeVolumeUSD = 'rollingDailyTradeVolumeUSD',
+  rollingDailyTransferVolumeReserves = 'rollingDailyTransferVolumeReserves',
+  rollingDailyTransferVolumeReservesUSD = 'rollingDailyTransferVolumeReservesUSD',
+  rollingDailyTransferVolumeUSD = 'rollingDailyTransferVolumeUSD',
+  rollingWeeklyBiTradeVolumeReserves = 'rollingWeeklyBiTradeVolumeReserves',
+  rollingWeeklyConvertVolumeReserves = 'rollingWeeklyConvertVolumeReserves',
+  rollingWeeklyConvertVolumeReservesUSD = 'rollingWeeklyConvertVolumeReservesUSD',
+  rollingWeeklyConvertVolumeUSD = 'rollingWeeklyConvertVolumeUSD',
+  rollingWeeklyTradeVolumeReserves = 'rollingWeeklyTradeVolumeReserves',
+  rollingWeeklyTradeVolumeReservesUSD = 'rollingWeeklyTradeVolumeReservesUSD',
+  rollingWeeklyTradeVolumeUSD = 'rollingWeeklyTradeVolumeUSD',
+  rollingWeeklyTransferVolumeReserves = 'rollingWeeklyTransferVolumeReserves',
+  rollingWeeklyTransferVolumeReservesUSD = 'rollingWeeklyTransferVolumeReservesUSD',
+  rollingWeeklyTransferVolumeUSD = 'rollingWeeklyTransferVolumeUSD',
+  symbol = 'symbol',
+  tokenOrder = 'tokenOrder',
+  tokenRates = 'tokenRates',
+  tokens = 'tokens',
+  totalLiquidityUSD = 'totalLiquidityUSD',
+  trades = 'trades',
+  upgradeHistory = 'upgradeHistory',
+  wellFunction = 'wellFunction',
+  wellFunctionData = 'wellFunctionData',
+  wellFunction__id = 'wellFunction__id'
 }
 
-export type _Block_ = {
+export type Block = {
   __typename?: '_Block_';
   /** The hash of the block */
   hash?: Maybe<Scalars['Bytes']['output']>;
@@ -4514,27 +4157,26 @@ export type _Block_ = {
 };
 
 /** The type for the top-level _meta field */
-export type _Meta_ = {
+export type Meta = {
   __typename?: '_Meta_';
   /**
    * Information about a specific subgraph block. The hash of the block
    * will be null if the _meta field has a block constraint that asks for
    * a block number. It will be filled if the _meta field has no block constraint
    * and therefore asks for the latest  block
-   *
    */
-  block: _Block_;
+  block: Block;
   /** The deployment ID */
   deployment: Scalars['String']['output'];
   /** If `true`, the subgraph encountered indexing errors at some past block */
   hasIndexingErrors: Scalars['Boolean']['output'];
 };
 
-export enum _SubgraphErrorPolicy_ {
+export enum SubgraphErrorPolicy {
   /** Data will be returned even if the subgraph has indexing errors */
-  Allow = 'allow',
+  allow = 'allow',
   /** If the subgraph has indexing errors, data will be omitted. The default. */
-  Deny = 'deny'
+  deny = 'deny'
 }
 
 export type BasinAdvancedChartQueryVariables = Exact<{
