@@ -1,16 +1,25 @@
 import PodIcon from "@/assets/protocol/Pod.png";
 import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
+import { Col } from "@/components/Container";
 import FrameAnimator from "@/components/LoadingSpinner";
+
+import PodLineGraph from "@/components/PodLineGraph";
+import PodScoreGradientLegend from "@/components/PodScoreGradientLegend";
+import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import ScatterChart from "@/components/charts/ScatterChart";
+import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import useNavHeight from "@/hooks/display/useNavHeight";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
+import { calculatePodScore } from "@/utils/podScore";
+import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
@@ -22,27 +31,35 @@ import CreateOrder from "./market/actions/CreateOrder";
 import FillListing from "./market/actions/FillListing";
 import FillOrder from "./market/actions/FillOrder";
 
+// Constants
 const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
 const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 
-const getPointTopOffset = () => {
-  if (window.innerWidth > 1600) {
-    return 90;
-  } else if (window.innerWidth > 1100) {
-    return 80;
-  } else {
-    return 40;
-  }
+const MILLION = 1_000_000;
+const TOOLTIP_Z_INDEX = 1;
+const CHART_MAX_PRICE = 100;
+
+// Responsive breakpoints for tooltip positioning
+const BREAKPOINT_XL = 1600;
+const BREAKPOINT_LG = 1100;
+
+const TOOLTIP_OFFSET = {
+  TOP: { XL: 90, LG: 80, DEFAULT: 40 },
+  BOTTOM: { XL: 175, LG: 130, DEFAULT: 90 },
 };
 
-const getPointBottomOffset = () => {
-  if (window.innerWidth > 1600) {
-    return 175;
-  } else if (window.innerWidth > 1100) {
-    return 130;
-  } else {
-    return 90;
-  }
+const getPointTopOffset = (): number => {
+  const width = window.innerWidth;
+  if (width > BREAKPOINT_XL) return TOOLTIP_OFFSET.TOP.XL;
+  if (width > BREAKPOINT_LG) return TOOLTIP_OFFSET.TOP.LG;
+  return TOOLTIP_OFFSET.TOP.DEFAULT;
+};
+
+const getPointBottomOffset = (): number => {
+  const width = window.innerWidth;
+  if (width > BREAKPOINT_XL) return TOOLTIP_OFFSET.BOTTOM.XL;
+  if (width > BREAKPOINT_LG) return TOOLTIP_OFFSET.BOTTOM.LG;
+  return TOOLTIP_OFFSET.BOTTOM.DEFAULT;
 };
 
 type MarketScatterChartDataPoint = {
@@ -54,6 +71,8 @@ type MarketScatterChartDataPoint = {
   amount: number;
   placeInLine: number;
   eventIndex?: number;
+  podScore?: number;
+  color?: string;
 };
 
 type MarketScatterChartData = {
@@ -64,83 +83,104 @@ type MarketScatterChartData = {
   pointRadius: number;
 };
 
+/**
+ * Transforms raw market data into scatter chart format with Pod Score coloring
+ */
 const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): MarketScatterChartData[] => {
-  return (
-    data?.reduce(
-      (acc, event) => {
-        // Skip Fill Orders
-        if ("toFarmer" in event) {
-          return acc;
-        }
+  if (!data) return [];
 
-        let amount: number | null = null;
-        let status = "";
-        let placeInLine: number | null = null;
-        let eventIndex: number | null = null;
-        const price = event.pricePerPod.toNumber();
-        const eventId = event.id;
-        const eventType: "ORDER" | "LISTING" = event.type as "ORDER" | "LISTING";
-
-        if ("beanAmount" in event) {
-          // Handle Orders
-          amount = event.beanAmount.div(event.pricePerPod).toNumber();
-          const fillPct = event.beanAmountFilled.div(event.beanAmount).mul(100).toNumber();
-          status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
-          placeInLine = event.maxPlaceInLine.toNumber();
-
-          if (status === "ACTIVE" && placeInLine !== null && price !== null) {
-            acc[0].data.push({
-              x: placeInLine / 1_000_000,
-              y: price,
-              eventId,
-              eventType,
-              status,
-              amount,
-              placeInLine,
-            });
-          }
-        } else if ("originalAmount" in event) {
-          // Handle Listings
-          amount = event.originalAmount.toNumber();
-          const fillPct = event.filled.div(event.originalAmount).mul(100).toNumber();
-          status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
-          placeInLine = status === "ACTIVE" ? event.index.sub(harvestableIndex).toNumber() : null;
-          eventIndex = event.index.toNumber();
-
-          if (placeInLine !== null && price !== null) {
-            acc[1].data.push({
-              x: placeInLine / 1_000_000,
-              y: price,
-              eventId,
-              eventIndex,
-              eventType,
-              status,
-              amount,
-              placeInLine,
-            });
-          }
-        }
-
+  const result = data.reduce(
+    (acc, event) => {
+      // Skip Fill Orders
+      if ("toFarmer" in event) {
         return acc;
+      }
+
+      const price = event.pricePerPod.toNumber();
+      const eventId = event.id;
+      const eventType: "ORDER" | "LISTING" = event.type as "ORDER" | "LISTING";
+
+      if ("beanAmount" in event) {
+        // Handle Orders
+        const amount = event.beanAmount.div(event.pricePerPod).toNumber();
+        const fillPct = event.beanAmountFilled.div(event.beanAmount).mul(100).toNumber();
+        const status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
+        const placeInLine = event.maxPlaceInLine.toNumber();
+
+        if (status === "ACTIVE" && placeInLine !== null && price !== null) {
+          acc[0].data.push({
+            x: placeInLine / MILLION,
+            y: price,
+            eventId,
+            eventType,
+            status,
+            amount,
+            placeInLine,
+          });
+        }
+      } else if ("originalAmount" in event) {
+        // Handle Listings
+        const amount = event.originalAmount.toNumber();
+        const fillPct = event.filled.div(event.originalAmount).mul(100).toNumber();
+        const status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
+        const placeInLine = status === "ACTIVE" ? event.index.sub(harvestableIndex).toNumber() : null;
+        const eventIndex = event.index.toNumber();
+
+        if (placeInLine !== null && price !== null) {
+          // Calculate Pod Score for the listing
+          // Use placeInLine in millions for consistent scaling with chart x-axis
+          const podScore = calculatePodScore(price, placeInLine / MILLION);
+
+          acc[1].data.push({
+            x: placeInLine / MILLION,
+            y: price,
+            eventId,
+            eventIndex,
+            eventType,
+            status,
+            amount,
+            placeInLine,
+            podScore,
+          });
+        }
+      }
+
+      return acc;
+    },
+    [
+      {
+        label: "Orders",
+        data: [] as MarketScatterChartDataPoint[],
+        color: "#5CB8A9", // teal
+        pointStyle: "circle" as PointStyle,
+        pointRadius: 6,
       },
-      [
-        {
-          label: "Orders",
-          data: [] as MarketScatterChartDataPoint[],
-          color: "#40b0a6", // teal
-          pointStyle: "circle" as PointStyle,
-          pointRadius: 6,
-        },
-        {
-          label: "Listings",
-          data: [] as MarketScatterChartDataPoint[],
-          color: "#e0b57d", // tan
-          pointStyle: "rect" as PointStyle,
-          pointRadius: 6,
-        },
-      ],
-    ) || []
+      {
+        label: "Listings",
+        data: [] as MarketScatterChartDataPoint[],
+        color: "#e0b57d", // tan (fallback)
+        pointStyle: "rect" as PointStyle,
+        pointRadius: 6,
+      },
+    ],
   );
+
+  // Apply Pod Score coloring to listings
+  // Extract all listing Pod Scores (filter out undefined values)
+  const listingScores = result[1].data
+    .map((point) => point.podScore)
+    .filter((score): score is number => score !== undefined);
+
+  // Build color scaler from listing scores
+  const colorScaler = buildPodScoreColorScaler(listingScores);
+
+  // Map through listings and apply colors
+  result[1].data = result[1].data.map((point) => ({
+    ...point,
+    color: point.podScore !== undefined ? colorScaler.toColor(point.podScore) : "#e0b57d", // Fallback color for invalid Pod Scores
+  }));
+
+  return result;
 };
 
 export function Market() {
@@ -149,70 +189,112 @@ export function Market() {
   const navigate = useNavigate();
   const { data, isLoaded } = useAllMarket();
   const podLine = usePodLine();
-  const podLineAsNumber = podLine.toNumber() / 1000000;
   const harvestableIndex = useHarvestableIndex();
+  const podLineAsNumber = podLine.toNumber() / MILLION;
+  const navHeight = useNavHeight();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setMounted(true);
+    }, 3000);
+  }, []);
+
+  // Chart ref
+  const chartRef = useRef<Chart | null>(null);
 
   const scatterChartData: MarketScatterChartData[] = useMemo(
     () => shapeScatterChartData(data || [], harvestableIndex),
     [data, harvestableIndex],
   );
 
-  const toolTipOptions: Partial<TooltipOptions> = {
-    enabled: false,
-    external: (context) => {
-      const tooltipEl = document.getElementById("chartjs-tooltip");
+  // Calculate chart x-axis max value - use podLineAsNumber with a minimum value
+  // Don't depend on overlayParams to avoid re-rendering chart on every slider change
+  const chartXMax = useMemo(() => {
+    // Use podLineAsNumber if available, otherwise use a reasonable default
+    const maxValue = podLineAsNumber > 0 ? podLineAsNumber : 50; // Default to 50 million
 
-      // Create element on first render
-      if (!tooltipEl) {
-        const div = document.createElement("div");
-        div.id = "chartjs-tooltip";
-        div.style.background = "rgba(0, 0, 0, 0.7)";
-        div.style.borderRadius = "3px";
-        div.style.color = "white";
-        div.style.opacity = "1";
-        div.style.pointerEvents = "none";
-        div.style.position = "absolute";
-        div.style.transform = "translate(25px)"; // Position to right of point
-        div.style.transition = "all .1s ease";
-        document.body.appendChild(div);
-      } else {
-        // Hide if no tooltip
-        if (context.tooltip.opacity === 0) {
-          tooltipEl.style.opacity = "0";
-          return;
-        }
+    // Ensure a minimum value for the chart to render properly
+    return Math.max(maxValue, 1); // At least 1 million
+  }, [podLineAsNumber]);
 
-        // Set Text
-        if (context.tooltip.body) {
-          const position = context.tooltip.dataPoints[0].element.getProps(["x", "y"], true);
-          const dataPoint = context.tooltip.dataPoints[0].raw as MarketScatterChartDataPoint;
-          tooltipEl.style.opacity = "1";
-          tooltipEl.style.width = "250px";
-          tooltipEl.style.backgroundColor = "white";
-          tooltipEl.style.color = "black";
-          tooltipEl.style.borderRadius = "10px";
-          tooltipEl.style.border = "1px solid #D9D9D9";
-          tooltipEl.style.zIndex = "1";
-          // Basically all of this is custom logic for 3 different breakpoints to either display the tooltip to the top right or bottom right of the point.
-          const topOfPoint = position.y + getPointTopOffset();
-          const bottomOfPoint = position.y + getPointBottomOffset();
-          tooltipEl.style.top = dataPoint.y > 0.8 ? bottomOfPoint : topOfPoint + "px"; // Position relative to point y
-          // end custom logic
-          tooltipEl.style.left = position.x + "px"; // Position relative to point x
-          tooltipEl.style.padding = context.tooltip.options.padding + "px " + context.tooltip.options.padding + "px";
-          const listingHeader = `
+  const toolTipOptions: Partial<TooltipOptions> = useMemo(
+    () => ({
+      enabled: false,
+      external: (context) => {
+        const tooltipEl = document.getElementById("chartjs-tooltip");
+
+        // Create element on first render
+        if (!tooltipEl) {
+          const div = document.createElement("div");
+          div.id = "chartjs-tooltip";
+          div.style.background = "rgba(0, 0, 0, 0.7)";
+          div.style.borderRadius = "3px";
+          div.style.color = "white";
+          div.style.opacity = "1";
+          div.style.pointerEvents = "none";
+          div.style.position = "absolute";
+          div.style.transform = "translate(25px)"; // Position to right of point
+          div.style.transition = "all .1s ease";
+          document.body.appendChild(div);
+        } else {
+          // Hide if no tooltip
+          if (context.tooltip.opacity === 0) {
+            tooltipEl.style.opacity = "0";
+            return;
+          }
+
+          // Set Text
+          if (context.tooltip.body) {
+            const position = context.tooltip.dataPoints[0].element.getProps(["x", "y"], true);
+            const dataPoint = context.tooltip.dataPoints[0].raw as MarketScatterChartDataPoint;
+            tooltipEl.style.opacity = "1";
+            tooltipEl.style.width = "250px";
+            tooltipEl.style.backgroundColor = "white";
+            tooltipEl.style.color = "black";
+            tooltipEl.style.borderRadius = "10px";
+            tooltipEl.style.border = "1px solid #D9D9D9";
+            tooltipEl.style.zIndex = String(TOOLTIP_Z_INDEX);
+            // Basically all of this is custom logic for 3 different breakpoints to either display the tooltip to the top right or bottom right of the point.
+            const topOfPoint = position.y + getPointTopOffset();
+            const bottomOfPoint = position.y + getPointBottomOffset();
+            tooltipEl.style.top = dataPoint.y > 0.8 ? bottomOfPoint : topOfPoint + "px"; // Position relative to point y
+            // end custom logic
+            tooltipEl.style.left = position.x + "px"; // Position relative to point x
+            tooltipEl.style.padding = context.tooltip.options.padding + "px " + context.tooltip.options.padding + "px";
+            const listingHeader = `
            <div class="flex items-center">
             <img src="${PodIcon}" class="w-4 h-4 scale-110 mr-[6px]" alt="pod icon">
             <span>${TokenValue.fromHuman(dataPoint.amount, 0).toHuman("short")} Pods Listed</span>
           </div>
           `;
-          const orderHeader = `
+            const orderHeader = `
           <div class="flex items-center">
            <img src="${PodIcon}" class="w-4 h-4 scale-110 mr-[6px]" alt="pod icon">
            <span>Order for ${TokenValue.fromHuman(dataPoint.amount, 0).toHuman("short")} Pods</span>
          </div>
          `;
-          tooltipEl.innerHTML = `
+            // Format Pod Score for display (only for listings)
+            const formatPodScore = (score: number): string => {
+              if (score >= 1000000) {
+                return `${(score / 1000000).toFixed(2)}M`;
+              } else if (score >= 1000) {
+                return `${(score / 1000).toFixed(1)}K`;
+              } else {
+                return score.toFixed(2);
+              }
+            };
+
+            const podScoreRow =
+              dataPoint.eventType === "LISTING" && dataPoint.podScore !== undefined
+                ? `<div class="flex justify-between">
+                <span>Pod Score:</span>
+                <span>${formatPodScore(dataPoint.podScore)}</span>
+              </div>`
+                : "";
+
+            tooltipEl.innerHTML = `
             <div class="flex flex-col">
             ${dataPoint.eventType === "LISTING" ? listingHeader : orderHeader}
               <div class="flex justify-between">
@@ -226,12 +308,15 @@ export function Market() {
                 <span>Place in Line:</span>
                 <span>${TokenValue.fromHuman(dataPoint.placeInLine, 0).toHuman("long")}</span>
               </div>
+              ${podScoreRow}
             </div>
         `;
+          }
         }
-      }
-    },
-  };
+      },
+    }),
+    [],
+  );
 
   // Upon initial page load only, navigate to a page other than Activity if the url is granular.
   // In general it is allowed to be on Activity tab with these granular urls, hence the empty dependency array.
@@ -243,6 +328,14 @@ export function Market() {
       handleChangeTab(TABLE_SLUGS[2]);
     }
   }, []);
+
+  useEffect(() => {
+    if (mode === "buy" && !id) {
+      navigate("/market/pods/buy/fill", { replace: true });
+    } else if (mode === "sell" && !id) {
+      navigate("/market/pods/sell/create", { replace: true });
+    }
+  }, [id, mode, navigate]);
 
   const handleChangeTabFactory = useCallback(
     (selection: string) => () => {
@@ -265,35 +358,65 @@ export function Market() {
   const handleSecondaryTabClick = useCallback(
     (v: string) => {
       if (v === "fill") {
-        handleChangeTab(!mode || mode === "buy" ? TABLE_SLUGS[1] : TABLE_SLUGS[2]);
+        handleChangeTab(mode === "buy" ? TABLE_SLUGS[1] : TABLE_SLUGS[2]);
       }
     },
     [mode],
   );
 
-  const onPointClick = (event: ChartEvent, activeElements: ActiveElement[], chart: Chart) => {
-    const dataPoint = scatterChartData[activeElements[0].datasetIndex].data[activeElements[0].index] as any;
+  const onPointClick = useCallback(
+    (_event: ChartEvent, activeElements: ActiveElement[], _chart: Chart) => {
+      if (!activeElements.length) return;
 
-    if (!dataPoint) return;
+      const { datasetIndex, index } = activeElements[0];
+      const dataPoint = scatterChartData[datasetIndex]?.data[index];
 
-    // Track chart point click event
-    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
-      event_type: dataPoint?.eventType?.toLowerCase() ?? "unknown",
-      event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
-      price_per_pod: dataPoint?.y ?? 0,
-      place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
-      current_mode: !mode || mode === "buy" ? "buy" : "sell",
-    });
+      if (!dataPoint) return;
 
-    if (dataPoint.eventType === "LISTING") {
-      navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);
-    } else {
-      navigate(`/market/pods/sell/${dataPoint.eventId.replace(".", "")}`);
-    }
-  };
+      // Track chart point click event
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
+        event_type: dataPoint.eventType.toLowerCase(),
+        event_status: dataPoint.status.toLowerCase(),
+        price_per_pod: dataPoint.y,
+        place_in_line_millions: Math.floor(dataPoint.x),
+        current_mode: mode ?? "unknown",
+      });
 
-  const viewMode = !mode || mode === "buy" ? "buy" : "sell";
-  const fillView = !!id;
+      if (dataPoint.eventType === "LISTING") {
+        // Include placeInLine in URL so FillListing can set it correctly
+        const placeInLine = dataPoint.placeInLine;
+        const placeInLineParam = placeInLine ? `&placeInLine=${placeInLine}` : "";
+        navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}${placeInLineParam}`);
+      } else {
+        navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
+      }
+    },
+    [scatterChartData, mode, navigate],
+  );
+
+  const handleMarketPodLineGraphSelect = useCallback(
+    (plotIndices: string[]) => {
+      if (plotIndices.length === 0) return;
+
+      // Track analytics
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.LISTING_PLOT_SELECTED, {
+        plot_count: plotIndices.length,
+        source: "market_page",
+      });
+
+      // Navigate to CreateListing with plot indices (not full Plot objects to avoid serialization issues)
+      navigate("/market/pods/sell/create", {
+        state: { selectedPlotIndices: plotIndices },
+      });
+    },
+    [navigate],
+  );
+
+  // Default to buy/fill when no mode is selected
+  const viewMode = mode || "buy";
+  const viewAction = id || (viewMode === "buy" ? "fill" : "create");
+
+  console.log("Chart Ref", chartRef.current);
 
   return (
     <>
@@ -305,7 +428,26 @@ export function Market() {
       </div>
       <div className="hidden sm:block">
         <div className={`flex flex-col`}>
-          <div className="flex flex-row border-t border-pinto-gray-2 mt-4 ">
+          <Col className="gap-4 mx-4 mb-8">
+            <div className="flex flex-col gap-4">
+              <div className="pinto-h2 sm:pinto-h1">Market</div>
+              <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
+                Buy and sell Pods on the open market.
+              </div>
+            </div>
+            <ReadMoreAccordion defaultOpen={false} inline>
+              The Pod Market is a decentralized marketplace where users can trade Pods, which are protocol-native debt
+              instruments that represent future Pinto tokens. When you buy Pods, you're essentially purchasing the right
+              to redeem them for Pinto tokens at a fixed rate when they become harvestable. The market operates on a
+              first-in-first-out (FIFO) basis, meaning the oldest Pods become harvestable first. You can place buy
+              orders to acquire Pods at a specific price, or create listings to sell your existing Pods to other users.
+              The scatter chart above visualizes all active orders and listings, showing their place in line and price
+              per Pod. This allows you to see market depth and make informed trading decisions based on current market
+              conditions and your investment strategy.
+            </ReadMoreAccordion>
+          </Col>
+          <Separator />
+          <div className="flex flex-row mt-4 ">
             <div className="flex flex-col flex-grow ml-4 border-r border-pinto-gray-2 pr-4">
               <div className="w-full h-[75vh] relative mt-4">
                 {!isLoaded && (
@@ -314,12 +456,21 @@ export function Market() {
                   </div>
                 )}
                 <ScatterChart
+                  ref={chartRef}
                   data={scatterChartData}
-                  xOptions={{ label: "Place in line", min: 0, max: podLineAsNumber }}
-                  yOptions={{ label: "Price per pod", min: 0, max: 100 }}
+                  xOptions={{ label: "Place in line", min: 0, max: chartXMax }}
+                  yOptions={{ label: "Price per pod", min: 0, max: CHART_MAX_PRICE }}
                   onPointClick={onPointClick}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
+
+                {/* Gradient Legend - positioned in top-right corner */}
+                <div className="absolute top-5 right-6 z-[3]">
+                  <PodScoreGradientLegend />
+                </div>
+              </div>
+              <div className=" mb-4 pl-[52px] pr-[12px]">
+                <PodLineGraph className="h-24" onPlotGroupSelect={handleMarketPodLineGraphSelect} labelType="title" />
               </div>
               <div className="flex gap-10 ml-2.5 mt-4 mb-[1.625rem]">
                 {TABLE_SLUGS.map((s, idx) => (
@@ -340,14 +491,21 @@ export function Market() {
                 {tab === TABLE_SLUGS[3] && <FarmerActivityTable />}
               </div>
             </div>
-            <div className="flex flex-col gap-4 self-start px-4 py-4 h-full w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none">
-              <div>
-                <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
-                {viewMode === "buy" && !fillView && <CreateOrder />}
-                {viewMode === "buy" && fillView && <FillListing />}
-                {viewMode === "sell" && !fillView && <CreateListing />}
-                {viewMode === "sell" && fillView && <FillOrder />}
-              </div>
+            <div
+              className="flex flex-col self-start px-4 py-4 sticky w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none"
+              style={{ top: `${navHeight - 8}px` }}
+            >
+              <Card className="w-full h-full">
+                <div className="flex flex-col gap-4 p-4">
+                  <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
+                  <div className="flex flex-col gap-4">
+                    {viewMode === "buy" && viewAction === "create" && <CreateOrder />}
+                    {viewMode === "buy" && viewAction === "fill" && <FillListing />}
+                    {viewMode === "sell" && viewAction === "create" && <CreateListing />}
+                    {viewMode === "sell" && viewAction === "fill" && <FillOrder />}
+                  </div>
+                </div>
+              </Card>
             </div>
           </div>
         </div>
