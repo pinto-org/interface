@@ -2,6 +2,7 @@ import { TV } from "@/classes/TokenValue";
 import { API_SERVICES } from "@/constants/endpoints";
 import { PODS } from "@/constants/internalTokens";
 import { defaultQuerySettings } from "@/constants/query";
+import { SG_FETCH_DISABLED } from "@/constants/subgraph";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { getChainConstant } from "@/utils/chain";
 import { Prettify } from "@/utils/types.generic";
@@ -118,6 +119,7 @@ export default function useBucketedFieldPlotSummary<Data>({
     queryFn: () => makeRequest(params, chainId),
     select,
     ...defaultQuerySettings,
+    enabled: !SG_FETCH_DISABLED,
   });
 }
 
