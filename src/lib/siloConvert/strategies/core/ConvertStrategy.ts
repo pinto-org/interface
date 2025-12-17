@@ -34,7 +34,18 @@ export abstract class SiloConvertStrategy<T extends SiloConvertType> {
 
   // ------------------------------ Validation Methods ------------------------------ //
 
-  abstract encodeFromQuote(quote: ConvertStrategyQuote<T>): AdvancedFarmCall;
+  abstract encodeFromQuote(quote: ConvertStrategyQuote<T>): {
+    // the calls to add to the advanced farm workflow
+    calls: AdvancedFarmCall | AdvancedFarmCall[];
+    /**
+     * The index of the pipeline convert call in the Array of Advanced Farm Calls.
+     * There are cases where the pipeline convert call is not the first call in the array,
+     * so we need to know the index to decode the result correctly.
+     */
+    decodeIndex: number;
+  };
+
+  abstract getApprovalTokens(): Token | Token[] | undefined;
 
   protected validateSlippage(slippage: number) {
     this.errorHandler.validateAmount(slippage, "slippage");
