@@ -18,28 +18,23 @@ export default function NoBaseValueAlert() {
   const [show, setShow] = useState(false);
   const { isConnected, connector, address } = useAccount();
   const { loading, didLoad, hasBalanceOnBase } = useFarmerStatus();
+  const { fundWallet } = useFundWallet();
 
   const { loading: isLoading, setLoading } = useDelayedLoading(3000, !didLoad);
-
-  const { fundWallet } = useFundWallet();
 
   useEffect(() => {
     setLoading(loading);
   }, [loading, setLoading]);
 
   useEffect(() => {
-    if (isConnected) {
-      const dismissed = localStorage.getItem("baseValueAlertDismissed");
-      if (!dismissed) {
-        setShow(true);
-      }
+    if (isConnected && !hasBalanceOnBase) {
+      setShow(true);
     } else {
       setShow(false);
     }
-  }, [isConnected]);
+  }, [isConnected, hasBalanceOnBase]);
 
   const handleDismiss = () => {
-    localStorage.setItem("baseValueAlertDismissed", "true");
     setShow(false);
   };
 
@@ -60,7 +55,7 @@ export default function NoBaseValueAlert() {
 
   return (
     <AnimatePresence>
-      {isConnected && show && !isLoading && !hasBalanceOnBase && (
+      {show && !isLoading && (
         <motion.div
           initial="enter"
           animate="center"

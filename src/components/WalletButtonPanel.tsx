@@ -11,7 +11,7 @@ import { trackClick, withTracking } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { ENABLE_SWITCH_CHAINS } from "@/utils/wagmi/chains";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useFundWallet, usePrivy, useWallets } from "@privy-io/react-auth";
 import { Avatar } from "connectkit";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
 import { renderAnnouncement } from "./AnnouncementBanner";
 import ChainButton from "./ChainButton";
-import { BackwardArrowDotsIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
+import { AddCoinsIcon, BackwardArrowDotsIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
 import WalletButtonClaim from "./WalletButtonClaim";
 import WalletButtonTransfer from "./WalletButtonTransfer";
 import WalletPanelTokenDisplay from "./WalletPanelTokenDisplay";
@@ -154,8 +154,10 @@ const BalanceSummary = ({ totalBalance }: BalanceSummaryProps) => (
 interface ActionButtonsProps {
   navigate: ReturnType<typeof useNavigate>;
   togglePanel: () => void;
+  account: ReturnType<typeof useAccount>;
+  fundWallet: ReturnType<typeof useFundWallet>["fundWallet"];
 }
-const ActionButtons = ({ navigate, togglePanel }: ActionButtonsProps) => (
+const ActionButtons = ({ navigate, togglePanel, account, fundWallet }: ActionButtonsProps) => (
   <div className="flex flex-row gap-3 w-full">
     <Button
       onClick={withTracking(
@@ -198,6 +200,29 @@ const ActionButtons = ({ navigate, togglePanel }: ActionButtonsProps) => (
         </span>
       </div>
       Send
+    </Button>
+
+    <Button
+      onClick={withTracking(
+        ANALYTICS_EVENTS.WALLET.PANEL_FUND_WALLET,
+        () => {
+          if (!account.address) return;
+          fundWallet({ address: account.address });
+          togglePanel();
+        },
+        {
+          from_page: "wallet_panel",
+        },
+      )}
+      variant="ghost"
+      className="bg-pinto-gray-1 hover:hover:bg-pinto-green flex-1 h-auto 2xl:h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-row 2xl:flex-col gap-4"
+    >
+      <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
+        <span className="self-center items-center">
+          <AddCoinsIcon color={"white"} />
+        </span>
+      </div>
+      Fund
     </Button>
   </div>
 );
@@ -287,6 +312,8 @@ export default function WalletButtonPanel({ togglePanel }) {
   const navigate = useNavigate();
   const { logout: privyLogout, authenticated: privyAuthenticated } = usePrivy();
   const wallets = useWallets();
+  const account = useAccount();
+  const { fundWallet } = useFundWallet();
 
   const walletsArray = Array.isArray(wallets) ? wallets : wallets?.wallets || [];
   const isPrivyWallet = walletsArray.some((w) => w.address === address && w.walletClientType === "privy");
@@ -439,7 +466,7 @@ export default function WalletButtonPanel({ togglePanel }) {
           </div>
         </div>
         <BalanceSummary totalBalance={totalBalance} />
-        <ActionButtons navigate={navigate} togglePanel={togglePanel} />
+        <ActionButtons navigate={navigate} togglePanel={togglePanel} account={account} fundWallet={fundWallet} />
       </CardHeader>
 
       <CardContent className="p-0 min-h-0">
