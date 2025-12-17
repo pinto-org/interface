@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
 import { renderAnnouncement } from "./AnnouncementBanner";
 import ChainButton from "./ChainButton";
-import { AddCoinsIcon, BackwardArrowDotsIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
+import { AddCoinsIcon, BackwardArrowDotsIcon, DownArrowIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
 import WalletButtonClaim from "./WalletButtonClaim";
 import WalletButtonTransfer from "./WalletButtonTransfer";
 import WalletPanelTokenDisplay from "./WalletPanelTokenDisplay";
@@ -219,7 +219,7 @@ const ActionButtons = ({ navigate, togglePanel, account, fundWallet }: ActionBut
     >
       <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
         <span className="self-center items-center">
-          <AddCoinsIcon color={"white"} />
+          <DownArrowIcon color={"white"} />
         </span>
       </div>
       Fund
