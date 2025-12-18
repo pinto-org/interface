@@ -2,16 +2,13 @@ import { Col, Row } from "@/components/Container";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import {
-  useSimulateBeanstalk_DelegateReferralRewards,
-  useWriteBeanstalk_DelegateReferralRewards,
-} from "@/generated/contractHooks";
-import { getExplorerLink } from "@/utils/chain";
-import { CopyIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { useEffect, useState } from "react";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { useState } from "react";
 import { toast } from "sonner";
 import { isAddress } from "viem";
-import { useChainId, useWaitForTransactionReceipt } from "wagmi";
+import { useChainId } from "wagmi";
 
 interface DelegateReferralModalProps {
   isOpen: boolean;
@@ -26,54 +23,17 @@ export function DelegateReferralModal({ isOpen, onOpenChange }: DelegateReferral
   // Check if address is valid
   const isValidAddress = delegateAddress.trim() && isAddress(delegateAddress);
 
-  // Simulate the transaction
-  const { data: simulateData } = useSimulateBeanstalk_DelegateReferralRewards({
-    args: isValidAddress ? [delegateAddress as `0x${string}`] : undefined,
-    query: {
-      enabled: !!isValidAddress,
-    },
-  });
-
-  // Write contract
-  const { writeContract, data: hash, isPending } = useWriteBeanstalk_DelegateReferralRewards();
-
-  // Wait for transaction receipt
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  // Handle success
-  useEffect(() => {
-    if (isSuccess && hash) {
+  // Transaction handling
+  const { writeWithEstimateGas, setSubmitting, isConfirming } = useTransaction({
+    successCallback: () => {
       setDelegateAddress("");
       onOpenChange(false);
-      toast.dismiss();
-      const explorerLink = getExplorerLink(hash, chainId);
-      toast.success(
-        <div className="flex flex-row items-center gap-4">
-          <span className="text-pinto-sm">Delegate address updated successfully</span>
-          <div className="flex flex-row items-center gap-2">
-            <div className="h-auto text-s text-pinto-green-4 hover:underline">
-              <a href={explorerLink} target="_blank" rel="noopener noreferrer">
-                View on Basescan
-              </a>
-            </div>
-            <div
-              className="h-auto text-s text-pinto-green-4 cursor-pointer"
-              onClick={() => {
-                navigator.clipboard.writeText(explorerLink);
-                toast.success("Link copied to clipboard");
-              }}
-            >
-              <CopyIcon className="w-4 h-4" />
-            </div>
-          </div>
-        </div>,
-      );
-    }
-  }, [isSuccess, hash, chainId, onOpenChange]);
+    },
+    successMessage: "Delegate address updated successfully",
+    errorMessage: "Failed to update delegate address",
+  });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate address
     if (!delegateAddress.trim()) {
       setError("Please enter an address");
@@ -87,22 +47,45 @@ export function DelegateReferralModal({ isOpen, onOpenChange }: DelegateReferral
 
     setError("");
 
-    // Try with simulate data first, fallback to direct call
-    if (simulateData?.request) {
-      writeContract(simulateData.request);
-    } else {
-      // Fallback: call directly without simulation
-      writeContract({
+    try {
+      setSubmitting(true);
+      toast.loading("Updating delegate address");
+
+      await writeWithEstimateGas({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "delegateReferralRewards",
         args: [delegateAddress as `0x${string}`],
       });
+    } catch (e) {
+      console.error("Failed to update delegate address:", e);
+      toast.dismiss();
+      toast.error("Failed to update delegate address");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setError("");
-    writeContract({
-      args: ["0x0000000000000000000000000000000000000000" as `0x${string}`],
-    });
+
+    try {
+      setSubmitting(true);
+      toast.loading("Resetting delegate address...");
+
+      await writeWithEstimateGas({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "delegateReferralRewards",
+        args: ["0x0000000000000000000000000000000000000000" as `0x${string}`],
+      });
+    } catch (e) {
+      console.error("Failed to reset delegate address:", e);
+      toast.dismiss();
+      toast.error("Failed to reset delegate address");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -153,7 +136,7 @@ export function DelegateReferralModal({ isOpen, onOpenChange }: DelegateReferral
             variant="outline"
             size="xlargest"
             rounded="full"
-            disabled={isPending || isConfirming}
+            disabled={isConfirming}
             className="w-full flex-1 text-pinto-light bg-pinto-gray-1"
           >
             Reset Delegate
@@ -163,12 +146,12 @@ export function DelegateReferralModal({ isOpen, onOpenChange }: DelegateReferral
             onClick={handleSubmit}
             size="xlargest"
             rounded="full"
-            disabled={isPending || isConfirming || !isValidAddress}
+            disabled={isConfirming || !isValidAddress}
             className={`w-full flex-1 ${
-              isPending || isConfirming ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"
+              isConfirming ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"
             }`}
           >
-            {isPending || isConfirming ? "Confirming..." : "Update Delegate"}
+            {isConfirming ? "Confirming..." : "Update Delegate"}
           </Button>
         </Row>
       </div>
