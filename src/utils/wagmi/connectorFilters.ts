@@ -58,9 +58,9 @@ export function isWalletConnectConnector(connector: Connector): boolean {
  * @param connector - The wagmi connector to check
  * @returns True if connector is Coinbase Wallet
  */
-export function isCoinbaseWalletConnector(connector: Connector): boolean {
-  const connectorId = connector.id.toLowerCase();
-  const connectorName = connector.name.toLowerCase();
+// export function isCoinbaseWalletConnector(connector: Connector): boolean {
+//   const connectorId = connector.id.toLowerCase();
+//   const connectorName = connector.name.toLowerCase();
 
-  return connector.type === "coinbaseWallet" || connectorId.includes("coinbase") || connectorName.includes("coinbase");
-}
+//   return connector.type === "coinbaseWallet" || connectorId.includes("coinbase") || connectorName.includes("coinbase");
+// }

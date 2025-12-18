@@ -2,7 +2,7 @@ import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { withTracking } from "@/utils/analytics";
 import { isDev, isLocalhost, isNetlifyPreview, isProd } from "@/utils/utils";
 import { TENDERLY_RPC_URL, baseNetwork as base, tenderlyTestnetNetwork as testnet } from "@/utils/wagmi/chains";
-import { isCoinbaseWalletConnector, isWalletConnectConnector } from "@/utils/wagmi/connectorFilters";
+import { /* isCoinbaseWalletConnector, */ isWalletConnectConnector } from "@/utils/wagmi/connectorFilters";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import type { Connector } from "wagmi";
@@ -24,7 +24,7 @@ export interface UseWalletConnectionReturn {
  * Features:
  * - Connects to wallets with proper chain selection based on environment
  * - Tracks analytics events for connections
- * - Handles WalletConnect and Coinbase Wallet special cases
+ * - Handles WalletConnect special cases (Coinbase Wallet disabled)
  * - Waits for account sync when needed
  * - Provides error handling with callbacks
  *
@@ -56,7 +56,7 @@ export function useWalletConnection(options?: UseWalletConnectionOptions): UseWa
       }
 
       const isWalletConnect = isWalletConnectConnector(connector);
-      const isCoinbaseWallet = isCoinbaseWalletConnector(connector);
+      // const isCoinbaseWallet = isCoinbaseWalletConnector(connector);
 
       setConnectingWalletId(connectorId);
 
@@ -81,8 +81,8 @@ export function useWalletConnection(options?: UseWalletConnectionOptions): UseWa
               ...(connectChainId ? { chainId: connectChainId } : {}),
             });
 
-            // Wait for account sync if needed (especially for Coinbase Wallet)
-            const shouldWaitForAccountSync = isCoinbaseWallet || isDev();
+            // Wait for account sync if needed (Coinbase Wallet disabled)
+            const shouldWaitForAccountSync = /* isCoinbaseWallet || */ isDev();
             if (shouldWaitForAccountSync) {
               await waitForAccountSync(accountStateRef, connector.name);
             }
@@ -107,12 +107,12 @@ export function useWalletConnection(options?: UseWalletConnectionOptions): UseWa
         const err = error instanceof Error ? error : new Error(String(error));
         console.error(`Connection error for ${connector.name}:`, error);
 
-        if (isCoinbaseWallet) {
-          console.warn("Coinbase Wallet connection failed. Possible reasons:");
-          console.warn("1. Extension not installed");
-          console.warn("2. QR modal couldn't open");
-          console.warn("3. User cancelled connection");
-        }
+        // if (isCoinbaseWallet) {
+        //   console.warn("Coinbase Wallet connection failed. Possible reasons:");
+        //   console.warn("1. Extension not installed");
+        //   console.warn("2. QR modal couldn't open");
+        //   console.warn("3. User cancelled connection");
+        // }
 
         onError?.(err);
       } finally {

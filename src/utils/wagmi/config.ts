@@ -3,7 +3,7 @@ import { getEnvEnabledChains, localhostNetwork as localhost } from "@/utils/wagm
 import { Chain, Transport, createTestClient } from "viem";
 import { http, createStorage } from "wagmi";
 import type { CreateConnectorFn } from "wagmi";
-import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
+import { /* coinbaseWallet, */ injected, walletConnect } from "wagmi/connectors";
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
 
@@ -61,12 +61,12 @@ export const getBaseConnectors = (): CreateConnectorFn[] => {
     );
   }
 
-  connectors.push(
-    coinbaseWallet({
-      appName: "Pinto",
-      appLogoUrl: PintoIcon,
-    }) as CreateConnectorFn,
-  );
+  // connectors.push(
+  //   coinbaseWallet({
+  //     appName: "Pinto",
+  //     appLogoUrl: PintoIcon,
+  //   }) as CreateConnectorFn,
+  // );
 
   return connectors;
 };
