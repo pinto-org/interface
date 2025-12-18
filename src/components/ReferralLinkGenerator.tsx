@@ -156,13 +156,9 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
                   <span className="pinto-body text-pinto-dark">
                     {podDestinationAddress ? truncateHex(podDestinationAddress, 6, 4) : "-"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={onChangeAddress}
-                    className="text-pinto-green pinto-sm hover:text-pinto-green/80 transition-colors text-left w-fit underline-offset-2 hover:underline"
-                  >
+                  <Button type="button" onClick={onChangeAddress} variant="link" noPadding={true}>
                     Change address
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

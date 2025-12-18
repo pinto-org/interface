@@ -5,6 +5,7 @@ import type { ReferralLeaderboardQuery, ReferralLeaderboardQueryVariables } from
 import { ReferralLeaderboardDocument } from "@/generated/gql/pintostalk/graphql";
 import { useLatestBlock } from "@/hooks/useLatestBlock";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
+import { stringEq } from "@/utils/string";
 import { useQuery } from "@tanstack/react-query";
 import { useAccount, useChainId } from "wagmi";
 
@@ -62,6 +63,20 @@ export interface LeaderboardEntry {
   rank: number;
 }
 
+/**
+ * Stable select function to transform farmers data to leaderboard entries
+ * Extracted outside the hook to maintain stable reference and prevent unnecessary re-renders
+ */
+const selectLeaderboardEntries = (farmers: Farmer[]): LeaderboardEntry[] => {
+  // Transform farmers to leaderboard entries with proper ranking
+  return farmers.map((farmer, index) => ({
+    address: farmer.id,
+    podsEarned: TokenValue.fromBlockchain(farmer.totalReferralRewardPodsReceived, PODS.decimals),
+    totalSuccessfulReferrals: farmer.refereeCount,
+    rank: index + 1, // Rank based on sorted order from subgraph
+  }));
+};
+
 export interface UseReferralLeaderboardReturn {
   data: LeaderboardEntry[];
   isLoading: boolean;
@@ -103,17 +118,7 @@ export function useReferralLeaderboard(): UseReferralLeaderboardReturn {
         initialVars,
       );
     },
-    select: (farmers: Farmer[]) => {
-      // Transform farmers to leaderboard entries with proper ranking
-      const entries: LeaderboardEntry[] = farmers.map((farmer, index) => ({
-        address: farmer.id,
-        podsEarned: TokenValue.fromBlockchain(farmer.totalReferralRewardPodsReceived, PODS.decimals),
-        totalSuccessfulReferrals: farmer.refereeCount,
-        rank: index + 1, // Rank based on sorted order from subgraph
-      }));
-
-      return entries;
-    },
+    select: selectLeaderboardEntries,
     enabled: !!chainId && !isBlockLoading,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -132,7 +137,7 @@ export function useReferralLeaderboard(): UseReferralLeaderboardReturn {
     }
 
     // Find user's address in the leaderboard (case-insensitive comparison)
-    const userIndex = query.data.findIndex((entry) => entry.address.toLowerCase() === userAddress.toLowerCase());
+    const userIndex = query.data.findIndex((entry) => stringEq(entry.address, userAddress));
 
     // If user is not found in the leaderboard, return null
     if (userIndex === -1) {

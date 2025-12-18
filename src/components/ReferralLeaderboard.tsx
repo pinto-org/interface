@@ -80,15 +80,22 @@ export default function ReferralLeaderboard() {
       error.message.includes("fetch") || error.message.includes("network") || error.message.includes("timeout");
     const isBlockHeightError = error.message.includes("block");
 
+    let message: string;
+    if (isNetworkError) {
+      message = "Network error occurred while loading referral data.";
+    } else if (isBlockHeightError) {
+      message = "Block height error occurred. Data may be temporarily unavailable.";
+    } else {
+      message = "Failed to load referral data.";
+    }
+
+    const suggestion = isNetworkError ? "Please check your connection and try again." : "Please try again later.";
+
     return {
       isNetworkError,
       isBlockHeightError,
-      message: isNetworkError
-        ? "Network error occurred while loading referral data."
-        : isBlockHeightError
-          ? "Block height error occurred. Data may be temporarily unavailable."
-          : "Failed to load referral data.",
-      suggestion: isNetworkError ? "Please check your connection and try again." : "Please try again later.",
+      message,
+      suggestion,
     };
   }, [error]);
 
