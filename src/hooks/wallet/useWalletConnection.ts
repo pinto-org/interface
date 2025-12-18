@@ -18,6 +18,8 @@ export interface UseWalletConnectionReturn {
   connectingWalletId: string | null;
 }
 
+//TODO: Fix the Coinbase Wallet reconnect issue and add it as a connector. For reference: https://github.com/wevm/wagmi/issues/4375
+
 /**
  * Hook for managing wallet connections with analytics and error handling
  *
