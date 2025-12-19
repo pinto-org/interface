@@ -3,7 +3,12 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import React, { useEffect } from "react";
 
-const Dialog = ({ onOpenChange, open, ...props }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) => {
+const Dialog = ({
+  onOpenChange,
+  open,
+  modal = true,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) => {
   // Handle body overflow when dialog is controlled externally
   useEffect(() => {
     const scrollContainer = document.getElementById("scrollContainer");
@@ -19,6 +24,7 @@ const Dialog = ({ onOpenChange, open, ...props }: React.ComponentPropsWithoutRef
   return (
     <DialogPrimitive.Root
       open={open}
+      modal={modal}
       onOpenChange={(newOpen) => {
         const scrollContainer = document.getElementById("scrollContainer");
         if (scrollContainer) {
@@ -43,7 +49,11 @@ const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("fixed inset-0 z-50 bg-transparent h-[120dvh]", className)} {...props} />
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn("fixed inset-0 z-[9998] bg-transparent h-[120dvh]", className)}
+    {...props}
+  />
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
@@ -52,15 +62,32 @@ interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof Dialo
 }
 
 const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, DialogContentProps>(
-  ({ className, children, hideCloseButton = false, ...props }, ref) => (
+  ({ className, children, hideCloseButton = false, onPointerDownOutside, ...props }, ref) => (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "font-pinto fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-4 sm:p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-[1rem]",
+          "font-pinto fixed left-[50%] top-[50%] z-[9999] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-4 sm:p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-[1rem]",
           className,
         )}
+        onPointerDownOutside={(e) => {
+          // Check if the click is on a Privy modal or its overlay
+          const target = e.target as Element;
+          const isPrivyElement =
+            target.closest("[data-privy-modal]") ||
+            target.closest('[class*="privy"]') ||
+            target.closest('[id*="privy"]');
+
+          if (isPrivyElement) {
+            // Prevent the dialog from closing when clicking on Privy elements
+            e.preventDefault();
+            return;
+          }
+
+          // Call the original handler if provided
+          onPointerDownOutside?.(e);
+        }}
         {...props}
       >
         {children}
