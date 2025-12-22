@@ -17,9 +17,15 @@ export type Scalars = {
   BigDecimal: { input: any; output: any; }
   BigInt: { input: any; output: any; }
   Bytes: { input: any; output: any; }
-  /** 8 bytes signed integer */
+  /**
+   * 8 bytes signed integer
+   *
+   */
   Int8: { input: any; output: any; }
-  /** A string representation of microseconds UNIX timestamp (16 digits) */
+  /**
+   * A string representation of microseconds UNIX timestamp (16 digits)
+   *
+   */
   Timestamp: { input: any; output: any; }
 };
 
@@ -4173,6 +4179,7 @@ export type PodListing = {
    * The maximum amount of Pods remaining to be sold by *this* PodListing.
    *
    * When this PodListing is Filled or Cancelled, `amount` does NOT change.
+   *
    */
   amount: Scalars['BigInt']['output'];
   /** Timestamp of PodListing creation. */
@@ -4189,12 +4196,14 @@ export type PodListing = {
    * The amount of Pods Filled since the initial PodListing was Created.
    *
    * `0 <= filled <= originalAmount`
+   *
    */
   filled: Scalars['BigInt']['output'];
   /**
    * The number of Pods purchased from *this* PodListing.
    *
    * If not yet Filled or the PodListing is CANCELLED: `filledAmount = 0`
+   *
    */
   filledAmount: Scalars['BigInt']['output'];
   /** Historical ID for joins */
@@ -4203,6 +4212,7 @@ export type PodListing = {
    * The PodListing ID is a unique subgraph ID; if fieldId is 0: `{account}-{index}`, if fieldId isn't 0: `{account}-{index}:{fieldId}`
    *
    * The on-chain identifier for a PodListing is the `index`.
+   *
    */
   id: Scalars['ID']['output'];
   /**
@@ -4215,21 +4225,29 @@ export type PodListing = {
    *    0         the first Pod issued
    *    100,000   harvestableIndex
    *    150,000   index
+   *
    */
   index: Scalars['BigInt']['output'];
-  /** When the `harvestableIndex` reaches this number, the Listing becomes EXPIRED. */
+  /**
+   * When the `harvestableIndex` reaches this number, the Listing becomes EXPIRED.
+   *
+   */
   maxHarvestableIndex: Scalars['BigInt']['output'];
   /** Minimum number of Beans required to perform a Fill. */
   minFillAmount: Scalars['BigInt']['output'];
   /** Where Beans are sent when the PodListing is Filled. See `FarmToMode`. */
   mode: Scalars['Int']['output'];
-  /** The total number of Pods listed during the first emission of PodListingCreated. */
+  /**
+   * The total number of Pods listed during the first emission of PodListingCreated.
+   *
+   */
   originalAmount: Scalars['BigInt']['output'];
   /**
    * The original index from the first emission of PodListingCreated in a chain.
    *
    * If `originalIndex !== index`, then this PodListing was created when a parent
    * PodListing was partially filled.
+   *
    */
   originalIndex: Scalars['BigInt']['output'];
   /** The place of this plot in the pod line at the time it was listed */
@@ -4244,12 +4262,14 @@ export type PodListing = {
    * Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
    *
    * If `pricingType = 1`, this field is set to `0` and should be ignored.
+   *
    */
   pricePerPod: Scalars['Int']['output'];
   /**
    * [V2] The FIXED or DYNAMIC pricing function, encoded as bytes.
    *
    * This must be decoded client-side, see `LibPolynomial.sol` for more info.
+   *
    */
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /**
@@ -4258,6 +4278,7 @@ export type PodListing = {
    * null = V1 FIXED  = use `pricePerPod`
    * 0    = V2 FIXED  = use `pricePerPod`
    * 1    = V2 DYNAMIC = use `pricingFunction`
+   *
    */
   pricingType?: Maybe<Scalars['Int']['output']>;
   /**
@@ -4270,12 +4291,14 @@ export type PodListing = {
    * If this PodListing has NOT been Filled: `remainingAmount = amount`
    * If this PodListing has been Filled: `remainingAmount < amount`
    * If this PodListing has been Cancelled: `remainingAmount = 0`
+   *
    */
   remainingAmount: Scalars['BigInt']['output'];
   /**
    * The position within the Plot from which to sell Pods.
    *
    * 0 <= `start` <= (plot size - `amount`)
+   *
    */
   start: Scalars['BigInt']['output'];
   /** Current market status of listing */
@@ -6151,6 +6174,7 @@ export type PodOrder = {
    * If FIXED (V1): `amount * pricePerPod` fields emitted in PodOrderCreated.
    * If FIXED (V2): `amount` field emitted in PodOrderCreated.
    * If DYNAMIC (V2): `amount` field emitted in PodOrderCreated.
+   *
    */
   beanAmount: Scalars['BigInt']['output'];
   /**
@@ -6160,6 +6184,7 @@ export type PodOrder = {
    * `0 <= beanAmountFilled <= beanAmount`
    *
    * Upon PodOrder cancellation, this value is locked.
+   *
    */
   beanAmountFilled: Scalars['BigInt']['output'];
   /** Timestamp of PodOrder creation. */
@@ -6172,17 +6197,22 @@ export type PodOrder = {
   fieldId: Scalars['BigInt']['output'];
   /** All Fills associated with this PodOrder. */
   fills: Array<PodFill>;
-  /** Historical ID for joins: `{account}-{createdAt}` */
+  /**
+   * Historical ID for joins: `{account}-{createdAt}`
+   *
+   */
   historyID: Scalars['String']['output'];
   /**
    * The PodOrder ID matchces the `id` stored on-chain:
    *
    * `keccak256(abi.encodePacked(account, pricePerPod, maxPlaceInLine, minFillAmount))`
+   *
    */
   id: Scalars['ID']['output'];
   /**
    * The Farmer is willing to buy any Pod that is before maxPlaceInLine at pricePerPod.
    * As the Pod Line moves, this value stays the same because new Pods meet the criteria.
+   *
    */
   maxPlaceInLine: Scalars['BigInt']['output'];
   /** Minimum number of Pods required to perform a Fill. */
@@ -6195,6 +6225,7 @@ export type PodOrder = {
    * If pricingType = DYNAMIC: No constraint, since `podAmount` is unknown.
    *
    * Upon PodOrder cancellation, this value is locked.
+   *
    */
   podAmountFilled: Scalars['BigInt']['output'];
   /** Marketplace used for Pod Order. */
@@ -6205,6 +6236,7 @@ export type PodOrder = {
    * Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
    *
    * If `pricingType = 1`, this field is initialized to `0` and should be ignored.
+   *
    */
   pricePerPod: Scalars['Int']['output'];
   /**
@@ -6215,6 +6247,7 @@ export type PodOrder = {
    * null    = V1 FIXED    = use `pricePerPod`
    * "0x"    = V2 FIXED    = use `pricePerPod`
    * "0x..." = V2 DYNAMIC  = use `pricingFunction`
+   *
    */
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /**
@@ -6223,6 +6256,7 @@ export type PodOrder = {
    * null = V1 FIXED  = use `pricePerPod`
    * 0    = V2 FIXED  = use `pricePerPod`
    * 1    = V2 DYNAMIC = use `pricingFunction`
+   *
    */
   pricingType?: Maybe<Scalars['Int']['output']>;
   /** Current status of order. */
@@ -6378,6 +6412,7 @@ export type PodOrderCreated = MarketplaceEvent & {
    * The represented value emitted with this event changed with BIP-29 at block 15277986
    * Pre  BIP-29: The number of pods ordered is emitted
    * Post BIP-29: The number of beans supplied for the order is emitted.
+   *
    */
   amount: Scalars['BigInt']['output'];
   /** Block number of this event */
@@ -9453,7 +9488,10 @@ export type SiloDeposit = {
   farmer: Farmer;
   /** Transaction hashes pertaining to this deposit */
   hashes: Array<Scalars['Bytes']['output']>;
-  /** Account - Token Address - Deposit Version - (Season|Stem) */
+  /**
+   * Account - Token Address - Deposit Version - (Season|Stem)
+   *
+   */
   id: Scalars['ID']['output'];
   /** Season of deposit */
   season?: Maybe<Scalars['Int']['output']>;
@@ -13976,6 +14014,7 @@ export type Meta = {
    * will be null if the _meta field has a block constraint that asks for
    * a block number. It will be filled if the _meta field has no block constraint
    * and therefore asks for the latest  block
+   *
    */
   block: Block;
   /** The deployment ID */
