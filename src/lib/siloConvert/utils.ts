@@ -20,6 +20,7 @@ const decoderMap: Record<SiloConvertType, Decoder> = {
   LP2MainPipeline: decodePipelineConvert,
   LPAndMain: decodeConvert,
   LP2MainWithdrawPair: decodePipelineConvert,
+  Main2LPDeposit: decodePipelineConvert,
 } as const;
 
 export const decodeConvertResults = (

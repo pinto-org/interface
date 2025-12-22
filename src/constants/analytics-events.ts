@@ -70,6 +70,7 @@ const WALLET_EVENTS = {
   PANEL_SWAP_NAVIGATE: "wallet_panel_swap_navigate",
   PANEL_SEND_NAVIGATE: "wallet_panel_send_navigate",
   PANEL_NFT_COLLECTION_NAVIGATE: "wallet_panel_nft_collection_navigate",
+  PANEL_FUND_WALLET: "wallet_panel_fund",
 
   // Wallet Management
   DISCONNECT_BUTTON_CLICK: "wallet_disconnect_button_click",

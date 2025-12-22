@@ -14,7 +14,7 @@ import { sanitizeNumericInputValue, stringEq, stringToNumber, toValidStringNumIn
 import { FarmFromMode, Plot, Token } from "@/utils/types";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
-import {
+import React, {
   Dispatch,
   InputHTMLAttributes,
   SetStateAction,
@@ -75,6 +75,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
   // Token select props
   transformTokenLabels?: TransformTokenLabelsFunction;
+  customTokenSelector?: React.ReactNode;
 }
 
 function ComboInputField({
@@ -111,6 +112,7 @@ function ComboInputField({
   filterTokens,
   selectKey,
   transformTokenLabels,
+  customTokenSelector,
   placeholder,
 }: ComboInputProps) {
   const tokenData = useTokenData();
@@ -331,11 +333,39 @@ function ComboInputField({
   );
 
   const [shouldRefocus, setShouldRefocus] = useState(false);
+  const keepCursorAtStartRef = useRef(false);
+  const cursorPositionRef = useRef<number | null>(null);
+
+  // Save and restore cursor position after render
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input || document.activeElement !== input) return;
+
+    // If we want to keep cursor at start, save position 0
+    if (keepCursorAtStartRef.current && cursorPositionRef.current === null) {
+      cursorPositionRef.current = 0;
+    }
+
+    // Restore cursor position if we have one saved
+    if (cursorPositionRef.current !== null) {
+      const position = cursorPositionRef.current;
+
+      setTimeout(() => {
+        if (document.activeElement === input) {
+          input.setSelectionRange(position, position);
+          cursorPositionRef.current = null;
+        }
+      }, 0);
+    }
+  }, [displayValue]);
 
   useEffect(() => {
     if (shouldRefocus && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.setSelectionRange(0, 0);
+      const input = inputRef.current;
+      input.focus();
+      setTimeout(() => {
+        input.setSelectionRange(0, 0);
+      }, 0);
       setShouldRefocus(false);
     }
   }, [shouldRefocus]);
@@ -388,6 +418,11 @@ function ComboInputField({
 
   const handleSetMax = () => {
     if (disableInput) return;
+
+    // Enable cursor anchoring at start
+    keepCursorAtStartRef.current = true;
+    cursorPositionRef.current = 0;
+
     if (selectedToken?.isNative) {
       // For ETH, subtract gas reserve from max amount
       const maxWithGasReserve = maxAmount.gt(ETH_GAS_RESERVE) ? maxAmount.sub(ETH_GAS_RESERVE) : TokenValue.ZERO;
@@ -404,7 +439,10 @@ function ComboInputField({
       lastInternalAmountRef.current = newAmount;
     }
 
-    setShouldRefocus(true);
+    // Focus and set cursor position
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const plotIdsToShow = useMemo(() => {
@@ -441,29 +479,35 @@ function ComboInputField({
                 }
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}
+                onKeyDown={() => {
+                  keepCursorAtStartRef.current = false;
+                  cursorPositionRef.current = null;
+                }}
               />
             </TextSkeleton>
             {mode === "plots"
               ? setPlots && (
                   <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
                 )
-              : setToken &&
-                selectedToken && (
-                  <TokenSelectWithBalances
-                    selectedToken={selectedToken}
-                    tokenNameOverride={tokenNameOverride}
-                    balanceFrom={balanceFrom}
-                    balancesToShow={balancesToShow}
-                    tokenAndBalanceMap={tokenAndBalanceMap}
-                    disabled={disableButton}
-                    isLoading={tokenSelectLoading}
-                    filterTokens={filterTokens}
-                    selectKey={selectKey}
-                    setToken={setToken}
-                    setBalanceFrom={setBalanceFrom}
-                    transformTokenLabels={transformTokenLabels}
-                  />
-                )}
+              : customTokenSelector
+                ? customTokenSelector
+                : setToken &&
+                  selectedToken && (
+                    <TokenSelectWithBalances
+                      selectedToken={selectedToken}
+                      tokenNameOverride={tokenNameOverride}
+                      balanceFrom={balanceFrom}
+                      balancesToShow={balancesToShow}
+                      tokenAndBalanceMap={tokenAndBalanceMap}
+                      disabled={disableButton}
+                      isLoading={tokenSelectLoading}
+                      filterTokens={filterTokens}
+                      selectKey={selectKey}
+                      setToken={setToken}
+                      setBalanceFrom={setBalanceFrom}
+                      transformTokenLabels={transformTokenLabels}
+                    />
+                  )}
           </div>
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">

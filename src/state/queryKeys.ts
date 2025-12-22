@@ -114,6 +114,7 @@ const siloQueryKeys = {
       target: HashString | undefined,
       amountIn: string,
       isPairWithdrawal: boolean,
+      isConvertDeposit: boolean,
       slippage: number,
     ) => {
       return [
