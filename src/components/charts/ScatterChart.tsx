@@ -265,7 +265,8 @@ const ScatterChart = React.memo(
             datasets: data.map(({ label, data, color, pointStyle, pointRadius }) => ({
               label,
               data,
-              backgroundColor: color,
+              // Use per-point colors if available, otherwise use dataset color
+              backgroundColor: data.map((point: any) => point.color || color),
               pointStyle,
               pointRadius: pointRadius,
               hoverRadius: pointRadius + 1,
@@ -531,6 +532,26 @@ const ScatterChart = React.memo(
                 const pointRadius = dataPoint.options.radius;
                 const pointStyle = dataPoint.options.pointStyle;
                 drawSelectionPoint(x, y, pointRadius, pointStyle, "#387F5C");
+
+                // Draw grid lines from selected point to axes
+                ctx.save();
+                ctx.strokeStyle = "#387F5C";
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+
+                // Draw vertical line from point to X axis (bottom)
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, chart.chartArea.bottom);
+                ctx.stroke();
+
+                // Draw horizontal line from point to Y axis (left)
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(chart.chartArea.left, y);
+                ctx.stroke();
+
+                ctx.restore();
               }
             }
           },
@@ -901,7 +922,8 @@ function areScatterChartPropsEqual(prevProps: ScatterChartProps, nextProps: Scat
       if (
         prevPoint.x !== nextPoint.x ||
         prevPoint.y !== nextPoint.y ||
-        (prevPoint as any).eventId !== (nextPoint as any).eventId
+        (prevPoint as any).eventId !== (nextPoint as any).eventId ||
+        (prevPoint as any).color !== (nextPoint as any).color
       ) {
         return false;
       }
@@ -916,7 +938,8 @@ function areScatterChartPropsEqual(prevProps: ScatterChartProps, nextProps: Scat
         if (
           prevPoint.x !== nextPoint.x ||
           prevPoint.y !== nextPoint.y ||
-          (prevPoint as any).eventId !== (nextPoint as any).eventId
+          (prevPoint as any).eventId !== (nextPoint as any).eventId ||
+          (prevPoint as any).color !== (nextPoint as any).color
         ) {
           return false;
         }
@@ -926,5 +949,7 @@ function areScatterChartPropsEqual(prevProps: ScatterChartProps, nextProps: Scat
 
   return true;
 }
+
+ScatterChart.displayName = "ScatterChart";
 
 export default ScatterChart;

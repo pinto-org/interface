@@ -127,6 +127,7 @@ module.exports = {
           "morning-yellow-2": "#F1F88C",
           "warning-yellow": "#DCB505",
           "warning-orange": "#ED7A00",
+          "yellow-active": "#CCA702",
           "stalk-gold": "#D3B567",
           "seed-silver": "#7B9387",
           "pod-bronze": "#9F7F54",
@@ -264,6 +265,10 @@ module.exports = {
             opacity: "0"
           },
         },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(-10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -279,6 +284,7 @@ module.exports = {
         "pulse-glow": "pulse-glow 8s ease-in-out infinite",
         "fade-in-smooth": "fade-in-smooth 0.25s ease-out",
         "fade-out-smooth": "fade-out-smooth 0.2s ease-in",
+        "fade-in": "fade-in 0.1s ease-in-out",
       },
       aspectRatio: {
         "3/1": "3 / 1",

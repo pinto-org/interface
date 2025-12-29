@@ -217,6 +217,7 @@ const MARKET_EVENTS = {
   // Pod Listing Events
   POD_LIST_CREATE: "market_pod_list_create",
   LISTING_PLOT_SELECTED: "market_listing_plot_selected",
+  LISTING_AUTO_SELECTED: "market_listing_auto_selected",
   LISTING_PRICE_INPUT: "market_listing_price_input",
   LISTING_AMOUNT_INPUT: "market_listing_amount_input",
   POD_LIST_FILL: "market_pod_list_fill",
