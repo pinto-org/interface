@@ -206,6 +206,7 @@ export default function PodLineGraph({
   } | null>(null);
   const rafRef = useRef<number>();
   const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipElementRef = useRef<HTMLDivElement>(null);
 
   // Cleanup RAF on unmount
   useEffect(() => {
@@ -213,6 +214,31 @@ export default function PodLineGraph({
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
+    };
+  }, []);
+
+  // Hide tooltip smoothly on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (tooltipElementRef.current && tooltipElementRef.current.style.display !== "none") {
+        tooltipElementRef.current.classList.remove("animate-fade-in-smooth");
+        tooltipElementRef.current.classList.add("animate-fade-out-smooth");
+        setTimeout(() => {
+          setTooltipData(null);
+          if (tooltipElementRef.current) {
+            tooltipElementRef.current.style.display = "none";
+            tooltipElementRef.current.classList.remove("animate-fade-out-smooth");
+          }
+        }, 200);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("wheel", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("wheel", handleScroll);
     };
   }, []);
 
@@ -464,20 +490,29 @@ export default function PodLineGraph({
                       mouseX: e.clientX,
                       mouseY: e.clientY,
                     });
+                    setTimeout(() => {
+                      if (tooltipElementRef.current) {
+                        tooltipElementRef.current.style.display = "block";
+                        tooltipElementRef.current.classList.remove("animate-fade-out-smooth");
+                        tooltipElementRef.current.classList.add("animate-fade-in-smooth");
+                      }
+                    }, 0);
                   }
                 };
 
                 const handleMouseMove = (e: React.MouseEvent) => {
                   if (!disableInteractions && tooltipData) {
-                    // Use RAF for smooth 60fps updates
                     if (rafRef.current) {
                       cancelAnimationFrame(rafRef.current);
                     }
                     rafRef.current = requestAnimationFrame(() => {
-                      setTooltipData({
-                        ...tooltipData,
-                        mouseX: e.clientX,
-                        mouseY: e.clientY,
+                      setTooltipData((prev) => {
+                        if (!prev) return null;
+                        return {
+                          ...prev,
+                          mouseX: e.clientX,
+                          mouseY: e.clientY,
+                        };
                       });
                     });
                   }
@@ -485,7 +520,17 @@ export default function PodLineGraph({
 
                 const handleMouseLeave = () => {
                   setHoveredPlotIndex(null);
-                  setTooltipData(null);
+                  if (tooltipElementRef.current) {
+                    tooltipElementRef.current.classList.remove("animate-fade-in-smooth");
+                    tooltipElementRef.current.classList.add("animate-fade-out-smooth");
+                  }
+                  setTimeout(() => {
+                    setTooltipData(null);
+                    if (tooltipElementRef.current) {
+                      tooltipElementRef.current.style.display = "none";
+                      tooltipElementRef.current.classList.remove("animate-fade-out-smooth");
+                    }
+                  }, 200);
                   if (rafRef.current) {
                     cancelAnimationFrame(rafRef.current);
                   }
@@ -606,12 +651,14 @@ export default function PodLineGraph({
 
           return (
             <div
+              ref={tooltipElementRef}
               className="fixed pointer-events-none"
               style={{
                 left: `${tooltipData.mouseX}px`,
                 top: `${tooltipData.mouseY}px`,
                 transform: alignRight ? "translate(-100%, -100%)" : `translate(${TOOLTIP_OFFSET}px, -100%)`,
                 zIndex: 200,
+                display: "block",
               }}
             >
               <HoverTooltip

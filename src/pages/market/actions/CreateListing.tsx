@@ -31,6 +31,13 @@ import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 
+interface LocationState {
+  prefillPrice?: number;
+  prefillPlaceInLine?: number;
+  prefillExpiresIn?: number;
+  selectedPlotIndices?: string[];
+}
+
 interface PodListingData {
   plot: Plot;
   index: TokenValue;
@@ -75,11 +82,14 @@ export default function CreateListing() {
   const mainToken = useTokenData().mainToken;
   const harvestableIndex = useHarvestableIndex();
   const navigate = useNavigate();
+  const location = useLocation();
   const farmerField = useFarmerField();
 
   const queryClient = useQueryClient();
   const { allPodListings, allMarket, farmerMarket } = useQueryKeys({ account, harvestableIndex });
   const allQK = useMemo(() => [allPodListings, allMarket, farmerMarket], [allPodListings, allMarket, farmerMarket]);
+
+  const userPlots = useMemo(() => farmerField?.plots || [], [farmerField?.plots]);
 
   const [plot, setPlot] = useState<Plot[]>([]);
   const [amount, setAmount] = useState(0);
@@ -99,6 +109,31 @@ export default function CreateListing() {
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const plotPosition = plot.length > 0 ? plot[0].index.sub(harvestableIndex) : TV.ZERO;
+
+  // Helper: Find nearest plot within 10% tolerance (for context menu prefill)
+  const findNearestPlot = useCallback(
+    (placeInLine: number): Plot | null => {
+      if (userPlots.length === 0) return null;
+
+      const targetPosition = placeInLine * 1_000_000; // Convert millions to actual
+      let nearestPlot: Plot | null = null;
+      let minDistance = Infinity;
+
+      for (const p of userPlots) {
+        const plotPos = Number(p.index.sub(harvestableIndex).toBigInt());
+        const distance = Math.abs(plotPos - targetPosition);
+        const tolerance = targetPosition * 0.1; // 10% tolerance
+
+        if (distance <= tolerance && distance < minDistance) {
+          minDistance = distance;
+          nearestPlot = p;
+        }
+      }
+
+      return nearestPlot;
+    },
+    [userPlots, harvestableIndex],
+  );
 
   // Calculate max pods based on selected plots OR all farmer plots
   const maxPodAmount = useMemo(() => {
@@ -247,8 +282,12 @@ export default function CreateListing() {
   );
 
   // Auto-select plots from location state (from Market page PodLineGraph)
-  const location = useLocation();
   const lastProcessedIndices = useRef<string | null>(null);
+
+  // Parse location state for prefill values from context menu
+  const locationState = location.state as LocationState | undefined;
+  const prefillPrice = locationState?.prefillPrice;
+  const prefillExpiresIn = locationState?.prefillExpiresIn;
 
   useEffect(() => {
     const selectedPlotIndices = location.state?.selectedPlotIndices;
@@ -293,6 +332,64 @@ export default function CreateListing() {
       window.history.replaceState({}, document.title);
     }
   }, [location.state, farmerField.plots, sortPlotsByIndex]);
+
+  // Prefill from context menu click - always update when new values arrive
+  useEffect(() => {
+    // Exit early if no prefill values exist
+    if (!prefillPrice && !prefillExpiresIn) return;
+
+    let newPricePerPod: number | undefined;
+    let newExpiresIn: number | null = null;
+    let newPlot: Plot | null = null;
+
+    // Calculate price per pod
+    if (prefillPrice && prefillPrice >= PRICE_PER_POD_CONFIG.MIN && prefillPrice <= PRICE_PER_POD_CONFIG.MAX) {
+      // Format to 6 decimals for display
+      newPricePerPod = clampAndFormatPrice(prefillPrice);
+      setPricePerPodInput(removeTrailingZeros(newPricePerPod.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
+    }
+
+    // Find nearest plot within 10% tolerance (only if prefillExpiresIn exists)
+    if (prefillExpiresIn && prefillExpiresIn > 0) {
+      newPlot = findNearestPlot(prefillExpiresIn);
+
+      // If plot found, set expires in to max expiration (no expiration)
+      if (newPlot) {
+        newExpiresIn = maxExpiration;
+      }
+    }
+
+    // Set all states together (override existing values)
+    if (newPricePerPod !== undefined) {
+      setPricePerPod(newPricePerPod);
+    }
+    if (newPlot) {
+      const sortedPlots = sortPlotsByIndex([newPlot]);
+      setPlot(sortedPlots);
+      const totalPods = sortedPlots.reduce((sum, p) => sum + p.pods.toNumber(), 0);
+      setPodRange([0, totalPods]);
+      setAmount(totalPods);
+    }
+    if (newExpiresIn !== null) {
+      setExpiresIn(newExpiresIn);
+    }
+    // Always set to External (Wallet Balance) when coming from context menu
+    setBalanceTo(FarmToMode.EXTERNAL);
+
+    // Clean up location state immediately
+    if (newPricePerPod !== undefined || newPlot !== null || newExpiresIn !== null) {
+      navigate(location.pathname, { replace: true, state: undefined });
+    }
+  }, [
+    prefillPrice,
+    prefillExpiresIn,
+    maxExpiration,
+    findNearestPlot,
+    harvestableIndex,
+    navigate,
+    location.pathname,
+    sortPlotsByIndex,
+  ]);
 
   // Pod range slider handler (two thumbs)
   const handlePodRangeChange = useCallback((value: number[]) => {
