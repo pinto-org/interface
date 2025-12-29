@@ -11,7 +11,7 @@ export function StepItem({ stepNumber, title, description }: StepItemProps) {
         {stepNumber}
       </div>
       <div>
-        <div className="pinto-body-bold text-pinto-dark mb-1">{title}</div>
+        <div className="pinto-body text-pinto-dark mb-1">{title}</div>
         <div className="pinto-sm text-pinto-light">{description}</div>
       </div>
     </div>

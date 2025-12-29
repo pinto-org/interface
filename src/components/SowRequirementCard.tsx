@@ -17,9 +17,9 @@ export function SowRequirementCard({
 }: SowRequirementCardProps) {
   return (
     <div className={`flex flex-col gap-4 ${disabled ? "opacity-50" : ""}`}>
-      <div className="flex flex-col gap-4 py-4">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <div className="pinto-body-bold text-pinto-dark">
+          <div className="pinto-body text-pinto-dark">
             {disabled
               ? "Connect your wallet to access referral features"
               : "You currently do not meet the criteria to refer farmers"}
