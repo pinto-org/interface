@@ -29,9 +29,9 @@ export type Scalars = {
   Timestamp: { input: any; output: any; }
 };
 
-export enum Aggregation_Interval {
-  Day = 'day',
-  Hour = 'hour'
+export enum AggregationInterval {
+  day = 'day',
+  hour = 'hour'
 }
 
 export type Bean = {
@@ -81,46 +81,46 @@ export type Bean = {
 
 export type BeanCrossEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanCross_OrderBy>;
+  orderBy?: InputMaybe<BeanCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<BeanCross_Filter>;
+  where?: InputMaybe<BeanCrossFilter>;
 };
 
 
 export type BeanDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<BeanDailySnapshot_Filter>;
+  where?: InputMaybe<BeanDailySnapshotFilter>;
 };
 
 
 export type BeanDewhitelistedPoolsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pool_OrderBy>;
+  orderBy?: InputMaybe<PoolOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Pool_Filter>;
+  where?: InputMaybe<PoolFilter>;
 };
 
 
 export type BeanHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<BeanHourlySnapshot_Filter>;
+  where?: InputMaybe<BeanHourlySnapshotFilter>;
 };
 
 
 export type BeanPoolsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pool_OrderBy>;
+  orderBy?: InputMaybe<PoolOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Pool_Filter>;
+  where?: InputMaybe<PoolFilter>;
 };
 
 export type BeanCross = {
@@ -147,17 +147,17 @@ export type BeanCross = {
   timestamp: Scalars['BigInt']['output'];
 };
 
-export type BeanCross_Filter = {
+export type BeanCrossFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   above?: InputMaybe<Scalars['Boolean']['input']>;
   above_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   above_not?: InputMaybe<Scalars['Boolean']['input']>;
   above_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<BeanCross_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanCrossFilter>>>;
   bean?: InputMaybe<Scalars['String']['input']>;
   beanDailySnapshot?: InputMaybe<Scalars['String']['input']>;
-  beanDailySnapshot_?: InputMaybe<BeanDailySnapshot_Filter>;
+  beanDailySnapshot_?: InputMaybe<BeanDailySnapshotFilter>;
   beanDailySnapshot_contains?: InputMaybe<Scalars['String']['input']>;
   beanDailySnapshot_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   beanDailySnapshot_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -178,7 +178,7 @@ export type BeanCross_Filter = {
   beanDailySnapshot_starts_with?: InputMaybe<Scalars['String']['input']>;
   beanDailySnapshot_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   beanHourlySnapshot?: InputMaybe<Scalars['String']['input']>;
-  beanHourlySnapshot_?: InputMaybe<BeanHourlySnapshot_Filter>;
+  beanHourlySnapshot_?: InputMaybe<BeanHourlySnapshotFilter>;
   beanHourlySnapshot_contains?: InputMaybe<Scalars['String']['input']>;
   beanHourlySnapshot_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   beanHourlySnapshot_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -198,7 +198,7 @@ export type BeanCross_Filter = {
   beanHourlySnapshot_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   beanHourlySnapshot_starts_with?: InputMaybe<Scalars['String']['input']>;
   beanHourlySnapshot_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  bean_?: InputMaybe<Bean_Filter>;
+  bean_?: InputMaybe<BeanFilter>;
   bean_contains?: InputMaybe<Scalars['String']['input']>;
   bean_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   bean_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -242,7 +242,7 @@ export type BeanCross_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<BeanCross_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<BeanCrossFilter>>>;
   price?: InputMaybe<Scalars['BigDecimal']['input']>;
   price_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   price_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -269,82 +269,82 @@ export type BeanCross_Filter = {
   timestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum BeanCross_OrderBy {
-  Above = 'above',
-  Bean = 'bean',
-  BeanDailySnapshot = 'beanDailySnapshot',
-  BeanDailySnapshotCreatedTimestamp = 'beanDailySnapshot__createdTimestamp',
-  BeanDailySnapshotCrosses = 'beanDailySnapshot__crosses',
-  BeanDailySnapshotDay = 'beanDailySnapshot__day',
-  BeanDailySnapshotDeltaCrosses = 'beanDailySnapshot__deltaCrosses',
-  BeanDailySnapshotDeltaLiquidityUsd = 'beanDailySnapshot__deltaLiquidityUSD',
-  BeanDailySnapshotDeltaVolume = 'beanDailySnapshot__deltaVolume',
-  BeanDailySnapshotDeltaVolumeUsd = 'beanDailySnapshot__deltaVolumeUSD',
-  BeanDailySnapshotId = 'beanDailySnapshot__id',
-  BeanDailySnapshotInstDeltaB = 'beanDailySnapshot__instDeltaB',
-  BeanDailySnapshotInstPrice = 'beanDailySnapshot__instPrice',
-  BeanDailySnapshotL2sr = 'beanDailySnapshot__l2sr',
-  BeanDailySnapshotLastUpdateBlockNumber = 'beanDailySnapshot__lastUpdateBlockNumber',
-  BeanDailySnapshotLastUpdateTimestamp = 'beanDailySnapshot__lastUpdateTimestamp',
-  BeanDailySnapshotLiquidityUsd = 'beanDailySnapshot__liquidityUSD',
-  BeanDailySnapshotLockedBeans = 'beanDailySnapshot__lockedBeans',
-  BeanDailySnapshotMarketCap = 'beanDailySnapshot__marketCap',
-  BeanDailySnapshotSupply = 'beanDailySnapshot__supply',
-  BeanDailySnapshotSupplyInPegLp = 'beanDailySnapshot__supplyInPegLP',
-  BeanDailySnapshotTwaBeanLiquidityUsd = 'beanDailySnapshot__twaBeanLiquidityUSD',
-  BeanDailySnapshotTwaDeltaB = 'beanDailySnapshot__twaDeltaB',
-  BeanDailySnapshotTwaLiquidityUsd = 'beanDailySnapshot__twaLiquidityUSD',
-  BeanDailySnapshotTwaNonBeanLiquidityUsd = 'beanDailySnapshot__twaNonBeanLiquidityUSD',
-  BeanDailySnapshotTwaPrice = 'beanDailySnapshot__twaPrice',
-  BeanDailySnapshotVolume = 'beanDailySnapshot__volume',
-  BeanDailySnapshotVolumeUsd = 'beanDailySnapshot__volumeUSD',
-  BeanHourlySnapshot = 'beanHourlySnapshot',
-  BeanHourlySnapshotCreatedTimestamp = 'beanHourlySnapshot__createdTimestamp',
-  BeanHourlySnapshotCrosses = 'beanHourlySnapshot__crosses',
-  BeanHourlySnapshotDeltaCrosses = 'beanHourlySnapshot__deltaCrosses',
-  BeanHourlySnapshotDeltaLiquidityUsd = 'beanHourlySnapshot__deltaLiquidityUSD',
-  BeanHourlySnapshotDeltaVolume = 'beanHourlySnapshot__deltaVolume',
-  BeanHourlySnapshotDeltaVolumeUsd = 'beanHourlySnapshot__deltaVolumeUSD',
-  BeanHourlySnapshotId = 'beanHourlySnapshot__id',
-  BeanHourlySnapshotInstDeltaB = 'beanHourlySnapshot__instDeltaB',
-  BeanHourlySnapshotInstPrice = 'beanHourlySnapshot__instPrice',
-  BeanHourlySnapshotL2sr = 'beanHourlySnapshot__l2sr',
-  BeanHourlySnapshotLastUpdateBlockNumber = 'beanHourlySnapshot__lastUpdateBlockNumber',
-  BeanHourlySnapshotLastUpdateTimestamp = 'beanHourlySnapshot__lastUpdateTimestamp',
-  BeanHourlySnapshotLiquidityUsd = 'beanHourlySnapshot__liquidityUSD',
-  BeanHourlySnapshotLockedBeans = 'beanHourlySnapshot__lockedBeans',
-  BeanHourlySnapshotMarketCap = 'beanHourlySnapshot__marketCap',
-  BeanHourlySnapshotSeasonNumber = 'beanHourlySnapshot__seasonNumber',
-  BeanHourlySnapshotSupply = 'beanHourlySnapshot__supply',
-  BeanHourlySnapshotSupplyInPegLp = 'beanHourlySnapshot__supplyInPegLP',
-  BeanHourlySnapshotTwaBeanLiquidityUsd = 'beanHourlySnapshot__twaBeanLiquidityUSD',
-  BeanHourlySnapshotTwaDeltaB = 'beanHourlySnapshot__twaDeltaB',
-  BeanHourlySnapshotTwaLiquidityUsd = 'beanHourlySnapshot__twaLiquidityUSD',
-  BeanHourlySnapshotTwaNonBeanLiquidityUsd = 'beanHourlySnapshot__twaNonBeanLiquidityUSD',
-  BeanHourlySnapshotTwaPrice = 'beanHourlySnapshot__twaPrice',
-  BeanHourlySnapshotVolume = 'beanHourlySnapshot__volume',
-  BeanHourlySnapshotVolumeUsd = 'beanHourlySnapshot__volumeUSD',
-  BeanCreatedTimestamp = 'bean__createdTimestamp',
-  BeanCrosses = 'bean__crosses',
-  BeanId = 'bean__id',
-  BeanLastCross = 'bean__lastCross',
-  BeanLastDailySnapshotDay = 'bean__lastDailySnapshotDay',
-  BeanLastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
-  BeanLastPrice = 'bean__lastPrice',
-  BeanLastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
-  BeanLastUpdateTimestamp = 'bean__lastUpdateTimestamp',
-  BeanLiquidityUsd = 'bean__liquidityUSD',
-  BeanLockedBeans = 'bean__lockedBeans',
-  BeanSupply = 'bean__supply',
-  BeanSupplyInPegLp = 'bean__supplyInPegLP',
-  BeanVolume = 'bean__volume',
-  BeanVolumeUsd = 'bean__volumeUSD',
-  BlockNumber = 'blockNumber',
-  Cross = 'cross',
-  Id = 'id',
-  Price = 'price',
-  TimeSinceLastCross = 'timeSinceLastCross',
-  Timestamp = 'timestamp'
+export enum BeanCrossOrderBy {
+  above = 'above',
+  bean = 'bean',
+  beanDailySnapshot = 'beanDailySnapshot',
+  beanDailySnapshot__createdTimestamp = 'beanDailySnapshot__createdTimestamp',
+  beanDailySnapshot__crosses = 'beanDailySnapshot__crosses',
+  beanDailySnapshot__day = 'beanDailySnapshot__day',
+  beanDailySnapshot__deltaCrosses = 'beanDailySnapshot__deltaCrosses',
+  beanDailySnapshot__deltaLiquidityUSD = 'beanDailySnapshot__deltaLiquidityUSD',
+  beanDailySnapshot__deltaVolume = 'beanDailySnapshot__deltaVolume',
+  beanDailySnapshot__deltaVolumeUSD = 'beanDailySnapshot__deltaVolumeUSD',
+  beanDailySnapshot__id = 'beanDailySnapshot__id',
+  beanDailySnapshot__instDeltaB = 'beanDailySnapshot__instDeltaB',
+  beanDailySnapshot__instPrice = 'beanDailySnapshot__instPrice',
+  beanDailySnapshot__l2sr = 'beanDailySnapshot__l2sr',
+  beanDailySnapshot__lastUpdateBlockNumber = 'beanDailySnapshot__lastUpdateBlockNumber',
+  beanDailySnapshot__lastUpdateTimestamp = 'beanDailySnapshot__lastUpdateTimestamp',
+  beanDailySnapshot__liquidityUSD = 'beanDailySnapshot__liquidityUSD',
+  beanDailySnapshot__lockedBeans = 'beanDailySnapshot__lockedBeans',
+  beanDailySnapshot__marketCap = 'beanDailySnapshot__marketCap',
+  beanDailySnapshot__supply = 'beanDailySnapshot__supply',
+  beanDailySnapshot__supplyInPegLP = 'beanDailySnapshot__supplyInPegLP',
+  beanDailySnapshot__twaBeanLiquidityUSD = 'beanDailySnapshot__twaBeanLiquidityUSD',
+  beanDailySnapshot__twaDeltaB = 'beanDailySnapshot__twaDeltaB',
+  beanDailySnapshot__twaLiquidityUSD = 'beanDailySnapshot__twaLiquidityUSD',
+  beanDailySnapshot__twaNonBeanLiquidityUSD = 'beanDailySnapshot__twaNonBeanLiquidityUSD',
+  beanDailySnapshot__twaPrice = 'beanDailySnapshot__twaPrice',
+  beanDailySnapshot__volume = 'beanDailySnapshot__volume',
+  beanDailySnapshot__volumeUSD = 'beanDailySnapshot__volumeUSD',
+  beanHourlySnapshot = 'beanHourlySnapshot',
+  beanHourlySnapshot__createdTimestamp = 'beanHourlySnapshot__createdTimestamp',
+  beanHourlySnapshot__crosses = 'beanHourlySnapshot__crosses',
+  beanHourlySnapshot__deltaCrosses = 'beanHourlySnapshot__deltaCrosses',
+  beanHourlySnapshot__deltaLiquidityUSD = 'beanHourlySnapshot__deltaLiquidityUSD',
+  beanHourlySnapshot__deltaVolume = 'beanHourlySnapshot__deltaVolume',
+  beanHourlySnapshot__deltaVolumeUSD = 'beanHourlySnapshot__deltaVolumeUSD',
+  beanHourlySnapshot__id = 'beanHourlySnapshot__id',
+  beanHourlySnapshot__instDeltaB = 'beanHourlySnapshot__instDeltaB',
+  beanHourlySnapshot__instPrice = 'beanHourlySnapshot__instPrice',
+  beanHourlySnapshot__l2sr = 'beanHourlySnapshot__l2sr',
+  beanHourlySnapshot__lastUpdateBlockNumber = 'beanHourlySnapshot__lastUpdateBlockNumber',
+  beanHourlySnapshot__lastUpdateTimestamp = 'beanHourlySnapshot__lastUpdateTimestamp',
+  beanHourlySnapshot__liquidityUSD = 'beanHourlySnapshot__liquidityUSD',
+  beanHourlySnapshot__lockedBeans = 'beanHourlySnapshot__lockedBeans',
+  beanHourlySnapshot__marketCap = 'beanHourlySnapshot__marketCap',
+  beanHourlySnapshot__seasonNumber = 'beanHourlySnapshot__seasonNumber',
+  beanHourlySnapshot__supply = 'beanHourlySnapshot__supply',
+  beanHourlySnapshot__supplyInPegLP = 'beanHourlySnapshot__supplyInPegLP',
+  beanHourlySnapshot__twaBeanLiquidityUSD = 'beanHourlySnapshot__twaBeanLiquidityUSD',
+  beanHourlySnapshot__twaDeltaB = 'beanHourlySnapshot__twaDeltaB',
+  beanHourlySnapshot__twaLiquidityUSD = 'beanHourlySnapshot__twaLiquidityUSD',
+  beanHourlySnapshot__twaNonBeanLiquidityUSD = 'beanHourlySnapshot__twaNonBeanLiquidityUSD',
+  beanHourlySnapshot__twaPrice = 'beanHourlySnapshot__twaPrice',
+  beanHourlySnapshot__volume = 'beanHourlySnapshot__volume',
+  beanHourlySnapshot__volumeUSD = 'beanHourlySnapshot__volumeUSD',
+  bean__createdTimestamp = 'bean__createdTimestamp',
+  bean__crosses = 'bean__crosses',
+  bean__id = 'bean__id',
+  bean__lastCross = 'bean__lastCross',
+  bean__lastDailySnapshotDay = 'bean__lastDailySnapshotDay',
+  bean__lastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
+  bean__lastPrice = 'bean__lastPrice',
+  bean__lastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
+  bean__lastUpdateTimestamp = 'bean__lastUpdateTimestamp',
+  bean__liquidityUSD = 'bean__liquidityUSD',
+  bean__lockedBeans = 'bean__lockedBeans',
+  bean__supply = 'bean__supply',
+  bean__supplyInPegLP = 'bean__supplyInPegLP',
+  bean__volume = 'bean__volume',
+  bean__volumeUSD = 'bean__volumeUSD',
+  blockNumber = 'blockNumber',
+  cross = 'cross',
+  id = 'id',
+  price = 'price',
+  timeSinceLastCross = 'timeSinceLastCross',
+  timestamp = 'timestamp'
 }
 
 export type BeanDailySnapshot = {
@@ -408,18 +408,18 @@ export type BeanDailySnapshot = {
 
 export type BeanDailySnapshotCrossEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanCross_OrderBy>;
+  orderBy?: InputMaybe<BeanCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<BeanCross_Filter>;
+  where?: InputMaybe<BeanCrossFilter>;
 };
 
-export type BeanDailySnapshot_Filter = {
+export type BeanDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<BeanDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanDailySnapshotFilter>>>;
   bean?: InputMaybe<Scalars['String']['input']>;
-  bean_?: InputMaybe<Bean_Filter>;
+  bean_?: InputMaybe<BeanFilter>;
   bean_contains?: InputMaybe<Scalars['String']['input']>;
   bean_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   bean_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -447,7 +447,7 @@ export type BeanDailySnapshot_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  crossEvents_?: InputMaybe<BeanCross_Filter>;
+  crossEvents_?: InputMaybe<BeanCrossFilter>;
   crosses?: InputMaybe<Scalars['Int']['input']>;
   crosses_gt?: InputMaybe<Scalars['Int']['input']>;
   crosses_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -568,9 +568,9 @@ export type BeanDailySnapshot_Filter = {
   marketCap_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   marketCap_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   marketCap_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<BeanDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<BeanDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -664,53 +664,53 @@ export type BeanDailySnapshot_Filter = {
   volume_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum BeanDailySnapshot_OrderBy {
-  Bean = 'bean',
-  BeanCreatedTimestamp = 'bean__createdTimestamp',
-  BeanCrosses = 'bean__crosses',
-  BeanId = 'bean__id',
-  BeanLastCross = 'bean__lastCross',
-  BeanLastDailySnapshotDay = 'bean__lastDailySnapshotDay',
-  BeanLastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
-  BeanLastPrice = 'bean__lastPrice',
-  BeanLastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
-  BeanLastUpdateTimestamp = 'bean__lastUpdateTimestamp',
-  BeanLiquidityUsd = 'bean__liquidityUSD',
-  BeanLockedBeans = 'bean__lockedBeans',
-  BeanSupply = 'bean__supply',
-  BeanSupplyInPegLp = 'bean__supplyInPegLP',
-  BeanVolume = 'bean__volume',
-  BeanVolumeUsd = 'bean__volumeUSD',
-  CreatedTimestamp = 'createdTimestamp',
-  CrossEvents = 'crossEvents',
-  Crosses = 'crosses',
-  Day = 'day',
-  DeltaCrosses = 'deltaCrosses',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaVolume = 'deltaVolume',
-  DeltaVolumeUsd = 'deltaVolumeUSD',
-  Id = 'id',
-  InstDeltaB = 'instDeltaB',
-  InstPrice = 'instPrice',
-  L2sr = 'l2sr',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LiquidityUsd = 'liquidityUSD',
-  LockedBeans = 'lockedBeans',
-  MarketCap = 'marketCap',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  Supply = 'supply',
-  SupplyInPegLp = 'supplyInPegLP',
-  TwaBeanLiquidityUsd = 'twaBeanLiquidityUSD',
-  TwaDeltaB = 'twaDeltaB',
-  TwaLiquidityUsd = 'twaLiquidityUSD',
-  TwaNonBeanLiquidityUsd = 'twaNonBeanLiquidityUSD',
-  TwaPrice = 'twaPrice',
-  Volume = 'volume',
-  VolumeUsd = 'volumeUSD'
+export enum BeanDailySnapshotOrderBy {
+  bean = 'bean',
+  bean__createdTimestamp = 'bean__createdTimestamp',
+  bean__crosses = 'bean__crosses',
+  bean__id = 'bean__id',
+  bean__lastCross = 'bean__lastCross',
+  bean__lastDailySnapshotDay = 'bean__lastDailySnapshotDay',
+  bean__lastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
+  bean__lastPrice = 'bean__lastPrice',
+  bean__lastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
+  bean__lastUpdateTimestamp = 'bean__lastUpdateTimestamp',
+  bean__liquidityUSD = 'bean__liquidityUSD',
+  bean__lockedBeans = 'bean__lockedBeans',
+  bean__supply = 'bean__supply',
+  bean__supplyInPegLP = 'bean__supplyInPegLP',
+  bean__volume = 'bean__volume',
+  bean__volumeUSD = 'bean__volumeUSD',
+  createdTimestamp = 'createdTimestamp',
+  crossEvents = 'crossEvents',
+  crosses = 'crosses',
+  day = 'day',
+  deltaCrosses = 'deltaCrosses',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaVolume = 'deltaVolume',
+  deltaVolumeUSD = 'deltaVolumeUSD',
+  id = 'id',
+  instDeltaB = 'instDeltaB',
+  instPrice = 'instPrice',
+  l2sr = 'l2sr',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  liquidityUSD = 'liquidityUSD',
+  lockedBeans = 'lockedBeans',
+  marketCap = 'marketCap',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  supply = 'supply',
+  supplyInPegLP = 'supplyInPegLP',
+  twaBeanLiquidityUSD = 'twaBeanLiquidityUSD',
+  twaDeltaB = 'twaDeltaB',
+  twaLiquidityUSD = 'twaLiquidityUSD',
+  twaNonBeanLiquidityUSD = 'twaNonBeanLiquidityUSD',
+  twaPrice = 'twaPrice',
+  volume = 'volume',
+  volumeUSD = 'volumeUSD'
 }
 
 export type BeanHourlySnapshot = {
@@ -773,18 +773,18 @@ export type BeanHourlySnapshot = {
 
 export type BeanHourlySnapshotCrossEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanCross_OrderBy>;
+  orderBy?: InputMaybe<BeanCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<BeanCross_Filter>;
+  where?: InputMaybe<BeanCrossFilter>;
 };
 
-export type BeanHourlySnapshot_Filter = {
+export type BeanHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<BeanHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanHourlySnapshotFilter>>>;
   bean?: InputMaybe<Scalars['String']['input']>;
-  bean_?: InputMaybe<Bean_Filter>;
+  bean_?: InputMaybe<BeanFilter>;
   bean_contains?: InputMaybe<Scalars['String']['input']>;
   bean_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   bean_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -812,7 +812,7 @@ export type BeanHourlySnapshot_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  crossEvents_?: InputMaybe<BeanCross_Filter>;
+  crossEvents_?: InputMaybe<BeanCrossFilter>;
   crosses?: InputMaybe<Scalars['Int']['input']>;
   crosses_gt?: InputMaybe<Scalars['Int']['input']>;
   crosses_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -925,7 +925,7 @@ export type BeanHourlySnapshot_Filter = {
   marketCap_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   marketCap_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   marketCap_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<BeanHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<BeanHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
   seasonNumber?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_gt?: InputMaybe<Scalars['Int']['input']>;
@@ -935,7 +935,7 @@ export type BeanHourlySnapshot_Filter = {
   seasonNumber_lte?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1029,59 +1029,59 @@ export type BeanHourlySnapshot_Filter = {
   volume_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum BeanHourlySnapshot_OrderBy {
-  Bean = 'bean',
-  BeanCreatedTimestamp = 'bean__createdTimestamp',
-  BeanCrosses = 'bean__crosses',
-  BeanId = 'bean__id',
-  BeanLastCross = 'bean__lastCross',
-  BeanLastDailySnapshotDay = 'bean__lastDailySnapshotDay',
-  BeanLastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
-  BeanLastPrice = 'bean__lastPrice',
-  BeanLastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
-  BeanLastUpdateTimestamp = 'bean__lastUpdateTimestamp',
-  BeanLiquidityUsd = 'bean__liquidityUSD',
-  BeanLockedBeans = 'bean__lockedBeans',
-  BeanSupply = 'bean__supply',
-  BeanSupplyInPegLp = 'bean__supplyInPegLP',
-  BeanVolume = 'bean__volume',
-  BeanVolumeUsd = 'bean__volumeUSD',
-  CreatedTimestamp = 'createdTimestamp',
-  CrossEvents = 'crossEvents',
-  Crosses = 'crosses',
-  DeltaCrosses = 'deltaCrosses',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaVolume = 'deltaVolume',
-  DeltaVolumeUsd = 'deltaVolumeUSD',
-  Id = 'id',
-  InstDeltaB = 'instDeltaB',
-  InstPrice = 'instPrice',
-  L2sr = 'l2sr',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LiquidityUsd = 'liquidityUSD',
-  LockedBeans = 'lockedBeans',
-  MarketCap = 'marketCap',
-  Season = 'season',
-  SeasonNumber = 'seasonNumber',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  Supply = 'supply',
-  SupplyInPegLp = 'supplyInPegLP',
-  TwaBeanLiquidityUsd = 'twaBeanLiquidityUSD',
-  TwaDeltaB = 'twaDeltaB',
-  TwaLiquidityUsd = 'twaLiquidityUSD',
-  TwaNonBeanLiquidityUsd = 'twaNonBeanLiquidityUSD',
-  TwaPrice = 'twaPrice',
-  Volume = 'volume',
-  VolumeUsd = 'volumeUSD'
+export enum BeanHourlySnapshotOrderBy {
+  bean = 'bean',
+  bean__createdTimestamp = 'bean__createdTimestamp',
+  bean__crosses = 'bean__crosses',
+  bean__id = 'bean__id',
+  bean__lastCross = 'bean__lastCross',
+  bean__lastDailySnapshotDay = 'bean__lastDailySnapshotDay',
+  bean__lastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
+  bean__lastPrice = 'bean__lastPrice',
+  bean__lastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
+  bean__lastUpdateTimestamp = 'bean__lastUpdateTimestamp',
+  bean__liquidityUSD = 'bean__liquidityUSD',
+  bean__lockedBeans = 'bean__lockedBeans',
+  bean__supply = 'bean__supply',
+  bean__supplyInPegLP = 'bean__supplyInPegLP',
+  bean__volume = 'bean__volume',
+  bean__volumeUSD = 'bean__volumeUSD',
+  createdTimestamp = 'createdTimestamp',
+  crossEvents = 'crossEvents',
+  crosses = 'crosses',
+  deltaCrosses = 'deltaCrosses',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaVolume = 'deltaVolume',
+  deltaVolumeUSD = 'deltaVolumeUSD',
+  id = 'id',
+  instDeltaB = 'instDeltaB',
+  instPrice = 'instPrice',
+  l2sr = 'l2sr',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  liquidityUSD = 'liquidityUSD',
+  lockedBeans = 'lockedBeans',
+  marketCap = 'marketCap',
+  season = 'season',
+  seasonNumber = 'seasonNumber',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  supply = 'supply',
+  supplyInPegLP = 'supplyInPegLP',
+  twaBeanLiquidityUSD = 'twaBeanLiquidityUSD',
+  twaDeltaB = 'twaDeltaB',
+  twaLiquidityUSD = 'twaLiquidityUSD',
+  twaNonBeanLiquidityUSD = 'twaNonBeanLiquidityUSD',
+  twaPrice = 'twaPrice',
+  volume = 'volume',
+  volumeUSD = 'volumeUSD'
 }
 
-export type Bean_Filter = {
+export type BeanFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Bean_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<BeanFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1090,7 +1090,7 @@ export type Bean_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  crossEvents_?: InputMaybe<BeanCross_Filter>;
+  crossEvents_?: InputMaybe<BeanCrossFilter>;
   crosses?: InputMaybe<Scalars['Int']['input']>;
   crosses_gt?: InputMaybe<Scalars['Int']['input']>;
   crosses_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -1100,7 +1100,7 @@ export type Bean_Filter = {
   crosses_not?: InputMaybe<Scalars['Int']['input']>;
   crosses_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   currentSeason?: InputMaybe<Scalars['String']['input']>;
-  currentSeason_?: InputMaybe<Season_Filter>;
+  currentSeason_?: InputMaybe<SeasonFilter>;
   currentSeason_contains?: InputMaybe<Scalars['String']['input']>;
   currentSeason_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   currentSeason_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1120,15 +1120,15 @@ export type Bean_Filter = {
   currentSeason_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   currentSeason_starts_with?: InputMaybe<Scalars['String']['input']>;
   currentSeason_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  dailySnapshots_?: InputMaybe<BeanDailySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<BeanDailySnapshotFilter>;
   dewhitelistedPools?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedPools_?: InputMaybe<Pool_Filter>;
+  dewhitelistedPools_?: InputMaybe<PoolFilter>;
   dewhitelistedPools_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_not?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  hourlySnapshots_?: InputMaybe<BeanHourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<BeanHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -1203,9 +1203,9 @@ export type Bean_Filter = {
   lockedBeans_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lockedBeans_not?: InputMaybe<Scalars['BigInt']['input']>;
   lockedBeans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Bean_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<BeanFilter>>>;
   pools?: InputMaybe<Array<Scalars['String']['input']>>;
-  pools_?: InputMaybe<Pool_Filter>;
+  pools_?: InputMaybe<PoolFilter>;
   pools_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   pools_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   pools_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -1245,38 +1245,38 @@ export type Bean_Filter = {
   volume_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Bean_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  CrossEvents = 'crossEvents',
-  Crosses = 'crosses',
-  CurrentSeason = 'currentSeason',
-  CurrentSeasonId = 'currentSeason__id',
-  CurrentSeasonSeason = 'currentSeason__season',
-  CurrentSeasonTimestamp = 'currentSeason__timestamp',
-  DailySnapshots = 'dailySnapshots',
-  DewhitelistedPools = 'dewhitelistedPools',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastCross = 'lastCross',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  LastPrice = 'lastPrice',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LiquidityUsd = 'liquidityUSD',
-  LockedBeans = 'lockedBeans',
-  Pools = 'pools',
-  Supply = 'supply',
-  SupplyInPegLp = 'supplyInPegLP',
-  Volume = 'volume',
-  VolumeUsd = 'volumeUSD'
+export enum BeanOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  crossEvents = 'crossEvents',
+  crosses = 'crosses',
+  currentSeason = 'currentSeason',
+  currentSeason__id = 'currentSeason__id',
+  currentSeason__season = 'currentSeason__season',
+  currentSeason__timestamp = 'currentSeason__timestamp',
+  dailySnapshots = 'dailySnapshots',
+  dewhitelistedPools = 'dewhitelistedPools',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastCross = 'lastCross',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  lastPrice = 'lastPrice',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  liquidityUSD = 'liquidityUSD',
+  lockedBeans = 'lockedBeans',
+  pools = 'pools',
+  supply = 'supply',
+  supplyInPegLP = 'supplyInPegLP',
+  volume = 'volume',
+  volumeUSD = 'volumeUSD'
 }
 
 export type BlockChangedFilter = {
   number_gte: Scalars['Int']['input'];
 };
 
-export type Block_Height = {
+export type BlockHeight = {
   hash?: InputMaybe<Scalars['Bytes']['input']>;
   number?: InputMaybe<Scalars['Int']['input']>;
   number_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -1307,19 +1307,19 @@ export type FarmerBalance = {
 
 export type FarmerBalanceDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalanceDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FarmerBalanceDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<FarmerBalanceDailySnapshot_Filter>;
+  where?: InputMaybe<FarmerBalanceDailySnapshotFilter>;
 };
 
 
 export type FarmerBalanceHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalanceHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FarmerBalanceHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<FarmerBalanceHourlySnapshot_Filter>;
+  where?: InputMaybe<FarmerBalanceHourlySnapshotFilter>;
 };
 
 export type FarmerBalanceDailySnapshot = {
@@ -1350,10 +1350,10 @@ export type FarmerBalanceDailySnapshot = {
   walletBalance: Scalars['BigInt']['output'];
 };
 
-export type FarmerBalanceDailySnapshot_Filter = {
+export type FarmerBalanceDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<FarmerBalanceDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FarmerBalanceDailySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1403,7 +1403,7 @@ export type FarmerBalanceDailySnapshot_Filter = {
   farmBalance_not?: InputMaybe<Scalars['BigInt']['input']>;
   farmBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   farmerBalance?: InputMaybe<Scalars['String']['input']>;
-  farmerBalance_?: InputMaybe<FarmerBalance_Filter>;
+  farmerBalance_?: InputMaybe<FarmerBalanceFilter>;
   farmerBalance_contains?: InputMaybe<Scalars['String']['input']>;
   farmerBalance_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmerBalance_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1447,9 +1447,9 @@ export type FarmerBalanceDailySnapshot_Filter = {
   lastUpdateTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FarmerBalanceDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FarmerBalanceDailySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1487,31 +1487,31 @@ export type FarmerBalanceDailySnapshot_Filter = {
   walletBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum FarmerBalanceDailySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  Day = 'day',
-  DeltaFarmBalance = 'deltaFarmBalance',
-  DeltaTotalBalance = 'deltaTotalBalance',
-  DeltaWalletBalance = 'deltaWalletBalance',
-  FarmBalance = 'farmBalance',
-  FarmerBalance = 'farmerBalance',
-  FarmerBalanceFarmBalance = 'farmerBalance__farmBalance',
-  FarmerBalanceFarmer = 'farmerBalance__farmer',
-  FarmerBalanceId = 'farmerBalance__id',
-  FarmerBalanceLastDailySnapshotDay = 'farmerBalance__lastDailySnapshotDay',
-  FarmerBalanceLastHourlySnapshotSeason = 'farmerBalance__lastHourlySnapshotSeason',
-  FarmerBalanceToken = 'farmerBalance__token',
-  FarmerBalanceTotalBalance = 'farmerBalance__totalBalance',
-  FarmerBalanceWalletBalance = 'farmerBalance__walletBalance',
-  Id = 'id',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TotalBalance = 'totalBalance',
-  WalletBalance = 'walletBalance'
+export enum FarmerBalanceDailySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  day = 'day',
+  deltaFarmBalance = 'deltaFarmBalance',
+  deltaTotalBalance = 'deltaTotalBalance',
+  deltaWalletBalance = 'deltaWalletBalance',
+  farmBalance = 'farmBalance',
+  farmerBalance = 'farmerBalance',
+  farmerBalance__farmBalance = 'farmerBalance__farmBalance',
+  farmerBalance__farmer = 'farmerBalance__farmer',
+  farmerBalance__id = 'farmerBalance__id',
+  farmerBalance__lastDailySnapshotDay = 'farmerBalance__lastDailySnapshotDay',
+  farmerBalance__lastHourlySnapshotSeason = 'farmerBalance__lastHourlySnapshotSeason',
+  farmerBalance__token = 'farmerBalance__token',
+  farmerBalance__totalBalance = 'farmerBalance__totalBalance',
+  farmerBalance__walletBalance = 'farmerBalance__walletBalance',
+  id = 'id',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  totalBalance = 'totalBalance',
+  walletBalance = 'walletBalance'
 }
 
 export type FarmerBalanceHourlySnapshot = {
@@ -1541,10 +1541,10 @@ export type FarmerBalanceHourlySnapshot = {
   walletBalance: Scalars['BigInt']['output'];
 };
 
-export type FarmerBalanceHourlySnapshot_Filter = {
+export type FarmerBalanceHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<FarmerBalanceHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<FarmerBalanceHourlySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1586,7 +1586,7 @@ export type FarmerBalanceHourlySnapshot_Filter = {
   farmBalance_not?: InputMaybe<Scalars['BigInt']['input']>;
   farmBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   farmerBalance?: InputMaybe<Scalars['String']['input']>;
-  farmerBalance_?: InputMaybe<FarmerBalance_Filter>;
+  farmerBalance_?: InputMaybe<FarmerBalanceFilter>;
   farmerBalance_contains?: InputMaybe<Scalars['String']['input']>;
   farmerBalance_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   farmerBalance_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1630,7 +1630,7 @@ export type FarmerBalanceHourlySnapshot_Filter = {
   lastUpdateTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdateTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FarmerBalanceHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FarmerBalanceHourlySnapshotFilter>>>;
   season?: InputMaybe<Scalars['String']['input']>;
   seasonNumber?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_gt?: InputMaybe<Scalars['Int']['input']>;
@@ -1640,7 +1640,7 @@ export type FarmerBalanceHourlySnapshot_Filter = {
   seasonNumber_lte?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1678,38 +1678,38 @@ export type FarmerBalanceHourlySnapshot_Filter = {
   walletBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum FarmerBalanceHourlySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  DeltaFarmBalance = 'deltaFarmBalance',
-  DeltaTotalBalance = 'deltaTotalBalance',
-  DeltaWalletBalance = 'deltaWalletBalance',
-  FarmBalance = 'farmBalance',
-  FarmerBalance = 'farmerBalance',
-  FarmerBalanceFarmBalance = 'farmerBalance__farmBalance',
-  FarmerBalanceFarmer = 'farmerBalance__farmer',
-  FarmerBalanceId = 'farmerBalance__id',
-  FarmerBalanceLastDailySnapshotDay = 'farmerBalance__lastDailySnapshotDay',
-  FarmerBalanceLastHourlySnapshotSeason = 'farmerBalance__lastHourlySnapshotSeason',
-  FarmerBalanceToken = 'farmerBalance__token',
-  FarmerBalanceTotalBalance = 'farmerBalance__totalBalance',
-  FarmerBalanceWalletBalance = 'farmerBalance__walletBalance',
-  Id = 'id',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  Season = 'season',
-  SeasonNumber = 'seasonNumber',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TotalBalance = 'totalBalance',
-  WalletBalance = 'walletBalance'
+export enum FarmerBalanceHourlySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  deltaFarmBalance = 'deltaFarmBalance',
+  deltaTotalBalance = 'deltaTotalBalance',
+  deltaWalletBalance = 'deltaWalletBalance',
+  farmBalance = 'farmBalance',
+  farmerBalance = 'farmerBalance',
+  farmerBalance__farmBalance = 'farmerBalance__farmBalance',
+  farmerBalance__farmer = 'farmerBalance__farmer',
+  farmerBalance__id = 'farmerBalance__id',
+  farmerBalance__lastDailySnapshotDay = 'farmerBalance__lastDailySnapshotDay',
+  farmerBalance__lastHourlySnapshotSeason = 'farmerBalance__lastHourlySnapshotSeason',
+  farmerBalance__token = 'farmerBalance__token',
+  farmerBalance__totalBalance = 'farmerBalance__totalBalance',
+  farmerBalance__walletBalance = 'farmerBalance__walletBalance',
+  id = 'id',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  season = 'season',
+  seasonNumber = 'seasonNumber',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  totalBalance = 'totalBalance',
+  walletBalance = 'walletBalance'
 }
 
-export type FarmerBalance_Filter = {
+export type FarmerBalanceFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<FarmerBalance_Filter>>>;
-  dailySnapshots_?: InputMaybe<FarmerBalanceDailySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<FarmerBalanceFilter>>>;
+  dailySnapshots_?: InputMaybe<FarmerBalanceDailySnapshotFilter>;
   farmBalance?: InputMaybe<Scalars['BigInt']['input']>;
   farmBalance_gt?: InputMaybe<Scalars['BigInt']['input']>;
   farmBalance_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1728,7 +1728,7 @@ export type FarmerBalance_Filter = {
   farmer_not?: InputMaybe<Scalars['Bytes']['input']>;
   farmer_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   farmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  hourlySnapshots_?: InputMaybe<FarmerBalanceHourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<FarmerBalanceHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -1753,7 +1753,7 @@ export type FarmerBalance_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<FarmerBalance_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<FarmerBalanceFilter>>>;
   token?: InputMaybe<Scalars['Bytes']['input']>;
   token_contains?: InputMaybe<Scalars['Bytes']['input']>;
   token_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -1782,23 +1782,23 @@ export type FarmerBalance_Filter = {
   walletBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum FarmerBalance_OrderBy {
-  DailySnapshots = 'dailySnapshots',
-  FarmBalance = 'farmBalance',
-  Farmer = 'farmer',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  Token = 'token',
-  TotalBalance = 'totalBalance',
-  WalletBalance = 'walletBalance'
+export enum FarmerBalanceOrderBy {
+  dailySnapshots = 'dailySnapshots',
+  farmBalance = 'farmBalance',
+  farmer = 'farmer',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  token = 'token',
+  totalBalance = 'totalBalance',
+  walletBalance = 'walletBalance'
 }
 
 /** Defines the order direction, either ascending or descending */
 export enum OrderDirection {
-  Asc = 'asc',
-  Desc = 'desc'
+  asc = 'asc',
+  desc = 'desc'
 }
 
 export type Pool = {
@@ -1844,37 +1844,37 @@ export type Pool = {
 
 export type PoolCrossEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolCross_OrderBy>;
+  orderBy?: InputMaybe<PoolCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PoolCross_Filter>;
+  where?: InputMaybe<PoolCrossFilter>;
 };
 
 
 export type PoolDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PoolDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PoolDailySnapshot_Filter>;
+  where?: InputMaybe<PoolDailySnapshotFilter>;
 };
 
 
 export type PoolHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PoolHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PoolHourlySnapshot_Filter>;
+  where?: InputMaybe<PoolHourlySnapshotFilter>;
 };
 
 
 export type PoolTokensArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Token_OrderBy>;
+  orderBy?: InputMaybe<TokenOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<Token_Filter>;
+  where?: InputMaybe<TokenFilter>;
 };
 
 export type PoolCross = {
@@ -1901,14 +1901,14 @@ export type PoolCross = {
   timestamp: Scalars['BigInt']['output'];
 };
 
-export type PoolCross_Filter = {
+export type PoolCrossFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
   above?: InputMaybe<Scalars['Boolean']['input']>;
   above_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   above_not?: InputMaybe<Scalars['Boolean']['input']>;
   above_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
-  and?: InputMaybe<Array<InputMaybe<PoolCross_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PoolCrossFilter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1933,10 +1933,10 @@ export type PoolCross_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PoolCross_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PoolCrossFilter>>>;
   pool?: InputMaybe<Scalars['String']['input']>;
   poolDailySnapshot?: InputMaybe<Scalars['String']['input']>;
-  poolDailySnapshot_?: InputMaybe<PoolDailySnapshot_Filter>;
+  poolDailySnapshot_?: InputMaybe<PoolDailySnapshotFilter>;
   poolDailySnapshot_contains?: InputMaybe<Scalars['String']['input']>;
   poolDailySnapshot_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   poolDailySnapshot_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1957,7 +1957,7 @@ export type PoolCross_Filter = {
   poolDailySnapshot_starts_with?: InputMaybe<Scalars['String']['input']>;
   poolDailySnapshot_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   poolHourlySnapshot?: InputMaybe<Scalars['String']['input']>;
-  poolHourlySnapshot_?: InputMaybe<PoolHourlySnapshot_Filter>;
+  poolHourlySnapshot_?: InputMaybe<PoolHourlySnapshotFilter>;
   poolHourlySnapshot_contains?: InputMaybe<Scalars['String']['input']>;
   poolHourlySnapshot_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   poolHourlySnapshot_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -1977,7 +1977,7 @@ export type PoolCross_Filter = {
   poolHourlySnapshot_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   poolHourlySnapshot_starts_with?: InputMaybe<Scalars['String']['input']>;
   poolHourlySnapshot_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  pool_?: InputMaybe<Pool_Filter>;
+  pool_?: InputMaybe<PoolFilter>;
   pool_contains?: InputMaybe<Scalars['String']['input']>;
   pool_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   pool_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2023,71 +2023,71 @@ export type PoolCross_Filter = {
   timestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PoolCross_OrderBy {
-  Above = 'above',
-  BlockNumber = 'blockNumber',
-  Cross = 'cross',
-  Id = 'id',
-  Pool = 'pool',
-  PoolDailySnapshot = 'poolDailySnapshot',
-  PoolDailySnapshotCreatedTimestamp = 'poolDailySnapshot__createdTimestamp',
-  PoolDailySnapshotCrosses = 'poolDailySnapshot__crosses',
-  PoolDailySnapshotDay = 'poolDailySnapshot__day',
-  PoolDailySnapshotDeltaCrosses = 'poolDailySnapshot__deltaCrosses',
-  PoolDailySnapshotDeltaLiquidityUsd = 'poolDailySnapshot__deltaLiquidityUSD',
-  PoolDailySnapshotDeltaVolume = 'poolDailySnapshot__deltaVolume',
-  PoolDailySnapshotDeltaVolumeUsd = 'poolDailySnapshot__deltaVolumeUSD',
-  PoolDailySnapshotId = 'poolDailySnapshot__id',
-  PoolDailySnapshotInstDeltaB = 'poolDailySnapshot__instDeltaB',
-  PoolDailySnapshotInstPrice = 'poolDailySnapshot__instPrice',
-  PoolDailySnapshotLastUpdateBlockNumber = 'poolDailySnapshot__lastUpdateBlockNumber',
-  PoolDailySnapshotLastUpdateTimestamp = 'poolDailySnapshot__lastUpdateTimestamp',
-  PoolDailySnapshotLiquidityUsd = 'poolDailySnapshot__liquidityUSD',
-  PoolDailySnapshotTwaBeanLiquidityUsd = 'poolDailySnapshot__twaBeanLiquidityUSD',
-  PoolDailySnapshotTwaDeltaB = 'poolDailySnapshot__twaDeltaB',
-  PoolDailySnapshotTwaLiquidityUsd = 'poolDailySnapshot__twaLiquidityUSD',
-  PoolDailySnapshotTwaNonBeanLiquidityUsd = 'poolDailySnapshot__twaNonBeanLiquidityUSD',
-  PoolDailySnapshotTwaPrice = 'poolDailySnapshot__twaPrice',
-  PoolDailySnapshotTwaToken2Price = 'poolDailySnapshot__twaToken2Price',
-  PoolDailySnapshotVolume = 'poolDailySnapshot__volume',
-  PoolDailySnapshotVolumeUsd = 'poolDailySnapshot__volumeUSD',
-  PoolHourlySnapshot = 'poolHourlySnapshot',
-  PoolHourlySnapshotCreatedTimestamp = 'poolHourlySnapshot__createdTimestamp',
-  PoolHourlySnapshotCrosses = 'poolHourlySnapshot__crosses',
-  PoolHourlySnapshotDeltaCrosses = 'poolHourlySnapshot__deltaCrosses',
-  PoolHourlySnapshotDeltaLiquidityUsd = 'poolHourlySnapshot__deltaLiquidityUSD',
-  PoolHourlySnapshotDeltaVolume = 'poolHourlySnapshot__deltaVolume',
-  PoolHourlySnapshotDeltaVolumeUsd = 'poolHourlySnapshot__deltaVolumeUSD',
-  PoolHourlySnapshotId = 'poolHourlySnapshot__id',
-  PoolHourlySnapshotInstDeltaB = 'poolHourlySnapshot__instDeltaB',
-  PoolHourlySnapshotInstPrice = 'poolHourlySnapshot__instPrice',
-  PoolHourlySnapshotLastUpdateBlockNumber = 'poolHourlySnapshot__lastUpdateBlockNumber',
-  PoolHourlySnapshotLastUpdateTimestamp = 'poolHourlySnapshot__lastUpdateTimestamp',
-  PoolHourlySnapshotLiquidityUsd = 'poolHourlySnapshot__liquidityUSD',
-  PoolHourlySnapshotSeasonNumber = 'poolHourlySnapshot__seasonNumber',
-  PoolHourlySnapshotTwaBeanLiquidityUsd = 'poolHourlySnapshot__twaBeanLiquidityUSD',
-  PoolHourlySnapshotTwaDeltaB = 'poolHourlySnapshot__twaDeltaB',
-  PoolHourlySnapshotTwaLiquidityUsd = 'poolHourlySnapshot__twaLiquidityUSD',
-  PoolHourlySnapshotTwaNonBeanLiquidityUsd = 'poolHourlySnapshot__twaNonBeanLiquidityUSD',
-  PoolHourlySnapshotTwaPrice = 'poolHourlySnapshot__twaPrice',
-  PoolHourlySnapshotTwaToken2Price = 'poolHourlySnapshot__twaToken2Price',
-  PoolHourlySnapshotVolume = 'poolHourlySnapshot__volume',
-  PoolHourlySnapshotVolumeUsd = 'poolHourlySnapshot__volumeUSD',
-  PoolCreatedTimestamp = 'pool__createdTimestamp',
-  PoolCrosses = 'pool__crosses',
-  PoolId = 'pool__id',
-  PoolLastCross = 'pool__lastCross',
-  PoolLastDailySnapshotDay = 'pool__lastDailySnapshotDay',
-  PoolLastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
-  PoolLastPrice = 'pool__lastPrice',
-  PoolLastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
-  PoolLastUpdateTimestamp = 'pool__lastUpdateTimestamp',
-  PoolLiquidityUsd = 'pool__liquidityUSD',
-  PoolVolume = 'pool__volume',
-  PoolVolumeUsd = 'pool__volumeUSD',
-  Price = 'price',
-  TimeSinceLastCross = 'timeSinceLastCross',
-  Timestamp = 'timestamp'
+export enum PoolCrossOrderBy {
+  above = 'above',
+  blockNumber = 'blockNumber',
+  cross = 'cross',
+  id = 'id',
+  pool = 'pool',
+  poolDailySnapshot = 'poolDailySnapshot',
+  poolDailySnapshot__createdTimestamp = 'poolDailySnapshot__createdTimestamp',
+  poolDailySnapshot__crosses = 'poolDailySnapshot__crosses',
+  poolDailySnapshot__day = 'poolDailySnapshot__day',
+  poolDailySnapshot__deltaCrosses = 'poolDailySnapshot__deltaCrosses',
+  poolDailySnapshot__deltaLiquidityUSD = 'poolDailySnapshot__deltaLiquidityUSD',
+  poolDailySnapshot__deltaVolume = 'poolDailySnapshot__deltaVolume',
+  poolDailySnapshot__deltaVolumeUSD = 'poolDailySnapshot__deltaVolumeUSD',
+  poolDailySnapshot__id = 'poolDailySnapshot__id',
+  poolDailySnapshot__instDeltaB = 'poolDailySnapshot__instDeltaB',
+  poolDailySnapshot__instPrice = 'poolDailySnapshot__instPrice',
+  poolDailySnapshot__lastUpdateBlockNumber = 'poolDailySnapshot__lastUpdateBlockNumber',
+  poolDailySnapshot__lastUpdateTimestamp = 'poolDailySnapshot__lastUpdateTimestamp',
+  poolDailySnapshot__liquidityUSD = 'poolDailySnapshot__liquidityUSD',
+  poolDailySnapshot__twaBeanLiquidityUSD = 'poolDailySnapshot__twaBeanLiquidityUSD',
+  poolDailySnapshot__twaDeltaB = 'poolDailySnapshot__twaDeltaB',
+  poolDailySnapshot__twaLiquidityUSD = 'poolDailySnapshot__twaLiquidityUSD',
+  poolDailySnapshot__twaNonBeanLiquidityUSD = 'poolDailySnapshot__twaNonBeanLiquidityUSD',
+  poolDailySnapshot__twaPrice = 'poolDailySnapshot__twaPrice',
+  poolDailySnapshot__twaToken2Price = 'poolDailySnapshot__twaToken2Price',
+  poolDailySnapshot__volume = 'poolDailySnapshot__volume',
+  poolDailySnapshot__volumeUSD = 'poolDailySnapshot__volumeUSD',
+  poolHourlySnapshot = 'poolHourlySnapshot',
+  poolHourlySnapshot__createdTimestamp = 'poolHourlySnapshot__createdTimestamp',
+  poolHourlySnapshot__crosses = 'poolHourlySnapshot__crosses',
+  poolHourlySnapshot__deltaCrosses = 'poolHourlySnapshot__deltaCrosses',
+  poolHourlySnapshot__deltaLiquidityUSD = 'poolHourlySnapshot__deltaLiquidityUSD',
+  poolHourlySnapshot__deltaVolume = 'poolHourlySnapshot__deltaVolume',
+  poolHourlySnapshot__deltaVolumeUSD = 'poolHourlySnapshot__deltaVolumeUSD',
+  poolHourlySnapshot__id = 'poolHourlySnapshot__id',
+  poolHourlySnapshot__instDeltaB = 'poolHourlySnapshot__instDeltaB',
+  poolHourlySnapshot__instPrice = 'poolHourlySnapshot__instPrice',
+  poolHourlySnapshot__lastUpdateBlockNumber = 'poolHourlySnapshot__lastUpdateBlockNumber',
+  poolHourlySnapshot__lastUpdateTimestamp = 'poolHourlySnapshot__lastUpdateTimestamp',
+  poolHourlySnapshot__liquidityUSD = 'poolHourlySnapshot__liquidityUSD',
+  poolHourlySnapshot__seasonNumber = 'poolHourlySnapshot__seasonNumber',
+  poolHourlySnapshot__twaBeanLiquidityUSD = 'poolHourlySnapshot__twaBeanLiquidityUSD',
+  poolHourlySnapshot__twaDeltaB = 'poolHourlySnapshot__twaDeltaB',
+  poolHourlySnapshot__twaLiquidityUSD = 'poolHourlySnapshot__twaLiquidityUSD',
+  poolHourlySnapshot__twaNonBeanLiquidityUSD = 'poolHourlySnapshot__twaNonBeanLiquidityUSD',
+  poolHourlySnapshot__twaPrice = 'poolHourlySnapshot__twaPrice',
+  poolHourlySnapshot__twaToken2Price = 'poolHourlySnapshot__twaToken2Price',
+  poolHourlySnapshot__volume = 'poolHourlySnapshot__volume',
+  poolHourlySnapshot__volumeUSD = 'poolHourlySnapshot__volumeUSD',
+  pool__createdTimestamp = 'pool__createdTimestamp',
+  pool__crosses = 'pool__crosses',
+  pool__id = 'pool__id',
+  pool__lastCross = 'pool__lastCross',
+  pool__lastDailySnapshotDay = 'pool__lastDailySnapshotDay',
+  pool__lastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
+  pool__lastPrice = 'pool__lastPrice',
+  pool__lastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
+  pool__lastUpdateTimestamp = 'pool__lastUpdateTimestamp',
+  pool__liquidityUSD = 'pool__liquidityUSD',
+  pool__volume = 'pool__volume',
+  pool__volumeUSD = 'pool__volumeUSD',
+  price = 'price',
+  timeSinceLastCross = 'timeSinceLastCross',
+  timestamp = 'timestamp'
 }
 
 export type PoolDailySnapshot = {
@@ -2149,16 +2149,16 @@ export type PoolDailySnapshot = {
 
 export type PoolDailySnapshotCrossEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolCross_OrderBy>;
+  orderBy?: InputMaybe<PoolCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PoolCross_Filter>;
+  where?: InputMaybe<PoolCrossFilter>;
 };
 
-export type PoolDailySnapshot_Filter = {
+export type PoolDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<PoolDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PoolDailySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2167,7 +2167,7 @@ export type PoolDailySnapshot_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  crossEvents_?: InputMaybe<PoolCross_Filter>;
+  crossEvents_?: InputMaybe<PoolCrossFilter>;
   crosses?: InputMaybe<Scalars['Int']['input']>;
   crosses_gt?: InputMaybe<Scalars['Int']['input']>;
   crosses_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -2270,9 +2270,9 @@ export type PoolDailySnapshot_Filter = {
   liquidityUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   liquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   liquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PoolDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PoolDailySnapshotFilter>>>;
   pool?: InputMaybe<Scalars['String']['input']>;
-  pool_?: InputMaybe<Pool_Filter>;
+  pool_?: InputMaybe<PoolFilter>;
   pool_contains?: InputMaybe<Scalars['String']['input']>;
   pool_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   pool_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2299,7 +2299,7 @@ export type PoolDailySnapshot_Filter = {
   reserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2391,49 +2391,49 @@ export type PoolDailySnapshot_Filter = {
   volume_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PoolDailySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  CrossEvents = 'crossEvents',
-  Crosses = 'crosses',
-  Day = 'day',
-  DeltaCrosses = 'deltaCrosses',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaReserves = 'deltaReserves',
-  DeltaVolume = 'deltaVolume',
-  DeltaVolumeUsd = 'deltaVolumeUSD',
-  Id = 'id',
-  InstDeltaB = 'instDeltaB',
-  InstPrice = 'instPrice',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LiquidityUsd = 'liquidityUSD',
-  Pool = 'pool',
-  PoolCreatedTimestamp = 'pool__createdTimestamp',
-  PoolCrosses = 'pool__crosses',
-  PoolId = 'pool__id',
-  PoolLastCross = 'pool__lastCross',
-  PoolLastDailySnapshotDay = 'pool__lastDailySnapshotDay',
-  PoolLastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
-  PoolLastPrice = 'pool__lastPrice',
-  PoolLastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
-  PoolLastUpdateTimestamp = 'pool__lastUpdateTimestamp',
-  PoolLiquidityUsd = 'pool__liquidityUSD',
-  PoolVolume = 'pool__volume',
-  PoolVolumeUsd = 'pool__volumeUSD',
-  Reserves = 'reserves',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TwaBeanLiquidityUsd = 'twaBeanLiquidityUSD',
-  TwaDeltaB = 'twaDeltaB',
-  TwaLiquidityUsd = 'twaLiquidityUSD',
-  TwaNonBeanLiquidityUsd = 'twaNonBeanLiquidityUSD',
-  TwaPrice = 'twaPrice',
-  TwaReserves = 'twaReserves',
-  TwaToken2Price = 'twaToken2Price',
-  Volume = 'volume',
-  VolumeUsd = 'volumeUSD'
+export enum PoolDailySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  crossEvents = 'crossEvents',
+  crosses = 'crosses',
+  day = 'day',
+  deltaCrosses = 'deltaCrosses',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaReserves = 'deltaReserves',
+  deltaVolume = 'deltaVolume',
+  deltaVolumeUSD = 'deltaVolumeUSD',
+  id = 'id',
+  instDeltaB = 'instDeltaB',
+  instPrice = 'instPrice',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  liquidityUSD = 'liquidityUSD',
+  pool = 'pool',
+  pool__createdTimestamp = 'pool__createdTimestamp',
+  pool__crosses = 'pool__crosses',
+  pool__id = 'pool__id',
+  pool__lastCross = 'pool__lastCross',
+  pool__lastDailySnapshotDay = 'pool__lastDailySnapshotDay',
+  pool__lastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
+  pool__lastPrice = 'pool__lastPrice',
+  pool__lastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
+  pool__lastUpdateTimestamp = 'pool__lastUpdateTimestamp',
+  pool__liquidityUSD = 'pool__liquidityUSD',
+  pool__volume = 'pool__volume',
+  pool__volumeUSD = 'pool__volumeUSD',
+  reserves = 'reserves',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  twaBeanLiquidityUSD = 'twaBeanLiquidityUSD',
+  twaDeltaB = 'twaDeltaB',
+  twaLiquidityUSD = 'twaLiquidityUSD',
+  twaNonBeanLiquidityUSD = 'twaNonBeanLiquidityUSD',
+  twaPrice = 'twaPrice',
+  twaReserves = 'twaReserves',
+  twaToken2Price = 'twaToken2Price',
+  volume = 'volume',
+  volumeUSD = 'volumeUSD'
 }
 
 export type PoolHourlySnapshot = {
@@ -2494,16 +2494,16 @@ export type PoolHourlySnapshot = {
 
 export type PoolHourlySnapshotCrossEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolCross_OrderBy>;
+  orderBy?: InputMaybe<PoolCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PoolCross_Filter>;
+  where?: InputMaybe<PoolCrossFilter>;
 };
 
-export type PoolHourlySnapshot_Filter = {
+export type PoolHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<PoolHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PoolHourlySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2512,7 +2512,7 @@ export type PoolHourlySnapshot_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  crossEvents_?: InputMaybe<PoolCross_Filter>;
+  crossEvents_?: InputMaybe<PoolCrossFilter>;
   crosses?: InputMaybe<Scalars['Int']['input']>;
   crosses_gt?: InputMaybe<Scalars['Int']['input']>;
   crosses_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -2607,9 +2607,9 @@ export type PoolHourlySnapshot_Filter = {
   liquidityUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   liquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   liquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<PoolHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PoolHourlySnapshotFilter>>>;
   pool?: InputMaybe<Scalars['String']['input']>;
-  pool_?: InputMaybe<Pool_Filter>;
+  pool_?: InputMaybe<PoolFilter>;
   pool_contains?: InputMaybe<Scalars['String']['input']>;
   pool_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   pool_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2644,7 +2644,7 @@ export type PoolHourlySnapshot_Filter = {
   seasonNumber_lte?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2736,57 +2736,57 @@ export type PoolHourlySnapshot_Filter = {
   volume_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum PoolHourlySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  CrossEvents = 'crossEvents',
-  Crosses = 'crosses',
-  DeltaCrosses = 'deltaCrosses',
-  DeltaLiquidityUsd = 'deltaLiquidityUSD',
-  DeltaReserves = 'deltaReserves',
-  DeltaVolume = 'deltaVolume',
-  DeltaVolumeUsd = 'deltaVolumeUSD',
-  Id = 'id',
-  InstDeltaB = 'instDeltaB',
-  InstPrice = 'instPrice',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LiquidityUsd = 'liquidityUSD',
-  Pool = 'pool',
-  PoolCreatedTimestamp = 'pool__createdTimestamp',
-  PoolCrosses = 'pool__crosses',
-  PoolId = 'pool__id',
-  PoolLastCross = 'pool__lastCross',
-  PoolLastDailySnapshotDay = 'pool__lastDailySnapshotDay',
-  PoolLastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
-  PoolLastPrice = 'pool__lastPrice',
-  PoolLastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
-  PoolLastUpdateTimestamp = 'pool__lastUpdateTimestamp',
-  PoolLiquidityUsd = 'pool__liquidityUSD',
-  PoolVolume = 'pool__volume',
-  PoolVolumeUsd = 'pool__volumeUSD',
-  Reserves = 'reserves',
-  Season = 'season',
-  SeasonNumber = 'seasonNumber',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  TwaBeanLiquidityUsd = 'twaBeanLiquidityUSD',
-  TwaDeltaB = 'twaDeltaB',
-  TwaLiquidityUsd = 'twaLiquidityUSD',
-  TwaNonBeanLiquidityUsd = 'twaNonBeanLiquidityUSD',
-  TwaPrice = 'twaPrice',
-  TwaReserves = 'twaReserves',
-  TwaToken2Price = 'twaToken2Price',
-  Volume = 'volume',
-  VolumeUsd = 'volumeUSD'
+export enum PoolHourlySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  crossEvents = 'crossEvents',
+  crosses = 'crosses',
+  deltaCrosses = 'deltaCrosses',
+  deltaLiquidityUSD = 'deltaLiquidityUSD',
+  deltaReserves = 'deltaReserves',
+  deltaVolume = 'deltaVolume',
+  deltaVolumeUSD = 'deltaVolumeUSD',
+  id = 'id',
+  instDeltaB = 'instDeltaB',
+  instPrice = 'instPrice',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  liquidityUSD = 'liquidityUSD',
+  pool = 'pool',
+  pool__createdTimestamp = 'pool__createdTimestamp',
+  pool__crosses = 'pool__crosses',
+  pool__id = 'pool__id',
+  pool__lastCross = 'pool__lastCross',
+  pool__lastDailySnapshotDay = 'pool__lastDailySnapshotDay',
+  pool__lastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
+  pool__lastPrice = 'pool__lastPrice',
+  pool__lastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
+  pool__lastUpdateTimestamp = 'pool__lastUpdateTimestamp',
+  pool__liquidityUSD = 'pool__liquidityUSD',
+  pool__volume = 'pool__volume',
+  pool__volumeUSD = 'pool__volumeUSD',
+  reserves = 'reserves',
+  season = 'season',
+  seasonNumber = 'seasonNumber',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  twaBeanLiquidityUSD = 'twaBeanLiquidityUSD',
+  twaDeltaB = 'twaDeltaB',
+  twaLiquidityUSD = 'twaLiquidityUSD',
+  twaNonBeanLiquidityUSD = 'twaNonBeanLiquidityUSD',
+  twaPrice = 'twaPrice',
+  twaReserves = 'twaReserves',
+  twaToken2Price = 'twaToken2Price',
+  volume = 'volume',
+  volumeUSD = 'volumeUSD'
 }
 
-export type Pool_Filter = {
+export type PoolFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Pool_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<PoolFilter>>>;
   bean?: InputMaybe<Scalars['String']['input']>;
-  bean_?: InputMaybe<Bean_Filter>;
+  bean_?: InputMaybe<BeanFilter>;
   bean_contains?: InputMaybe<Scalars['String']['input']>;
   bean_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   bean_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2814,7 +2814,7 @@ export type Pool_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  crossEvents_?: InputMaybe<PoolCross_Filter>;
+  crossEvents_?: InputMaybe<PoolCrossFilter>;
   crosses?: InputMaybe<Scalars['Int']['input']>;
   crosses_gt?: InputMaybe<Scalars['Int']['input']>;
   crosses_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -2824,7 +2824,7 @@ export type Pool_Filter = {
   crosses_not?: InputMaybe<Scalars['Int']['input']>;
   crosses_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   currentSeason?: InputMaybe<Scalars['String']['input']>;
-  currentSeason_?: InputMaybe<Season_Filter>;
+  currentSeason_?: InputMaybe<SeasonFilter>;
   currentSeason_contains?: InputMaybe<Scalars['String']['input']>;
   currentSeason_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   currentSeason_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -2844,8 +2844,8 @@ export type Pool_Filter = {
   currentSeason_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   currentSeason_starts_with?: InputMaybe<Scalars['String']['input']>;
   currentSeason_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  dailySnapshots_?: InputMaybe<PoolDailySnapshot_Filter>;
-  hourlySnapshots_?: InputMaybe<PoolHourlySnapshot_Filter>;
+  dailySnapshots_?: InputMaybe<PoolDailySnapshotFilter>;
+  hourlySnapshots_?: InputMaybe<PoolHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -2912,7 +2912,7 @@ export type Pool_Filter = {
   liquidityUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   liquidityUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   liquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Pool_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PoolFilter>>>;
   reserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
@@ -2920,7 +2920,7 @@ export type Pool_Filter = {
   reserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tokens?: InputMaybe<Array<Scalars['String']['input']>>;
-  tokens_?: InputMaybe<Token_Filter>;
+  tokens_?: InputMaybe<TokenFilter>;
   tokens_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_not?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -2944,50 +2944,50 @@ export type Pool_Filter = {
   volume_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Pool_OrderBy {
-  Bean = 'bean',
-  BeanCreatedTimestamp = 'bean__createdTimestamp',
-  BeanCrosses = 'bean__crosses',
-  BeanId = 'bean__id',
-  BeanLastCross = 'bean__lastCross',
-  BeanLastDailySnapshotDay = 'bean__lastDailySnapshotDay',
-  BeanLastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
-  BeanLastPrice = 'bean__lastPrice',
-  BeanLastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
-  BeanLastUpdateTimestamp = 'bean__lastUpdateTimestamp',
-  BeanLiquidityUsd = 'bean__liquidityUSD',
-  BeanLockedBeans = 'bean__lockedBeans',
-  BeanSupply = 'bean__supply',
-  BeanSupplyInPegLp = 'bean__supplyInPegLP',
-  BeanVolume = 'bean__volume',
-  BeanVolumeUsd = 'bean__volumeUSD',
-  CreatedTimestamp = 'createdTimestamp',
-  CrossEvents = 'crossEvents',
-  Crosses = 'crosses',
-  CurrentSeason = 'currentSeason',
-  CurrentSeasonId = 'currentSeason__id',
-  CurrentSeasonSeason = 'currentSeason__season',
-  CurrentSeasonTimestamp = 'currentSeason__timestamp',
-  DailySnapshots = 'dailySnapshots',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastCross = 'lastCross',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  LastPrice = 'lastPrice',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  LiquidityUsd = 'liquidityUSD',
-  Reserves = 'reserves',
-  Tokens = 'tokens',
-  Volume = 'volume',
-  VolumeUsd = 'volumeUSD'
+export enum PoolOrderBy {
+  bean = 'bean',
+  bean__createdTimestamp = 'bean__createdTimestamp',
+  bean__crosses = 'bean__crosses',
+  bean__id = 'bean__id',
+  bean__lastCross = 'bean__lastCross',
+  bean__lastDailySnapshotDay = 'bean__lastDailySnapshotDay',
+  bean__lastHourlySnapshotSeason = 'bean__lastHourlySnapshotSeason',
+  bean__lastPrice = 'bean__lastPrice',
+  bean__lastUpdateBlockNumber = 'bean__lastUpdateBlockNumber',
+  bean__lastUpdateTimestamp = 'bean__lastUpdateTimestamp',
+  bean__liquidityUSD = 'bean__liquidityUSD',
+  bean__lockedBeans = 'bean__lockedBeans',
+  bean__supply = 'bean__supply',
+  bean__supplyInPegLP = 'bean__supplyInPegLP',
+  bean__volume = 'bean__volume',
+  bean__volumeUSD = 'bean__volumeUSD',
+  createdTimestamp = 'createdTimestamp',
+  crossEvents = 'crossEvents',
+  crosses = 'crosses',
+  currentSeason = 'currentSeason',
+  currentSeason__id = 'currentSeason__id',
+  currentSeason__season = 'currentSeason__season',
+  currentSeason__timestamp = 'currentSeason__timestamp',
+  dailySnapshots = 'dailySnapshots',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastCross = 'lastCross',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  lastPrice = 'lastPrice',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  liquidityUSD = 'liquidityUSD',
+  reserves = 'reserves',
+  tokens = 'tokens',
+  volume = 'volume',
+  volumeUSD = 'volumeUSD'
 }
 
 export type Query = {
   __typename?: 'Query';
   /** Access to subgraph metadata */
-  _meta?: Maybe<_Meta_>;
+  _meta?: Maybe<Meta>;
   bean?: Maybe<Bean>;
   beanCross?: Maybe<BeanCross>;
   beanCrosses: Array<BeanCross>;
@@ -3025,314 +3025,314 @@ export type Query = {
 };
 
 
-export type Query_MetaArgs = {
-  block?: InputMaybe<Block_Height>;
+export type QueryMetaArgs = {
+  block?: InputMaybe<BlockHeight>;
 };
 
 
 export type QueryBeanArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanCrossArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanCrossesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanCross_OrderBy>;
+  orderBy?: InputMaybe<BeanCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanCross_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanCrossFilter>;
 };
 
 
 export type QueryBeanDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanDailySnapshotFilter>;
 };
 
 
 export type QueryBeanHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryBeanHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<BeanHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanHourlySnapshotFilter>;
 };
 
 
 export type QueryBeansArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Bean_OrderBy>;
+  orderBy?: InputMaybe<BeanOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Bean_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<BeanFilter>;
 };
 
 
 export type QueryFarmerBalanceArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFarmerBalanceDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFarmerBalanceDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalanceDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FarmerBalanceDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FarmerBalanceDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FarmerBalanceDailySnapshotFilter>;
 };
 
 
 export type QueryFarmerBalanceHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryFarmerBalanceHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalanceHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<FarmerBalanceHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FarmerBalanceHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FarmerBalanceHourlySnapshotFilter>;
 };
 
 
 export type QueryFarmerBalancesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalance_OrderBy>;
+  orderBy?: InputMaybe<FarmerBalanceOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FarmerBalance_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<FarmerBalanceFilter>;
 };
 
 
 export type QueryPoolArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPoolCrossArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPoolCrossesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolCross_OrderBy>;
+  orderBy?: InputMaybe<PoolCrossOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PoolCross_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PoolCrossFilter>;
 };
 
 
 export type QueryPoolDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPoolDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PoolDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PoolDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PoolDailySnapshotFilter>;
 };
 
 
 export type QueryPoolHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryPoolHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PoolHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PoolHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PoolHourlySnapshotFilter>;
 };
 
 
 export type QueryPoolsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pool_OrderBy>;
+  orderBy?: InputMaybe<PoolOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Pool_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<PoolFilter>;
 };
 
 
 export type QuerySeasonArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QuerySeasonsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Season_OrderBy>;
+  orderBy?: InputMaybe<SeasonOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Season_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<SeasonFilter>;
 };
 
 
 export type QueryTokenArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTokenDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTokenDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TokenDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenDailySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TokenDailySnapshotFilter>;
 };
 
 
 export type QueryTokenHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTokenHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TokenHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenHourlySnapshot_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TokenHourlySnapshotFilter>;
 };
 
 
 export type QueryTokensArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Token_OrderBy>;
+  orderBy?: InputMaybe<TokenOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Token_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TokenFilter>;
 };
 
 
 export type QueryTwaOracleArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryTwaOraclesArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TwaOracle_OrderBy>;
+  orderBy?: InputMaybe<TwaOracleOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TwaOracle_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<TwaOracleFilter>;
 };
 
 
 export type QueryVersionArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
+  subgraphError?: SubgraphErrorPolicy;
 };
 
 
 export type QueryVersionsArgs = {
-  block?: InputMaybe<Block_Height>;
+  block?: InputMaybe<BlockHeight>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Version_OrderBy>;
+  orderBy?: InputMaybe<VersionOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Version_Filter>;
+  subgraphError?: SubgraphErrorPolicy;
+  where?: InputMaybe<VersionFilter>;
 };
 
 export type Season = {
@@ -3352,27 +3352,27 @@ export type Season = {
 
 export type SeasonPoolDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PoolDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PoolDailySnapshot_Filter>;
+  where?: InputMaybe<PoolDailySnapshotFilter>;
 };
 
 
 export type SeasonPoolHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<PoolHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<PoolHourlySnapshot_Filter>;
+  where?: InputMaybe<PoolHourlySnapshotFilter>;
 };
 
-export type Season_Filter = {
+export type SeasonFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Season_Filter>>>;
-  beanDailySnapshot_?: InputMaybe<BeanDailySnapshot_Filter>;
-  beanHourlySnapshot_?: InputMaybe<BeanHourlySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<SeasonFilter>>>;
+  beanDailySnapshot_?: InputMaybe<BeanDailySnapshotFilter>;
+  beanHourlySnapshot_?: InputMaybe<BeanHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -3381,9 +3381,9 @@ export type Season_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Season_Filter>>>;
-  poolDailySnapshots_?: InputMaybe<PoolDailySnapshot_Filter>;
-  poolHourlySnapshots_?: InputMaybe<PoolHourlySnapshot_Filter>;
+  or?: InputMaybe<Array<InputMaybe<SeasonFilter>>>;
+  poolDailySnapshots_?: InputMaybe<PoolDailySnapshotFilter>;
+  poolHourlySnapshots_?: InputMaybe<PoolHourlySnapshotFilter>;
   season?: InputMaybe<Scalars['Int']['input']>;
   season_gt?: InputMaybe<Scalars['Int']['input']>;
   season_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -3402,416 +3402,65 @@ export type Season_Filter = {
   timestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Season_OrderBy {
-  BeanDailySnapshot = 'beanDailySnapshot',
-  BeanDailySnapshotCreatedTimestamp = 'beanDailySnapshot__createdTimestamp',
-  BeanDailySnapshotCrosses = 'beanDailySnapshot__crosses',
-  BeanDailySnapshotDay = 'beanDailySnapshot__day',
-  BeanDailySnapshotDeltaCrosses = 'beanDailySnapshot__deltaCrosses',
-  BeanDailySnapshotDeltaLiquidityUsd = 'beanDailySnapshot__deltaLiquidityUSD',
-  BeanDailySnapshotDeltaVolume = 'beanDailySnapshot__deltaVolume',
-  BeanDailySnapshotDeltaVolumeUsd = 'beanDailySnapshot__deltaVolumeUSD',
-  BeanDailySnapshotId = 'beanDailySnapshot__id',
-  BeanDailySnapshotInstDeltaB = 'beanDailySnapshot__instDeltaB',
-  BeanDailySnapshotInstPrice = 'beanDailySnapshot__instPrice',
-  BeanDailySnapshotL2sr = 'beanDailySnapshot__l2sr',
-  BeanDailySnapshotLastUpdateBlockNumber = 'beanDailySnapshot__lastUpdateBlockNumber',
-  BeanDailySnapshotLastUpdateTimestamp = 'beanDailySnapshot__lastUpdateTimestamp',
-  BeanDailySnapshotLiquidityUsd = 'beanDailySnapshot__liquidityUSD',
-  BeanDailySnapshotLockedBeans = 'beanDailySnapshot__lockedBeans',
-  BeanDailySnapshotMarketCap = 'beanDailySnapshot__marketCap',
-  BeanDailySnapshotSupply = 'beanDailySnapshot__supply',
-  BeanDailySnapshotSupplyInPegLp = 'beanDailySnapshot__supplyInPegLP',
-  BeanDailySnapshotTwaBeanLiquidityUsd = 'beanDailySnapshot__twaBeanLiquidityUSD',
-  BeanDailySnapshotTwaDeltaB = 'beanDailySnapshot__twaDeltaB',
-  BeanDailySnapshotTwaLiquidityUsd = 'beanDailySnapshot__twaLiquidityUSD',
-  BeanDailySnapshotTwaNonBeanLiquidityUsd = 'beanDailySnapshot__twaNonBeanLiquidityUSD',
-  BeanDailySnapshotTwaPrice = 'beanDailySnapshot__twaPrice',
-  BeanDailySnapshotVolume = 'beanDailySnapshot__volume',
-  BeanDailySnapshotVolumeUsd = 'beanDailySnapshot__volumeUSD',
-  BeanHourlySnapshot = 'beanHourlySnapshot',
-  BeanHourlySnapshotCreatedTimestamp = 'beanHourlySnapshot__createdTimestamp',
-  BeanHourlySnapshotCrosses = 'beanHourlySnapshot__crosses',
-  BeanHourlySnapshotDeltaCrosses = 'beanHourlySnapshot__deltaCrosses',
-  BeanHourlySnapshotDeltaLiquidityUsd = 'beanHourlySnapshot__deltaLiquidityUSD',
-  BeanHourlySnapshotDeltaVolume = 'beanHourlySnapshot__deltaVolume',
-  BeanHourlySnapshotDeltaVolumeUsd = 'beanHourlySnapshot__deltaVolumeUSD',
-  BeanHourlySnapshotId = 'beanHourlySnapshot__id',
-  BeanHourlySnapshotInstDeltaB = 'beanHourlySnapshot__instDeltaB',
-  BeanHourlySnapshotInstPrice = 'beanHourlySnapshot__instPrice',
-  BeanHourlySnapshotL2sr = 'beanHourlySnapshot__l2sr',
-  BeanHourlySnapshotLastUpdateBlockNumber = 'beanHourlySnapshot__lastUpdateBlockNumber',
-  BeanHourlySnapshotLastUpdateTimestamp = 'beanHourlySnapshot__lastUpdateTimestamp',
-  BeanHourlySnapshotLiquidityUsd = 'beanHourlySnapshot__liquidityUSD',
-  BeanHourlySnapshotLockedBeans = 'beanHourlySnapshot__lockedBeans',
-  BeanHourlySnapshotMarketCap = 'beanHourlySnapshot__marketCap',
-  BeanHourlySnapshotSeasonNumber = 'beanHourlySnapshot__seasonNumber',
-  BeanHourlySnapshotSupply = 'beanHourlySnapshot__supply',
-  BeanHourlySnapshotSupplyInPegLp = 'beanHourlySnapshot__supplyInPegLP',
-  BeanHourlySnapshotTwaBeanLiquidityUsd = 'beanHourlySnapshot__twaBeanLiquidityUSD',
-  BeanHourlySnapshotTwaDeltaB = 'beanHourlySnapshot__twaDeltaB',
-  BeanHourlySnapshotTwaLiquidityUsd = 'beanHourlySnapshot__twaLiquidityUSD',
-  BeanHourlySnapshotTwaNonBeanLiquidityUsd = 'beanHourlySnapshot__twaNonBeanLiquidityUSD',
-  BeanHourlySnapshotTwaPrice = 'beanHourlySnapshot__twaPrice',
-  BeanHourlySnapshotVolume = 'beanHourlySnapshot__volume',
-  BeanHourlySnapshotVolumeUsd = 'beanHourlySnapshot__volumeUSD',
-  Id = 'id',
-  PoolDailySnapshots = 'poolDailySnapshots',
-  PoolHourlySnapshots = 'poolHourlySnapshots',
-  Season = 'season',
-  Timestamp = 'timestamp'
+export enum SeasonOrderBy {
+  beanDailySnapshot = 'beanDailySnapshot',
+  beanDailySnapshot__createdTimestamp = 'beanDailySnapshot__createdTimestamp',
+  beanDailySnapshot__crosses = 'beanDailySnapshot__crosses',
+  beanDailySnapshot__day = 'beanDailySnapshot__day',
+  beanDailySnapshot__deltaCrosses = 'beanDailySnapshot__deltaCrosses',
+  beanDailySnapshot__deltaLiquidityUSD = 'beanDailySnapshot__deltaLiquidityUSD',
+  beanDailySnapshot__deltaVolume = 'beanDailySnapshot__deltaVolume',
+  beanDailySnapshot__deltaVolumeUSD = 'beanDailySnapshot__deltaVolumeUSD',
+  beanDailySnapshot__id = 'beanDailySnapshot__id',
+  beanDailySnapshot__instDeltaB = 'beanDailySnapshot__instDeltaB',
+  beanDailySnapshot__instPrice = 'beanDailySnapshot__instPrice',
+  beanDailySnapshot__l2sr = 'beanDailySnapshot__l2sr',
+  beanDailySnapshot__lastUpdateBlockNumber = 'beanDailySnapshot__lastUpdateBlockNumber',
+  beanDailySnapshot__lastUpdateTimestamp = 'beanDailySnapshot__lastUpdateTimestamp',
+  beanDailySnapshot__liquidityUSD = 'beanDailySnapshot__liquidityUSD',
+  beanDailySnapshot__lockedBeans = 'beanDailySnapshot__lockedBeans',
+  beanDailySnapshot__marketCap = 'beanDailySnapshot__marketCap',
+  beanDailySnapshot__supply = 'beanDailySnapshot__supply',
+  beanDailySnapshot__supplyInPegLP = 'beanDailySnapshot__supplyInPegLP',
+  beanDailySnapshot__twaBeanLiquidityUSD = 'beanDailySnapshot__twaBeanLiquidityUSD',
+  beanDailySnapshot__twaDeltaB = 'beanDailySnapshot__twaDeltaB',
+  beanDailySnapshot__twaLiquidityUSD = 'beanDailySnapshot__twaLiquidityUSD',
+  beanDailySnapshot__twaNonBeanLiquidityUSD = 'beanDailySnapshot__twaNonBeanLiquidityUSD',
+  beanDailySnapshot__twaPrice = 'beanDailySnapshot__twaPrice',
+  beanDailySnapshot__volume = 'beanDailySnapshot__volume',
+  beanDailySnapshot__volumeUSD = 'beanDailySnapshot__volumeUSD',
+  beanHourlySnapshot = 'beanHourlySnapshot',
+  beanHourlySnapshot__createdTimestamp = 'beanHourlySnapshot__createdTimestamp',
+  beanHourlySnapshot__crosses = 'beanHourlySnapshot__crosses',
+  beanHourlySnapshot__deltaCrosses = 'beanHourlySnapshot__deltaCrosses',
+  beanHourlySnapshot__deltaLiquidityUSD = 'beanHourlySnapshot__deltaLiquidityUSD',
+  beanHourlySnapshot__deltaVolume = 'beanHourlySnapshot__deltaVolume',
+  beanHourlySnapshot__deltaVolumeUSD = 'beanHourlySnapshot__deltaVolumeUSD',
+  beanHourlySnapshot__id = 'beanHourlySnapshot__id',
+  beanHourlySnapshot__instDeltaB = 'beanHourlySnapshot__instDeltaB',
+  beanHourlySnapshot__instPrice = 'beanHourlySnapshot__instPrice',
+  beanHourlySnapshot__l2sr = 'beanHourlySnapshot__l2sr',
+  beanHourlySnapshot__lastUpdateBlockNumber = 'beanHourlySnapshot__lastUpdateBlockNumber',
+  beanHourlySnapshot__lastUpdateTimestamp = 'beanHourlySnapshot__lastUpdateTimestamp',
+  beanHourlySnapshot__liquidityUSD = 'beanHourlySnapshot__liquidityUSD',
+  beanHourlySnapshot__lockedBeans = 'beanHourlySnapshot__lockedBeans',
+  beanHourlySnapshot__marketCap = 'beanHourlySnapshot__marketCap',
+  beanHourlySnapshot__seasonNumber = 'beanHourlySnapshot__seasonNumber',
+  beanHourlySnapshot__supply = 'beanHourlySnapshot__supply',
+  beanHourlySnapshot__supplyInPegLP = 'beanHourlySnapshot__supplyInPegLP',
+  beanHourlySnapshot__twaBeanLiquidityUSD = 'beanHourlySnapshot__twaBeanLiquidityUSD',
+  beanHourlySnapshot__twaDeltaB = 'beanHourlySnapshot__twaDeltaB',
+  beanHourlySnapshot__twaLiquidityUSD = 'beanHourlySnapshot__twaLiquidityUSD',
+  beanHourlySnapshot__twaNonBeanLiquidityUSD = 'beanHourlySnapshot__twaNonBeanLiquidityUSD',
+  beanHourlySnapshot__twaPrice = 'beanHourlySnapshot__twaPrice',
+  beanHourlySnapshot__volume = 'beanHourlySnapshot__volume',
+  beanHourlySnapshot__volumeUSD = 'beanHourlySnapshot__volumeUSD',
+  id = 'id',
+  poolDailySnapshots = 'poolDailySnapshots',
+  poolHourlySnapshots = 'poolHourlySnapshots',
+  season = 'season',
+  timestamp = 'timestamp'
 }
-
-export type Subscription = {
-  __typename?: 'Subscription';
-  /** Access to subgraph metadata */
-  _meta?: Maybe<_Meta_>;
-  bean?: Maybe<Bean>;
-  beanCross?: Maybe<BeanCross>;
-  beanCrosses: Array<BeanCross>;
-  beanDailySnapshot?: Maybe<BeanDailySnapshot>;
-  beanDailySnapshots: Array<BeanDailySnapshot>;
-  beanHourlySnapshot?: Maybe<BeanHourlySnapshot>;
-  beanHourlySnapshots: Array<BeanHourlySnapshot>;
-  beans: Array<Bean>;
-  farmerBalance?: Maybe<FarmerBalance>;
-  farmerBalanceDailySnapshot?: Maybe<FarmerBalanceDailySnapshot>;
-  farmerBalanceDailySnapshots: Array<FarmerBalanceDailySnapshot>;
-  farmerBalanceHourlySnapshot?: Maybe<FarmerBalanceHourlySnapshot>;
-  farmerBalanceHourlySnapshots: Array<FarmerBalanceHourlySnapshot>;
-  farmerBalances: Array<FarmerBalance>;
-  pool?: Maybe<Pool>;
-  poolCross?: Maybe<PoolCross>;
-  poolCrosses: Array<PoolCross>;
-  poolDailySnapshot?: Maybe<PoolDailySnapshot>;
-  poolDailySnapshots: Array<PoolDailySnapshot>;
-  poolHourlySnapshot?: Maybe<PoolHourlySnapshot>;
-  poolHourlySnapshots: Array<PoolHourlySnapshot>;
-  pools: Array<Pool>;
-  season?: Maybe<Season>;
-  seasons: Array<Season>;
-  token?: Maybe<Token>;
-  tokenDailySnapshot?: Maybe<TokenDailySnapshot>;
-  tokenDailySnapshots: Array<TokenDailySnapshot>;
-  tokenHourlySnapshot?: Maybe<TokenHourlySnapshot>;
-  tokenHourlySnapshots: Array<TokenHourlySnapshot>;
-  tokens: Array<Token>;
-  twaOracle?: Maybe<TwaOracle>;
-  twaOracles: Array<TwaOracle>;
-  version?: Maybe<Version>;
-  versions: Array<Version>;
-};
-
-
-export type Subscription_MetaArgs = {
-  block?: InputMaybe<Block_Height>;
-};
-
-
-export type SubscriptionBeanArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanCrossArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanCrossesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanCross_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanCross_Filter>;
-};
-
-
-export type SubscriptionBeanDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionBeanHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionBeanHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<BeanHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<BeanHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionBeansArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Bean_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Bean_Filter>;
-};
-
-
-export type SubscriptionFarmerBalanceArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFarmerBalanceDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFarmerBalanceDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalanceDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FarmerBalanceDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionFarmerBalanceHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionFarmerBalanceHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalanceHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FarmerBalanceHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionFarmerBalancesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<FarmerBalance_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<FarmerBalance_Filter>;
-};
-
-
-export type SubscriptionPoolArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPoolCrossArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPoolCrossesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolCross_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PoolCross_Filter>;
-};
-
-
-export type SubscriptionPoolDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPoolDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PoolDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionPoolHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionPoolHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<PoolHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<PoolHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionPoolsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Pool_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Pool_Filter>;
-};
-
-
-export type SubscriptionSeasonArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionSeasonsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Season_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Season_Filter>;
-};
-
-
-export type SubscriptionTokenArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTokenDailySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTokenDailySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenDailySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenDailySnapshot_Filter>;
-};
-
-
-export type SubscriptionTokenHourlySnapshotArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTokenHourlySnapshotsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenHourlySnapshot_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TokenHourlySnapshot_Filter>;
-};
-
-
-export type SubscriptionTokensArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Token_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Token_Filter>;
-};
-
-
-export type SubscriptionTwaOracleArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionTwaOraclesArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TwaOracle_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<TwaOracle_Filter>;
-};
-
-
-export type SubscriptionVersionArgs = {
-  block?: InputMaybe<Block_Height>;
-  id: Scalars['ID']['input'];
-  subgraphError?: _SubgraphErrorPolicy_;
-};
-
-
-export type SubscriptionVersionsArgs = {
-  block?: InputMaybe<Block_Height>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<Version_OrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: _SubgraphErrorPolicy_;
-  where?: InputMaybe<Version_Filter>;
-};
 
 export type Token = {
   __typename?: 'Token';
@@ -3842,19 +3491,19 @@ export type Token = {
 
 export type TokenDailySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenDailySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TokenDailySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<TokenDailySnapshot_Filter>;
+  where?: InputMaybe<TokenDailySnapshotFilter>;
 };
 
 
 export type TokenHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TokenHourlySnapshot_OrderBy>;
+  orderBy?: InputMaybe<TokenHourlySnapshotOrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<TokenHourlySnapshot_Filter>;
+  where?: InputMaybe<TokenHourlySnapshotFilter>;
 };
 
 export type TokenDailySnapshot = {
@@ -3897,10 +3546,10 @@ export type TokenDailySnapshot = {
   walletBalance: Scalars['BigInt']['output'];
 };
 
-export type TokenDailySnapshot_Filter = {
+export type TokenDailySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<TokenDailySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TokenDailySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4025,7 +3674,7 @@ export type TokenDailySnapshot_Filter = {
   name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   name_starts_with?: InputMaybe<Scalars['String']['input']>;
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<TokenDailySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TokenDailySnapshotFilter>>>;
   pooledBalance?: InputMaybe<Scalars['BigInt']['input']>;
   pooledBalance_gt?: InputMaybe<Scalars['BigInt']['input']>;
   pooledBalance_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4035,7 +3684,7 @@ export type TokenDailySnapshot_Filter = {
   pooledBalance_not?: InputMaybe<Scalars['BigInt']['input']>;
   pooledBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   season?: InputMaybe<Scalars['String']['input']>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4064,7 +3713,7 @@ export type TokenDailySnapshot_Filter = {
   supply_not?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   token?: InputMaybe<Scalars['String']['input']>;
-  token_?: InputMaybe<Token_Filter>;
+  token_?: InputMaybe<TokenFilter>;
   token_contains?: InputMaybe<Scalars['String']['input']>;
   token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   token_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4094,39 +3743,39 @@ export type TokenDailySnapshot_Filter = {
   walletBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum TokenDailySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  Day = 'day',
-  Decimals = 'decimals',
-  DeltaFarmBalance = 'deltaFarmBalance',
-  DeltaLastPriceUsd = 'deltaLastPriceUSD',
-  DeltaPooledBalance = 'deltaPooledBalance',
-  DeltaSupply = 'deltaSupply',
-  DeltaWalletBalance = 'deltaWalletBalance',
-  FarmBalance = 'farmBalance',
-  Id = 'id',
-  LastPriceUsd = 'lastPriceUSD',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  Name = 'name',
-  PooledBalance = 'pooledBalance',
-  Season = 'season',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  Supply = 'supply',
-  Token = 'token',
-  TokenDecimals = 'token__decimals',
-  TokenFarmBalance = 'token__farmBalance',
-  TokenId = 'token__id',
-  TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
-  TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenLastPriceUsd = 'token__lastPriceUSD',
-  TokenName = 'token__name',
-  TokenPooledBalance = 'token__pooledBalance',
-  TokenSupply = 'token__supply',
-  TokenWalletBalance = 'token__walletBalance',
-  WalletBalance = 'walletBalance'
+export enum TokenDailySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  day = 'day',
+  decimals = 'decimals',
+  deltaFarmBalance = 'deltaFarmBalance',
+  deltaLastPriceUSD = 'deltaLastPriceUSD',
+  deltaPooledBalance = 'deltaPooledBalance',
+  deltaSupply = 'deltaSupply',
+  deltaWalletBalance = 'deltaWalletBalance',
+  farmBalance = 'farmBalance',
+  id = 'id',
+  lastPriceUSD = 'lastPriceUSD',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  name = 'name',
+  pooledBalance = 'pooledBalance',
+  season = 'season',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  supply = 'supply',
+  token = 'token',
+  token__decimals = 'token__decimals',
+  token__farmBalance = 'token__farmBalance',
+  token__id = 'token__id',
+  token__lastDailySnapshotDay = 'token__lastDailySnapshotDay',
+  token__lastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
+  token__lastPriceUSD = 'token__lastPriceUSD',
+  token__name = 'token__name',
+  token__pooledBalance = 'token__pooledBalance',
+  token__supply = 'token__supply',
+  token__walletBalance = 'token__walletBalance',
+  walletBalance = 'walletBalance'
 }
 
 export type TokenHourlySnapshot = {
@@ -4168,10 +3817,10 @@ export type TokenHourlySnapshot = {
   walletBalance: Scalars['BigInt']['output'];
 };
 
-export type TokenHourlySnapshot_Filter = {
+export type TokenHourlySnapshotFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<TokenHourlySnapshot_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TokenHourlySnapshotFilter>>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4288,7 +3937,7 @@ export type TokenHourlySnapshot_Filter = {
   name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   name_starts_with?: InputMaybe<Scalars['String']['input']>;
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<TokenHourlySnapshot_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TokenHourlySnapshotFilter>>>;
   pooledBalance?: InputMaybe<Scalars['BigInt']['input']>;
   pooledBalance_gt?: InputMaybe<Scalars['BigInt']['input']>;
   pooledBalance_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4306,7 +3955,7 @@ export type TokenHourlySnapshot_Filter = {
   seasonNumber_lte?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  season_?: InputMaybe<Season_Filter>;
+  season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
   season_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   season_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4335,7 +3984,7 @@ export type TokenHourlySnapshot_Filter = {
   supply_not?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   token?: InputMaybe<Scalars['String']['input']>;
-  token_?: InputMaybe<Token_Filter>;
+  token_?: InputMaybe<TokenFilter>;
   token_contains?: InputMaybe<Scalars['String']['input']>;
   token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   token_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4365,46 +4014,46 @@ export type TokenHourlySnapshot_Filter = {
   walletBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum TokenHourlySnapshot_OrderBy {
-  CreatedTimestamp = 'createdTimestamp',
-  Decimals = 'decimals',
-  DeltaFarmBalance = 'deltaFarmBalance',
-  DeltaLastPriceUsd = 'deltaLastPriceUSD',
-  DeltaPooledBalance = 'deltaPooledBalance',
-  DeltaSupply = 'deltaSupply',
-  DeltaWalletBalance = 'deltaWalletBalance',
-  FarmBalance = 'farmBalance',
-  Id = 'id',
-  LastPriceUsd = 'lastPriceUSD',
-  LastUpdateBlockNumber = 'lastUpdateBlockNumber',
-  LastUpdateTimestamp = 'lastUpdateTimestamp',
-  Name = 'name',
-  PooledBalance = 'pooledBalance',
-  Season = 'season',
-  SeasonNumber = 'seasonNumber',
-  SeasonId = 'season__id',
-  SeasonSeason = 'season__season',
-  SeasonTimestamp = 'season__timestamp',
-  Supply = 'supply',
-  Token = 'token',
-  TokenDecimals = 'token__decimals',
-  TokenFarmBalance = 'token__farmBalance',
-  TokenId = 'token__id',
-  TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
-  TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenLastPriceUsd = 'token__lastPriceUSD',
-  TokenName = 'token__name',
-  TokenPooledBalance = 'token__pooledBalance',
-  TokenSupply = 'token__supply',
-  TokenWalletBalance = 'token__walletBalance',
-  WalletBalance = 'walletBalance'
+export enum TokenHourlySnapshotOrderBy {
+  createdTimestamp = 'createdTimestamp',
+  decimals = 'decimals',
+  deltaFarmBalance = 'deltaFarmBalance',
+  deltaLastPriceUSD = 'deltaLastPriceUSD',
+  deltaPooledBalance = 'deltaPooledBalance',
+  deltaSupply = 'deltaSupply',
+  deltaWalletBalance = 'deltaWalletBalance',
+  farmBalance = 'farmBalance',
+  id = 'id',
+  lastPriceUSD = 'lastPriceUSD',
+  lastUpdateBlockNumber = 'lastUpdateBlockNumber',
+  lastUpdateTimestamp = 'lastUpdateTimestamp',
+  name = 'name',
+  pooledBalance = 'pooledBalance',
+  season = 'season',
+  seasonNumber = 'seasonNumber',
+  season__id = 'season__id',
+  season__season = 'season__season',
+  season__timestamp = 'season__timestamp',
+  supply = 'supply',
+  token = 'token',
+  token__decimals = 'token__decimals',
+  token__farmBalance = 'token__farmBalance',
+  token__id = 'token__id',
+  token__lastDailySnapshotDay = 'token__lastDailySnapshotDay',
+  token__lastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
+  token__lastPriceUSD = 'token__lastPriceUSD',
+  token__name = 'token__name',
+  token__pooledBalance = 'token__pooledBalance',
+  token__supply = 'token__supply',
+  token__walletBalance = 'token__walletBalance',
+  walletBalance = 'walletBalance'
 }
 
-export type Token_Filter = {
+export type TokenFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Token_Filter>>>;
-  dailySnapshots_?: InputMaybe<TokenDailySnapshot_Filter>;
+  and?: InputMaybe<Array<InputMaybe<TokenFilter>>>;
+  dailySnapshots_?: InputMaybe<TokenDailySnapshotFilter>;
   decimals?: InputMaybe<Scalars['BigInt']['input']>;
   decimals_gt?: InputMaybe<Scalars['BigInt']['input']>;
   decimals_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4421,7 +4070,7 @@ export type Token_Filter = {
   farmBalance_lte?: InputMaybe<Scalars['BigInt']['input']>;
   farmBalance_not?: InputMaybe<Scalars['BigInt']['input']>;
   farmBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hourlySnapshots_?: InputMaybe<TokenHourlySnapshot_Filter>;
+  hourlySnapshots_?: InputMaybe<TokenHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -4476,7 +4125,7 @@ export type Token_Filter = {
   name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   name_starts_with?: InputMaybe<Scalars['String']['input']>;
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<InputMaybe<Token_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TokenFilter>>>;
   pooledBalance?: InputMaybe<Scalars['BigInt']['input']>;
   pooledBalance_gt?: InputMaybe<Scalars['BigInt']['input']>;
   pooledBalance_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4503,19 +4152,19 @@ export type Token_Filter = {
   walletBalance_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum Token_OrderBy {
-  DailySnapshots = 'dailySnapshots',
-  Decimals = 'decimals',
-  FarmBalance = 'farmBalance',
-  HourlySnapshots = 'hourlySnapshots',
-  Id = 'id',
-  LastDailySnapshotDay = 'lastDailySnapshotDay',
-  LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  LastPriceUsd = 'lastPriceUSD',
-  Name = 'name',
-  PooledBalance = 'pooledBalance',
-  Supply = 'supply',
-  WalletBalance = 'walletBalance'
+export enum TokenOrderBy {
+  dailySnapshots = 'dailySnapshots',
+  decimals = 'decimals',
+  farmBalance = 'farmBalance',
+  hourlySnapshots = 'hourlySnapshots',
+  id = 'id',
+  lastDailySnapshotDay = 'lastDailySnapshotDay',
+  lastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
+  lastPriceUSD = 'lastPriceUSD',
+  name = 'name',
+  pooledBalance = 'pooledBalance',
+  supply = 'supply',
+  walletBalance = 'walletBalance'
 }
 
 export type TwaOracle = {
@@ -4536,10 +4185,10 @@ export type TwaOracle = {
   priceCumulativeSun: Array<Scalars['BigInt']['output']>;
 };
 
-export type TwaOracle_Filter = {
+export type TwaOracleFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<TwaOracle_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<TwaOracleFilter>>>;
   cumulativeWellReserves?: InputMaybe<Scalars['Bytes']['input']>;
   cumulativeWellReservesBlock?: InputMaybe<Scalars['BigInt']['input']>;
   cumulativeWellReservesBlock_gt?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4624,9 +4273,9 @@ export type TwaOracle_Filter = {
   lastUpdated_lte?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdated_not?: InputMaybe<Scalars['BigInt']['input']>;
   lastUpdated_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<TwaOracle_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<TwaOracleFilter>>>;
   pool?: InputMaybe<Scalars['String']['input']>;
-  pool_?: InputMaybe<Pool_Filter>;
+  pool_?: InputMaybe<PoolFilter>;
   pool_contains?: InputMaybe<Scalars['String']['input']>;
   pool_contains_nocase?: InputMaybe<Scalars['String']['input']>;
   pool_ends_with?: InputMaybe<Scalars['String']['input']>;
@@ -4660,32 +4309,32 @@ export type TwaOracle_Filter = {
   priceCumulativeSun_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
-export enum TwaOracle_OrderBy {
-  CumulativeWellReserves = 'cumulativeWellReserves',
-  CumulativeWellReservesBlock = 'cumulativeWellReservesBlock',
-  CumulativeWellReservesPrev = 'cumulativeWellReservesPrev',
-  CumulativeWellReservesPrevBlock = 'cumulativeWellReservesPrevBlock',
-  CumulativeWellReservesPrevTime = 'cumulativeWellReservesPrevTime',
-  CumulativeWellReservesTime = 'cumulativeWellReservesTime',
-  Id = 'id',
-  LastBalances = 'lastBalances',
-  LastSun = 'lastSun',
-  LastUpdated = 'lastUpdated',
-  Pool = 'pool',
-  PoolCreatedTimestamp = 'pool__createdTimestamp',
-  PoolCrosses = 'pool__crosses',
-  PoolId = 'pool__id',
-  PoolLastCross = 'pool__lastCross',
-  PoolLastDailySnapshotDay = 'pool__lastDailySnapshotDay',
-  PoolLastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
-  PoolLastPrice = 'pool__lastPrice',
-  PoolLastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
-  PoolLastUpdateTimestamp = 'pool__lastUpdateTimestamp',
-  PoolLiquidityUsd = 'pool__liquidityUSD',
-  PoolVolume = 'pool__volume',
-  PoolVolumeUsd = 'pool__volumeUSD',
-  PriceCumulativeLast = 'priceCumulativeLast',
-  PriceCumulativeSun = 'priceCumulativeSun'
+export enum TwaOracleOrderBy {
+  cumulativeWellReserves = 'cumulativeWellReserves',
+  cumulativeWellReservesBlock = 'cumulativeWellReservesBlock',
+  cumulativeWellReservesPrev = 'cumulativeWellReservesPrev',
+  cumulativeWellReservesPrevBlock = 'cumulativeWellReservesPrevBlock',
+  cumulativeWellReservesPrevTime = 'cumulativeWellReservesPrevTime',
+  cumulativeWellReservesTime = 'cumulativeWellReservesTime',
+  id = 'id',
+  lastBalances = 'lastBalances',
+  lastSun = 'lastSun',
+  lastUpdated = 'lastUpdated',
+  pool = 'pool',
+  pool__createdTimestamp = 'pool__createdTimestamp',
+  pool__crosses = 'pool__crosses',
+  pool__id = 'pool__id',
+  pool__lastCross = 'pool__lastCross',
+  pool__lastDailySnapshotDay = 'pool__lastDailySnapshotDay',
+  pool__lastHourlySnapshotSeason = 'pool__lastHourlySnapshotSeason',
+  pool__lastPrice = 'pool__lastPrice',
+  pool__lastUpdateBlockNumber = 'pool__lastUpdateBlockNumber',
+  pool__lastUpdateTimestamp = 'pool__lastUpdateTimestamp',
+  pool__liquidityUSD = 'pool__liquidityUSD',
+  pool__volume = 'pool__volume',
+  pool__volumeUSD = 'pool__volumeUSD',
+  priceCumulativeLast = 'priceCumulativeLast',
+  priceCumulativeSun = 'priceCumulativeSun'
 }
 
 export type Version = {
@@ -4702,10 +4351,10 @@ export type Version = {
   versionNumber: Scalars['String']['output'];
 };
 
-export type Version_Filter = {
+export type VersionFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<Version_Filter>>>;
+  and?: InputMaybe<Array<InputMaybe<VersionFilter>>>;
   chain?: InputMaybe<Scalars['String']['input']>;
   chain_contains?: InputMaybe<Scalars['String']['input']>;
   chain_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -4734,7 +4383,7 @@ export type Version_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<Version_Filter>>>;
+  or?: InputMaybe<Array<InputMaybe<VersionFilter>>>;
   protocolAddress?: InputMaybe<Scalars['Bytes']['input']>;
   protocolAddress_contains?: InputMaybe<Scalars['Bytes']['input']>;
   protocolAddress_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -4787,15 +4436,15 @@ export type Version_Filter = {
   versionNumber_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
-export enum Version_OrderBy {
-  Chain = 'chain',
-  Id = 'id',
-  ProtocolAddress = 'protocolAddress',
-  SubgraphName = 'subgraphName',
-  VersionNumber = 'versionNumber'
+export enum VersionOrderBy {
+  chain = 'chain',
+  id = 'id',
+  protocolAddress = 'protocolAddress',
+  subgraphName = 'subgraphName',
+  versionNumber = 'versionNumber'
 }
 
-export type _Block_ = {
+export type Block = {
   __typename?: '_Block_';
   /** The hash of the block */
   hash?: Maybe<Scalars['Bytes']['output']>;
@@ -4808,7 +4457,7 @@ export type _Block_ = {
 };
 
 /** The type for the top-level _meta field */
-export type _Meta_ = {
+export type Meta = {
   __typename?: '_Meta_';
   /**
    * Information about a specific subgraph block. The hash of the block
@@ -4817,18 +4466,18 @@ export type _Meta_ = {
    * and therefore asks for the latest  block
    *
    */
-  block: _Block_;
+  block: Block;
   /** The deployment ID */
   deployment: Scalars['String']['output'];
   /** If `true`, the subgraph encountered indexing errors at some past block */
   hasIndexingErrors: Scalars['Boolean']['output'];
 };
 
-export enum _SubgraphErrorPolicy_ {
+export enum SubgraphErrorPolicy {
   /** Data will be returned even if the subgraph has indexing errors */
-  Allow = 'allow',
+  allow = 'allow',
   /** If the subgraph has indexing errors, data will be omitted. The default. */
-  Deny = 'deny'
+  deny = 'deny'
 }
 
 export type BeanAdvancedChartQueryVariables = Exact<{

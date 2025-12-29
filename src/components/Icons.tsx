@@ -123,6 +123,14 @@ export const LeftArrowIcon = ({ color = "#9C9C9C", width = 17, height = 12 }: SV
   </svg>
 );
 
+export const DownArrowIcon = ({ color = "#9C9C9C", width = 12, height = 17 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 12 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 1.5V15.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M1 10.5L6 15.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M11 10.5L6 15.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const UpArrowIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path

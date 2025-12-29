@@ -14,7 +14,7 @@ import { sanitizeNumericInputValue, stringEq, stringToNumber, toValidStringNumIn
 import { FarmFromMode, Plot, Token } from "@/utils/types";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
-import {
+import React, {
   Dispatch,
   InputHTMLAttributes,
   SetStateAction,
@@ -101,6 +101,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   // Slider props
   enableSlider?: boolean;
   sliderMarkers?: number[];
+  customTokenSelector?: React.ReactNode;
 }
 
 function ComboInputField({
@@ -137,6 +138,7 @@ function ComboInputField({
   filterTokens,
   selectKey,
   transformTokenLabels,
+  customTokenSelector,
   placeholder,
   enableSlider,
   sliderMarkers,
@@ -602,23 +604,25 @@ function ComboInputField({
               ? setPlots && (
                   <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
                 )
-              : setToken &&
-                selectedToken && (
-                  <TokenSelectWithBalances
-                    selectedToken={selectedToken}
-                    tokenNameOverride={tokenNameOverride}
-                    balanceFrom={balanceFrom}
-                    balancesToShow={balancesToShow}
-                    tokenAndBalanceMap={tokenAndBalanceMap}
-                    disabled={disableButton}
-                    isLoading={tokenSelectLoading}
-                    filterTokens={filterTokens}
-                    selectKey={selectKey}
-                    setToken={setToken}
-                    setBalanceFrom={setBalanceFrom}
-                    transformTokenLabels={transformTokenLabels}
-                  />
-                )}
+              : customTokenSelector
+                ? customTokenSelector
+                : setToken &&
+                  selectedToken && (
+                    <TokenSelectWithBalances
+                      selectedToken={selectedToken}
+                      tokenNameOverride={tokenNameOverride}
+                      balanceFrom={balanceFrom}
+                      balancesToShow={balancesToShow}
+                      tokenAndBalanceMap={tokenAndBalanceMap}
+                      disabled={disableButton}
+                      isLoading={tokenSelectLoading}
+                      filterTokens={filterTokens}
+                      selectKey={selectKey}
+                      setToken={setToken}
+                      setBalanceFrom={setBalanceFrom}
+                      transformTokenLabels={transformTokenLabels}
+                    />
+                  )}
           </div>
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">
