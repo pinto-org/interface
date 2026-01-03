@@ -9,6 +9,7 @@ import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/componen
 import SlippageButton from "@/components/SlippageButton";
 import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
@@ -49,12 +50,12 @@ interface LocationState {
 // Constants
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
-  MIN: 0.001,
+  MIN: 0.01,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
+  PRICE_SLIDER_STEP: 0.000001,
 } as const;
 
-const MILLION = 1_000_000;
 const MIN_FILL_AMOUNT = "1";
 
 const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
@@ -237,7 +238,7 @@ export default function CreateOrder() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setPricePerPod(formatted);
-    setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
+    setPricePerPodInput(formatted.toFixed(3));
   }, []);
 
   // Price per pod input handlers
@@ -247,25 +248,30 @@ export default function CreateOrder() {
     setPricePerPodInput(sanitized.str);
 
     if (sanitized.nonAmount) {
-      setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
+      setPricePerPod(0);
       return;
     }
 
     const numValue = Number.parseFloat(sanitized.strValue);
     if (!Number.isNaN(numValue)) {
-      const formatted = clampAndFormatPrice(numValue);
+      // Only clamp to MAX during typing, allow user to type values below MIN
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
+      const formatted = formatPricePerPod(clamped);
       setPricePerPod(formatted);
     }
   }, []);
 
   const handlePriceInputBlur = useCallback(() => {
     const numValue = Number.parseFloat(pricePerPodInput);
-    if (!Number.isNaN(numValue)) {
-      const formatted = clampAndFormatPrice(numValue);
+    if (!Number.isNaN(numValue) && numValue > 0) {
+      // Allow any positive value, just clamp to MAX
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
+      const formatted = formatPricePerPod(clamped);
       setPricePerPod(formatted);
       setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     } else {
-      const formatted = clampAndFormatPrice(PRICE_PER_POD_CONFIG.MIN);
+      // If invalid or 0, reset to minimum value
+      const formatted = formatPricePerPod(PRICE_PER_POD_CONFIG.MIN);
       setPricePerPod(formatted);
       setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     }
@@ -442,7 +448,13 @@ export default function CreateOrder() {
 
       {/* Place in Line Slider */}
       <div className="flex flex-col gap-3 mt-2">
-        <p className="pinto-body text-pinto-light">I want to order Pods with a Place in Line up to:</p>
+        <div className="flex flex-row gap-2 items-center">
+          <p className="pinto-body text-pinto-light">With a Place in Line up to:</p>
+          <TooltipSimple
+            content="Place in Line determines how many Pods need to be Harvested before your Pods becomes Harvestable."
+            variant="gray"
+          />
+        </div>
         {maxPlace === 0 ? (
           <p className="pinto-sm text-pinto-light italic">No Pods in Line currently available to order.</p>
         ) : (
@@ -459,7 +471,6 @@ export default function CreateOrder() {
                   className="flex-1"
                 />
               )}
-              <p className="pinto-body text-pinto-light">{formatter.noDec(maxPlace)}</p>
             </div>
             <Input
               type="text"
@@ -469,7 +480,7 @@ export default function CreateOrder() {
               onFocus={(e) => e.target.select()}
               placeholder={formatter.noDec(maxPlace)}
               outlined
-              containerClassName="w-[108px]"
+              containerClassName="w-[104px]"
               className=""
               disabled={maxPlace === 0}
             />
@@ -482,17 +493,17 @@ export default function CreateOrder() {
         <div className="flex flex-col gap-4 animate-fade-in">
           {/* Price Per Pod */}
           <div className="flex flex-col gap-2">
-            <p className="pinto-body text-pinto-light">I am willing to buy Pods up to:</p>
+            <p className="pinto-body text-pinto-light">I am willing to buy Pods at a price up to:</p>
             <div className="flex flex-row gap-4 w-full items-center">
               <div className="flex flex-row gap-4 items-center">
                 <p className="pinto-body text-pinto-light">0</p>
                 <Slider
                   min={PRICE_PER_POD_CONFIG.MIN}
                   max={PRICE_PER_POD_CONFIG.MAX}
-                  step={0.000001}
+                  step={PRICE_PER_POD_CONFIG.PRICE_SLIDER_STEP}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
-                  className="w-[18rem]"
+                  className="w-[24rem]"
                 />
                 <p className="pinto-body text-pinto-light">1</p>
               </div>
@@ -505,11 +516,11 @@ export default function CreateOrder() {
                 onFocus={(e) => e.target.select()}
                 placeholder="0.001"
                 outlined
-                endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
+                endIcon={<TextAdornment text={"Pinto/Pod"} className="bg-white" />}
               />
             </div>
             {/* Effective Temperature Display */}
-            {pricePerPod && <EffectiveTemperatureDisplay temperature={(1 / pricePerPod) * 100} />}
+            <EffectiveTemperatureDisplay temperature={pricePerPod > 0 ? (1 / pricePerPod) * 100 - 100 : 0} />
           </div>
 
           {/* Order Using Section */}

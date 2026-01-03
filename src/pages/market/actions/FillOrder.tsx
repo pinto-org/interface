@@ -1,6 +1,7 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
+import EffectiveTemperatureDisplay from "@/components/EffectiveTemperatureDisplay";
 import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import PodLineGraph from "@/components/PodLineGraph";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
@@ -441,7 +442,7 @@ export default function FillOrder() {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
-          <p className="pinto-body text-pinto-light">Select the order you want to fill (i):</p>
+          <p className="pinto-body text-pinto-light">Select the orders you want to fill:</p>
           <PodLineGraph plots={[]} selectedPlotIndices={[]} className="" label="Open Orders" />
         </div>
         <div className="flex justify-center mt-4">
@@ -568,14 +569,11 @@ export default function FillOrder() {
                     </div>
                   </div>
                   <div className="flex flex-row justify-between">
-                    <p className="pinto-body text-pinto-light">Effective Temperature</p>
+                    <p className="pinto-body text-pinto-light">Effective Temperature:</p>
                     <div className="flex items-center">
-                      <p className="pinto-body text-pinto-primary">
-                        {weightedAvgPricePerPod > 0
-                          ? formatter.number((1 / weightedAvgPricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })
-                          : "0.00"}
-                        %
-                      </p>
+                      <EffectiveTemperatureDisplay
+                        temperature={weightedAvgPricePerPod > 0 ? (1 / weightedAvgPricePerPod) * 100 - 100 : 0}
+                      />
                     </div>
                   </div>
                 </div>

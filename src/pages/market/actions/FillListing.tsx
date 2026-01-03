@@ -9,6 +9,7 @@ import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/componen
 import SlippageButton from "@/components/SlippageButton";
 import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
@@ -53,11 +54,10 @@ const PRICE_PER_POD_CONFIG = {
   MIN: 0.01,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
+  PRICE_SLIDER_STEP: 0.001,
 } as const;
 
-const PRICE_SLIDER_STEP = 0.001;
 const DEFAULT_PRICE_INPUT = "0.01";
-const PLACE_MARGIN_PERCENT = 0.01; // 1% margin for place in line range
 
 const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
   return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
@@ -214,9 +214,9 @@ export default function FillListing() {
       placeInLine = listingIndex.sub(harvestableIndex).toNumber();
     }
 
-    // Set max place in line to the exact pod's place in line (no margin needed since it's the exact value)
+    // Set max place in line to the place in line plus one (to include the current plot)
     // Clamp to valid range [0, maxPlace]
-    const maxPlaceValue = Math.min(maxPlace, Math.max(0, placeInLine));
+    const maxPlaceValue = Math.min(maxPlace, Math.max(0, placeInLine + 1));
     setMaxPlaceInLine(maxPlaceValue);
     setHasInitializedPlace(true); // Mark as initialized to prevent default value override
   }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex, placeInLineFromUrl]);
@@ -255,7 +255,8 @@ export default function FillListing() {
 
     const numValue = Number.parseFloat(sanitized.strValue);
     if (!Number.isNaN(numValue)) {
-      const clamped = Math.max(PRICE_PER_POD_CONFIG.MIN, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
+      // Only clamp to MAX during typing, allow user to type values below MIN
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
       const formatted = formatPricePerPod(clamped);
       setMaxPricePerPod(formatted);
     }
@@ -263,14 +264,16 @@ export default function FillListing() {
 
   const handlePriceInputBlur = useCallback(() => {
     const numValue = Number.parseFloat(maxPricePerPodInput);
-    if (!Number.isNaN(numValue)) {
-      const clamped = Math.max(0, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
+    if (!Number.isNaN(numValue) && numValue > 0) {
+      // Allow any positive value, just clamp to MAX
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
       const formatted = formatPricePerPod(clamped);
       setMaxPricePerPod(formatted);
       setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
     } else {
-      setMaxPricePerPodInput("0.000000");
-      setMaxPricePerPod(0);
+      // If invalid or 0, reset to minimum value
+      setMaxPricePerPodInput(PRICE_PER_POD_CONFIG.MIN.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+      setMaxPricePerPod(PRICE_PER_POD_CONFIG.MIN);
     }
   }, [maxPricePerPodInput]);
 
@@ -656,17 +659,17 @@ export default function FillListing() {
 
       {/* Max Price Per Pod Filter Section */}
       <div className="flex flex-col gap-2 mt-2">
-        <p className="pinto-body text-pinto-light">I am willing to buy Pods up to:</p>
+        <p className="pinto-body text-pinto-light">I am willing to buy Pods at a price up to:</p>
         <div className="flex flex-row gap-4 w-full items-center">
           <div className="flex flex-row gap-4 items-center">
             <p className="pinto-body text-pinto-light">0</p>
             <Slider
               min={PRICE_PER_POD_CONFIG.MIN}
               max={PRICE_PER_POD_CONFIG.MAX}
-              step={PRICE_SLIDER_STEP}
+              step={PRICE_PER_POD_CONFIG.PRICE_SLIDER_STEP}
               value={[maxPricePerPod]}
               onValueChange={handlePriceSliderChange}
-              className="w-[18rem]"
+              className="w-[28rem]"
             />
             <p className="pinto-body text-pinto-light">1</p>
           </div>
@@ -683,12 +686,18 @@ export default function FillListing() {
           />
         </div>
         {/* Effective Temperature Display */}
-        <EffectiveTemperatureDisplay temperature={(1 / maxPricePerPod) * 100} />
+        <EffectiveTemperatureDisplay temperature={maxPricePerPod > 0 ? (1 / maxPricePerPod) * 100 - 100 : 0} />
       </div>
 
       {/* Place in Line Slider */}
       <div className="flex flex-col gap-3 mt-2">
-        <p className="pinto-body text-pinto-light">With a Place in Line up to:</p>
+        <div className="flex flex-row gap-2 items-center">
+          <p className="pinto-body text-pinto-light">With a Place in Line up to:</p>
+          <TooltipSimple
+            content="Place in Line determines how many Pods need to be Harvested before your Pods becomes Harvestable."
+            variant="gray"
+          />
+        </div>
         {maxPlace === 0 ? (
           <p className="pinto-sm text-pinto-light italic">No Pods in Line currently available to fill.</p>
         ) : (
@@ -714,7 +723,7 @@ export default function FillListing() {
               onFocus={(e) => e.target.select()}
               placeholder={formatter.noDec(maxPlace)}
               outlined
-              containerClassName="w-[160px]"
+              containerClassName="w-[104px]"
               className=""
               disabled={maxPlace === 0}
             />

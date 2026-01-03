@@ -7,14 +7,12 @@ interface EffectiveTemperatureDisplayProps {
 }
 
 export default function EffectiveTemperatureDisplay({ temperature, className = "" }: EffectiveTemperatureDisplayProps) {
-  if (temperature <= 0) return null;
-
   return (
     <div className={`flex justify-end mr-1 items-center gap-1 ${className}`}>
       <p className="pinto-sm text-pinto-light">
-        Effective Temperature{" "}
+        Effective Temperature:{" "}
         <span className="text-green-600 font-semibold">
-          {formatter.number(temperature, { minDecimals: 2, maxDecimals: 2 })}%
+          {formatter.number(temperature, { minDecimals: 0, maxDecimals: 0 })}%
         </span>
       </p>
       <TooltipSimple
