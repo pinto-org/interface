@@ -2,6 +2,7 @@ import settingsIcon from "@/assets/misc/Settings.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 
+import EffectiveTemperatureDisplay from "@/components/EffectiveTemperatureDisplay";
 import PodLineGraph from "@/components/PodLineGraph";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,7 @@ import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { calculatePodScore } from "@/utils/podScore";
+import { sanitizeNumericInputValue } from "@/utils/string";
 import { FarmToMode, Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -49,7 +51,7 @@ interface PodListingData {
 // Constants
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
-  MIN: 0.001,
+  MIN: 0.01,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
 } as const;
@@ -409,20 +411,22 @@ export default function CreateListing() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setPricePerPod(formatted);
-    setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
+    // Show only 3 decimals when using slider
+    setPricePerPodInput(removeTrailingZeros(formatted.toFixed(3)));
   }, []);
 
   // Price per pod input handlers
   const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setPricePerPodInput(value);
+    const sanitized = sanitizeNumericInputValue(value, PRICE_PER_POD_CONFIG.DECIMALS);
+    setPricePerPodInput(sanitized.str);
 
-    if (value === "" || value === ".") {
+    if (sanitized.nonAmount) {
       setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
       return;
     }
 
-    const numValue = Number.parseFloat(value);
+    const numValue = Number.parseFloat(sanitized.strValue);
     if (!Number.isNaN(numValue)) {
       const formatted = clampAndFormatPrice(numValue);
       setPricePerPod(formatted);
@@ -669,22 +673,13 @@ export default function CreateListing() {
                 value={pricePerPodInput}
                 onChange={handlePriceInputChange}
                 onBlur={handlePriceInputBlur}
-                placeholder="0.001"
+                placeholder="0.01"
                 outlined
                 endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
               />
             </div>
             {/* Effective Temperature Display */}
-            {pricePerPod && pricePerPod > 0 && (
-              <div className="flex justify-end mr-1">
-                <p className="pinto-sm text-pinto-light">
-                  Effective Temperature (i):{" "}
-                  <span className="text-green-600 font-semibold">
-                    {formatter.number((1 / pricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
-                  </span>
-                </p>
-              </div>
-            )}
+            {pricePerPod && <EffectiveTemperatureDisplay temperature={(1 / pricePerPod) * 100} />}
             {/* Pod Score Display */}
             {podScoreRange && (
               <div className="flex justify-end mr-1">

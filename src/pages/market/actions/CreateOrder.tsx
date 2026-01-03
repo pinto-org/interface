@@ -3,6 +3,7 @@ import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
 
+import EffectiveTemperatureDisplay from "@/components/EffectiveTemperatureDisplay";
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
@@ -30,6 +31,7 @@ import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
+import { sanitizeNumericInputValue } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -241,14 +243,15 @@ export default function CreateOrder() {
   // Price per pod input handlers
   const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setPricePerPodInput(value);
+    const sanitized = sanitizeNumericInputValue(value, PRICE_PER_POD_CONFIG.DECIMALS);
+    setPricePerPodInput(sanitized.str);
 
-    if (value === "" || value === ".") {
+    if (sanitized.nonAmount) {
       setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
       return;
     }
 
-    const numValue = Number.parseFloat(value);
+    const numValue = Number.parseFloat(sanitized.strValue);
     if (!Number.isNaN(numValue)) {
       const formatted = clampAndFormatPrice(numValue);
       setPricePerPod(formatted);
@@ -506,16 +509,7 @@ export default function CreateOrder() {
               />
             </div>
             {/* Effective Temperature Display */}
-            {pricePerPod && pricePerPod > 0 && (
-              <div className="flex justify-end mr-1">
-                <p className="pinto-sm text-pinto-light">
-                  Effective Temperature (i):{" "}
-                  <span className="text-green-600 font-semibold">
-                    {formatter.number((1 / pricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
-                  </span>
-                </p>
-              </div>
-            )}
+            {pricePerPod && <EffectiveTemperatureDisplay temperature={(1 / pricePerPod) * 100} />}
           </div>
 
           {/* Order Using Section */}
