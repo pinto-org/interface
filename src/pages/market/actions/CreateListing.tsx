@@ -2,6 +2,7 @@ import settingsIcon from "@/assets/misc/Settings.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 
+import EffectiveTemperatureDisplay from "@/components/EffectiveTemperatureDisplay";
 import PodLineGraph from "@/components/PodLineGraph";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,7 @@ import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { calculatePodScore } from "@/utils/podScore";
+import { sanitizeNumericInputValue } from "@/utils/string";
 import { FarmToMode, Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -49,7 +51,7 @@ interface PodListingData {
 // Constants
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
-  MIN: 0.001,
+  MIN: 0.01,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
 } as const;
@@ -409,34 +411,41 @@ export default function CreateListing() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setPricePerPod(formatted);
-    setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
+    // Show only 3 decimals when using slider
+    setPricePerPodInput(formatted.toFixed(3));
   }, []);
 
   // Price per pod input handlers
   const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setPricePerPodInput(value);
+    const sanitized = sanitizeNumericInputValue(value, PRICE_PER_POD_CONFIG.DECIMALS);
+    setPricePerPodInput(sanitized.str);
 
-    if (value === "" || value === ".") {
-      setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
+    if (sanitized.nonAmount) {
+      setPricePerPod(0);
       return;
     }
 
-    const numValue = Number.parseFloat(value);
+    const numValue = Number.parseFloat(sanitized.strValue);
     if (!Number.isNaN(numValue)) {
-      const formatted = clampAndFormatPrice(numValue);
+      // Only clamp to MAX during typing, allow user to type values below MIN
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
+      const formatted = formatPricePerPod(clamped);
       setPricePerPod(formatted);
     }
   }, []);
 
   const handlePriceInputBlur = useCallback(() => {
     const numValue = Number.parseFloat(pricePerPodInput);
-    if (!Number.isNaN(numValue)) {
-      const formatted = clampAndFormatPrice(numValue);
+    if (!Number.isNaN(numValue) && numValue > 0) {
+      // Allow any positive value, just clamp to MAX
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
+      const formatted = formatPricePerPod(clamped);
       setPricePerPod(formatted);
       setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     } else {
-      const formatted = clampAndFormatPrice(PRICE_PER_POD_CONFIG.MIN);
+      // If invalid or 0, reset to minimum value
+      const formatted = formatPricePerPod(PRICE_PER_POD_CONFIG.MIN);
       setPricePerPod(formatted);
       setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     }
@@ -582,18 +591,7 @@ export default function CreateListing() {
       {/* Plot Selection Section */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <p className="pinto-body text-pinto-light">Select the Plot(s) you want to List (i):</p>
-          <button
-            onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-            className="rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-            type="button"
-          >
-            <img
-              src={settingsIcon}
-              className={cn("w-4 h-4 transition-transform", showAdvancedSettings && "rotate-90")}
-              alt="settings"
-            />
-          </button>
+          <p className="pinto-body text-pinto-light">Select the Pods you want to list:</p>
         </div>
 
         {/* Pod Line Graph Visualization */}
@@ -617,7 +615,7 @@ export default function CreateListing() {
       {/* Total Pods to List Summary */}
       {maxPodAmount > 0 && (
         <div className="flex justify-between items-center p-4 bg-pinto-gray-1 rounded-lg">
-          <p className="pinto-body text-pinto-light">Total Pods to List:</p>
+          <p className="pinto-body text-pinto-light">Total Pods to list:</p>
           <p className="pinto-body font-semibold">{formatter.noDec(plot.length > 0 ? amount : maxPodAmount)} Pods</p>
         </div>
       )}
@@ -650,7 +648,7 @@ export default function CreateListing() {
 
           {/* Price Per Pod */}
           <div className="flex flex-col gap-2">
-            <p className="pinto-body text-pinto-light">Amount I am willing to sell for each Pod for:</p>
+            <p className="pinto-body text-pinto-light">Price I am willing to sell each Pod for:</p>
             <div className="flex flex-row gap-4 w-full items-center">
               <div className="flex flex-row gap-4 items-center">
                 <p className="pinto-body text-pinto-light">0</p>
@@ -660,7 +658,7 @@ export default function CreateListing() {
                   step={0.000001}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
-                  className="w-[18rem]"
+                  className="w-[24rem]"
                 />
                 <p className="pinto-body text-pinto-light">1</p>
               </div>
@@ -669,22 +667,13 @@ export default function CreateListing() {
                 value={pricePerPodInput}
                 onChange={handlePriceInputChange}
                 onBlur={handlePriceInputBlur}
-                placeholder="0.001"
+                placeholder="0.01"
                 outlined
-                endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
+                endIcon={<TextAdornment text={"Pinto/Pod"} className="bg-white" />}
               />
             </div>
             {/* Effective Temperature Display */}
-            {pricePerPod && pricePerPod > 0 && (
-              <div className="flex justify-end mr-1">
-                <p className="pinto-sm text-pinto-light">
-                  Effective Temperature (i):{" "}
-                  <span className="text-green-600 font-semibold">
-                    {formatter.number((1 / pricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
-                  </span>
-                </p>
-              </div>
-            )}
+            <EffectiveTemperatureDisplay temperature={pricePerPod > 0 ? (1 / pricePerPod) * 100 - 100 : 0} />
             {/* Pod Score Display */}
             {podScoreRange && (
               <div className="flex justify-end mr-1">

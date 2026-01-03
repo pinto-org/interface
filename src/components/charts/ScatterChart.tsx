@@ -589,7 +589,7 @@ const ScatterChart = React.memo(
         chart.canvas.addEventListener("mouseleave", handleMouseLeave);
 
         return () => {
-          chart.canvas.removeEventListener("mouseleave", handleMouseLeave);
+          chart.canvas?.removeEventListener("mouseleave", handleMouseLeave);
         };
       }, []); // Empty dependency array - handleMouseLeave uses refs only
 

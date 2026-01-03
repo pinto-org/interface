@@ -3,11 +3,13 @@ import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
 
+import EffectiveTemperatureDisplay from "@/components/EffectiveTemperatureDisplay";
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
 import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
@@ -35,6 +37,7 @@ import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { toSafeTVFromHuman } from "@/utils/number";
+import { sanitizeNumericInputValue } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Plot, Token } from "@/utils/types";
 import { cn, getBalanceFromMode } from "@/utils/utils";
@@ -48,45 +51,16 @@ import { useAccount } from "wagmi";
 // Configuration constants
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
-  MIN: 0.001,
+  MIN: 0.01,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
+  PRICE_SLIDER_STEP: 0.001,
 } as const;
 
-const PRICE_SLIDER_STEP = 0.001;
-const DEFAULT_PRICE_INPUT = "0.001";
-const PLACE_MARGIN_PERCENT = 0.01; // 1% margin for place in line range
+const DEFAULT_PRICE_INPUT = "0.01";
 
 const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
   return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
-};
-
-/**
- * Calculates Pod Score for a listing based on price per pod and place in line.
- * Formula: (1/pricePerPod - 1) / placeInLine * 1e6
- *
- * @param pricePerPod - Price per pod (must be > 0)
- * @param placeInLine - Position in harvest queue in millions (must be > 0)
- * @returns Pod Score value, or undefined for invalid inputs
- */
-const calculatePodScore = (pricePerPod: number, placeInLine: number): number | undefined => {
-  // Handle edge cases: invalid price or place in line
-  if (pricePerPod <= 0 || placeInLine <= 0) {
-    return undefined;
-  }
-
-  // Calculate return: (1/pricePerPod - 1)
-  const returnValue = 1 / pricePerPod - 1;
-
-  // Calculate Pod Score: return / placeInLine * 1e6
-  const podScore = (returnValue / placeInLine) * 1e6;
-
-  // Filter out invalid results (NaN, Infinity)
-  if (!Number.isFinite(podScore)) {
-    return undefined;
-  }
-
-  return podScore;
 };
 
 // Utility function to format and truncate price per pod values
@@ -210,19 +184,6 @@ export default function FillListing() {
     return allListings.podListings.find((l) => l.id === listingId) || null;
   }, [listingId, allListings]);
 
-  // Calculate Pod Score for the selected listing
-  const listingPodScore = useMemo(() => {
-    if (!selectedListing) return undefined;
-
-    const price = TokenValue.fromBlockchain(selectedListing.pricePerPod, mainToken.decimals).toNumber();
-    const placeInLine = TokenValue.fromBlockchain(selectedListing.index, PODS.decimals)
-      .sub(harvestableIndex)
-      .toNumber();
-
-    // Use placeInLine in millions for consistent scaling
-    return calculatePodScore(price, placeInLine / 1_000_000);
-  }, [selectedListing, mainToken.decimals, harvestableIndex]);
-
   // Pre-fill form when listingId parameter is present (clicked from chart)
   useEffect(() => {
     if (!listingId || !allListings?.podListings || maxPlace === 0) return;
@@ -253,9 +214,9 @@ export default function FillListing() {
       placeInLine = listingIndex.sub(harvestableIndex).toNumber();
     }
 
-    // Set max place in line to the exact pod's place in line (no margin needed since it's the exact value)
+    // Set max place in line to the place in line plus one (to include the current plot)
     // Clamp to valid range [0, maxPlace]
-    const maxPlaceValue = Math.min(maxPlace, Math.max(0, placeInLine));
+    const maxPlaceValue = Math.min(maxPlace, Math.max(0, placeInLine + 1));
     setMaxPlaceInLine(maxPlaceValue);
     setHasInitializedPlace(true); // Mark as initialized to prevent default value override
   }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex, placeInLineFromUrl]);
@@ -277,22 +238,25 @@ export default function FillListing() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setMaxPricePerPod(formatted);
-    setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+    // Show only 3 decimals when using slider
+    setMaxPricePerPodInput(formatted.toFixed(3));
   }, []);
 
   // Price per pod input handlers
   const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setMaxPricePerPodInput(value);
+    const sanitized = sanitizeNumericInputValue(value, PRICE_PER_POD_CONFIG.DECIMALS);
+    setMaxPricePerPodInput(sanitized.str);
 
-    if (value === "" || value === ".") {
+    if (sanitized.nonAmount) {
       setMaxPricePerPod(0);
       return;
     }
 
-    const numValue = Number.parseFloat(value);
+    const numValue = Number.parseFloat(sanitized.strValue);
     if (!Number.isNaN(numValue)) {
-      const clamped = Math.max(PRICE_PER_POD_CONFIG.MIN, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
+      // Only clamp to MAX during typing, allow user to type values below MIN
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
       const formatted = formatPricePerPod(clamped);
       setMaxPricePerPod(formatted);
     }
@@ -300,14 +264,16 @@ export default function FillListing() {
 
   const handlePriceInputBlur = useCallback(() => {
     const numValue = Number.parseFloat(maxPricePerPodInput);
-    if (!Number.isNaN(numValue)) {
-      const clamped = Math.max(0, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
+    if (!Number.isNaN(numValue) && numValue > 0) {
+      // Allow any positive value, just clamp to MAX
+      const clamped = Math.min(PRICE_PER_POD_CONFIG.MAX, numValue);
       const formatted = formatPricePerPod(clamped);
       setMaxPricePerPod(formatted);
       setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
     } else {
-      setMaxPricePerPodInput("0.000000");
-      setMaxPricePerPod(0);
+      // If invalid or 0, reset to minimum value
+      setMaxPricePerPodInput(PRICE_PER_POD_CONFIG.MIN.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+      setMaxPricePerPod(PRICE_PER_POD_CONFIG.MIN);
     }
   }, [maxPricePerPodInput]);
 
@@ -693,17 +659,17 @@ export default function FillListing() {
 
       {/* Max Price Per Pod Filter Section */}
       <div className="flex flex-col gap-2 mt-2">
-        <p className="pinto-body text-pinto-light">I am willing to buy Pods up to:</p>
+        <p className="pinto-body text-pinto-light">I am willing to buy Pods at a price up to:</p>
         <div className="flex flex-row gap-4 w-full items-center">
           <div className="flex flex-row gap-4 items-center">
             <p className="pinto-body text-pinto-light">0</p>
             <Slider
               min={PRICE_PER_POD_CONFIG.MIN}
               max={PRICE_PER_POD_CONFIG.MAX}
-              step={PRICE_SLIDER_STEP}
+              step={PRICE_PER_POD_CONFIG.PRICE_SLIDER_STEP}
               value={[maxPricePerPod]}
               onValueChange={handlePriceSliderChange}
-              className="w-[18rem]"
+              className="w-[28rem]"
             />
             <p className="pinto-body text-pinto-light">1</p>
           </div>
@@ -714,40 +680,24 @@ export default function FillListing() {
             onChange={handlePriceInputChange}
             onBlur={handlePriceInputBlur}
             onFocus={(e) => e.target.select()}
-            placeholder="0.001"
+            placeholder="0.01"
             outlined
             endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
           />
         </div>
         {/* Effective Temperature Display */}
-        {maxPricePerPod > 0 && (
-          <div className="flex justify-end mr-1">
-            <p className="pinto-sm text-pinto-light">
-              Effective Temperature (i):{" "}
-              <span className="text-green-600 font-semibold">
-                {formatter.number((1 / maxPricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
-              </span>
-            </p>
-          </div>
-        )}
-        {/* Pod Score Display */}
-        {selectedListing && (
-          <div className="flex justify-end mr-1">
-            <p className="pinto-sm text-pinto-light">
-              Pod Score:{" "}
-              <span className="font-semibold">
-                {listingPodScore !== undefined
-                  ? formatter.number(listingPodScore, { minDecimals: 2, maxDecimals: 2 })
-                  : "N/A"}
-              </span>
-            </p>
-          </div>
-        )}
+        <EffectiveTemperatureDisplay temperature={maxPricePerPod > 0 ? (1 / maxPricePerPod) * 100 - 100 : 0} />
       </div>
 
       {/* Place in Line Slider */}
       <div className="flex flex-col gap-3 mt-2">
-        <p className="pinto-body text-pinto-light">I want to fill listings with a Place in Line up to:</p>
+        <div className="flex flex-row gap-2 items-center">
+          <p className="pinto-body text-pinto-light">With a Place in Line up to:</p>
+          <TooltipSimple
+            content="Place in Line determines how many Pods need to be Harvested before your Pods becomes Harvestable."
+            variant="gray"
+          />
+        </div>
         {maxPlace === 0 ? (
           <p className="pinto-sm text-pinto-light italic">No Pods in Line currently available to fill.</p>
         ) : (
@@ -764,7 +714,6 @@ export default function FillListing() {
                   className="flex-1"
                 />
               )}
-              <p className="pinto-body text-pinto-light">{formatter.noDec(maxPlace)}</p>
             </div>
             <Input
               type="text"
@@ -774,7 +723,7 @@ export default function FillListing() {
               onFocus={(e) => e.target.select()}
               placeholder={formatter.noDec(maxPlace)}
               outlined
-              containerClassName="w-[108px]"
+              containerClassName="w-[104px]"
               className=""
               disabled={maxPlace === 0}
             />
@@ -788,7 +737,7 @@ export default function FillListing() {
           {/* Open Available Pods Display */}
           <div className="flex">
             <p className="pinto-body text-pinto-light">
-              Open available pods: <span className="font-semibold">{formatter.noDec(openAvailablePods)}</span> Pods
+              Purchaseable Pods: <span className="font-semibold">{formatter.noDec(openAvailablePods)}</span> Pods
             </p>
           </div>
 

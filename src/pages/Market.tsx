@@ -36,7 +36,7 @@ const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
 const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 
 const MILLION = 1_000_000;
-const TOOLTIP_Z_INDEX = 1;
+const TOOLTIP_Z_INDEX = 50;
 const CHART_MAX_PRICE = 100;
 
 // Responsive breakpoints for tooltip positioning
@@ -44,8 +44,8 @@ const BREAKPOINT_XL = 1600;
 const BREAKPOINT_LG = 1100;
 
 const TOOLTIP_OFFSET = {
-  TOP: { XL: 90, LG: 80, DEFAULT: 40 },
-  BOTTOM: { XL: 175, LG: 130, DEFAULT: 90 },
+  TOP: { XL: 15, LG: 15, DEFAULT: 15 },
+  BOTTOM: { XL: 15, LG: 15, DEFAULT: 15 },
 };
 
 const getPointTopOffset = (): number => {
@@ -284,8 +284,8 @@ export function Market() {
           div.style.opacity = "1";
           div.style.pointerEvents = "none";
           div.style.position = "absolute";
-          div.style.transform = "translate(25px)"; // Position to right of point
-          div.style.transition = "all .1s ease";
+          div.style.transform = "translate(15px)"; // Position to right of point
+          div.style.transition = "opacity .2s ease";
           document.body.appendChild(div);
         } else {
           // Hide if no tooltip
@@ -305,12 +305,14 @@ export function Market() {
             tooltipEl.style.borderRadius = "10px";
             tooltipEl.style.border = "1px solid #D9D9D9";
             tooltipEl.style.zIndex = String(TOOLTIP_Z_INDEX);
+            // Get canvas position to account for scroll offset
+            const canvasPosition = context.chart.canvas.getBoundingClientRect();
             // Basically all of this is custom logic for 3 different breakpoints to either display the tooltip to the top right or bottom right of the point.
-            const topOfPoint = position.y + getPointTopOffset();
-            const bottomOfPoint = position.y + getPointBottomOffset();
-            tooltipEl.style.top = dataPoint.y > 0.8 ? bottomOfPoint : topOfPoint + "px"; // Position relative to point y
+            const topOfPoint = canvasPosition.top + position.y + getPointTopOffset();
+            const bottomOfPoint = canvasPosition.top + position.y + getPointBottomOffset();
+            tooltipEl.style.top = (dataPoint.y > 0.8 ? bottomOfPoint : topOfPoint) + "px"; // Position relative to point y
             // end custom logic
-            tooltipEl.style.left = position.x + "px"; // Position relative to point x
+            tooltipEl.style.left = canvasPosition.left + position.x + "px"; // Position relative to point x
             tooltipEl.style.padding = context.tooltip.options.padding + "px " + context.tooltip.options.padding + "px";
             const listingHeader = `
            <div class="flex items-center">
@@ -591,7 +593,7 @@ export function Market() {
       {
         label: "Create Order",
         onClick: () => {
-          handleUnfreezeAndNavigate("/market/pods/buy", {
+          handleUnfreezeAndNavigate("/market/pods/buy/create", {
             prefillPrice: contextMenu.clickedCoords.y,
             prefillPlaceInLine: contextMenu.clickedCoords.x,
           });
@@ -600,7 +602,7 @@ export function Market() {
       {
         label: "Create Listing",
         onClick: () => {
-          handleUnfreezeAndNavigate("/market/pods/sell", {
+          handleUnfreezeAndNavigate("/market/pods/sell/create", {
             prefillPrice: contextMenu.clickedCoords.y,
             prefillPlaceInLine: contextMenu.clickedCoords.x,
             prefillExpiresIn: contextMenu.clickedCoords.x,
