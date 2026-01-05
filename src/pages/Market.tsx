@@ -26,7 +26,7 @@ import { FarmerActivityTable } from "./market/FarmerActivityTable";
 import MarketModeSelect from "./market/MarketModeSelect";
 import { PodListingsTable } from "./market/PodListingsTable";
 import { PodOrdersTable } from "./market/PodOrdersTable";
-import CreateListing from "./market/actions/CreateListing";
+import CreateListing, { PodListingData } from "./market/actions/CreateListing";
 import CreateOrder from "./market/actions/CreateOrder";
 import FillListing from "./market/actions/FillListing";
 import FillOrder from "./market/actions/FillOrder";
@@ -76,11 +76,13 @@ type MarketScatterChartDataPoint = {
 };
 
 type MarketScatterChartData = {
-  label: "Orders" | "Listings";
+  label: "Orders" | "Listings" | "Selected Plots";
   data: MarketScatterChartDataPoint[];
   color: string;
   pointStyle: PointStyle;
   pointRadius: number;
+  pointBorderColor?: string;
+  pointBorderWidth?: number;
 };
 
 /**
@@ -209,6 +211,10 @@ export function Market() {
   const navHeight = useNavHeight();
 
   const [mounted, setMounted] = useState(false);
+  const [selectedPlotData, setSelectedPlotData] = useState<{
+    listingData: PodListingData[];
+    pricePerPod: number;
+  } | null>(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -216,10 +222,78 @@ export function Market() {
     }, 3000);
   }, []);
 
-  const scatterChartData: MarketScatterChartData[] = useMemo(
-    () => shapeScatterChartData(data || [], harvestableIndex),
-    [data, harvestableIndex],
+  // Transform selected plots to chart points
+  const transformSelectedPlotsToChartPoints = useCallback(
+    (
+      selectedPlotData: { listingData: PodListingData[]; pricePerPod: number } | null,
+    ): MarketScatterChartDataPoint[] => {
+      if (!selectedPlotData) return [];
+
+      return selectedPlotData.listingData.map((data) => {
+        const placeInLine = data.index.sub(harvestableIndex).toNumber();
+        const placeInLineMillions = placeInLine / MILLION;
+        const podScore = calculatePodScore(selectedPlotData.pricePerPod, placeInLineMillions);
+
+        return {
+          x: placeInLineMillions,
+          y: selectedPlotData.pricePerPod,
+          eventId: `selected-${data.index.toHuman()}-${data.start.toHuman()}`,
+          eventType: "LISTING" as const,
+          status: "ACTIVE",
+          amount: data.amount.toNumber(),
+          placeInLine,
+          podScore,
+        };
+      });
+    },
+    [harvestableIndex],
   );
+
+  const scatterChartData: MarketScatterChartData[] = useMemo(() => {
+    const baseData = shapeScatterChartData(data || [], harvestableIndex);
+
+    // Add selected plots dataset if available
+    if (!selectedPlotData || selectedPlotData.listingData.length === 0 || selectedPlotData.pricePerPod <= 0) {
+      return baseData;
+    }
+
+    const selectedPlotPoints = transformSelectedPlotsToChartPoints(selectedPlotData);
+
+    if (selectedPlotPoints.length === 0) {
+      return baseData;
+    }
+
+    // Get all Pod Scores for color scaling (from both regular listings and selected plots)
+    const allListingScores = baseData[1].data
+      .map((point) => point.podScore)
+      .filter((score): score is number => score !== undefined);
+    const selectedScores = selectedPlotPoints
+      .map((point) => point.podScore)
+      .filter((score): score is number => score !== undefined);
+    const allScores = [...allListingScores, ...selectedScores];
+
+    // Build color scaler from all scores
+    const colorScaler = buildPodScoreColorScaler(allScores);
+
+    // Apply Pod Score coloring to selected plots
+    const selectedPlotPointsWithColors = selectedPlotPoints.map((point) => ({
+      ...point,
+      color: point.podScore !== undefined ? colorScaler.toColor(point.podScore) : "#e0b57d",
+    }));
+
+    // Create selected plots dataset
+    const selectedPlotsDataset: MarketScatterChartData = {
+      label: "Selected Plots",
+      data: selectedPlotPointsWithColors,
+      color: "#e0b57d", // fallback color
+      pointStyle: "rect" as PointStyle,
+      pointRadius: 6,
+      pointBorderColor: "#000000", // black outline
+      pointBorderWidth: 2, // 2px border
+    };
+
+    return [...baseData, selectedPlotsDataset];
+  }, [data, harvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
 
   // Keep ref in sync with state and hide hover info when frozen
   useEffect(() => {
@@ -817,7 +891,9 @@ export function Market() {
                   <div className="flex flex-col gap-4">
                     {viewMode === "buy" && viewAction === "create" && <CreateOrder />}
                     {viewMode === "buy" && viewAction === "fill" && <FillListing />}
-                    {viewMode === "sell" && viewAction === "create" && <CreateListing />}
+                    {viewMode === "sell" && viewAction === "create" && (
+                      <CreateListing onSelectionChange={setSelectedPlotData} />
+                    )}
                     {viewMode === "sell" && viewAction === "fill" && <FillOrder />}
                   </div>
                 </div>

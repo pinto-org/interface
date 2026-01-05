@@ -43,6 +43,8 @@ export type ScatterChartData = {
   color: string;
   pointStyle: PointStyle;
   pointRadius: number;
+  pointBorderColor?: string;
+  pointBorderWidth?: number;
 }[];
 
 export type ScatterChartAxisOptions = {
@@ -262,15 +264,19 @@ const ScatterChart = React.memo(
       const chartData = useCallback(
         (ctx: CanvasRenderingContext2D | null): ChartData => {
           return {
-            datasets: data.map(({ label, data, color, pointStyle, pointRadius }) => ({
-              label,
-              data,
-              // Use per-point colors if available, otherwise use dataset color
-              backgroundColor: data.map((point: any) => point.color || color),
-              pointStyle,
-              pointRadius: pointRadius,
-              hoverRadius: pointRadius + 1,
-            })),
+            datasets: data.map(
+              ({ label, data, color, pointStyle, pointRadius, pointBorderColor, pointBorderWidth }) => ({
+                label,
+                data,
+                // Use per-point colors if available, otherwise use dataset color
+                backgroundColor: data.map((point: any) => point.color || color),
+                pointStyle,
+                pointRadius: pointRadius,
+                hoverRadius: pointRadius + 1,
+                ...(pointBorderColor !== undefined && { pointBorderColor }),
+                ...(pointBorderWidth !== undefined && { pointBorderWidth }),
+              }),
+            ),
           };
         },
         [data],
@@ -597,6 +603,7 @@ const ScatterChart = React.memo(
         return {
           maintainAspectRatio: false,
           responsive: true,
+          animation: false,
           onHover: (event, activeElements, chart) => {
             // Track mouse X and Y position for crosshair
             if (event.x !== undefined && event.x !== null && event.y !== undefined && event.y !== null) {
