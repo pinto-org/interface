@@ -189,6 +189,8 @@ export function Market() {
   const { mode, id } = useParams();
   const [tab, handleChangeTab] = useState(TABLE_SLUGS[0]);
   const [isCrosshairFrozen, setIsCrosshairFrozen] = useState(false);
+  const [chartKey, setChartKey] = useState(0); // Force chart re-render
+  const [isNavigating, setIsNavigating] = useState(false); // Track navigation state
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -214,6 +216,15 @@ export function Market() {
   const [selectedPlotData, setSelectedPlotData] = useState<{
     listingData: PodListingData[];
     pricePerPod: number;
+  } | null>(null);
+
+  // Selected listing/order data for fill components
+  const [selectedListingData, setSelectedListingData] = useState<{
+    listingId: string;
+    placeInLine?: number;
+  } | null>(null);
+  const [selectedOrderData, setSelectedOrderData] = useState<{
+    orderId: string;
   } | null>(null);
 
   useEffect(() => {
@@ -288,8 +299,8 @@ export function Market() {
       color: "#e0b57d", // fallback color
       pointStyle: "rect" as PointStyle,
       pointRadius: 6,
-      pointBorderColor: "#000000", // black outline
-      pointBorderWidth: 2, // 2px border
+      pointBorderColor: "#FF0000", // pinto-red-2 from tailwind config
+      pointBorderWidth: 1, // 1px border
     };
 
     return [...baseData, selectedPlotsDataset];
@@ -462,6 +473,65 @@ export function Market() {
     }
   }, [id, mode, navigate]);
 
+  // Clear preview plots and unfreeze chart when route changes away from create listing
+  // Also unfreeze when switching between listing/selling pages
+  useEffect(() => {
+    if (mode !== "sell" || id !== "create") {
+      setSelectedPlotData(null);
+      // Unfreeze chart if frozen (use ref to get current state)
+      if (isCrosshairFrozenRef.current) {
+        chartRef.current?.unfreeze();
+        setIsCrosshairFrozen(false);
+      }
+      // Close context menu if open
+      setContextMenu(null);
+    }
+  }, [mode, id]);
+
+  // Clear freezed state when switching between any pages (listing/selling)
+  useEffect(() => {
+    console.log("Tab changed:", tab, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
+    // Only reset chart if not navigating (user manually changed tab)
+    if (!isNavigating) {
+      console.log("Unfreezing chart due to tab change");
+      setIsCrosshairFrozen(false);
+
+      // Force chart re-render to clear frozen state
+      setChartKey((prev) => prev + 1);
+
+      // Clear selected data when switching tabs
+      setSelectedListingData(null);
+      setSelectedOrderData(null);
+    }
+    // Always close context menu
+    setContextMenu(null);
+
+    // Reset navigation flag
+    setIsNavigating(false);
+  }, [tab]);
+
+  // Clear freezed state when switching between Buy/Sell modes
+  useEffect(() => {
+    console.log("Mode changed:", mode, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
+    // Only reset chart if not navigating (user manually changed mode)
+    if (!isNavigating) {
+      console.log("Unfreezing chart due to mode change");
+      setIsCrosshairFrozen(false);
+
+      // Force chart re-render to clear frozen state
+      setChartKey((prev) => prev + 1);
+
+      // Clear selected data when switching modes
+      setSelectedListingData(null);
+      setSelectedOrderData(null);
+    }
+    // Always close context menu
+    setContextMenu(null);
+
+    // Reset navigation flag
+    setIsNavigating(false);
+  }, [mode]);
+
   const handleChangeTabFactory = useCallback(
     (selection: string) => () => {
       // Track activity tab changes
@@ -471,8 +541,10 @@ export function Market() {
       });
 
       if (selection === TABLE_SLUGS[1]) {
+        setIsNavigating(true);
         navigate(`/market/pods/buy/fill`);
       } else if (selection === TABLE_SLUGS[2]) {
+        setIsNavigating(true);
         navigate(`/market/pods/sell/fill`);
       }
       handleChangeTab(selection);
@@ -639,6 +711,7 @@ export function Market() {
     (path: string, state: any) => {
       // Mark that we're navigating so onClose doesn't unfreeze again
       isNavigatingRef.current = true;
+      setIsNavigating(true);
 
       // Trigger closing animation
       setIsContextMenuClosing(true);
@@ -687,6 +760,14 @@ export function Market() {
   }, [contextMenu, handleUnfreezeAndNavigate]);
 
   const onPointClick = (payload: PointClickPayload) => {
+    // Ignore clicks on selected plots (they should only show hover info, not be clickable)
+    if (payload.activeElement) {
+      const dataPoint = payload.activeElement.dataPoint as any;
+      if (dataPoint?.eventId?.startsWith("selected-")) {
+        return; // Selected plots are not clickable, only hoverable
+      }
+    }
+
     // If this click unfroze the chart, close context menu with animation
     if (payload.wasUnfrozen) {
       // Trigger closing animation
@@ -712,12 +793,29 @@ export function Market() {
         });
 
         if (dataPoint.eventType === "LISTING") {
-          // Include placeInLine in URL so FillListing can set it correctly
+          // Set selected listing data instead of navigating
           const placeInLine = dataPoint.placeInLine;
-          const placeInLineParam = placeInLine ? `&placeInLine=${placeInLine}` : "";
-          navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}${placeInLineParam}`);
+          setSelectedListingData({
+            listingId: dataPoint.eventId,
+            placeInLine: placeInLine || undefined,
+          });
+          // Switch to buy mode and listings tab
+          if (mode !== "buy") {
+            setIsNavigating(true);
+            navigate("/market/pods/buy/fill");
+          }
+          handleChangeTab(TABLE_SLUGS[1]); // Switch to listings tab
         } else {
-          navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
+          // Set selected order data instead of navigating
+          setSelectedOrderData({
+            orderId: dataPoint.eventId,
+          });
+          // Switch to sell mode and orders tab
+          if (mode !== "sell") {
+            setIsNavigating(true);
+            navigate("/market/pods/sell/fill");
+          }
+          handleChangeTab(TABLE_SLUGS[2]); // Switch to orders tab
         }
       }
       return;
@@ -739,12 +837,29 @@ export function Market() {
       });
 
       if (dataPoint.eventType === "LISTING") {
-        // Include placeInLine in URL so FillListing can set it correctly
+        // Set selected listing data instead of navigating
         const placeInLine = dataPoint.placeInLine;
-        const placeInLineParam = placeInLine ? `&placeInLine=${placeInLine}` : "";
-        navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}${placeInLineParam}`);
+        setSelectedListingData({
+          listingId: dataPoint.eventId,
+          placeInLine: placeInLine || undefined,
+        });
+        // Switch to buy mode and listings tab
+        if (mode !== "buy") {
+          setIsNavigating(true);
+          navigate("/market/pods/buy/fill");
+        }
+        handleChangeTab(TABLE_SLUGS[1]); // Switch to listings tab
       } else {
-        navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
+        // Set selected order data instead of navigating
+        setSelectedOrderData({
+          orderId: dataPoint.eventId,
+        });
+        // Switch to sell mode and orders tab
+        if (mode !== "sell") {
+          setIsNavigating(true);
+          navigate("/market/pods/sell/fill");
+        }
+        handleChangeTab(TABLE_SLUGS[2]); // Switch to orders tab
       }
       return;
     }
@@ -844,6 +959,7 @@ export function Market() {
                   </div>
                 )}
                 <ScatterChart
+                  key={chartKey}
                   ref={chartRef}
                   data={scatterChartData}
                   xOptions={{ label: "Place in line", min: 0, max: chartXMax }}
@@ -890,11 +1006,18 @@ export function Market() {
                   <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
                   <div className="flex flex-col gap-4">
                     {viewMode === "buy" && viewAction === "create" && <CreateOrder />}
-                    {viewMode === "buy" && viewAction === "fill" && <FillListing />}
+                    {viewMode === "buy" && viewAction === "fill" && (
+                      <FillListing
+                        selectedListingId={selectedListingData?.listingId}
+                        selectedPlaceInLine={selectedListingData?.placeInLine}
+                      />
+                    )}
                     {viewMode === "sell" && viewAction === "create" && (
                       <CreateListing onSelectionChange={setSelectedPlotData} />
                     )}
-                    {viewMode === "sell" && viewAction === "fill" && <FillOrder />}
+                    {viewMode === "sell" && viewAction === "fill" && (
+                      <FillOrder selectedOrderId={selectedOrderData?.orderId} />
+                    )}
                   </div>
                 </div>
               </Card>
