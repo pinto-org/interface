@@ -27,7 +27,6 @@ import { FarmToMode, Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { throttle } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -259,49 +258,17 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
     return { min, max, isSingle: scores.length === 1 || min === max };
   }, [listingData, pricePerPod, harvestableIndex]);
 
-  // Throttle callback ref to ensure we always use the latest callback
-  const onSelectionChangeRef = useRef(onSelectionChange);
-  const throttledOnSelectionChangeRef = useRef<ReturnType<typeof throttle> | null>(null);
-
-  // Keep callback ref updated
+  // Notify parent component of selection changes
   useEffect(() => {
-    onSelectionChangeRef.current = onSelectionChange;
-  }, [onSelectionChange]);
-
-  // Create throttled function once (60fps = ~16.67ms, use 16ms)
-  useEffect(() => {
-    if (!throttledOnSelectionChangeRef.current) {
-      throttledOnSelectionChangeRef.current = throttle(
-        (data: { listingData: PodListingData[]; pricePerPod: number } | null) => {
-          if (onSelectionChangeRef.current) {
-            onSelectionChangeRef.current(data);
-          }
-        },
-        16, // 60fps throttle
-      );
-    }
-
-    return () => {
-      if (throttledOnSelectionChangeRef.current) {
-        throttledOnSelectionChangeRef.current.cancel();
-        throttledOnSelectionChangeRef.current = null;
-      }
-    };
-  }, []); // Empty dependency array to run once
-
-  // Notify parent component of selection changes (throttled to 60fps)
-  useEffect(() => {
-    if (!onSelectionChangeRef.current || !throttledOnSelectionChangeRef.current) return;
-
-    const throttledFn = throttledOnSelectionChangeRef.current;
+    if (!onSelectionChange) return;
 
     if (listingData.length === 0 || !pricePerPod || pricePerPod <= 0) {
-      throttledFn(null);
+      onSelectionChange(null);
       return;
     }
 
-    throttledFn({ listingData, pricePerPod });
-  }, [listingData, pricePerPod]); // Dependencies for when to trigger the throttled call
+    onSelectionChange({ listingData, pricePerPod });
+  }, [listingData, pricePerPod, onSelectionChange]);
 
   // Helper function to sort plots by index
   const sortPlotsByIndex = useCallback((plots: Plot[]): Plot[] => {
@@ -704,7 +671,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
                 <Slider
                   min={PRICE_PER_POD_CONFIG.MIN}
                   max={PRICE_PER_POD_CONFIG.MAX}
-                  step={0.000001}
+                  step={0.001}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
                   className="w-[24rem]"
