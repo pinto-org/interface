@@ -38,6 +38,8 @@ const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 const MILLION = 1_000_000;
 const TOOLTIP_Z_INDEX = 50;
 const CHART_MAX_PRICE = 100;
+// Only use listings with at least this many Pods remaining when computing the Pod Score color range.
+const MIN_REMAINING_PODS_FOR_POD_SCORE_RANGE = 25;
 
 // Responsive breakpoints for tooltip positioning
 const BREAKPOINT_XL = 1600;
@@ -73,6 +75,7 @@ type MarketScatterChartDataPoint = {
   eventIndex?: number;
   podScore?: number;
   color?: string;
+  remainingAmount?: number;
 };
 
 type MarketScatterChartData = {
@@ -123,6 +126,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
       } else if ("originalAmount" in event) {
         // Handle Listings
         const amount = event.originalAmount.toNumber();
+        const remainingAmount = event.remainingAmount?.toNumber?.() ?? 0;
         const fillPct = event.filled.div(event.originalAmount).mul(100).toNumber();
         const status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
         const placeInLine = status === "ACTIVE" ? event.index.sub(harvestableIndex).toNumber() : null;
@@ -143,6 +147,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
             amount,
             placeInLine,
             podScore,
+            remainingAmount,
           });
         }
       }
@@ -170,6 +175,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
   // Apply Pod Score coloring to listings
   // Extract all listing Pod Scores (filter out undefined values)
   const listingScores = result[1].data
+    .filter((p) => (p.remainingAmount ?? 0) >= MIN_REMAINING_PODS_FOR_POD_SCORE_RANGE)
     .map((point) => point.podScore)
     .filter((score): score is number => score !== undefined);
 
@@ -274,17 +280,14 @@ export function Market() {
       return baseData;
     }
 
-    // Get all Pod Scores for color scaling (from both regular listings and selected plots)
-    const allListingScores = baseData[1].data
+    // Get Pod Scores from existing listings
+    const existingListingScores = baseData[1].data
+      .filter((p) => (p.remainingAmount ?? 0) >= MIN_REMAINING_PODS_FOR_POD_SCORE_RANGE)
       .map((point) => point.podScore)
       .filter((score): score is number => score !== undefined);
-    const selectedScores = selectedPlotPoints
-      .map((point) => point.podScore)
-      .filter((score): score is number => score !== undefined);
-    const allScores = [...allListingScores, ...selectedScores];
 
-    // Build color scaler from all scores
-    const colorScaler = buildPodScoreColorScaler(allScores);
+    // Build color scaler from existing listings
+    const colorScaler = buildPodScoreColorScaler(existingListingScores);
 
     // Apply Pod Score coloring to selected plots
     const selectedPlotPointsWithColors = selectedPlotPoints.map((point) => ({
@@ -305,6 +308,16 @@ export function Market() {
 
     return [...baseData, selectedPlotsDataset];
   }, [data, harvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
+
+  // Generate unique key for chart when selectedPlotData changes
+  const chartDataKey = useMemo(() => {
+    if (!selectedPlotData || selectedPlotData.listingData.length === 0) {
+      return chartKey;
+    }
+    // Use length, first plot index, and pricePerPod for a lightweight unique identifier
+    const firstPlot = selectedPlotData.listingData[0];
+    return `${chartKey}-${selectedPlotData.listingData.length}-${firstPlot.index.toHuman()}-${firstPlot.start.toHuman()}-${selectedPlotData.pricePerPod}`;
+  }, [chartKey, selectedPlotData]);
 
   // Keep ref in sync with state and hide hover info when frozen
   useEffect(() => {
@@ -959,7 +972,7 @@ export function Market() {
                   </div>
                 )}
                 <ScatterChart
-                  key={chartKey}
+                  key={chartDataKey}
                   ref={chartRef}
                   data={scatterChartData}
                   xOptions={{ label: "Place in line", min: 0, max: chartXMax }}
