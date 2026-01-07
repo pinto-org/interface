@@ -1,27 +1,9 @@
 import { subgraphs } from "@/constants/subgraph";
-import { BeanHourlySnapshot, BeanSeasonalBeanDocument, BeanSeasonalBeanQuery } from "@/generated/gql/pinto/graphql";
-import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
+import { BeanHourlySnapshot, CacheSeasonalBeanDocument, CacheSeasonalBeanQuery } from "@/generated/gql/cache/graphql";
+import { buildCacheWhereClause, fetchCacheQuery } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";
-
-const paginateSettings: PaginationSettings<
-  BeanHourlySnapshot,
-  BeanSeasonalBeanQuery,
-  "beanHourlySnapshots",
-  SeasonalQueryVars
-> = {
-  primaryPropertyName: "beanHourlySnapshots",
-  idField: "id",
-  nextVars: (value1000: BeanHourlySnapshot, prevVars: SeasonalQueryVars) => {
-    if (value1000) {
-      return {
-        ...prevVars,
-        from: Number(value1000.season.season),
-      };
-    }
-  },
-};
 
 export default function useSeasonalBeanBeanSG(
   fromSeason: number,
@@ -30,8 +12,19 @@ export default function useSeasonalBeanBeanSG(
   { enabled = true } = {},
 ): UseSeasonalResult {
   const chainId = useChainId();
+
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    return await paginateSubgraph(paginateSettings, subgraphs[chainId].bean, BeanSeasonalBeanDocument, vars);
+    return await fetchCacheQuery<CacheSeasonalBeanQuery, BeanHourlySnapshot>(
+      subgraphs[chainId].cache,
+      CacheSeasonalBeanDocument,
+      {
+        // BeanHourlySnapshot uses seasonNumber instead of season
+        where: buildCacheWhereClause(vars.from, vars.to, undefined, "seasonNumber"),
+        orderBy: "seasonNumber",
+        orderDirection: "asc",
+      },
+      "cache_beanHourlySnapshots",
+    );
   };
 
   return useSeasonalQueries("BeanSeasonalBeanQuery", {

@@ -2,12 +2,12 @@ import { TV } from "@/classes/TokenValue";
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { PODS, STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN, PINTO, S_MAIN_TOKEN } from "@/constants/tokens";
-import { SiloHourlySnapshot } from "@/generated/gql/pintostalk/graphql";
+import { SiloHourlySnapshot } from "@/generated/gql/cache/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useChainConstant } from "@/utils/chain";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { HashString, MayArray } from "@/utils/types.generic";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useAccount } from "wagmi";
 import useSeasonalBasinSummarySG from "./queries/useSeasonalBasinSummarySG";
 import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
@@ -33,7 +33,7 @@ export function useSeasonalPrice(fromSeason: number, toSeason: number, enabled =
     fromSeason,
     toSeason,
     (beanHourly, _timestamp) => ({
-      season: Number(beanHourly.season.season),
+      season: beanHourly.seasonNumber,
       value: Number(beanHourly.instPrice),
       timestamp: new Date(Number(beanHourly.createdTimestamp) * 1000),
     }),
@@ -43,7 +43,7 @@ export function useSeasonalPrice(fromSeason: number, toSeason: number, enabled =
 
 export function useSeasonalSupply(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanBeanSG(fromSeason, toSeason, (beanHourly, timestamp) => ({
-    season: Number(beanHourly.season.season),
+    season: beanHourly.seasonNumber,
     value: TV.fromBlockchain(beanHourly.supply, PINTO.decimals).toNumber(),
     timestamp,
   }));
@@ -51,7 +51,7 @@ export function useSeasonalSupply(fromSeason: number, toSeason: number): UseSeas
 
 export function useSeasonalMcap(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanBeanSG(fromSeason, toSeason, (beanHourly, _timestamp) => ({
-    season: Number(beanHourly.season.season),
+    season: beanHourly.seasonNumber,
     value: Number(beanHourly.marketCap),
     timestamp: new Date(Number(beanHourly.createdTimestamp) * 1000),
   }));
@@ -59,7 +59,7 @@ export function useSeasonalMcap(fromSeason: number, toSeason: number): UseSeason
 
 export function useSeasonalL2SR(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanBeanSG(fromSeason, toSeason, (beanHourly, _timestamp) => {
-    const season = Number(beanHourly.season.season);
+    const season = beanHourly.seasonNumber;
     let value = Number(beanHourly.l2sr);
     // For seasons 1-3, the twa liquidity isnt computable onchain, thus the protocl l2sr is not computable.
     // Use a manual calculation from the instantaneous liquidity instead.

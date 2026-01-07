@@ -3,6 +3,65 @@ import request, { RequestDocument } from "graphql-request";
 
 const PAGE_SIZE = 1000;
 
+// ============================================================================
+// Cache Query Helper - Fetches all results in a single request from cache endpoint
+// ============================================================================
+
+export interface CacheQueryVars {
+  where: string;
+  orderBy: string;
+  orderDirection: string;
+}
+
+/**
+ * Fetches data from the cache endpoint in a single request.
+ * Unlike paginateSubgraph, this returns all results without pagination limits.
+ *
+ * @param url - The cache endpoint URL
+ * @param document - The GraphQL document (generated from codegen)
+ * @param vars - Query variables including where (JSON string), orderBy, orderDirection
+ * @param resultKey - The key in the result object that contains the data array
+ */
+export const fetchCacheQuery = async <T, R>(
+  url: string,
+  document: RequestDocument | TypedQueryDocumentNode<T, CacheQueryVars>,
+  vars: CacheQueryVars,
+  resultKey: keyof T,
+): Promise<R[]> => {
+  const results = await request<T>(url, document, vars);
+  return results[resultKey] as R[];
+};
+
+/**
+ * Builds the where clause string for cache queries.
+ * Uses GraphQL object syntax: "key: value, key: value"
+ *
+ * @param fromSeason - The starting season number
+ * @param toSeason - The ending season number
+ * @param additionalFilters - Additional filter key-value pairs
+ * @param seasonField - The field name for season filtering (default: "season", use "seasonNumber" for BeanHourlySnapshot)
+ */
+export const buildCacheWhereClause = (
+  fromSeason: number,
+  toSeason: number,
+  additionalFilters?: Record<string, unknown>,
+  seasonField: string = "season",
+): string => {
+  const parts: string[] = [`${seasonField}_gte: ${fromSeason}`, `${seasonField}_lte: ${toSeason}`];
+
+  if (additionalFilters) {
+    for (const [key, value] of Object.entries(additionalFilters)) {
+      if (typeof value === "string") {
+        parts.push(`${key}: "${value}"`);
+      } else {
+        parts.push(`${key}: ${value}`);
+      }
+    }
+  }
+
+  return parts.join(", ");
+};
+
 export interface PaginationSettings<R, T, K extends keyof T, V> {
   primaryPropertyName: Extract<K, string>;
   idField: Extract<keyof R, string>;

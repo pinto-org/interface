@@ -1,0 +1,31 @@
+query CacheSeasonalSilo($where: String!, $orderBy: String!, $orderDirection: String!) {
+  cache_siloHourlySnapshots(
+    where: $where
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    id
+    season
+    stalk
+    beanToMaxLpGpPerBdvRatio
+    deltaBeanToMaxLpGpPerBdvRatio
+    cropRatio
+    deltaCropRatio
+    avgGrownStalkPerBdvPerSeason
+    depositedBDV
+    germinatingStalk
+    createdAt
+  }
+}
+
+query CacheSeasonalSiloActiveFarmers($where: String!, $orderBy: String!, $orderDirection: String!) {
+  cache_siloHourlySnapshots(
+    where: $where
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    id
+    season
+    activeFarmers
+  }
+}

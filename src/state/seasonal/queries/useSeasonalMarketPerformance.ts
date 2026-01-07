@@ -1,20 +1,12 @@
 import { subgraphs } from "@/constants/subgraph";
+import { LP_TOKENS } from "@/constants/tokens";
 import {
-  PINTO_CBBTC_TOKEN,
-  PINTO_CBETH_TOKEN,
-  PINTO_USDC_TOKEN,
-  PINTO_WETH_TOKEN,
-  PINTO_WSOL_TOKEN,
-} from "@/constants/tokens";
-import {
-  BeanstalkSeasonalMarketPerformanceDocument,
-  BeanstalkSeasonalMarketPerformanceQuery,
+  CacheSeasonalMarketPerformanceDocument,
+  CacheSeasonalMarketPerformanceQuery,
   MarketPerformanceSeasonal,
-} from "@/generated/gql/pintostalk/graphql";
+} from "@/generated/gql/cache/graphql";
 import { useLPTokenToNonPintoUnderlyingMap } from "@/hooks/pinto/useTokenMap";
-import useTokenData from "@/state/useTokenData";
-import { useChainConstant } from "@/utils/chain";
-import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
+import { buildCacheWhereClause, fetchCacheQuery } from "@/utils/paginateSubgraph";
 import {
   SeasonalMarketPerformanceChartData,
   UseSeasonalMarketPerformanceResult,
@@ -55,24 +47,6 @@ const accumulator = (chartType: SMPChartType): ((prev: number, curr: number) => 
   }
 };
 
-const paginateSettings: PaginationSettings<
-  MarketPerformanceSeasonal,
-  BeanstalkSeasonalMarketPerformanceQuery,
-  "marketPerformanceSeasonals",
-  SeasonalQueryVars
-> = {
-  primaryPropertyName: "marketPerformanceSeasonals",
-  idField: "id",
-  nextVars: (value1000: MarketPerformanceSeasonal, prevVars: SeasonalQueryVars) => {
-    if (value1000) {
-      return {
-        ...prevVars,
-        from: Number(value1000.season),
-      };
-    }
-  },
-};
-
 export function useSeasonalMarketPerformanceData(
   fromSeason: number,
   toSeason: number,
@@ -81,11 +55,15 @@ export function useSeasonalMarketPerformanceData(
   const chainId = useChainId();
 
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    return await paginateSubgraph(
-      paginateSettings,
-      subgraphs[chainId].beanstalk,
-      BeanstalkSeasonalMarketPerformanceDocument,
-      vars,
+    return await fetchCacheQuery<CacheSeasonalMarketPerformanceQuery, MarketPerformanceSeasonal>(
+      subgraphs[chainId].cache,
+      CacheSeasonalMarketPerformanceDocument,
+      {
+        where: buildCacheWhereClause(vars.from, vars.to),
+        orderBy: "season",
+        orderDirection: "asc",
+      },
+      "cache_marketPerformanceSeasonals",
     );
   };
 
@@ -114,8 +92,10 @@ export function useMarketPerformanceCalc(
   chartType: SMPChartType,
   startSeasons: Record<string, number> = {},
 ): SeasonalMarketPerformanceChartData {
-  const mainToken = useTokenData().mainToken;
+  const chainId = useChainId();
   const lpToUnderlyingMap = useLPTokenToNonPintoUnderlyingMap();
+  // Use LP_TOKENS to get the whitelisted token addresses (cache doesn't have silo.allWhitelistedTokens)
+  const lpTokens = LP_TOKENS[chainId] ?? [];
 
   const responseData = useMemo(() => {
     const result: SeasonalMarketPerformanceChartData = {};
@@ -149,14 +129,10 @@ export function useMarketPerformanceCalc(
           });
         }
 
-        let tokenIdx = 0;
-        for (const token of season.silo.allWhitelistedTokens) {
-          // Skip Pinto token
-          if (token === mainToken.address) {
-            continue;
-          }
-
-          const underlyingToken = lpToUnderlyingMap[token];
+        // Iterate through LP tokens (cache doesn't provide silo.allWhitelistedTokens)
+        for (let tokenIdx = 0; tokenIdx < lpTokens.length; tokenIdx++) {
+          const lpToken = lpTokens[tokenIdx];
+          const underlyingToken = lpToUnderlyingMap[lpToken.address.toLowerCase()];
           if (!underlyingToken) {
             continue;
           }
@@ -197,12 +173,11 @@ export function useMarketPerformanceCalc(
               timestamp: new Date(Number(season.timestamp) * 1000),
             });
           }
-          ++tokenIdx;
         }
       }
     }
     return result;
-  }, [seasonalData, chartType, startSeasons, mainToken.address, lpToUnderlyingMap]);
+  }, [seasonalData, chartType, startSeasons, lpTokens, lpToUnderlyingMap]);
   return responseData;
 }
 

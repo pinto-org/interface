@@ -1,0 +1,17 @@
+query CacheSeasonalGaugesInfo($where: String!, $orderBy: String!, $orderDirection: String!) {
+  cache_gaugesInfoHourlySnapshots(
+    where: $where
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    id
+    season
+    g0CultivationFactor
+    g1BlightFactor
+    g1ConvertDownPenalty
+    g2BdvConvertedThisSeason
+    g2BonusStalkPerBdv
+    g2MaxConvertCapacity
+    createdAt
+  }
+}
