@@ -136,7 +136,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
           </div>
         </div>
 
-        <div className="flex justify-between gap-4 mt-4">
+        <div className="flex justify-between gap-4 mt-4 flex-wrap">
           {" "}
           {/* Conditional rendering based on sow requirement */}
           {!meetsRequirement || !isWalletConnected ? (
@@ -152,7 +152,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
               {/* Pod Destination Address */}
               <div className="flex flex-col gap-2 flex-1">
                 <label className="pinto-sm text-pinto-light">Pod Destination Address</label>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
                   <span className="pinto-body text-pinto-dark">
                     {podDestinationAddress ? truncateHex(podDestinationAddress, 6, 4) : "-"}
                   </span>
