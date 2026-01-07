@@ -6,11 +6,11 @@ import encoders from "@/encoders";
 import { PriceContractPriceResult } from "@/encoders/ecosystem/price";
 import junctionGte from "@/encoders/junction/junctionGte";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
-import { getChainConstant } from "@/utils/chain";
+import { getChainConstant, getOverrideAllowanceStateOverride } from "@/utils/chain";
 import { pickCratesMultiple } from "@/utils/convert";
-import { DepositData, Token } from "@/utils/types";
+import { DepositData, FarmFromMode, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
-import { throwIfAborted } from "@/utils/utils";
+import { arrayify, throwIfAborted } from "@/utils/utils";
 import { Config } from "@wagmi/core";
 import { Address } from "viem";
 import { SiloConvertPriceCache } from "./SiloConvert.cache";
@@ -18,7 +18,11 @@ import { MaxConvertResult, SiloConvertMaxConvertQuoter } from "./SiloConvert.max
 import { SiloConvertRoute, SiloConvertStrategizer } from "./siloConvert.strategizer";
 import { ConvertStrategyQuote } from "./strategies/core";
 import { SiloConvertType } from "./strategies/core";
-import { DefaultConvertStrategy, SiloConvertLP2MainWithdrawPairStrategy } from "./strategies/implementations";
+import {
+  DefaultConvertStrategy,
+  SiloConvertLP2MainWithdrawPairStrategy,
+  SiloConvertMain2LPDepositPairStrategy,
+} from "./strategies/implementations";
 import { ConversionQuotationError, SiloConvertError, SimulationError } from "./strategies/validation/SiloConvertErrors";
 import { SiloConvertContext } from "./types";
 import { decodeConvertResults } from "./utils";
@@ -109,6 +113,8 @@ export interface ConvertResultStruct<T = TV> {
 
 export type SiloConvertQuoteOptions = {
   isPairWithdrawal?: boolean;
+  secondaryAmount?: TV;
+  fromMode?: FarmFromMode;
 };
 
 export interface SiloConvertSummary<T extends SiloConvertType> {
@@ -251,21 +257,54 @@ export class SiloConvert {
 
     const routes = await this.strategizer.strategize(source, target, amountIn, options).catch((e) => {
       logError("[SiloConvert/quote] FAILED to strategize: ", e);
-      throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to strategize", {
-        source,
-        target,
-      });
+      throw e;
     });
-
-    // Check if aborted after async operation
     throwIfAborted(signal);
 
-    const quotedRoutes = await Promise.all(
+    const quotedRoutes = await this.handleQuoteRoutes(routes, farmerDeposits, slippage, signal).catch((e) => {
+      logError("[SiloConvert/quote] FAILED to quote routes: ", e);
+      throw e;
+    });
+    throwIfAborted(signal);
+
+    const simulationsRawResults = await this.handleSimulateQuotedRoutes(quotedRoutes);
+    throwIfAborted(signal);
+
+    console.debug("[SiloConvert/quote] post simulation results: ", {
+      quotedRoutes,
+      simulationsRawResults,
+    });
+
+    const datas = this.handleDecodeRouteAndPriceResults(quotedRoutes, simulationsRawResults);
+
+    console.debug("[SiloConvert/quote] ------------------");
+    console.debug("[SiloConvert/quote] quoting finished!!!", datas, "\n");
+    console.debug("[SiloConvert/quote] ------------------");
+
+    return datas;
+  }
+
+  /**
+   * Handles the quoting of the routes.
+   * @param routes - The routes to quote
+   * @param farmerDeposits - The farmer deposits to select crates from
+   * @param slippage - The slippage to use for the quote
+   * @param signal - The signal to abort the quote
+   * @returns The decoded quoted routes
+   */
+  private async handleQuoteRoutes(
+    routes: SiloConvertRoute<SiloConvertType>[],
+    farmerDeposits: DepositData[],
+    slippage: number,
+    signal?: AbortSignal,
+  ) {
+    return Promise.all(
       routes.map(async (route, routeIndex) => {
         const advFarm = new AdvancedFarmWorkflow(this.context.chainId, this.context.wagmiConfig);
         const quotes: ConvertStrategyQuote<SiloConvertType>[] = [];
 
         const crates = this.selectCratesFromRoute(route, farmerDeposits);
+        const decodeIndicies: number[] = [];
 
         // Has to be run sequentially.
         for (const [i, strategy] of route.strategies.entries()) {
@@ -279,11 +318,21 @@ export class SiloConvert {
             logError(`[SiloConvert/quote${i}] FAILED: `, e);
             throw e;
           }
-          advFarm.add(strategy.strategy.encodeFromQuote(quote));
+
+          // Get the current length of the advanced farm workflow
+          const len = advFarm.length;
+          // Encode the quote into calls and get the decode index
+          const { calls, decodeIndex } = strategy.strategy.encodeFromQuote(quote);
+          // Add the calls to the advanced farm workflow
+          advFarm.add(calls);
+          // Push the decode index to the decode indicies array
+          decodeIndicies.push(len + decodeIndex);
+          // Push the quote to the quotes array
           quotes.push(quote);
         }
 
         return {
+          decodeIndicies,
           route,
           routeIndex,
           quotes,
@@ -294,33 +343,56 @@ export class SiloConvert {
       logError("[SiloConvert/quote] FAILED to quote routes: ", e);
       throw e;
     });
+  }
 
-    const simulationsRawResults = await Promise.all(
-      quotedRoutes.map((route) =>
-        route.workflow
+  /**
+   *
+   * @param quotedRoutes - The decoded quoted routes from the handleQuoteRoutes function
+   * @returns The raw simulation results
+   */
+  private async handleSimulateQuotedRoutes(
+    // The decoded quoted routes from the handleQuoteRoutes function
+    quotedRoutes: Awaited<ReturnType<typeof this.handleQuoteRoutes>>,
+  ) {
+    const data = await Promise.all(
+      quotedRoutes.map((route) => {
+        // get all the approval tokens from the strategies
+        const approvalTokens = route.route.strategies
+          .flatMap((s) => s.strategy.getApprovalTokens())
+          .filter((t) => t !== undefined);
+
+        return route.workflow
           .simulate({
             account: this.context.account,
             after: this.priceCache.constructPriceAdvPipe({ noTokenPrices: true }),
+            // Add any state overrides that require approval tokens
+            stateOverrides: getOverrideAllowanceStateOverride(
+              this.context.chainId,
+              approvalTokens,
+              this.context.account,
+            ),
           })
           .catch((e) => {
             logError("[SiloConvert/quote] FAILED to simulate routes : ", e);
             throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
-              routes,
+              routes: route.route,
               quotedRoutes,
             });
           })
           .then((r) => {
             console.debug("[SiloConvert/quote] simulated route!: ", route, r);
             return r;
-          }),
-      ),
+          });
+      }),
     );
 
-    console.debug("[SiloConvert/quote] post simulation results: ", {
-      quotedRoutes,
-      simulationsRawResults,
-    });
+    return data;
+  }
 
+  private handleDecodeRouteAndPriceResults(
+    quotedRoutes: Awaited<ReturnType<typeof this.handleQuoteRoutes>>,
+    simulationsRawResults: Awaited<ReturnType<typeof this.handleSimulateQuotedRoutes>>,
+  ) {
     const datas = quotedRoutes.map((route, i): SiloConvertSummary<SiloConvertType> => {
       const rawResponse = simulationsRawResults[i];
 
@@ -333,7 +405,7 @@ export class SiloConvert {
       let decoded: ReturnType<typeof this.decodeRouteAndPriceResults>;
 
       try {
-        decoded = this.decodeRouteAndPriceResults(staticCallResult, route.route);
+        decoded = this.decodeRouteAndPriceResults(staticCallResult, route.route, route.decodeIndicies);
       } catch (e) {
         logError("[SiloConvert/quote] FAILED to decode route and price results: ", e);
         throw new ConversionQuotationError("Failed to decode route and price results", {
@@ -350,10 +422,6 @@ export class SiloConvert {
         totalAmountOut: decoded.reducedResults.toAmount, // TODO: Remove me when supporting multiple toToken
       };
     });
-
-    console.debug("[SiloConvert/quote] ------------------");
-    console.debug("[SiloConvert/quote] quoting finished!!!", datas, "\n");
-    console.debug("[SiloConvert/quote] ------------------");
 
     return datas;
   }
@@ -389,15 +457,19 @@ export class SiloConvert {
   private decodeRouteAndPriceResults(
     rawResponse: HashString[],
     route: SiloConvertRoute<SiloConvertType>,
+    decodeIndicies: number[],
   ): Pick<SiloConvertSummary<SiloConvertType>, "results" | "reducedResults" | "postPriceData"> {
     const mainToken = getChainConstant(this.context.chainId, MAIN_TOKEN);
-    try {
-      const staticCallResult = [...rawResponse];
 
+    try {
+      // Create a copy of the raw response
+      const staticCallResult = [...rawResponse];
       // price result is the last element in the static call result
       const priceResult = staticCallResult.pop();
 
-      const decodedConvertResults = decodeConvertResults(staticCallResult, route.convertType);
+      const decodeResults = decodeIndicies.map((decodeIdx) => staticCallResult[decodeIdx]);
+
+      const decodedConvertResults = decodeConvertResults(decodeResults, route.convertType);
 
       const decodedPriceCalls = priceResult ? AdvancedPipeWorkflow.decodeResult(priceResult) : undefined;
       const postPriceData = decodedPriceCalls?.length

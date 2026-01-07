@@ -7,7 +7,7 @@
     "dev": "vite",
     "wagmi:generate": "wagmi generate --config ./src/utils/wagmi/wagmi.config.ts",
     "generate": "yarn wagmi:generate && graphql-codegen",
-    "build": "yarn generate && tsc && vite build",
+    "build": "vite build",
     "build:netlify": "./scripts/build-netlify.sh",
     "lint:check": "biome check",
     "lint:check-errors-only": "biome check --diagnostic-level=error",
@@ -23,6 +23,9 @@
     "@hookform/resolvers": "^3.9.0",
     "@netlify/functions": "^2.8.1",
     "@number-flow/react": "^0.5.9",
+    "@privy-io/react-auth": "^3.6.0",
+    "@privy-io/wagmi": "^2.0.2",
+    "@privy-io/wagmi-connector": "^0.1.13",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.1",
@@ -120,7 +123,9 @@
     "@babel/runtime": "^7.26.10",
     "brace-expansion": "^2.0.2",
     "micromatch": "^4.0.8",
-    "cross-spawn": "7.0.6"
+    "cross-spawn": "7.0.6",
+    "viem": "^2.33.1",
+    "ox": "^0.8.1"
   },
   "packageManager": "yarn@4.5.0"
 }

@@ -1,7 +1,7 @@
 import { TV } from "@/classes/TokenValue";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
-import { subgraphs } from "@/constants/subgraph";
+import { SG_FETCH_DISABLED, subgraphs } from "@/constants/subgraph";
 import { FieldIssuedSoilDocument } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
@@ -130,7 +130,7 @@ const useUpdateInitialSoil = () => {
         field_contains_nocase: diamond,
       });
     },
-    enabled: !!season && season > 0,
+    enabled: !!season && season > 0 && !SG_FETCH_DISABLED,
     ...settings.query,
   });
 

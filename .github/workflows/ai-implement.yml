@@ -111,6 +111,24 @@ jobs:
             You MUST attempt to load `CLAUDE.md` on every run.
 
             ============================================================
+            BRANCH AND PR REQUIREMENTS
+            ============================================================
+
+            CRITICAL: You MUST work on a feature branch (never push to main):
+
+            1. Check what branch you're currently on using git commands
+            2. Determine your path:
+               - If you're already on a feature branch (not main): Work on that branch
+               - If you're on 'main': Create a new feature branch using: git checkout -b claude/issue-<issue_number>
+            3. Make your implementation changes and commit them to the feature branch
+            4. Push the feature branch to origin: git push -u origin HEAD
+            5. NEVER push directly to main
+            6. The CI will automatically format/lint and create the PR after you're done
+
+            If you do not create/use a feature branch and push commits, the workflow will fail.
+            Every successful implementation run MUST result in a pushed feature branch with commits.
+
+            ============================================================
             IMPLEMENTATION REQUIREMENTS
             ============================================================
 
@@ -125,16 +143,15 @@ jobs:
                  assumption without risking obviously incorrect behavior.
 
             3A. If you DO have enough information (preferred path): IMPLEMENT
+               - Follow BRANCH AND PR REQUIREMENTS above to ensure you're on a feature branch
                - Make the minimal, focused changes needed to implement the issue.
                - Prefer touching only the most relevant files. For UI/copy tweaks,
                  avoid broad refactors.
+               - Commit your changes with a clear commit message
+               - Push the feature branch to origin (never push to main)
                - DO NOT run `yarn format` or `yarn lint:fix-all` yourself - the CI workflow
                  will handle formatting and linting automatically after you finish.
                - Focus on implementing the functionality correctly.
-               - When creating the PR, include:
-                 - References the issue (e.g. "Closes #<issue_number>")
-                 - Describes what you changed and why
-                 - Lists any tests or checks you ran
 
             3B. If you DO NOT have enough information (fallback path): ASK ONCE
                - Post a comment on the issue asking for clarification
@@ -142,6 +159,7 @@ jobs:
                - Ask 1–3 very specific questions needed to unblock implementation
                - Explicitly say that once they reply with `@claude`, you will try again
                - Do NOT attempt a partial implementation if you are clearly confused
+               - Do NOT create a branch or push commits if you're only asking questions
 
             ============================================================
             NON-INTERACTIVE ENVIRONMENT RULES
@@ -150,8 +168,9 @@ jobs:
             - You are running in a CI workflow and CANNOT wait for user replies within a single run.
             - Do NOT "pause" or assume a back-and-forth conversation.
             - In each run, you must either:
-              - (A) Fully implement the change and open a PR, OR
-              - (B) Post a single clarifying comment and stop.
+              - (A) If already on a feature branch: Fully implement the change, commit, push, and the CI will create a PR, OR
+              - (B) If on main: Create a new feature branch, commit, push to that feature branch (never push to main), and the CI will create a PR, OR
+              - (C) If unclear: Post a single clarifying comment and stop (no branch/commits).
             - Never ask follow-up questions more than once per run.
             - Prefer making reasonable, safe assumptions over stalling, when ambiguity is minor.
 
@@ -163,6 +182,26 @@ jobs:
             - Keep changes small, localized, and directly related to the `ai-implement` request.
             - Prefer existing patterns and conventions in this repository (as documented in `CLAUDE.md`
               and in the existing code).
+
+      - name: Ensure feature branch exists
+        if: success()
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          echo "Current branch after Claude action: $BRANCH_NAME"
+
+          # Check if we're on a feature branch, create one if not
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "⚠️ Still on main branch - creating feature branch for issue #$ISSUE_NUMBER"
+            TIMESTAMP=$(date +%Y%m%d-%H%M)
+            NEW_BRANCH="claude/issue-$ISSUE_NUMBER-$TIMESTAMP"
+            git checkout -b "$NEW_BRANCH"
+            BRANCH_NAME="$NEW_BRANCH"
+            echo "✅ Created and switched to branch: $BRANCH_NAME"
+          fi
+
+          echo "Working on branch: $BRANCH_NAME"
 
       - name: Format and lint code
         if: success()
@@ -180,10 +219,49 @@ jobs:
           🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
           Co-Authored-By: Claude <noreply@anthropic.com>"
-            git push -u origin HEAD
+            echo "✅ Committed formatting changes"
           else
             echo "No formatting changes needed"
           fi
+
+      - name: Push all commits to remote
+        if: success()
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+
+          # Check if there are any commits on this branch that aren't on main
+          COMMIT_COUNT=$(git rev-list --count main..HEAD)
+
+          if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+            echo "❌ No commits found on branch $BRANCH_NAME"
+            echo "This indicates Claude action did not make any changes and formatting also made no changes."
+            echo "This is unexpected - the workflow should not reach this point without changes."
+            exit 1
+          fi
+
+          echo "✅ Found $COMMIT_COUNT commit(s) to push"
+
+          # Push all commits to remote
+          git push -u origin HEAD --force-with-lease
+
+          echo "✅ Pushed $COMMIT_COUNT commit(s) to remote"
+
+          # Give GitHub API more time to replicate refs across zones
+          echo "Waiting for GitHub API to replicate..."
+          sleep 5
+
+          # Verify remote has the commits
+          git fetch origin "$BRANCH_NAME" 2>/dev/null || true
+          REMOTE_COMMITS=$(git rev-list --count main..origin/"$BRANCH_NAME" 2>/dev/null || echo "0")
+
+          if [[ "$REMOTE_COMMITS" -eq 0 ]]; then
+            echo "⚠️ Remote branch not showing commits yet, waiting additional time..."
+            sleep 3
+            git fetch origin "$BRANCH_NAME"
+            REMOTE_COMMITS=$(git rev-list --count main..origin/"$BRANCH_NAME" 2>/dev/null || echo "0")
+          fi
+
+          echo "✅ Remote branch has $REMOTE_COMMITS commit(s)"
 
       - name: Create or update PR
         if: success()
@@ -192,18 +270,36 @@ jobs:
           BRANCH_NAME=$(git branch --show-current)
           ISSUE_NUMBER="${{ github.event.issue.number }}"
 
-          # Check if PR already exists for this branch
-          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          # Verify we have commits (should always be true at this point)
+          COMMIT_COUNT=$(git rev-list --count main..HEAD)
+          echo "✅ Creating PR with $COMMIT_COUNT commit(s) on branch $BRANCH_NAME"
 
-          if [[ -n "$EXISTING_PR" ]]; then
+          # Check if PR already exists for this branch
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
+
+          if [[ -n "$EXISTING_PR" && "$EXISTING_PR" != "null" ]]; then
             echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
-            echo "PR already exists: #$EXISTING_PR"
+            echo "✅ PR already exists: #$EXISTING_PR"
           else
-            # Create new PR
-            PR_URL=$(gh pr create \
+            echo "Creating new PR..."
+
+            # Get issue title
+            ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --json title --jq '.title')
+
+            # Validate we got the title
+            if [[ -z "$ISSUE_TITLE" ]]; then
+              echo "❌ Failed to fetch issue title for issue #$ISSUE_NUMBER"
+              exit 1
+            fi
+
+            echo "Issue title: $ISSUE_TITLE"
+
+            # Create new PR - capture output and exit code separately
+            set +e
+            PR_OUTPUT=$(gh pr create \
               --base main \
               --head "$BRANCH_NAME" \
-              --title "$(gh issue view $ISSUE_NUMBER --json title --jq '.title')" \
+              --title "$ISSUE_TITLE" \
               --body "Closes #$ISSUE_NUMBER
 
           ## Changes
@@ -211,12 +307,34 @@ jobs:
 
           Please review the changes and merge if they look good.
 
-          🤖 Generated with [Claude Code](https://claude.com/claude-code)" \
-              2>&1)
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)" 2>&1)
+            PR_EXIT_CODE=$?
+            set -e
 
-            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+' || echo "")
-            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-            echo "Created PR: $PR_URL"
+            if [[ $PR_EXIT_CODE -ne 0 ]]; then
+              echo "❌ Failed to create PR. Error output:"
+              echo "$PR_OUTPUT"
+              exit 1
+            fi
+
+            # Extract PR number from URL (format: https://github.com/owner/repo/pull/123)
+            PR_NUMBER=$(echo "$PR_OUTPUT" | grep -oE 'pull/[0-9]+' | grep -oE '[0-9]+' || echo "")
+
+            if [[ -z "$PR_NUMBER" ]]; then
+              echo "⚠️ PR created but could not extract PR number from output:"
+              echo "$PR_OUTPUT"
+              # Try alternative extraction methods
+              PR_NUMBER=$(echo "$PR_OUTPUT" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
+            fi
+
+            if [[ -n "$PR_NUMBER" ]]; then
+              echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+              echo "✅ Created PR #$PR_NUMBER"
+              echo "PR URL: $PR_OUTPUT"
+            else
+              echo "❌ Could not determine PR number"
+              exit 1
+            fi
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -234,4 +352,18 @@ jobs:
               repo: context.repo.repo,
               issue_number: issueNumber,
               body: `✅ I've implemented this issue and created PR #${prNumber} for review.\n\nThe code has been formatted and linted automatically.`
+            });
+
+      - name: Comment on issue if no changes were made
+        if: failure() && steps.create-pr.conclusion == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.issue.number }};
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `⚠️ I analyzed this issue but was unable to create a pull request.\n\nThis could mean:\n- No code changes were needed\n- I need more information to implement this\n- The issue may have already been resolved\n\nPlease check the [workflow logs](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for more details.`
             });

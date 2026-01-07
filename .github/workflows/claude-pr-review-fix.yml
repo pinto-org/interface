@@ -130,6 +130,7 @@ jobs:
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           timeout_minutes: "25"
           initial_prompt: |
             You are tasked with reviewing and fixing a Pull Request based on feedback from a privileged user. Please:

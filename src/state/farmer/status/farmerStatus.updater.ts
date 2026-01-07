@@ -43,10 +43,7 @@ export default function useUpdateFarmerStatus() {
   const balances = useFarmerBalances();
   const account = useAccount();
 
-  const hasBalanceOnBase =
-    Array.from(balances.balances.entries()).findIndex((data) => {
-      data[1].total.gt(0);
-    }) > -1;
+  const hasBalanceOnBase = Array.from(balances.balances.entries()).findIndex((data) => data[1].total.gt(0)) > -1;
 
   const setStatus = useSetAtom(farmerStatusAtom);
 

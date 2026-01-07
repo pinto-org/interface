@@ -1,8 +1,9 @@
 import PintoIcon from "@/assets/tokens/PINTO.png";
 import { getEnvEnabledChains, localhostNetwork as localhost } from "@/utils/wagmi/chains";
-import { getDefaultConfig } from "connectkit";
 import { Chain, Transport, createTestClient } from "viem";
-import { http, createConfig } from "wagmi";
+import { http, createStorage } from "wagmi";
+import type { CreateConnectorFn } from "wagmi";
+import { /* coinbaseWallet, */ injected, walletConnect } from "wagmi/connectors";
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
 
@@ -10,12 +11,12 @@ type ChainsConfig = readonly [Chain, ...Chain[]];
 
 type TransportsConfig = Record<number, Transport>;
 
-const getChainConfig = (): ChainsConfig => {
+export const getChainConfig = (): ChainsConfig => {
   const chains = [...getEnvEnabledChains()] as const;
   return chains as ChainsConfig;
 };
 
-const getTransportsConfig = (): TransportsConfig => {
+export const getTransportsConfig = (): TransportsConfig => {
   const config: TransportsConfig = {};
 
   for (const chain of getEnvEnabledChains()) {
@@ -30,25 +31,80 @@ const getTransportsConfig = (): TransportsConfig => {
   return config;
 };
 
-const config = createConfig(
-  getDefaultConfig({
+const getWalletConnectMetadataUrl = () => {
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return import.meta.env.VITE_SITE_URL || "https://pinto.money/";
+};
+
+export const getBaseConnectors = (): CreateConnectorFn[] => {
+  const connectors: CreateConnectorFn[] = [
+    injected({
+      shimDisconnect: true,
+    }),
+  ];
+
+  if (import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID) {
+    connectors.push(
+      walletConnect({
+        projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
+        showQrModal: true,
+        metadata: {
+          name: "Pinto",
+          description: "A decentralized stablecoin protocol",
+          url: getWalletConnectMetadataUrl(),
+          icons: [PintoIcon],
+        },
+      }),
+    );
+  }
+
+  // connectors.push(
+  //   coinbaseWallet({
+  //     appName: "Pinto",
+  //     appLogoUrl: PintoIcon,
+  //   }) as CreateConnectorFn,
+  // );
+
+  return connectors;
+};
+
+const resolveStorage = (provided?: Storage | null) => {
+  if (typeof provided !== "undefined") {
+    return provided ?? undefined;
+  }
+
+  if (typeof window !== "undefined") {
+    return window.localStorage;
+  }
+
+  return undefined;
+};
+
+interface BuildBaseConfigParamsOptions {
+  additionalConnectors?: CreateConnectorFn[];
+  storage?: Storage | null;
+  ssr?: boolean;
+  batchWait?: number;
+}
+
+export const buildBaseConfigParams = (options: BuildBaseConfigParamsOptions = {}) => {
+  const { additionalConnectors = [], storage, ssr = false, batchWait = 200 } = options;
+
+  return {
     chains: getChainConfig(),
     transports: getTransportsConfig(),
+    connectors: [...getBaseConnectors(), ...additionalConnectors],
+    storage: createStorage({
+      storage: resolveStorage(storage),
+    }),
+    ssr,
     batch: {
       multicall: {
-        wait: 200,
+        wait: batchWait,
       },
     },
-    // Required API Keys
-    walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
-    // Required App Info
-    appName: "Pinto",
-    // Optional App Info
-    appDescription: "A decentralized stablecoin protocol",
-    appUrl: "https://pinto.money/", // your app's url
-    appIcon: PintoIcon, // your app's icon, no bigger than 1024x1024px (max. 1MB)
-    enableFamily: false,
-  }),
-);
-
-export default config;
+  };
+};
