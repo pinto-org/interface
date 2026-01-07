@@ -70,7 +70,11 @@ const isOrderEligible = (
   return remainingPods.gt(MIN_PODS_THRESHOLD) && orderMaxPlace.lte(podLine);
 };
 
-export default function FillOrder() {
+interface FillOrderProps {
+  selectedOrderId?: string;
+}
+
+export default function FillOrder({ selectedOrderId }: FillOrderProps) {
   const mainToken = useTokenData().mainToken;
   const diamondAddress = useProtocolAddress();
   const { queryKeys: balanceQKs } = useFarmerBalances();
@@ -80,7 +84,8 @@ export default function FillOrder() {
   const podLine = podIndex.sub(harvestableIndex);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("orderId");
+  // Use prop if provided, otherwise fall back to URL param
+  const orderId = selectedOrderId || searchParams.get("orderId");
 
   const queryClient = useQueryClient();
   const {

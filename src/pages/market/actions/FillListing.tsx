@@ -84,7 +84,12 @@ const useFilterTokens = () => {
   }, [tokens, isWSOL]);
 };
 
-export default function FillListing() {
+interface FillListingProps {
+  selectedListingId?: string;
+  selectedPlaceInLine?: number;
+}
+
+export default function FillListing({ selectedListingId, selectedPlaceInLine }: FillListingProps) {
   const mainToken = useTokenData().mainToken;
   const diamondAddress = useProtocolAddress();
   const account = useAccount();
@@ -92,8 +97,9 @@ export default function FillListing() {
   const harvestableIndex = useHarvestableIndex();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const listingId = searchParams.get("listingId");
-  const placeInLineFromUrl = searchParams.get("placeInLine");
+  // Use prop if provided, otherwise fall back to URL param
+  const listingId = selectedListingId || searchParams.get("listingId");
+  const placeInLineFromUrl = selectedPlaceInLine?.toString() || searchParams.get("placeInLine");
 
   const filterTokens = useFilterTokens();
 

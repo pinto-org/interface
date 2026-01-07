@@ -43,6 +43,8 @@ export type ScatterChartData = {
   color: string;
   pointStyle: PointStyle;
   pointRadius: number;
+  pointBorderColor?: string;
+  pointBorderWidth?: number;
 }[];
 
 export type ScatterChartAxisOptions = {
@@ -262,15 +264,19 @@ const ScatterChart = React.memo(
       const chartData = useCallback(
         (ctx: CanvasRenderingContext2D | null): ChartData => {
           return {
-            datasets: data.map(({ label, data, color, pointStyle, pointRadius }) => ({
-              label,
-              data,
-              // Use per-point colors if available, otherwise use dataset color
-              backgroundColor: data.map((point: any) => point.color || color),
-              pointStyle,
-              pointRadius: pointRadius,
-              hoverRadius: pointRadius + 1,
-            })),
+            datasets: data.map(
+              ({ label, data, color, pointStyle, pointRadius, pointBorderColor, pointBorderWidth }) => ({
+                label,
+                data,
+                // Use per-point colors if available, otherwise use dataset color
+                backgroundColor: data.map((point: any) => point.color || color),
+                pointStyle,
+                pointRadius: pointRadius,
+                hoverRadius: pointRadius + 1,
+                ...(pointBorderColor !== undefined && { pointBorderColor }),
+                ...(pointBorderWidth !== undefined && { pointBorderWidth }),
+              }),
+            ),
           };
         },
         [data],
@@ -597,6 +603,7 @@ const ScatterChart = React.memo(
         return {
           maintainAspectRatio: false,
           responsive: true,
+          animation: false,
           onHover: (event, activeElements, chart) => {
             // Track mouse X and Y position for crosshair
             if (event.x !== undefined && event.x !== null && event.y !== undefined && event.y !== null) {
@@ -700,19 +707,35 @@ const ScatterChart = React.memo(
             const xValue = xScale.getValueForPixel(pixelX);
             const yValue = yScale.getValueForPixel(pixelY);
 
+            // Check if clicking on a preview plot (selected plot) - these should not freeze/unfreeze
+            let isPreviewPlot = false;
+            if (activeElements.length > 0) {
+              const activeElement = activeElements[0];
+              const dataPoint = chart.data.datasets[activeElement.datasetIndex].data[activeElement.index] as Point & {
+                [key: string]: any;
+              };
+              // Preview plots have eventId starting with "selected-"
+              if (dataPoint?.eventId?.startsWith?.("selected-")) {
+                isPreviewPlot = true;
+              }
+            }
+
             let wasUnfrozen = false;
 
-            // If already frozen, unfreeze on ANY click (including pods)
-            if (frozenCrosshairRef.current) {
-              frozenCrosshairRef.current = null;
-              onFreezeChange?.(false);
-              chart.render();
-              wasUnfrozen = true;
-            } else if (activeElements.length === 0) {
-              // Only freeze when clicking empty space (not on a data point)
-              frozenCrosshairRef.current = mousePositionRef.current;
-              onFreezeChange?.(true);
-              chart.render();
+            // Don't freeze/unfreeze when clicking on preview plots
+            if (!isPreviewPlot) {
+              // If already frozen, unfreeze on ANY click (including pods)
+              if (frozenCrosshairRef.current) {
+                frozenCrosshairRef.current = null;
+                onFreezeChange?.(false);
+                chart.render();
+                wasUnfrozen = true;
+              } else if (activeElements.length === 0) {
+                // Only freeze when clicking empty space (not on a data point)
+                frozenCrosshairRef.current = mousePositionRef.current;
+                onFreezeChange?.(true);
+                chart.render();
+              }
             }
 
             // Prepare payload
@@ -731,7 +754,13 @@ const ScatterChart = React.memo(
             // Add active element info if point was clicked
             if (activeElements.length > 0) {
               const activeElement = activeElements[0];
-              selectedPointRef.current = [activeElement.datasetIndex, activeElement.index];
+
+              // Don't set selected point for preview plots (they should not show selection indicator)
+              if (!isPreviewPlot) {
+                selectedPointRef.current = [activeElement.datasetIndex, activeElement.index];
+              } else {
+                selectedPointRef.current = null;
+              }
 
               const dataPoint = chart.data.datasets[activeElement.datasetIndex].data[activeElement.index] as Point & {
                 [key: string]: any;

@@ -1,4 +1,3 @@
-import settingsIcon from "@/assets/misc/Settings.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 
@@ -40,7 +39,7 @@ interface LocationState {
   selectedPlotIndices?: string[];
 }
 
-interface PodListingData {
+export interface PodListingData {
   plot: Plot;
   index: TokenValue;
   start: TokenValue; // plot içindeki relative start
@@ -78,7 +77,11 @@ const removeTrailingZeros = (value: string): string => {
   return value.includes(".") ? value.replace(/\.?0+$/, "") : value;
 };
 
-export default function CreateListing() {
+interface CreateListingProps {
+  onSelectionChange?: (selectedPlotData: { listingData: PodListingData[]; pricePerPod: number } | null) => void;
+}
+
+export default function CreateListing({ onSelectionChange }: CreateListingProps = {} as CreateListingProps) {
   const { address: account } = useAccount();
   const diamondAddress = useProtocolAddress();
   const mainToken = useTokenData().mainToken;
@@ -253,6 +256,18 @@ export default function CreateListing() {
 
     return { min, max, isSingle: scores.length === 1 || min === max };
   }, [listingData, pricePerPod, harvestableIndex]);
+
+  // Notify parent component of selection changes
+  useEffect(() => {
+    if (!onSelectionChange) return;
+
+    if (listingData.length === 0 || !pricePerPod || pricePerPod <= 0) {
+      onSelectionChange(null);
+      return;
+    }
+
+    onSelectionChange({ listingData, pricePerPod });
+  }, [listingData, pricePerPod, onSelectionChange]);
 
   // Helper function to sort plots by index
   const sortPlotsByIndex = useCallback((plots: Plot[]): Plot[] => {
@@ -655,7 +670,7 @@ export default function CreateListing() {
                 <Slider
                   min={PRICE_PER_POD_CONFIG.MIN}
                   max={PRICE_PER_POD_CONFIG.MAX}
-                  step={0.000001}
+                  step={0.001}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
                   className="w-[24rem]"

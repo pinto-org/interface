@@ -26,7 +26,7 @@ import { FarmerActivityTable } from "./market/FarmerActivityTable";
 import MarketModeSelect from "./market/MarketModeSelect";
 import { PodListingsTable } from "./market/PodListingsTable";
 import { PodOrdersTable } from "./market/PodOrdersTable";
-import CreateListing from "./market/actions/CreateListing";
+import CreateListing, { PodListingData } from "./market/actions/CreateListing";
 import CreateOrder from "./market/actions/CreateOrder";
 import FillListing from "./market/actions/FillListing";
 import FillOrder from "./market/actions/FillOrder";
@@ -38,6 +38,8 @@ const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 const MILLION = 1_000_000;
 const TOOLTIP_Z_INDEX = 50;
 const CHART_MAX_PRICE = 100;
+// Only use listings with at least this many Pods when computing the Pod Score color range.
+const MIN_PODS_FOR_POD_SCORE_RANGE = 100;
 
 // Responsive breakpoints for tooltip positioning
 const BREAKPOINT_XL = 1600;
@@ -73,14 +75,17 @@ type MarketScatterChartDataPoint = {
   eventIndex?: number;
   podScore?: number;
   color?: string;
+  remainingAmount?: number;
 };
 
 type MarketScatterChartData = {
-  label: "Orders" | "Listings";
+  label: "Orders" | "Listings" | "Selected Plots";
   data: MarketScatterChartDataPoint[];
   color: string;
   pointStyle: PointStyle;
   pointRadius: number;
+  pointBorderColor?: string;
+  pointBorderWidth?: number;
 };
 
 /**
@@ -121,6 +126,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
       } else if ("originalAmount" in event) {
         // Handle Listings
         const amount = event.originalAmount.toNumber();
+        const remainingAmount = event.remainingAmount?.toNumber?.() ?? 0;
         const fillPct = event.filled.div(event.originalAmount).mul(100).toNumber();
         const status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
         const placeInLine = status === "ACTIVE" ? event.index.sub(harvestableIndex).toNumber() : null;
@@ -141,6 +147,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
             amount,
             placeInLine,
             podScore,
+            remainingAmount,
           });
         }
       }
@@ -168,6 +175,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
   // Apply Pod Score coloring to listings
   // Extract all listing Pod Scores (filter out undefined values)
   const listingScores = result[1].data
+    .filter((p) => (p.amount ?? 0) >= MIN_PODS_FOR_POD_SCORE_RANGE)
     .map((point) => point.podScore)
     .filter((score): score is number => score !== undefined);
 
@@ -187,6 +195,8 @@ export function Market() {
   const { mode, id } = useParams();
   const [tab, handleChangeTab] = useState(TABLE_SLUGS[0]);
   const [isCrosshairFrozen, setIsCrosshairFrozen] = useState(false);
+  const [chartKey, setChartKey] = useState(0); // Force chart re-render
+  const [isNavigating, setIsNavigating] = useState(false); // Track navigation state
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -209,6 +219,19 @@ export function Market() {
   const navHeight = useNavHeight();
 
   const [mounted, setMounted] = useState(false);
+  const [selectedPlotData, setSelectedPlotData] = useState<{
+    listingData: PodListingData[];
+    pricePerPod: number;
+  } | null>(null);
+
+  // Selected listing/order data for fill components
+  const [selectedListingData, setSelectedListingData] = useState<{
+    listingId: string;
+    placeInLine?: number;
+  } | null>(null);
+  const [selectedOrderData, setSelectedOrderData] = useState<{
+    orderId: string;
+  } | null>(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -216,10 +239,85 @@ export function Market() {
     }, 3000);
   }, []);
 
-  const scatterChartData: MarketScatterChartData[] = useMemo(
-    () => shapeScatterChartData(data || [], harvestableIndex),
-    [data, harvestableIndex],
+  // Transform selected plots to chart points
+  const transformSelectedPlotsToChartPoints = useCallback(
+    (
+      selectedPlotData: { listingData: PodListingData[]; pricePerPod: number } | null,
+    ): MarketScatterChartDataPoint[] => {
+      if (!selectedPlotData) return [];
+
+      return selectedPlotData.listingData.map((data) => {
+        const placeInLine = data.index.sub(harvestableIndex).toNumber();
+        const placeInLineMillions = placeInLine / MILLION;
+        const podScore = calculatePodScore(selectedPlotData.pricePerPod, placeInLineMillions);
+
+        return {
+          x: placeInLineMillions,
+          y: selectedPlotData.pricePerPod,
+          eventId: `selected-${data.index.toHuman()}-${data.start.toHuman()}`,
+          eventType: "LISTING" as const,
+          status: "ACTIVE",
+          amount: data.amount.toNumber(),
+          placeInLine,
+          podScore,
+        };
+      });
+    },
+    [harvestableIndex],
   );
+
+  const scatterChartData: MarketScatterChartData[] = useMemo(() => {
+    const baseData = shapeScatterChartData(data || [], harvestableIndex);
+
+    // Add selected plots dataset if available
+    if (!selectedPlotData || selectedPlotData.listingData.length === 0 || selectedPlotData.pricePerPod <= 0) {
+      return baseData;
+    }
+
+    const selectedPlotPoints = transformSelectedPlotsToChartPoints(selectedPlotData);
+
+    if (selectedPlotPoints.length === 0) {
+      return baseData;
+    }
+
+    // Get Pod Scores from existing listings
+    const existingListingScores = baseData[1].data
+      .filter((p) => (p.amount ?? 0) >= MIN_PODS_FOR_POD_SCORE_RANGE)
+      .map((point) => point.podScore)
+      .filter((score): score is number => score !== undefined);
+
+    // Build color scaler from existing listings
+    const colorScaler = buildPodScoreColorScaler(existingListingScores);
+
+    // Apply Pod Score coloring to selected plots
+    const selectedPlotPointsWithColors = selectedPlotPoints.map((point) => ({
+      ...point,
+      color: point.podScore !== undefined ? colorScaler.toColor(point.podScore) : "#e0b57d",
+    }));
+
+    // Create selected plots dataset
+    const selectedPlotsDataset: MarketScatterChartData = {
+      label: "Selected Plots",
+      data: selectedPlotPointsWithColors,
+      color: "#e0b57d", // fallback color
+      pointStyle: "rect" as PointStyle,
+      pointRadius: 6,
+      pointBorderColor: "#FF0000", // pinto-red-2 from tailwind config
+      pointBorderWidth: 1, // 1px border
+    };
+
+    return [...baseData, selectedPlotsDataset];
+  }, [data, harvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
+
+  // Generate unique key for chart when selectedPlotData changes
+  const chartDataKey = useMemo(() => {
+    if (!selectedPlotData || selectedPlotData.listingData.length === 0) {
+      return chartKey;
+    }
+    // Use length, first plot index, and pricePerPod for a lightweight unique identifier
+    const firstPlot = selectedPlotData.listingData[0];
+    return `${chartKey}-${selectedPlotData.listingData.length}-${firstPlot.index.toHuman()}-${firstPlot.start.toHuman()}-${selectedPlotData.pricePerPod}`;
+  }, [chartKey, selectedPlotData]);
 
   // Keep ref in sync with state and hide hover info when frozen
   useEffect(() => {
@@ -388,6 +486,65 @@ export function Market() {
     }
   }, [id, mode, navigate]);
 
+  // Clear preview plots and unfreeze chart when route changes away from create listing
+  // Also unfreeze when switching between listing/selling pages
+  useEffect(() => {
+    if (mode !== "sell" || id !== "create") {
+      setSelectedPlotData(null);
+      // Unfreeze chart if frozen (use ref to get current state)
+      if (isCrosshairFrozenRef.current) {
+        chartRef.current?.unfreeze();
+        setIsCrosshairFrozen(false);
+      }
+      // Close context menu if open
+      setContextMenu(null);
+    }
+  }, [mode, id]);
+
+  // Clear freezed state when switching between any pages (listing/selling)
+  useEffect(() => {
+    console.log("Tab changed:", tab, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
+    // Only reset chart if not navigating (user manually changed tab)
+    if (!isNavigating) {
+      console.log("Unfreezing chart due to tab change");
+      setIsCrosshairFrozen(false);
+
+      // Force chart re-render to clear frozen state
+      setChartKey((prev) => prev + 1);
+
+      // Clear selected data when switching tabs
+      setSelectedListingData(null);
+      setSelectedOrderData(null);
+    }
+    // Always close context menu
+    setContextMenu(null);
+
+    // Reset navigation flag
+    setIsNavigating(false);
+  }, [tab]);
+
+  // Clear freezed state when switching between Buy/Sell modes
+  useEffect(() => {
+    console.log("Mode changed:", mode, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
+    // Only reset chart if not navigating (user manually changed mode)
+    if (!isNavigating) {
+      console.log("Unfreezing chart due to mode change");
+      setIsCrosshairFrozen(false);
+
+      // Force chart re-render to clear frozen state
+      setChartKey((prev) => prev + 1);
+
+      // Clear selected data when switching modes
+      setSelectedListingData(null);
+      setSelectedOrderData(null);
+    }
+    // Always close context menu
+    setContextMenu(null);
+
+    // Reset navigation flag
+    setIsNavigating(false);
+  }, [mode]);
+
   const handleChangeTabFactory = useCallback(
     (selection: string) => () => {
       // Track activity tab changes
@@ -397,8 +554,10 @@ export function Market() {
       });
 
       if (selection === TABLE_SLUGS[1]) {
+        setIsNavigating(true);
         navigate(`/market/pods/buy/fill`);
       } else if (selection === TABLE_SLUGS[2]) {
+        setIsNavigating(true);
         navigate(`/market/pods/sell/fill`);
       }
       handleChangeTab(selection);
@@ -565,6 +724,7 @@ export function Market() {
     (path: string, state: any) => {
       // Mark that we're navigating so onClose doesn't unfreeze again
       isNavigatingRef.current = true;
+      setIsNavigating(true);
 
       // Trigger closing animation
       setIsContextMenuClosing(true);
@@ -613,6 +773,14 @@ export function Market() {
   }, [contextMenu, handleUnfreezeAndNavigate]);
 
   const onPointClick = (payload: PointClickPayload) => {
+    // Ignore clicks on selected plots (they should only show hover info, not be clickable)
+    if (payload.activeElement) {
+      const dataPoint = payload.activeElement.dataPoint as any;
+      if (dataPoint?.eventId?.startsWith("selected-")) {
+        return; // Selected plots are not clickable, only hoverable
+      }
+    }
+
     // If this click unfroze the chart, close context menu with animation
     if (payload.wasUnfrozen) {
       // Trigger closing animation
@@ -638,12 +806,29 @@ export function Market() {
         });
 
         if (dataPoint.eventType === "LISTING") {
-          // Include placeInLine in URL so FillListing can set it correctly
+          // Set selected listing data instead of navigating
           const placeInLine = dataPoint.placeInLine;
-          const placeInLineParam = placeInLine ? `&placeInLine=${placeInLine}` : "";
-          navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}${placeInLineParam}`);
+          setSelectedListingData({
+            listingId: dataPoint.eventId,
+            placeInLine: placeInLine || undefined,
+          });
+          // Switch to buy mode and listings tab
+          if (mode !== "buy") {
+            setIsNavigating(true);
+            navigate("/market/pods/buy/fill");
+          }
+          handleChangeTab(TABLE_SLUGS[1]); // Switch to listings tab
         } else {
-          navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
+          // Set selected order data instead of navigating
+          setSelectedOrderData({
+            orderId: dataPoint.eventId,
+          });
+          // Switch to sell mode and orders tab
+          if (mode !== "sell") {
+            setIsNavigating(true);
+            navigate("/market/pods/sell/fill");
+          }
+          handleChangeTab(TABLE_SLUGS[2]); // Switch to orders tab
         }
       }
       return;
@@ -665,12 +850,29 @@ export function Market() {
       });
 
       if (dataPoint.eventType === "LISTING") {
-        // Include placeInLine in URL so FillListing can set it correctly
+        // Set selected listing data instead of navigating
         const placeInLine = dataPoint.placeInLine;
-        const placeInLineParam = placeInLine ? `&placeInLine=${placeInLine}` : "";
-        navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}${placeInLineParam}`);
+        setSelectedListingData({
+          listingId: dataPoint.eventId,
+          placeInLine: placeInLine || undefined,
+        });
+        // Switch to buy mode and listings tab
+        if (mode !== "buy") {
+          setIsNavigating(true);
+          navigate("/market/pods/buy/fill");
+        }
+        handleChangeTab(TABLE_SLUGS[1]); // Switch to listings tab
       } else {
-        navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
+        // Set selected order data instead of navigating
+        setSelectedOrderData({
+          orderId: dataPoint.eventId,
+        });
+        // Switch to sell mode and orders tab
+        if (mode !== "sell") {
+          setIsNavigating(true);
+          navigate("/market/pods/sell/fill");
+        }
+        handleChangeTab(TABLE_SLUGS[2]); // Switch to orders tab
       }
       return;
     }
@@ -770,6 +972,7 @@ export function Market() {
                   </div>
                 )}
                 <ScatterChart
+                  key={chartDataKey}
                   ref={chartRef}
                   data={scatterChartData}
                   xOptions={{ label: "Place in line", min: 0, max: chartXMax }}
@@ -816,9 +1019,18 @@ export function Market() {
                   <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
                   <div className="flex flex-col gap-4">
                     {viewMode === "buy" && viewAction === "create" && <CreateOrder />}
-                    {viewMode === "buy" && viewAction === "fill" && <FillListing />}
-                    {viewMode === "sell" && viewAction === "create" && <CreateListing />}
-                    {viewMode === "sell" && viewAction === "fill" && <FillOrder />}
+                    {viewMode === "buy" && viewAction === "fill" && (
+                      <FillListing
+                        selectedListingId={selectedListingData?.listingId}
+                        selectedPlaceInLine={selectedListingData?.placeInLine}
+                      />
+                    )}
+                    {viewMode === "sell" && viewAction === "create" && (
+                      <CreateListing onSelectionChange={setSelectedPlotData} />
+                    )}
+                    {viewMode === "sell" && viewAction === "fill" && (
+                      <FillOrder selectedOrderId={selectedOrderData?.orderId} />
+                    )}
                   </div>
                 </div>
               </Card>
