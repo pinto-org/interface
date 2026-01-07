@@ -688,7 +688,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine }: 
             onFocus={(e) => e.target.select()}
             placeholder="0.01"
             outlined
-            endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
+            endIcon={<TextAdornment text={"Pinto/Pod"} className="bg-white" />}
           />
         </div>
         {/* Effective Temperature Display */}
