@@ -1,4 +1,3 @@
-import settingsIcon from "@/assets/misc/Settings.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 
