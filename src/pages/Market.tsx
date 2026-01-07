@@ -38,8 +38,8 @@ const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 const MILLION = 1_000_000;
 const TOOLTIP_Z_INDEX = 50;
 const CHART_MAX_PRICE = 100;
-// Only use listings with at least this many Pods remaining when computing the Pod Score color range.
-const MIN_REMAINING_PODS_FOR_POD_SCORE_RANGE = 25;
+// Only use listings with at least this many Pods when computing the Pod Score color range.
+const MIN_PODS_FOR_POD_SCORE_RANGE = 100;
 
 // Responsive breakpoints for tooltip positioning
 const BREAKPOINT_XL = 1600;
@@ -175,7 +175,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
   // Apply Pod Score coloring to listings
   // Extract all listing Pod Scores (filter out undefined values)
   const listingScores = result[1].data
-    .filter((p) => (p.remainingAmount ?? 0) >= MIN_REMAINING_PODS_FOR_POD_SCORE_RANGE)
+    .filter((p) => (p.amount ?? 0) >= MIN_PODS_FOR_POD_SCORE_RANGE)
     .map((point) => point.podScore)
     .filter((score): score is number => score !== undefined);
 
@@ -282,7 +282,7 @@ export function Market() {
 
     // Get Pod Scores from existing listings
     const existingListingScores = baseData[1].data
-      .filter((p) => (p.remainingAmount ?? 0) >= MIN_REMAINING_PODS_FOR_POD_SCORE_RANGE)
+      .filter((p) => (p.amount ?? 0) >= MIN_PODS_FOR_POD_SCORE_RANGE)
       .map((point) => point.podScore)
       .filter((score): score is number => score !== undefined);
 
