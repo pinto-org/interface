@@ -1,4 +1,5 @@
 import PintoLogo from "@/assets/protocol/PintoLogo.svg";
+import NetlifyLogo from "@/assets/misc/netlify.svg";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { trackClick } from "@/utils/analytics";
 import { cn } from "@/utils/utils";
@@ -95,7 +96,7 @@ export default function Footer({ landingPageVersion }: { landingPageVersion?: bo
       id="pinto-footer"
     >
       <div className="w-full px-3 py-3 sm:px-6 sm:py-4 lg:px-8">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 sm:relative">
           {/* Links Section - Bottom Left Corner */}
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <img src={PintoLogo} alt="Pinto Logo" className="h-4 mb-0.5" />
@@ -128,6 +129,21 @@ export default function Footer({ landingPageVersion }: { landingPageVersion?: bo
               label="GitHub"
             />
           </div>
+
+          {/* Netlify Section - Center on desktop, bottom on mobile */}
+          {landingPageVersion && (
+            <div className="flex items-center gap-2 sm:absolute sm:left-1/2 sm:-translate-x-1/2">
+              <a
+                href="https://www.netlify.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <span className="text-pinto-light text-xs font-medium">This site is powered by</span>
+                <img src={NetlifyLogo} alt="Netlify Logo" className="h-8" />
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </footer>

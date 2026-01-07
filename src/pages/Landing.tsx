@@ -364,11 +364,6 @@ export default function Landing() {
         >
           <Resources />
         </section>
-        <div className="flex justify-center pb-4 pt-2">
-          <a href="https://www.netlify.com">
-            <img src="https://www.netlify.com/assets/badges/netlify-badge-light.svg" alt="Deploys by Netlify" />
-          </a>
-        </div>
         <div className="flex-1 w-full">
           <Footer landingPageVersion />
         </div>
