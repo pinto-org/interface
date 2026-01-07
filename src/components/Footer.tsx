@@ -1,5 +1,5 @@
-import PintoLogo from "@/assets/protocol/PintoLogo.svg";
 import NetlifyLogo from "@/assets/misc/netlify.svg";
+import PintoLogo from "@/assets/protocol/PintoLogo.svg";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { trackClick } from "@/utils/analytics";
 import { cn } from "@/utils/utils";
