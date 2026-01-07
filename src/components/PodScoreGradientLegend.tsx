@@ -12,7 +12,7 @@ interface PodScoreGradientLegendProps {
  * with an info icon tooltip explaining the Pod Score metric.
  */
 export default function PodScoreGradientLegend({
-  learnMoreUrl = "https://docs.pinto.money/",
+  learnMoreUrl = "https://docs.pinto.money/pinto-mechanics/toolshed/pod-market#pod-score",
   className,
 }: PodScoreGradientLegendProps) {
   return (
@@ -31,19 +31,18 @@ export default function PodScoreGradientLegend({
           align="start"
           showOnMobile
           content={
-            <div className="flex flex-col max-w-xs">
+            <div className="max-w-xs">
               <p className="text-pinto-gray-5">
-                Pod Score measures listing quality based on Return/Place in Line ratio. Higher scores (green) indicate
-                better value opportunities.
+                Pod Score measures the attractiveness of a Listing based on its Return and Place in Line.{" "}
+                <a
+                  href={learnMoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pinto underline hover:text-pinto-dark transition-colors"
+                >
+                  Learn more
+                </a>
               </p>
-              <a
-                href={learnMoreUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-pinto underline hover:text-pinto-dark transition-colors"
-              >
-                Learn more
-              </a>
             </div>
           }
         />
