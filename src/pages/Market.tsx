@@ -17,6 +17,7 @@ import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { calculatePodScore } from "@/utils/podScore";
 import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
+import { exists } from "@/utils/utils";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -312,7 +313,7 @@ export function Market() {
 
   // Calculate highlighted event IDs (listings in the selected listing's area)
   const highlightedEventIds = useMemo(() => {
-    if (selectedListingData?.placeInLine === undefined || selectedListingData?.pricePerPod === undefined) {
+    if (!exists(selectedListingData?.placeInLine) || !exists(selectedListingData?.pricePerPod)) {
       return undefined;
     }
 
