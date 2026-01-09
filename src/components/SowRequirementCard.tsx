@@ -3,14 +3,14 @@ import { Progress } from "@/components/ui/Progress";
 import { formatter } from "@/utils/format";
 
 interface SowRequirementCardProps {
-  totalPods: TokenValue;
+  totalBeansSown: TokenValue;
   amountNeeded: TokenValue;
   progressPercentage: number;
   disabled?: boolean;
 }
 
 export function SowRequirementCard({
-  totalPods,
+  totalBeansSown,
   amountNeeded,
   progressPercentage,
   disabled = false,
@@ -30,7 +30,7 @@ export function SowRequirementCard({
           <div className="flex justify-between items-center">
             <span className="pinto-sm text-pinto-light">Progress</span>
             <span className="pinto-sm-bold text-pinto-dark">
-              {disabled ? "- / 1000 Pinto sown" : `${formatter.number(totalPods)} / 1000 Pinto sown`}
+              {disabled ? "- / 1000 Pinto sown" : `${formatter.number(totalBeansSown)} / 1000 Pinto sown`}
             </span>
           </div>
           <Progress

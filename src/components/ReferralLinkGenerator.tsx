@@ -20,7 +20,7 @@ interface ReferralLinkGeneratorProps {
 export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGeneratorProps) {
   const { address } = useAccount();
   const { delegateAddress } = useReferralData();
-  const { meetsRequirement, totalPods, amountNeeded, progressPercentage } = useFarmerSowEligibility();
+  const { meetsRequirement, totalBeansSown, amountNeeded, progressPercentage } = useFarmerSowEligibility();
 
   const isWalletConnected = !!address;
 
@@ -141,7 +141,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
           {/* Conditional rendering based on sow requirement */}
           {!meetsRequirement || !isWalletConnected ? (
             <SowRequirementCard
-              totalPods={totalPods}
+              totalBeansSown={totalBeansSown}
               amountNeeded={amountNeeded}
               progressPercentage={progressPercentage}
               disabled={!isWalletConnected}
