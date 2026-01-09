@@ -3,6 +3,7 @@ import xLogo from "@/assets/misc/x-logo.png";
 import { SowRequirementCard } from "@/components/SowRequirementCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ZERO_ADDRESS_HEX } from "@/constants/address";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useFarmerSowEligibility } from "@/hooks/useFarmerSowEligibility";
 import { useReferralData } from "@/state/referral";
@@ -26,7 +27,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
   const referralCode = address ? encodeReferralAddress(address) : "";
   const referralUrl = `${window.location.origin}/field?ref=${referralCode}`;
-  const podDestinationAddress = delegateAddress || address;
+  const podDestinationAddress = delegateAddress === ZERO_ADDRESS_HEX ? address : delegateAddress || address;
 
   const handleCopyCode = () => {
     if (!isWalletConnected) return;
@@ -154,11 +155,27 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
                 <label className="pinto-sm text-pinto-light">Pod Destination Address</label>
                 <div className="flex flex-col">
                   <span className="pinto-body text-pinto-dark">
-                    {podDestinationAddress ? truncateHex(podDestinationAddress, 6, 4) : "-"}
+                    {podDestinationAddress ? (
+                      <>
+                        <a
+                          href={`https://basescan.org/address/${podDestinationAddress}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-pinto-green underline hover:text-pinto-dark transition"
+                        >
+                          {truncateHex(podDestinationAddress, 6, 4)}
+                        </a>
+                        {podDestinationAddress === address && <span className="text-gray-500 ml-2">(Delegated)</span>}
+                      </>
+                    ) : (
+                      "-"
+                    )}
                   </span>
-                  <Button type="button" onClick={onChangeAddress} variant="link" noPadding={true}>
-                    Change address
-                  </Button>
+                  {podDestinationAddress !== address && (
+                    <Button type="button" onClick={onChangeAddress} variant="link" noPadding={true}>
+                      Delegate Pods to a different address
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

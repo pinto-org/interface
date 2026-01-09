@@ -27,7 +27,7 @@ export default function Referral() {
           <Separator />
 
           {/* Main Referral Cards - Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* Invite via - with overlay pattern like Field page */}
             <div className="relative">
               <Card className="p-4 sm:p-6">
