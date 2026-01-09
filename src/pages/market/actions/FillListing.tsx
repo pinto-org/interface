@@ -708,7 +708,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine }: 
           <p className="pinto-sm text-pinto-light italic">No Pods in Line currently available to fill.</p>
         ) : (
           <div className="flex flex-row gap-4 w-full items-center">
-            <div className="flex flex-row gap-4 items-center flex-1">
+            <div className="flex flex-row gap-4 items-center">
               <p className="pinto-body text-pinto-light">0</p>
               {maxPlace > 0 && (
                 <Slider
@@ -717,7 +717,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine }: 
                   step={1}
                   min={0}
                   max={maxPlace}
-                  className="flex-1"
+                  className="w-[28rem]"
                 />
               )}
             </div>
@@ -729,8 +729,6 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine }: 
               onFocus={(e) => e.target.select()}
               placeholder={formatter.noDec(maxPlace)}
               outlined
-              containerClassName="w-[104px]"
-              className=""
               disabled={maxPlace === 0}
             />
           </div>
