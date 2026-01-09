@@ -50,7 +50,11 @@ import {
 import SowOrderTractorAdvancedForm from "./Sow/SowOrderTractorAdvancedForm";
 import SowOrderV0Fields from "./form/SowOrderV0Fields";
 import { useSowOrderV0Form, useSowOrderV0State } from "./form/SowOrderV0Schema";
-import { OperatorTipFormField, TractorOperatorTipStrategy } from "./form/fields/sharedFields";
+import {
+  OperatorTipFormField,
+  TractorOperatorTipStrategy,
+  getTractorOperatorTipAmountFromPreset,
+} from "./form/fields/sharedFields";
 
 interface ModifyTractorOrderDialogProps {
   open: boolean;
@@ -196,9 +200,28 @@ export default function ModifyTractorOrderDialog({
         }
       }
     } else {
-      // Switching to non-Custom preset: clear refs
+      // Switching to non-Custom preset: clear refs and update operatorTip value
       previousPresetRef.current = null;
       originalTipRef.current = null;
+
+      // Calculate and set the new tip value based on preset
+      const tipAmount = getTractorOperatorTipAmountFromPreset(
+        preset,
+        averageTipValue,
+        form.getValues("customOperatorTip"),
+        mainToken.decimals,
+      );
+      if (tipAmount) {
+        form.setValue("operatorTip", tipAmount.toHuman());
+      }
+    }
+
+    // For Custom preset, update operatorTip from customOperatorTip
+    if (preset === "Custom") {
+      const customTip = form.getValues("customOperatorTip");
+      if (customTip) {
+        form.setValue("operatorTip", customTip);
+      }
     }
 
     setOperatorTipPreset(preset);

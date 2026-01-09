@@ -33,7 +33,11 @@ import {
 import SowOrderTractorAdvancedForm from "./Tractor/Sow/SowOrderTractorAdvancedForm";
 import TractorTokenStrategyDialog from "./Tractor/TractorTokenStrategyDialog";
 import SowOrderV0Fields from "./Tractor/form/SowOrderV0Fields";
-import { OperatorTipFormField, TractorOperatorTipStrategy } from "./Tractor/form/fields/sharedFields";
+import {
+  OperatorTipFormField,
+  TractorOperatorTipStrategy,
+  getTractorOperatorTipAmountFromPreset,
+} from "./Tractor/form/fields/sharedFields";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/Accordion";
 import { Button } from "./ui/Button";
 import { Separator } from "./ui/Separator";
@@ -259,9 +263,28 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         }
       }
     } else {
-      // Switching to non-Custom preset: clear refs
+      // Switching to non-Custom preset: clear refs and update operatorTip value
       previousPresetRef.current = null;
       originalTipRef.current = null;
+
+      // Calculate and set the new tip value based on preset
+      const tipAmount = getTractorOperatorTipAmountFromPreset(
+        preset,
+        averageTipPaid,
+        form.getValues("customOperatorTip"),
+        mainToken.decimals,
+      );
+      if (tipAmount) {
+        form.setValue("operatorTip", tipAmount.toHuman());
+      }
+    }
+
+    // For Custom preset, update operatorTip from customOperatorTip
+    if (preset === "Custom") {
+      const customTip = form.getValues("customOperatorTip");
+      if (customTip) {
+        form.setValue("operatorTip", customTip);
+      }
     }
 
     setOperatorTipPreset(preset);

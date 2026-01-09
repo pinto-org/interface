@@ -14,8 +14,8 @@ import { useSharedNumericFormFieldHandlers } from "@/hooks/form/useSharedNumeric
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
 import { useMainToken } from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
-import { sanitizeNumericInputValue } from "@/utils/string";
+import { NUMBER_ABBR_THRESHOLDS, formatter } from "@/utils/format";
+import { MAX_INPUT_VALUE, sanitizeNumericInputValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { cn, exists } from "@/utils/utils";
 import {
@@ -240,6 +240,11 @@ export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: Oper
 const formatOperatorTipAmount = (amount: string | TV | undefined) => {
   if (!amount) return "--";
   const str = typeof amount === "string" ? amount : amount.toHuman();
+  const num = Number(str.replace(/,/g, ""));
+  // Use compact format for large numbers (>= 1 billion)
+  if (num >= NUMBER_ABBR_THRESHOLDS.BILLION) {
+    return `${formatter.number(str, { minDecimals: 2, maxDecimals: 2, compact: true })}`;
+  }
   return `${formatter.number(str, { minDecimals: 2, maxDecimals: 3 })}`;
 };
 
@@ -282,11 +287,11 @@ const InlineTipFormField = ({
   const [value, setValue] = useState<string>(ctx.getValues("customOperatorTip") ?? "");
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals);
+    const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals, false, MAX_INPUT_VALUE);
     setValue(cleaned.str);
   };
 
-  const invalidValue = sanitizeNumericInputValue(value, mainToken.decimals).nonAmount;
+  const invalidValue = sanitizeNumericInputValue(value, mainToken.decimals, false, MAX_INPUT_VALUE).nonAmount;
 
   const handleConfirmClick = () => {
     if (invalidValue) {
@@ -384,7 +389,7 @@ export const OperatorTipPresetDropdown = ({
       return;
     }
     // re-validate the custom tip value
-    const cleaned = sanitizeNumericInputValue(customTipValue, mainToken.decimals);
+    const cleaned = sanitizeNumericInputValue(customTipValue, mainToken.decimals, false, MAX_INPUT_VALUE);
     // set the custom tip value in the form
     ctx.setValue("customOperatorTip", cleaned.str);
     // Set the selected preset to custom, reset the cached preset, and close the custom input
@@ -499,16 +504,19 @@ const OperatorTipPreset = ({
       )}
       onClick={() => onClick(preset)}
     >
-      {preset.icon}
-      <Row className="flex-1 justify-between w-full">
-        <Col className="gap-1">
+      <div className="shrink-0">{preset.icon}</div>
+      <Row className="flex-1 justify-between w-full min-w-0">
+        <Col className="gap-1 min-w-0 flex-1">
           <span className="pinto-sm">{preset.type}</span>
-          <span className="pinto-sm-light text-pinto-gray-4 whitespace-nowrap">
+          <span className="pinto-sm-light text-pinto-gray-4 truncate">
             {formatOperatorTipAmount(amount)} {mainToken.symbol}
           </span>
         </Col>
         {preset.endIcon ? (
-          <div onClick={handleEndIconClick} className="cursor-pointer hover:bg-pinto-green-1/50 rounded-lg p-2">
+          <div
+            onClick={handleEndIconClick}
+            className="cursor-pointer hover:bg-pinto-green-1/50 rounded-lg p-2 shrink-0"
+          >
             {preset.endIcon}
           </div>
         ) : (

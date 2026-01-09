@@ -11,8 +11,8 @@ import { useReadBeanstalk_MaxTemperature } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useTemperature } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
-import { formatter } from "@/utils/format";
-import { postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
+import { NUMBER_ABBR_THRESHOLDS, formatter } from "@/utils/format";
+import { MAX_INPUT_VALUE, postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
@@ -58,13 +58,9 @@ const useSharedInputHandlers = (
 
   const handleNumericInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals);
+      const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals, false, MAX_INPUT_VALUE);
 
-      if (cleaned.nonAmount) {
-        ctx.setValue(name, cleaned.str, { shouldValidate: true });
-      } else {
-        ctx.setValue(name, cleaned.str, { shouldValidate: true });
-      }
+      ctx.setValue(name, cleaned.str, { shouldValidate: true });
       return cleaned;
     },
     [ctx.setValue, mainToken.decimals, name],
@@ -274,8 +270,8 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
                 disabled={isSliderDisabled}
                 {...getHandlers()}
                 isError={!!fieldState.error || exceedsDeposits}
-                containerClassName="w-full"
-                className="min-w-[25rem]"
+                containerClassName="w-full max-w-[25rem]"
+                className="min-w-0 text-ellipsis"
                 endIcon={<MainTokenAdornment />}
               />
             </FormControl>
@@ -451,12 +447,12 @@ SowOrderV0Fields.Temperature = function Temperature() {
               <Input
                 {...field}
                 {...sharedInputProps}
-                className="rounded-lg min-w-[30rem]"
+                className="rounded-lg min-w-0 text-ellipsis"
                 placeholder={currentTempValue.toString()}
                 outlined
                 {...handlers}
                 isError={!!fieldState.error}
-                containerClassName="w-full"
+                containerClassName="w-full max-w-[30rem]"
                 endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">%</div>}
               />
             </FormControl>
@@ -517,11 +513,17 @@ SowOrderV0Fields.PodDisplay = function PodDisplay() {
   }, [totalAmount, temperature, mainToken.decimals, maxTemperature, temperatureState.max]);
 
   return (
-    <Row className="w-full items-center justify-between">
-      <div className="pinto-sm-light text-pinto-light">Pods</div>
-      <div className="flex items-center gap-2">
-        <IconImage src={podIcon} alt="Pods" size={5} />
-        <div className="pinto-body-bold text-black">{formatter.number(estimatedPods, { minValue: 0.01 })} PODS</div>
+    <Row className="w-full items-start justify-between gap-4">
+      <div className="pinto-sm-light text-pinto-light shrink-0">Pods</div>
+      <div className="flex items-start gap-2 min-w-0">
+        <IconImage src={podIcon} alt="Pods" size={5} className="shrink-0 mt-0.5" />
+        <div className="pinto-body-bold text-black break-all text-right">
+          {formatter.number(estimatedPods, {
+            minValue: 0.01,
+            compact: estimatedPods.toNumber() >= NUMBER_ABBR_THRESHOLDS.TRILLION,
+          })}{" "}
+          PODS
+        </div>
       </div>
     </Row>
   );
@@ -716,8 +718,16 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
       lowerBound = Math.max(1, lowerBound);
       const lowerTip = lowerBound * tipValue;
 
+      // Helper to format tip values with compact notation for large numbers
+      const formatTip = (val: number) => {
+        if (val >= NUMBER_ABBR_THRESHOLDS.BILLION) {
+          return formatter.number(val, { maxDecimals: 2, compact: true });
+        }
+        return val.toFixed(2);
+      };
+
       if (min.eq(0)) {
-        return `~${lowerTip.toFixed(2)}-∞`;
+        return `~${formatTip(lowerTip)}-∞`;
       }
 
       let upperBound = Math.ceil(total.div(min).toNumber());
@@ -725,9 +735,9 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
       const upperTip = upperBound * tipValue;
 
       if (lowerTip === upperTip) {
-        return `~${lowerTip.toFixed(2)}`;
+        return `~${formatTip(lowerTip)}`;
       } else {
-        return `~${lowerTip.toFixed(2)}-${upperTip.toFixed(2)}`;
+        return `~${formatTip(lowerTip)}-${formatTip(upperTip)}`;
       }
     } catch (e) {
       console.error("Error calculating total tip:", e);

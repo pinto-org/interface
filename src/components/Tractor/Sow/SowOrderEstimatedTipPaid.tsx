@@ -7,7 +7,7 @@ import { useCultivationFactor } from "@/hooks/pinto/useCultivationFactor";
 import { useInitialSoil } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useMainToken } from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
+import { NUMBER_ABBR_THRESHOLDS, formatter } from "@/utils/format";
 import { solveArithmeticSeriesForN } from "@/utils/math";
 import { postSanitizedSanitizedValue } from "@/utils/string";
 import { useMemo } from "react";
@@ -122,7 +122,15 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
       </Row>
       <Row className="gap-1 pinto-sm font-normal">
         <IconImage src={mainToken.logoURI} alt="PINTO" size={4} className="rounded-full" />
-        {formatter.token(tipEstimations.min, mainToken)} - {formatter.token(tipEstimations.max, mainToken)}
+        {formatter.number(tipEstimations.min, {
+          maxDecimals: 2,
+          compact: tipEstimations.min.toNumber() >= NUMBER_ABBR_THRESHOLDS.BILLION,
+        })}{" "}
+        -{" "}
+        {formatter.number(tipEstimations.max, {
+          maxDecimals: 2,
+          compact: tipEstimations.max.toNumber() >= NUMBER_ABBR_THRESHOLDS.BILLION,
+        })}
       </Row>
     </Row>
   );
