@@ -1,14 +1,32 @@
 import { subgraphs } from "@/constants/subgraph";
 import {
-  CacheSeasonalWrappedDepositDocument,
-  CacheSeasonalWrappedDepositQuery,
+  BeanstalkSeasonalWrappedDepositErc20Document,
+  BeanstalkSeasonalWrappedDepositErc20Query,
   WrappedDepositErc20HourlySnapshot,
-} from "@/generated/gql/cache/graphql";
-import { buildCacheWhereClause, fetchCacheQuery } from "@/utils/paginateSubgraph";
+} from "@/generated/gql/pintostalk/graphql";
+import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { useCallback } from "react";
 import { useChainId } from "wagmi";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";
+
+const paginateSettings: PaginationSettings<
+  WrappedDepositErc20HourlySnapshot,
+  BeanstalkSeasonalWrappedDepositErc20Query,
+  "wrappedDepositERC20HourlySnapshots",
+  SeasonalQueryVars
+> = {
+  primaryPropertyName: "wrappedDepositERC20HourlySnapshots",
+  idField: "id",
+  nextVars: (value1000: WrappedDepositErc20HourlySnapshot, prevVars: SeasonalQueryVars) => {
+    if (value1000) {
+      return {
+        ...prevVars,
+        from: Number(value1000.season),
+      };
+    }
+  },
+};
 
 export const WRAPPED_MAIN_TOKEN_DEPLOY_SEASON = 2538;
 
@@ -29,19 +47,14 @@ export default function useSeasonalBeanstalkWrappedDepositsSG(
   convertResult: ConvertEntryFn<WrappedDepositErc20HourlySnapshot>,
 ): UseSeasonalResult {
   const chainId = useChainId();
-
   const queryFnFactory = useCallback(
     (vars: SeasonalQueryVars) => {
       return () =>
-        fetchCacheQuery<CacheSeasonalWrappedDepositQuery, WrappedDepositErc20HourlySnapshot>(
-          subgraphs[chainId].cache,
-          CacheSeasonalWrappedDepositDocument,
-          {
-            where: buildCacheWhereClause(vars.from, vars.to),
-            orderBy: "season",
-            orderDirection: "asc",
-          },
-          "cache_wrappedDepositERC20HourlySnapshots",
+        paginateSubgraph(
+          paginateSettings,
+          subgraphs[chainId].beanstalk,
+          BeanstalkSeasonalWrappedDepositErc20Document,
+          vars,
         );
     },
     [chainId],

@@ -32,16 +32,8 @@ const config: CodegenConfig = {
       presetConfig: {
         fragmentMasking: false,
       },
-    },
-    "src/generated/gql/cache/": {
-      schema: "https://graph.pinto.money/cache",
-      documents: ["src/queries/cache/**/*.graphql"],
-      preset: "client",
-      presetConfig: {
-        fragmentMasking: false,
-      },
-    },
+    }, 
   },
-};
+}; 
 
 export default config;

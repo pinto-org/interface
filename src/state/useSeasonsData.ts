@@ -2,23 +2,17 @@ import { TokenValue } from "@/classes/TokenValue";
 import { PODS, STALK } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
 import {
-  BeanHourlySnapshot,
-  CacheSeasonalBeanDocument,
-  CacheSeasonalBeanQuery,
-  CacheSeasonalFieldDocument,
-  CacheSeasonalFieldQuery,
-  CacheSeasonalGaugesInfoDocument,
-  CacheSeasonalGaugesInfoQuery,
-  CacheSeasonalSiloDocument,
-  CacheSeasonalSiloQuery,
-  CacheSeasonsDocument,
-  CacheSeasonsQuery,
-  FieldHourlySnapshot,
-  GaugesInfoHourlySnapshot,
-  Season,
-  SiloHourlySnapshot,
-} from "@/generated/gql/cache/graphql";
-import { buildCacheWhereClause, fetchCacheQuery } from "@/utils/paginateSubgraph";
+  BasinAdvancedChartDocument,
+  BasinAdvancedChartQuery,
+  BeanstalkHourlySnapshot,
+} from "@/generated/gql/exchange/graphql";
+import { BeanAdvancedChartDocument, BeanAdvancedChartQuery, Season as BeanSeason } from "@/generated/gql/pinto/graphql";
+import {
+  BeanstalkAdvancedChartDocument,
+  BeanstalkAdvancedChartQuery,
+  Season as BeanstalkSeason,
+} from "@/generated/gql/pintostalk/graphql";
+import { PaginationSettings, paginateMultiQuerySubgraph, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { Duration } from "luxon";
 import { useCallback, useMemo } from "react";
 import { useChainId } from "wagmi";
@@ -156,13 +150,56 @@ const marketStartSeasonToSymbolMappingPercent = {
   marketCumulativeWsolPercent: "WSOL",
 };
 
-// Combined result type for beanstalk data from cache
-interface CacheBeanstalkData {
-  seasons: Season[];
-  fieldHourlySnapshots: FieldHourlySnapshot[];
-  siloHourlySnapshots: SiloHourlySnapshot[];
-  gaugesInfoHourlySnapshots: GaugesInfoHourlySnapshot[];
-}
+const stalkPaginateSettings: PaginationSettings<
+  BeanstalkSeason,
+  BeanstalkAdvancedChartQuery,
+  "seasons",
+  SeasonalQueryVars
+> = {
+  primaryPropertyName: "seasons",
+  idField: "id",
+  nextVars: (value1000: BeanstalkSeason, prevVars: SeasonalQueryVars) => {
+    if (value1000) {
+      return {
+        ...prevVars,
+        to: Number(value1000.season),
+      };
+    }
+  },
+};
+
+const beanPaginateSettings: PaginationSettings<BeanSeason, BeanAdvancedChartQuery, "seasons", SeasonalQueryVars> = {
+  primaryPropertyName: "seasons",
+  idField: "id",
+  nextVars: (value1000: BeanSeason, prevVars: SeasonalQueryVars) => {
+    if (value1000) {
+      return {
+        ...prevVars,
+        to: Number(value1000.beanHourlySnapshot.season.season),
+      };
+    }
+  },
+  orderBy: "desc",
+};
+
+const basinPaginateSettings: PaginationSettings<
+  BeanstalkHourlySnapshot,
+  BasinAdvancedChartQuery,
+  "beanstalkHourlySnapshots",
+  SeasonalQueryVars
+> = {
+  primaryPropertyName: "beanstalkHourlySnapshots",
+  idField: "id",
+  nextVars: (value1000: BeanstalkHourlySnapshot, prevVars: SeasonalQueryVars) => {
+    if (value1000) {
+      return {
+        ...prevVars,
+        to: Number(value1000.season.season),
+      };
+    }
+  },
+  orderBy: "desc",
+};
 
 export default function useSeasonsData(
   fromSeason: number,
@@ -186,65 +223,21 @@ export default function useSeasonsData(
   const tokenData = useTokenData();
   const syncOffset = seasonSync ? 1 : 0;
 
-  // Fetch all beanstalk data from cache in parallel
   const stalkQueryFnFactory = useCallback(
-    (vars: SeasonalQueryVars) => async (): Promise<CacheBeanstalkData> => {
-      const cacheVars = {
-        where: buildCacheWhereClause(vars.from, vars.to),
-        orderBy: "season",
-        orderDirection: "desc",
-      };
-
-      const [seasons, fieldSnapshots, siloSnapshots, gaugeSnapshots] = await Promise.all([
-        fetchCacheQuery<CacheSeasonsQuery, Season>(
-          subgraphs[chainId].cache,
-          CacheSeasonsDocument,
-          cacheVars,
-          "cache_seasons",
-        ),
-        fetchCacheQuery<CacheSeasonalFieldQuery, FieldHourlySnapshot>(
-          subgraphs[chainId].cache,
-          CacheSeasonalFieldDocument,
-          cacheVars,
-          "cache_fieldHourlySnapshots",
-        ),
-        fetchCacheQuery<CacheSeasonalSiloQuery, SiloHourlySnapshot>(
-          subgraphs[chainId].cache,
-          CacheSeasonalSiloDocument,
-          cacheVars,
-          "cache_siloHourlySnapshots",
-        ),
-        fetchCacheQuery<CacheSeasonalGaugesInfoQuery, GaugesInfoHourlySnapshot>(
-          subgraphs[chainId].cache,
-          CacheSeasonalGaugesInfoDocument,
-          cacheVars,
-          "cache_gaugesInfoHourlySnapshots",
-        ),
-      ]);
-
-      return {
-        seasons,
-        fieldHourlySnapshots: fieldSnapshots,
-        siloHourlySnapshots: siloSnapshots,
-        gaugesInfoHourlySnapshots: gaugeSnapshots,
-      };
+    (vars: SeasonalQueryVars) => async () => {
+      return paginateMultiQuerySubgraph(
+        stalkPaginateSettings,
+        subgraphs[chainId].beanstalk,
+        BeanstalkAdvancedChartDocument,
+        vars,
+      );
     },
     [chainId],
   );
 
-  // Fetch bean data from cache (uses seasonNumber instead of season)
   const beanQueryFnFactory = useCallback(
     (vars: SeasonalQueryVars) => async () => {
-      return fetchCacheQuery<CacheSeasonalBeanQuery, BeanHourlySnapshot>(
-        subgraphs[chainId].cache,
-        CacheSeasonalBeanDocument,
-        {
-          where: buildCacheWhereClause(vars.from, vars.to, undefined, "seasonNumber"),
-          orderBy: "seasonNumber",
-          orderDirection: "desc",
-        },
-        "cache_beanHourlySnapshots",
-      );
+      return paginateSubgraph(beanPaginateSettings, subgraphs[chainId].bean, BeanAdvancedChartDocument, vars);
     },
     [chainId],
   );
@@ -461,23 +454,22 @@ export default function useSeasonsData(
         }
       }
 
-      if (beanData && idx + syncOffset < beanResults.length) {
-        // Cache returns flat BeanHourlySnapshot objects directly
-        const beanHourly = beanResults[idx + syncOffset];
+      if (beanData && idx + syncOffset < countSubgraphSeasons) {
+        const beanHourly = beanResults[idx + syncOffset].beanHourlySnapshot;
         allData.crosses = beanHourly.crosses;
         allData.marketCap = Number(beanHourly.marketCap);
         allData.supply = TokenValue.fromBlockchain(beanHourly.supply, tokenData.mainToken.decimals);
-        allData.supplyInPegLP = TokenValue.fromHuman(beanHourly.supplyInPegLP || 0, tokenData.mainToken.decimals);
+        allData.supplyInPegLP = TokenValue.fromBlockchain(beanHourly.supply, tokenData.mainToken.decimals);
         allData.instDeltaB = TokenValue.fromHuman(beanHourly.instDeltaB, tokenData.mainToken.decimals);
         allData.instPrice = TokenValue.fromHuman(beanHourly.instPrice, tokenData.mainToken.decimals);
-        allData.l2sr = TokenValue.fromHuman(Number(beanHourly.l2sr) * 100, 2);
+        allData.l2sr = TokenValue.fromHuman(beanHourly.l2sr * 100, 2);
         allData.twaDeltaB = TokenValue.fromHuman(beanHourly.twaDeltaB, 2);
         allData.twaPrice = TokenValue.fromHuman(beanHourly.twaPrice, 4);
 
         if (!allData.season) {
-          // Cache uses seasonNumber and createdTimestamp directly
-          allData.season = beanHourly.seasonNumber;
-          allData.timestamp = Number(beanHourly.createdTimestamp || 0);
+          const season = beanResults[idx].season;
+          allData.season = season.season;
+          allData.timestamp = Number(season.timestamp || 0);
         }
       }
 

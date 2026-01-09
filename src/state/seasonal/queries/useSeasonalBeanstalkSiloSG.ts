@@ -1,15 +1,33 @@
 import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAddress } from "@/generated/contractHooks";
 import {
-  CacheSeasonalSiloActiveFarmersDocument,
-  CacheSeasonalSiloDocument,
-  CacheSeasonalSiloQuery,
+  BeanstalkSeasonalSiloActiveFarmersDocument,
+  BeanstalkSeasonalSiloDocument,
+  BeanstalkSeasonalSiloQuery,
   SiloHourlySnapshot,
-} from "@/generated/gql/cache/graphql";
-import { buildCacheWhereClause, fetchCacheQuery } from "@/utils/paginateSubgraph";
+} from "@/generated/gql/pintostalk/graphql";
+import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";
+
+const paginateSettings: PaginationSettings<
+  SiloHourlySnapshot,
+  BeanstalkSeasonalSiloQuery,
+  "siloHourlySnapshots",
+  SeasonalQueryVars
+> = {
+  primaryPropertyName: "siloHourlySnapshots",
+  idField: "id",
+  nextVars: (value1000: SiloHourlySnapshot, prevVars: SeasonalQueryVars) => {
+    if (value1000) {
+      return {
+        ...prevVars,
+        from: Number(value1000.season),
+      };
+    }
+  },
+};
 
 export default function useSeasonalBeanstalkSiloSG(
   fromSeason: number,
@@ -17,27 +35,14 @@ export default function useSeasonalBeanstalkSiloSG(
   convertResult: ConvertEntryFn<SiloHourlySnapshot>,
 ): UseSeasonalResult {
   const chainId = useChainId();
-  const siloId = beanstalkAddress[chainId].toLowerCase();
-
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    const results = await fetchCacheQuery<CacheSeasonalSiloQuery, SiloHourlySnapshot>(
-      subgraphs[chainId].cache,
-      CacheSeasonalSiloDocument,
-      {
-        where: buildCacheWhereClause(vars.from, vars.to),
-        orderBy: "season",
-        orderDirection: "asc",
-      },
-      "cache_siloHourlySnapshots",
-    );
-    // Filter by silo address client-side (cache doesn't support id_contains)
-    return results.filter((r) => r.id.toLowerCase().includes(siloId));
+    return await paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, BeanstalkSeasonalSiloDocument, vars);
   };
 
   return useSeasonalQueries("BeanstalkSeasonalSiloQuery", {
     fromSeason,
     toSeason,
-    queryVars: { silo: siloId },
+    queryVars: { silo: beanstalkAddress[chainId] },
     historicalQueryFnFactory: queryFnFactory,
     currentQueryFnFactory: queryFnFactory,
     resultTimestamp: (entry) => {
@@ -53,27 +58,19 @@ export function useSeasonalBeanstalkSiloActiveFarmersSG(
   convertResult: ConvertEntryFn<SiloHourlySnapshot>,
 ): UseSeasonalResult {
   const chainId = useChainId();
-  const siloId = beanstalkAddress[chainId].toLowerCase();
-
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    const results = await fetchCacheQuery<CacheSeasonalSiloQuery, SiloHourlySnapshot>(
-      subgraphs[chainId].cache,
-      CacheSeasonalSiloActiveFarmersDocument,
-      {
-        where: buildCacheWhereClause(vars.from, vars.to),
-        orderBy: "season",
-        orderDirection: "asc",
-      },
-      "cache_siloHourlySnapshots",
+    return await paginateSubgraph(
+      paginateSettings,
+      subgraphs[chainId].beanstalk,
+      BeanstalkSeasonalSiloActiveFarmersDocument,
+      vars,
     );
-    // Filter by silo address client-side (cache doesn't support id_contains)
-    return results.filter((r) => r.id.toLowerCase().includes(siloId));
   };
 
   return useSeasonalQueries("BeanstalkSeasonalSiloActiveFarmersQuery", {
     fromSeason,
     toSeason,
-    queryVars: { silo: siloId },
+    queryVars: { silo: beanstalkAddress[chainId] },
     historicalQueryFnFactory: queryFnFactory,
     currentQueryFnFactory: queryFnFactory,
     resultTimestamp: (entry) => {
