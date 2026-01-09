@@ -5,11 +5,39 @@ import { cn } from "@/utils/utils";
 
 export interface ISliderProps extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {
   numThumbs?: number;
+  markers?: number[];
 }
 
 const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, ISliderProps>(
-  ({ className, numThumbs = 1, ...props }, ref) => {
+  ({ className, numThumbs = 1, markers = [], ...props }, ref) => {
     const thumbs = React.useMemo(() => Array.from({ length: numThumbs }, (_, i) => i), [numThumbs]);
+
+    // Calculate marker position as percentage
+    const calculateMarkerPosition = React.useCallback(
+      (markerValue: number): number => {
+        const min = props.min ?? 0;
+        const max = props.max ?? 100;
+        if (max === min) return 0;
+        return ((markerValue - min) / (max - min)) * 100;
+      },
+      [props.min, props.max],
+    );
+
+    // Filter markers to only include values within min-max range
+    const validMarkers = React.useMemo(() => {
+      const min = props.min ?? 0;
+      const max = props.max ?? 100;
+      return markers.filter((marker) => marker >= min && marker <= max);
+    }, [markers, props.min, props.max]);
+
+    // Get current slider value
+    const currentValue = React.useMemo(() => {
+      const values = props.value ?? props.defaultValue;
+      if (Array.isArray(values)) {
+        return values[0] ?? props.min ?? 0;
+      }
+      return values ?? props.min ?? 0;
+    }, [props.value, props.defaultValue, props.min]);
 
     return (
       <SliderPrimitive.Root
@@ -17,8 +45,24 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, I
         className={cn("relative flex w-full touch-none select-none items-center hover:cursor-pointer", className)}
         {...props}
       >
-        <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-pinto-gray-2">
-          <SliderPrimitive.Range className="absolute h-full bg-pinto-green-4" />
+        <SliderPrimitive.Track className="relative h-2 w-full grow overflow-visible rounded-full bg-pinto-gray-2">
+          <SliderPrimitive.Range className="absolute h-full bg-pinto-green-4 rounded-lg" />
+          {validMarkers.map((marker, index) => {
+            const position = calculateMarkerPosition(marker);
+            const isAboveValue = marker > currentValue;
+            return (
+              <div
+                key={`marker-${index}`}
+                className={cn(
+                  "absolute pointer-events-none w-3 h-3 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2",
+                  isAboveValue ? "bg-pinto-gray-2" : "bg-pinto-green-4",
+                )}
+                style={{
+                  left: `${position}%`,
+                }}
+              />
+            );
+          })}
         </SliderPrimitive.Track>
         {thumbs.map((idx) => (
           <SliderPrimitive.Thumb
