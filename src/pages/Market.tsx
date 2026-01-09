@@ -228,6 +228,7 @@ export function Market() {
   const [selectedListingData, setSelectedListingData] = useState<{
     listingId: string;
     placeInLine?: number;
+    pricePerPod?: number;
   } | null>(null);
   const [selectedOrderData, setSelectedOrderData] = useState<{
     orderId: string;
@@ -302,12 +303,38 @@ export function Market() {
       color: "#e0b57d", // fallback color
       pointStyle: "rect" as PointStyle,
       pointRadius: 6,
-      pointBorderColor: "#FF0000", // pinto-red-2 from tailwind config
-      pointBorderWidth: 1, // 1px border
+      pointBorderColor: "#FF0000", // Red border
+      pointBorderWidth: 1,
     };
 
     return [...baseData, selectedPlotsDataset];
   }, [data, harvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
+
+  // Calculate highlighted event IDs (listings in the selected listing's area)
+  const highlightedEventIds = useMemo(() => {
+    if (selectedListingData?.placeInLine === undefined || selectedListingData?.pricePerPod === undefined) {
+      return undefined;
+    }
+
+    const selectedPlaceInLineMillions = selectedListingData.placeInLine / MILLION;
+    const selectedPrice = selectedListingData.pricePerPod;
+
+    const ids = new Set<string>();
+
+    // Add the selected listing itself
+    ids.add(selectedListingData.listingId);
+
+    // Find listings in area (podline < selected AND price < selected)
+    const listingsData = scatterChartData[1]?.data || [];
+    listingsData.forEach((point) => {
+      if (point.eventId === selectedListingData.listingId) return; // Already added
+      if (point.x < selectedPlaceInLineMillions && point.y < selectedPrice) {
+        ids.add(point.eventId);
+      }
+    });
+
+    return ids.size > 0 ? ids : undefined;
+  }, [selectedListingData, scatterChartData]);
 
   // Generate unique key for chart when selectedPlotData changes
   const chartDataKey = useMemo(() => {
@@ -503,10 +530,8 @@ export function Market() {
 
   // Clear freezed state when switching between any pages (listing/selling)
   useEffect(() => {
-    console.log("Tab changed:", tab, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
     // Only reset chart if not navigating (user manually changed tab)
     if (!isNavigating) {
-      console.log("Unfreezing chart due to tab change");
       setIsCrosshairFrozen(false);
 
       // Force chart re-render to clear frozen state
@@ -525,10 +550,8 @@ export function Market() {
 
   // Clear freezed state when switching between Buy/Sell modes
   useEffect(() => {
-    console.log("Mode changed:", mode, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
     // Only reset chart if not navigating (user manually changed mode)
     if (!isNavigating) {
-      console.log("Unfreezing chart due to mode change");
       setIsCrosshairFrozen(false);
 
       // Force chart re-render to clear frozen state
@@ -811,6 +834,7 @@ export function Market() {
           setSelectedListingData({
             listingId: dataPoint.eventId,
             placeInLine: placeInLine || undefined,
+            pricePerPod: dataPoint.y || undefined,
           });
           // Switch to buy mode and listings tab
           if (mode !== "buy") {
@@ -855,6 +879,7 @@ export function Market() {
         setSelectedListingData({
           listingId: dataPoint.eventId,
           placeInLine: placeInLine || undefined,
+          pricePerPod: dataPoint.y || undefined,
         });
         // Switch to buy mode and listings tab
         if (mode !== "buy") {
@@ -932,8 +957,6 @@ export function Market() {
   const viewMode = mode || "buy";
   const viewAction = id || (viewMode === "buy" ? "fill" : "create");
 
-  console.log("Chart Ref", chartRef.current);
-
   return (
     <>
       <div className="sm:hidden mt-[100px] flex flex-col gap-4 items-center justify-center">
@@ -981,6 +1004,7 @@ export function Market() {
                   onHover={onHover}
                   onFreezeChange={setIsCrosshairFrozen}
                   toolTipOptions={toolTipOptions as TooltipOptions}
+                  highlightedEventIds={highlightedEventIds}
                 />
 
                 {/* Gradient Legend - positioned in top-right corner */}
