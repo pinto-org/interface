@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import { SowOrderV0TokenStrategyDialog } from "../SowOrderDialog";
+import { ReferralCodePopover } from "./ReferralCodePopover";
 import { SowOrderEstimatedTipPaid } from "./Sow/SowOrderEstimatedTipPaid";
 import {
   SowOrderEntryFormParametersSummary,
@@ -85,6 +86,7 @@ export default function ModifyTractorOrderDialog({
   const [formStep, setFormStep] = useState<1 | 2 | 3>(1); // MAIN_FORM = 1, REVIEW = 2, ADVANCED = 3
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const [operatorTipPreset, setOperatorTipPreset] = useState<TractorOperatorTipStrategy>("Normal");
+  const [referralPopoverOpen, setReferralPopoverOpen] = useState(false);
 
   // Draft state management for advanced editing
   const [draftState, setDraftState] = useState<{
@@ -295,8 +297,11 @@ export default function ModifyTractorOrderDialog({
             <Col className="gap-6">
               <DialogHeader>
                 <DialogTitle>
-                  <div className="pinto-body font-medium text-pinto-secondary">
-                    🚜 Update Conditions for automated Sowing
+                  <div className="flex justify-between items-center">
+                    <div className="pinto-body font-medium text-pinto-secondary">
+                      🚜 Update Conditions for automated Sowing
+                    </div>
+                    <ReferralCodePopover open={referralPopoverOpen} onOpenChange={setReferralPopoverOpen} />
                   </div>
                 </DialogTitle>
                 <DialogDescription className="pinto-sm-light text-pinto-light pt-2">
@@ -320,7 +325,7 @@ export default function ModifyTractorOrderDialog({
                         {/* Execute during the Morning Auction */}
                         <SowOrderV0Fields.MorningAuction />
                         {/* Pods Display */}
-                        <SowOrderV0Fields.PodDisplay />
+                        <SowOrderV0Fields.PodDisplay onOpenReferralPopover={() => setReferralPopoverOpen(true)} />
                       </SowOrderV0Fields>
                       <Row className="gap-6">
                         <Button
@@ -377,7 +382,7 @@ export default function ModifyTractorOrderDialog({
                     // Step 2 - Review
                     <Col className="gap-6 w-full">
                       <div className="flex flex-col gap-2">
-                        <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Review Sow Parameters</div>
+                        <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Review your bid</div>
                         <Separator className="h-[1px] w-full bg-pinto-gray-2" />
                       </div>
                       <Col className="w-full gap-5">

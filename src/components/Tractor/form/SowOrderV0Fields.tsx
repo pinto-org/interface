@@ -30,6 +30,8 @@ import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useAccount } from "wagmi";
 
+import { useReferralCode } from "@/hooks/tractor/useReferralCode";
+
 const sharedInputProps = {
   type: "text",
   inputMode: "decimal",
@@ -482,12 +484,21 @@ SowOrderV0Fields.MorningAuction = function MorningAuction() {
   );
 };
 
-SowOrderV0Fields.PodDisplay = function PodDisplay() {
+// TODO: ADD REFERRAL CODE VALIDATOR!
+
+const BONUS_MULTIPLIER = 0.1;
+
+SowOrderV0Fields.PodDisplay = function PodDisplay({
+  onOpenReferralPopover,
+}: {
+  onOpenReferralPopover?: () => void;
+}) {
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const mainToken = useChainConstant(MAIN_TOKEN);
   const [totalAmount, temperature] = useWatch({ control: ctx.control, name: ["totalAmount", "temperature"] });
   const { data: maxTemperature } = useReadBeanstalk_MaxTemperature();
   const temperatureState = useTemperature();
+  const { referralCode } = useReferralCode();
 
   const estimatedPods = useMemo(() => {
     if (!totalAmount || totalAmount === "") {
@@ -512,20 +523,53 @@ SowOrderV0Fields.PodDisplay = function PodDisplay() {
     return multiplier.mul(totalAmountTV);
   }, [totalAmount, temperature, mainToken.decimals, maxTemperature, temperatureState.max]);
 
+  const bonusPods = useMemo(() => {
+    return estimatedPods.mul(BONUS_MULTIPLIER);
+  }, [estimatedPods]);
+
+  const hasReferralCode = Boolean(referralCode);
+
   return (
-    <Row className="w-full items-start justify-between gap-4">
-      <div className="pinto-sm-light text-pinto-light shrink-0">Pods</div>
-      <div className="flex items-start gap-2 min-w-0">
-        <IconImage src={podIcon} alt="Pods" size={5} className="shrink-0 mt-0.5" />
-        <div className="pinto-body-bold text-black break-all text-right">
-          {formatter.number(estimatedPods, {
-            minValue: 0.01,
-            compact: estimatedPods.toNumber() >= NUMBER_ABBR_THRESHOLDS.TRILLION,
-          })}{" "}
-          PODS
+    <Col className="w-full gap-2">
+      <Row className="w-full items-start justify-between gap-4">
+        <div className="pinto-sm-light text-pinto-light shrink-0">Pods</div>
+        <div className="flex items-start gap-2 min-w-0">
+          <IconImage src={podIcon} alt="Pods" size={5} className="shrink-0 mt-0.5" />
+          <div className="pinto-body-bold text-black break-all text-right">
+            {formatter.number(estimatedPods, {
+              minValue: 0.01,
+              compact: estimatedPods.toNumber() >= NUMBER_ABBR_THRESHOLDS.TRILLION,
+            })}{" "}
+            Pods
+          </div>
         </div>
-      </div>
-    </Row>
+      </Row>
+      {hasReferralCode ? (
+        <Row className="w-full items-start justify-between gap-4">
+          <div className="pinto-sm-light text-pinto-light shrink-0">Bonus Pods</div>
+          <div className="flex items-start gap-2 min-w-0">
+            <IconImage src={podIcon} alt="Bonus Pods" size={5} className="shrink-0 mt-0.5" />
+            <div className="pinto-body-bold text-pinto-green-4 break-all text-right">
+              {formatter.number(bonusPods, {
+                minValue: 0.01,
+                compact: bonusPods.toNumber() >= NUMBER_ABBR_THRESHOLDS.TRILLION,
+              })}{" "}
+              Pods
+            </div>
+          </div>
+        </Row>
+      ) : (
+        <Row className="w-full justify-start">
+          <button
+            type="button"
+            onClick={onOpenReferralPopover}
+            className="pinto-sm-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
+          >
+            Use a referral code and gain 10% more pods!
+          </button>
+        </Row>
+      )}
+    </Col>
   );
 };
 

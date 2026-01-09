@@ -24,6 +24,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { Col, Row } from "./Container";
 import TooltipSimple from "./TooltipSimple";
+import { ReferralCodePopover } from "./Tractor/ReferralCodePopover";
 import { SowOrderEstimatedTipPaid } from "./Tractor/Sow/SowOrderEstimatedTipPaid";
 import {
   SowOrderEntryFormParametersSummary,
@@ -67,6 +68,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const [showReview, setShowReview] = useState(false);
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const [operatorTipPreset, setOperatorTipPreset] = useState<TractorOperatorTipStrategy>("Normal");
+  const [referralPopoverOpen, setReferralPopoverOpen] = useState(false);
 
   // Draft state management for advanced editing
   const [draftState, setDraftState] = useState<{
@@ -356,8 +358,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                   <Col className="gap-6 pinto-sm-light text-pinto-light">
                     {/* Title and separator */}
                     <div className="flex flex-col gap-2">
-                      <div className="pinto-body font-medium text-pinto-secondary mb-4">
-                        🚜 Specify Conditions for automated Sowing
+                      <div className="flex justify-between items-center">
+                        <div className="pinto-body font-medium text-pinto-secondary">
+                          🚜 Place a bid to Sow in the Field
+                        </div>
+                        <ReferralCodePopover open={referralPopoverOpen} onOpenChange={setReferralPopoverOpen} />
                       </div>
                       <div className="h-[1px] w-full bg-pinto-gray-2" />
                     </div>
@@ -371,14 +376,14 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       {/* Execute during the Morning Auction */}
                       <SowOrderV0Fields.MorningAuction />
                       {/* Pods Display */}
-                      <SowOrderV0Fields.PodDisplay />
+                      <SowOrderV0Fields.PodDisplay onOpenReferralPopover={() => setReferralPopoverOpen(true)} />
                     </SowOrderV0Fields>
                   </Col>
                 ) : formStep === FormStep.REVIEW ? (
                   // Step 2 - Review
                   <Col className="gap-6 w-full">
                     <div className="flex flex-col gap-2">
-                      <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Review Sow Parameters</div>
+                      <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Review your bid</div>
                       <Separator className="h-[1px] w-full bg-pinto-gray-2" />
                     </div>
                     <Col className="w-full gap-5">
