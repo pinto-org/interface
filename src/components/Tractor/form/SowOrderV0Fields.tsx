@@ -18,6 +18,7 @@ import { Col, Row } from "@/components/Container";
 import { Label } from "@/components/ui/Label";
 import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
+import { decodeReferralAddress } from "@/utils/referral";
 import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -696,6 +697,44 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
         </div>
       </Row>
     </Col>
+  );
+};
+
+// Referral Code field component
+SowOrderV0Fields.ReferralCode = function ReferralCode() {
+  const ctx = useFormContext<SowOrderV0FormSchema>();
+  const referralCode = useWatch({ control: ctx.control, name: "referralCode" });
+
+  // Validate referral code
+  const referralAddress = useMemo(() => {
+    if (!referralCode) return null;
+    return decodeReferralAddress(referralCode);
+  }, [referralCode]);
+
+  const isValid = referralCode && referralAddress;
+  const isInvalid = referralCode && !referralAddress;
+
+  return (
+    <FormField
+      control={ctx.control}
+      name="referralCode"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Referral Code (Optional)</FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              value={field.value || ""}
+              placeholder="Enter referral code"
+              outlined
+              isError={isInvalid}
+            />
+          </FormControl>
+          {isValid && <span className="text-xs text-pinto-green">✓ Valid referral code</span>}
+          {isInvalid && <span className="text-xs text-red-500">Invalid referral code</span>}
+        </FormItem>
+      )}
+    />
   );
 };
 

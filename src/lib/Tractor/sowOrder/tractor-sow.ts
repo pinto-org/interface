@@ -1,9 +1,15 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { siloHelpersABI } from "@/constants/abi/SiloHelpersABI";
+import { sowBlueprintReferralV0ABI } from "@/constants/abi/SowBlueprintReferralV0ABI";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
-import { SILO_HELPERS_ADDRESS, SOW_BLUEPRINT_V0_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
+import {
+  SILO_HELPERS_ADDRESS,
+  SOW_BLUEPRINT_REFERRAL_V0_ADDRESS,
+  SOW_BLUEPRINT_V0_ADDRESS,
+  TRACTOR_HELPERS_ADDRESS,
+} from "@/constants/address";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
@@ -60,6 +66,7 @@ export async function createSowTractorData({
   farmerDeposits,
   userAddress,
   protocolAddress,
+  referralAddress, // Add referral address parameter
 }: {
   totalAmountToSow: string;
   temperature: string;
@@ -75,6 +82,7 @@ export async function createSowTractorData({
   farmerDeposits?: Map<Token, TokenDepositData>;
   userAddress?: `0x${string}`;
   protocolAddress?: `0x${string}`;
+  referralAddress?: `0x${string}`; // Optional referral address
 }): Promise<CreateTractorDataReturnType> {
   // Add more detailed debug logs
   console.debug("tokenStrategy received:", tokenStrategy);
@@ -160,21 +168,40 @@ export async function createSowTractorData({
     },
   });
 
-  // Encode the raw sowBlueprintv0 call
-  const sowBlueprintCall = encodeFunctionData({
-    abi: sowBlueprintv0ABI,
-    functionName: "sowBlueprintv0",
-    args: [sowBlueprintStruct],
-  });
+  // Encode the blueprint call - use referral version if referralAddress is provided
+  const blueprintAddress = referralAddress ? SOW_BLUEPRINT_REFERRAL_V0_ADDRESS : SOW_BLUEPRINT_V0_ADDRESS;
 
-  // Step 1: Wrap the sowBlueprintv0 call in an advancedPipe call
+  const sowBlueprintCall = referralAddress
+    ? encodeFunctionData({
+        abi: sowBlueprintReferralV0ABI,
+        functionName: "sowBlueprintReferral",
+        args: [
+          {
+            params: sowBlueprintStruct,
+            referral: referralAddress,
+          },
+        ],
+      })
+    : encodeFunctionData({
+        abi: sowBlueprintv0ABI,
+        functionName: "sowBlueprintv0",
+        args: [sowBlueprintStruct],
+      });
+
+  console.debug("Using blueprint:", referralAddress ? "sowBlueprintReferral" : "sowBlueprintv0");
+  console.debug("Blueprint address:", blueprintAddress);
+  if (referralAddress) {
+    console.debug("Referral address:", referralAddress);
+  }
+
+  // Step 1: Wrap the blueprint call in an advancedPipe call
   const pipeCall = encodeFunctionData({
     abi: beanstalkAbi,
     functionName: "advancedPipe",
     args: [
       [
         {
-          target: SOW_BLUEPRINT_V0_ADDRESS, // Use the constant directly
+          target: blueprintAddress,
           callData: sowBlueprintCall,
           clipboard: "0x0000" as `0x${string}`, // Minimal clipboard data
         },
@@ -260,6 +287,50 @@ export function handleDecodeSowV0BlueprintFromAdvancedPipe(
   return null;
 }
 
+export function handleDecodeSowReferralBlueprintFromAdvancedPipe(
+  calls: readonly AdvancedPipeCall[] | undefined,
+  chainId: number,
+): { blueprintData: SowBlueprintData; referralAddress: `0x${string}` } | null {
+  if (!calls?.length) {
+    console.debug("[Tractor/handleDecodeSowReferralBlueprintFromAdvancedPipe] No calls provided. Returning null.");
+    return null;
+  }
+
+  const sowBlueprintData = calls[0].callData;
+
+  try {
+    const sowDecoded = decodeFunctionData({
+      abi: sowBlueprintReferralV0ABI,
+      data: sowBlueprintData,
+    });
+
+    const referralStruct = sowDecoded.args?.[0];
+
+    if (!referralStruct || typeof referralStruct !== "object" || !("params" in referralStruct)) {
+      console.error("Invalid referral struct");
+      return null;
+    }
+
+    const params = referralStruct.params;
+    const referralAddress = referralStruct.referral as `0x${string}`;
+
+    const blueprintData = transformSowRequisitionEvent(params, chainId);
+
+    if (!blueprintData) {
+      return null;
+    }
+
+    return {
+      blueprintData,
+      referralAddress,
+    };
+  } catch (error) {
+    console.error("Failed to decode sowBlueprintReferral data:", error);
+  }
+
+  return null;
+}
+
 export function transformSowRequisitionEvent(params: unknown | null, chainId: number) {
   try {
     if (!shallowCheckIsSowParams(params)) {
@@ -306,16 +377,36 @@ export function transformSowRequisitionEvent(params: unknown | null, chainId: nu
 
 /**
  * Decodes sow data from encoded function call
+ * Supports both v0 and referralV0 blueprints
  */
-export function decodeSowTractorData(encodedData: `0x${string}`, chainId: number = base.id): SowBlueprintData | null {
+export function decodeSowTractorData(
+  encodedData: `0x${string}`,
+  chainId: number = base.id,
+): SowBlueprintData | { blueprintData: SowBlueprintData; referralAddress: `0x${string}` } | null {
   try {
     const calls = decodeEncodedTractorDataToAdvancedPipeCalls(encodedData, "sowV0");
 
     if (calls?.length) {
-      return handleDecodeSowV0BlueprintFromAdvancedPipe(calls, chainId);
+      // First try to decode as referral blueprint
+      try {
+        const referralData = handleDecodeSowReferralBlueprintFromAdvancedPipe(calls, chainId);
+        if (referralData) {
+          console.debug("Decoded as referral blueprint");
+          return referralData;
+        }
+      } catch (e) {
+        console.debug("Not a referral blueprint, trying v0:", e);
+      }
+
+      // Fall back to v0 blueprint
+      const v0Data = handleDecodeSowV0BlueprintFromAdvancedPipe(calls, chainId);
+      if (v0Data) {
+        console.debug("Decoded as v0 blueprint");
+        return v0Data;
+      }
     }
   } catch (e) {
-    console.error("Failed to decode SowV0 Tractor Data:", e);
+    console.error("Failed to decode Sow Tractor Data:", e);
   }
 
   return null;
@@ -357,7 +448,13 @@ export async function loadOrderbookData(
     // Fetch SowOrderComplete events to identify completed orders
     console.debug("[TRACTOR/loadOrderbookData] Fetching...");
 
-    const [podIndexResult, harvestableIndexResult, sowOrderCompleteEvents, _requisitions] = await Promise.all([
+    const [
+      podIndexResult,
+      harvestableIndexResult,
+      sowOrderCompleteEventsV0,
+      sowOrderCompleteEventsReferral,
+      _requisitions,
+    ] = await Promise.all([
       publicClient.readContract({ address: protocolAddress, abi: diamondABI, args: [0n], functionName: "podIndex" }),
       publicClient.readContract({
         address: protocolAddress,
@@ -372,8 +469,18 @@ export async function loadOrderbookData(
         fromBlock: fromBlock,
         toBlock: "latest",
       }),
+      publicClient.getContractEvents({
+        address: SOW_BLUEPRINT_REFERRAL_V0_ADDRESS,
+        abi: sowBlueprintReferralV0ABI,
+        eventName: "SowOrderComplete",
+        fromBlock: fromBlock,
+        toBlock: "latest",
+      }),
       loadPublishedRequisitions(address, protocolAddress, publicClient, latestBlock, "sowBlueprintv0", fromBlock),
     ]);
+
+    // Merge events from both blueprint contracts
+    const sowOrderCompleteEvents = [...sowOrderCompleteEventsV0, ...sowOrderCompleteEventsReferral];
 
     const requisitions = _requisitions?.sowBlueprintv0 ?? [];
 
@@ -405,11 +512,28 @@ export async function loadOrderbookData(
 
     // Decode data and sort requisitions by temperature (lowest first)
     const requisitionsWithTemperature = activeRequisitions.map((requisition) => {
-      const decodedData = decodeSowTractorData(requisition.requisition.blueprint.data);
+      const decodedResult = decodeSowTractorData(requisition.requisition.blueprint.data);
+
+      // Handle both v0 and referral blueprint formats
+      let blueprintData: SowBlueprintData | null = null;
+      let referralAddress: `0x${string}` | undefined;
+
+      if (decodedResult) {
+        if ("blueprintData" in decodedResult) {
+          // Referral blueprint
+          blueprintData = decodedResult.blueprintData;
+          referralAddress = decodedResult.referralAddress;
+        } else {
+          // Regular v0 blueprint
+          blueprintData = decodedResult;
+        }
+      }
+
       return {
         requisition,
-        temperature: decodedData?.minTemp || 0n,
-        decodedData,
+        temperature: blueprintData?.minTemp || 0n,
+        decodedData: blueprintData,
+        referralAddress,
       };
     });
 
@@ -441,7 +565,7 @@ export async function loadOrderbookData(
     console.debug("\nProcessing orderbook data:");
 
     for (let i = 0; i < requisitionsWithTemperature.length; i++) {
-      const { requisition, decodedData } = requisitionsWithTemperature[i];
+      const { requisition, decodedData, referralAddress } = requisitionsWithTemperature[i];
       const publisher = requisition.requisition.blueprint.publisher;
 
       console.debug(`\n--- Processing Order #${i + 1} ---`);
@@ -451,10 +575,14 @@ export async function loadOrderbookData(
       console.debug(`Publisher: ${publisher}`);
 
       try {
-        // Get pintos left to sow
+        // Determine which blueprint contract to query based on the blueprint address
+        const blueprintAddress = requisition.requisition.blueprint.operator;
+        const isReferralBlueprint = blueprintAddress.toLowerCase() === SOW_BLUEPRINT_REFERRAL_V0_ADDRESS.toLowerCase();
+
+        // Get pintos left to sow from the appropriate contract
         const pintosLeft = await publicClient.readContract({
-          address: SOW_BLUEPRINT_V0_ADDRESS,
-          abi: sowBlueprintv0ABI,
+          address: isReferralBlueprint ? SOW_BLUEPRINT_REFERRAL_V0_ADDRESS : SOW_BLUEPRINT_V0_ADDRESS,
+          abi: isReferralBlueprint ? sowBlueprintReferralV0ABI : sowBlueprintv0ABI,
           functionName: "getPintosLeftToSow",
           args: [requisition.requisition.blueprintHash],
         });
@@ -593,7 +721,8 @@ export async function loadOrderbookData(
           minTemp: TokenValue.fromBigInt(decodedData?.minTemp || 0n, TEMPERATURE_DECIMALS),
           withdrawalPlan,
           decodedData: decodedData ?? undefined,
-        });
+          referralAddress, // Add referral address if present
+        } as any);
       } catch (error) {
         console.error(`Failed to get data for requisition ${requisition.requisition.blueprintHash}:`, error);
         orderbookData.push({
@@ -607,7 +736,8 @@ export async function loadOrderbookData(
           minTemp: TokenValue.ZERO,
           withdrawalPlan: undefined,
           decodedData: decodedData ?? undefined,
-        });
+          referralAddress, // Add referral address if present
+        } as any);
       }
     }
 

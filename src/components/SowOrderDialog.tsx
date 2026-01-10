@@ -1,3 +1,4 @@
+import settingsIcon from "@/assets/misc/Settings.svg";
 import { Form } from "@/components/Form";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import {
@@ -10,16 +11,20 @@ import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations
 import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { decodeReferralAddress } from "@/utils/referral";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import React from "react";
 import { useFormContext, useWatch } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Col, Row } from "./Container";
 import TooltipSimple from "./TooltipSimple";
 import TractorTokenStrategyDialog from "./Tractor/TractorTokenStrategyDialog";
 import SowOrderV0Fields from "./Tractor/form/SowOrderV0Fields";
 import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
 import Warning from "./ui/Warning";
 
 interface SowOrderDialogProps {
@@ -38,11 +43,13 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   // External hooks
   const farmerSilo = useFarmerSilo();
   const { data: averageTipPaid = 1 } = useTractorOperatorAverageTipPaid();
+  const [searchParams] = useSearchParams();
 
   // Local state
   const [formStep, setFormStep] = useState(FormStep.MAIN_FORM);
   const [showTokenSelectionDialog, setShowTokenSelectionDialog] = useState(false);
   const [showReview, setShowReview] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const farmerDeposits = farmerSilo.deposits;
 
@@ -71,6 +78,24 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     }
     setDidInitTokenStrategy(true);
   }, [calculations.tokenWithHighestValue, calculations.isLoading, didInitTokenStrategy]);
+
+  // Read referral code from URL params when dialog opens
+  const [didInitReferralCode, setDidInitReferralCode] = useState(false);
+  useEffect(() => {
+    if (!open || didInitReferralCode) return;
+    const refParam = searchParams.get("ref");
+    if (refParam) {
+      form.setValue("referralCode", refParam);
+    }
+    setDidInitReferralCode(true);
+  }, [open, searchParams, didInitReferralCode, form]);
+
+  // Decode referral code to address
+  const referralCode = form.watch("referralCode");
+  const referralAddress = useMemo(() => {
+    if (!referralCode) return null;
+    return decodeReferralAddress(referralCode);
+  }, [referralCode]);
 
   const handleOpenTokenSelectionDialog = () => {
     setShowTokenSelectionDialog(true);
@@ -134,8 +159,17 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                   <Col className="gap-6 pinto-sm-light text-pinto-light">
                     {/* Title and separator */}
                     <div className="flex flex-col gap-2">
-                      <div className="pinto-body font-medium text-pinto-secondary mb-4">
-                        🚜 Specify Conditions for automated Sowing
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="pinto-body font-medium text-pinto-secondary">
+                          🚜 Specify Conditions for automated Sowing
+                        </div>
+                        <SettingsPopover
+                          referralCode={referralCode || ""}
+                          setReferralCode={(code) => form.setValue("referralCode", code)}
+                          referralAddress={referralAddress}
+                          open={settingsOpen}
+                          onOpenChange={setSettingsOpen}
+                        />
                       </div>
                       <div className="h-[1px] w-full bg-pinto-gray-2" />
                     </div>
@@ -158,6 +192,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       {/* Execute during the Morning Auction */}
                       <SowOrderV0Fields.MorningAuction />
                     </SowOrderV0Fields>
+                    {/* Referral Code Link */}
+                    <ReferralCodeLink
+                      onOpenSettings={() => setSettingsOpen(true)}
+                      hasReferralCode={!!referralAddress}
+                    />
                   </Col>
                 ) : (
                   // Step 2 - Operator Tip
@@ -367,5 +406,95 @@ export const AnimateSowOrderDialog = ({
         </motion.div>
       </AnimatePresence>
     </div>
+  );
+};
+
+// ------------------------------ REFERRAL CODE LINK ------------------------------
+
+const ReferralCodeLink = ({
+  onOpenSettings,
+  hasReferralCode,
+}: { onOpenSettings: () => void; hasReferralCode: boolean }) => {
+  return (
+    <button
+      type="button"
+      onClick={onOpenSettings}
+      className="pinto-sm text-pinto-green hover:underline text-left mt-2 flex items-center gap-1"
+    >
+      {hasReferralCode ? (
+        <>
+          Referral code set <span>✓</span>
+        </>
+      ) : (
+        "Have a referral code?"
+      )}
+    </button>
+  );
+};
+
+// ------------------------------ SETTINGS POPOVER ------------------------------
+
+const SettingsPopover = ({
+  referralCode,
+  setReferralCode,
+  referralAddress,
+  open,
+  onOpenChange,
+}: {
+  referralCode: string;
+  setReferralCode: (code: string) => void;
+  referralAddress: `0x${string}` | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) => {
+  const [internalReferralCode, setInternalReferralCode] = useState(referralCode);
+
+  // Sync internal state with external when opened
+  useEffect(() => {
+    if (open) {
+      setInternalReferralCode(referralCode);
+    }
+  }, [open, referralCode]);
+
+  // Debounce the referral code updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setReferralCode(internalReferralCode);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [internalReferralCode, setReferralCode]);
+
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" noPadding className="rounded-full w-10 h-10">
+          <img src={settingsIcon} className="w-4 h-4 transition-all" alt="settings" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent side="bottom" align="end" className="w-64 flex flex-col shadow-none">
+        <div className="flex flex-col gap-4">
+          <div className="pinto-md">Referral Code</div>
+          <div className="flex flex-col gap-2">
+            <Input
+              type="text"
+              placeholder="Enter referral code"
+              value={internalReferralCode}
+              onChange={(e) => setInternalReferralCode(e.target.value)}
+              className={referralAddress ? "border-green-500" : ""}
+            />
+            {referralAddress && (
+              <div className="pinto-sm text-green-600 flex items-center gap-1">
+                <span>✓</span>
+                <span>Valid referral code</span>
+              </div>
+            )}
+            {internalReferralCode && !referralAddress && (
+              <div className="pinto-sm text-red-600">Invalid referral code</div>
+            )}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };

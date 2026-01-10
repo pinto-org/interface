@@ -12,6 +12,7 @@ import { useAccount, usePublicClient } from "wagmi";
 import { z } from "zod";
 
 import FormUtils from "@/utils/form";
+import { decodeReferralAddress } from "@/utils/referral";
 
 const {
   schema: { tokenStrategy, positiveNumber, addCTXErrors },
@@ -35,6 +36,7 @@ export const sowOrderDialogSchema = z
     morningAuction: z.boolean().default(false),
     operatorTip: positiveNumber("Operator Tip"),
     selectedTokenStrategy: tokenStrategy,
+    referralCode: z.string().optional(), // Optional referral code
   })
   .superRefine((data, ctx) => {
     // Cross-field validation: minSoil <= maxPerSeason
@@ -68,6 +70,7 @@ export const defaultSowOrderDialogValues: Partial<SowOrderV0FormSchema> = {
   morningAuction: false,
   operatorTip: "1",
   selectedTokenStrategy: { type: "LOWEST_SEEDS" },
+  referralCode: "",
 };
 
 export type SowOrderV0Form = {
@@ -181,6 +184,12 @@ export const useSowOrderV0State = () => {
       try {
         const formData = form.getValues();
 
+        // Decode referral code if provided
+        let referralAddress: `0x${string}` | undefined;
+        if (formData.referralCode) {
+          referralAddress = decodeReferralAddress(formData.referralCode) || undefined;
+        }
+
         const { data, operatorPasteInstrs, rawCall, depositOptimizationCalls } = await createSowTractorData({
           totalAmountToSow: formData.totalAmount,
           temperature: formData.temperature,
@@ -196,6 +205,7 @@ export const useSowOrderV0State = () => {
           farmerDeposits: deposits,
           userAddress: deposits ? address : undefined,
           protocolAddress: deposits ? protocolAddress : undefined,
+          referralAddress, // Pass the decoded referral address
         });
 
         const newBlueprint = createBlueprint({
