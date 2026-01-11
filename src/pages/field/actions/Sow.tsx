@@ -5,6 +5,7 @@ import SmartSubmitButton from "@/components/SmartSubmitButton";
 import Warning from "@/components/ui/Warning";
 import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import sowWithMin from "@/encoders/sowWithMin";
+import sowWithReferral from "@/encoders/sowWithReferral";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
@@ -15,11 +16,14 @@ import { useFarmerField } from "@/state/useFarmerField";
 import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { decodeReferralAddress } from "@/utils/referral";
 import { stringToNumber, stringToStringNum } from "@/utils/string";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import settingsIcon from "@/assets/misc/Settings.svg";
@@ -65,6 +69,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const account = useAccount();
+  const [searchParams] = useSearchParams();
 
   const temperature = useScaledTemperature();
   const podLine = usePodLine();
@@ -75,6 +80,11 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   // Form State
   const [tokenSource, setTokenSource] = useState<TokenSource>("balances");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Referral State
+  const [referralCode, setReferralCode] = useState("");
+  const [referralAddress, setReferralAddress] = useState<Address | null>(null);
 
   // Preferred Tokens
   const preferredSiloDepositToken = usePreferredInputSiloDepositToken(farmerSilo, mainToken);
@@ -218,8 +228,22 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
       const minSoil = TV.ZERO;
 
-      // If we are sowing w/ the Main Token, we can use the regular sowWithMin function
+      // If we are sowing w/ the Main Token, we can use the regular sowWithMin or sowWithReferral function
       if (isUsingMain && !fromSilo) {
+        if (referralAddress) {
+          return writeWithEstimateGas({
+            address: diamond,
+            abi: beanstalkAbi,
+            functionName: "sowWithReferral",
+            args: [
+              mainTokenAmount.toBigInt(),
+              minTemp.toBigInt(),
+              minSoil.toBigInt(),
+              Number(balanceFrom),
+              referralAddress,
+            ],
+          });
+        }
         return writeWithEstimateGas({
           address: diamond,
           abi: beanstalkAbi,
@@ -268,8 +292,10 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
         });
       }
 
-      // Finally, add the sowWithMin call to the advFarm
-      const sowCallStruct = sowWithMin(mainTokenAmount, minTemp, minSoil, FarmFromMode.INTERNAL, clipboard);
+      // Finally, add the sowWithMin or sowWithReferral call to the advFarm
+      const sowCallStruct = referralAddress
+        ? sowWithReferral(mainTokenAmount, minTemp, minSoil, FarmFromMode.INTERNAL, referralAddress, clipboard)
+        : sowWithMin(mainTokenAmount, minTemp, minSoil, FarmFromMode.INTERNAL, clipboard);
       advFarm.push(sowCallStruct);
 
       return writeWithEstimateGas({
@@ -307,6 +333,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     minTemperature,
     currentTemperature,
     inputError,
+    referralAddress,
   ]);
 
   // Callbacks
@@ -367,6 +394,24 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     setLoading(swap.isLoading);
   }, [swap.isLoading]);
 
+  // Read referral code from URL params on mount
+  useEffect(() => {
+    const refParam = searchParams.get("ref");
+    if (refParam) {
+      setReferralCode(refParam);
+    }
+  }, [searchParams]);
+
+  // Decode referral code to address
+  useEffect(() => {
+    if (referralCode) {
+      const decoded = decodeReferralAddress(referralCode);
+      setReferralAddress(decoded);
+    } else {
+      setReferralAddress(null);
+    }
+  }, [referralCode]);
+
   // Derived State
   const hasSoil = Boolean(!totalSoilLoading && totalSoil.gt(0));
   const inputExceedsSoil = hasSoil && soilSown && totalSoil && soilSown.gt(totalSoil);
@@ -412,6 +457,11 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
             setSlippage={setSlippage}
             minTemperature={minTemperature}
             setMinTemperature={setMinTemperature}
+            referralCode={referralCode}
+            setReferralCode={setReferralCode}
+            referralAddress={referralAddress}
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
           />
         </Row>
         <ComboInputField
@@ -435,6 +485,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           filterTokens={filterTokens}
           disableClamping={true}
         />
+        <ReferralCodeLink onOpenSettings={() => setSettingsOpen(true)} hasReferralCode={!!referralAddress} />
       </Col>
       <Row className="justify-between my-2">
         <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use Silo Deposits</div>
@@ -560,34 +611,49 @@ const SettingsPoppover = ({
   setSlippage,
   minTemperature,
   setMinTemperature,
+  referralCode,
+  setReferralCode,
+  referralAddress,
+  open,
+  onOpenChange,
 }: {
   slippage: number;
   setSlippage: React.Dispatch<React.SetStateAction<number>>;
   minTemperature: number;
   setMinTemperature: React.Dispatch<React.SetStateAction<number>>;
+  referralCode: string;
+  setReferralCode: React.Dispatch<React.SetStateAction<string>>;
+  referralAddress: Address | null;
+  open: boolean;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [internalAmount, setInternalAmount] = useState(slippage);
   const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
+  const [internalReferralCode, setInternalReferralCode] = useState(referralCode);
 
-  const handlePopoverOpen = () => {
-    trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_SETTINGS_OPEN, {
-      current_slippage: slippage,
-      current_min_temperature: minTemperature,
-    });
+  const handlePopoverOpen = (isOpen: boolean) => {
+    if (isOpen) {
+      trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_SETTINGS_OPEN, {
+        current_slippage: slippage,
+        current_min_temperature: minTemperature,
+      });
+    }
+    onOpenChange(isOpen);
   };
 
   // Effects
   useDebouncedEffect(() => setSlippage(internalAmount), [internalAmount], 100);
   useDebouncedEffect(() => setMinTemperature(internalMinTemperature), [internalMinTemperature], 100);
+  useDebouncedEffect(() => setReferralCode(internalReferralCode), [internalReferralCode], 100);
 
   return (
-    <Popover onOpenChange={(open) => open && handlePopoverOpen()}>
+    <Popover open={open} onOpenChange={handlePopoverOpen}>
       <PopoverTrigger asChild>
         <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10 ">
           <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="bottom" align="end" className="w-52 flex flex-col shadow-none">
+      <PopoverContent side="bottom" align="end" className="w-64 flex flex-col shadow-none">
         <div className="flex flex-col gap-4">
           <div className="pinto-md">Slippage Tolerance</div>
           <div className="flex flex-row gap-2">
@@ -610,6 +676,25 @@ const SettingsPoppover = ({
               onChange={(e) => setInternalMinTemperature(Number(e.target.value))}
             />
             <div className="text-xl self-center">%</div>
+          </div>
+          <div className="pinto-md">Referral Code</div>
+          <div className="flex flex-col gap-2">
+            <Input
+              type="text"
+              placeholder="Enter referral code"
+              value={internalReferralCode}
+              onChange={(e) => setInternalReferralCode(e.target.value)}
+              className={referralAddress ? "border-green-500" : ""}
+            />
+            {referralAddress && (
+              <div className="pinto-sm text-green-600 flex items-center gap-1">
+                <span>✓</span>
+                <span>Valid referral code</span>
+              </div>
+            )}
+            {internalReferralCode && !referralAddress && (
+              <div className="pinto-sm text-red-600">Invalid referral code</div>
+            )}
           </div>
         </div>
       </PopoverContent>
@@ -727,4 +812,27 @@ const getAnimateHeight = (args: {
   const soilKey = !hasSoil ? 1 : 0;
 
   return heightMapping[baseKey]?.[isMainKey]?.[soilKey] ?? "auto";
+};
+
+// ------------------------------ REFERRAL CODE LINK ------------------------------
+
+const ReferralCodeLink = ({
+  onOpenSettings,
+  hasReferralCode,
+}: { onOpenSettings: () => void; hasReferralCode: boolean }) => {
+  return (
+    <button
+      type="button"
+      onClick={onOpenSettings}
+      className="pinto-sm text-pinto-green hover:underline text-left mt-2 flex items-center gap-1"
+    >
+      {hasReferralCode ? (
+        <>
+          Referral code set <span>✓</span>
+        </>
+      ) : (
+        "Have a referral code?"
+      )}
+    </button>
+  );
 };

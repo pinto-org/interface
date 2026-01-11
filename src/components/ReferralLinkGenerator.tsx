@@ -3,6 +3,7 @@ import xLogo from "@/assets/misc/x-logo.png";
 import { SowRequirementCard } from "@/components/SowRequirementCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ZERO_ADDRESS_HEX } from "@/constants/address";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useFarmerSowEligibility } from "@/hooks/useFarmerSowEligibility";
 import { useReferralData } from "@/state/referral";
@@ -20,13 +21,13 @@ interface ReferralLinkGeneratorProps {
 export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGeneratorProps) {
   const { address } = useAccount();
   const { delegateAddress } = useReferralData();
-  const { meetsRequirement, totalPods, amountNeeded, progressPercentage } = useFarmerSowEligibility();
+  const { meetsRequirement, totalBeansSown, amountNeeded, progressPercentage } = useFarmerSowEligibility();
 
   const isWalletConnected = !!address;
 
   const referralCode = address ? encodeReferralAddress(address) : "";
   const referralUrl = `${window.location.origin}/field?ref=${referralCode}`;
-  const podDestinationAddress = delegateAddress || address;
+  const podDestinationAddress = delegateAddress === ZERO_ADDRESS_HEX ? address : delegateAddress || address;
 
   const handleCopyCode = () => {
     if (!isWalletConnected) return;
@@ -86,110 +87,124 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
       <div className="pinto-h3 sm:pinto-h2">Invite via</div>
 
       <div className="flex flex-col gap-4">
-        {/* Referral Code */}
-        <div className="flex flex-col gap-2">
-          <label className="pinto-sm text-pinto-light">Referral Code</label>
-          <div className="flex flex-row gap-2">
-            <Input
-              value={isWalletConnected ? referralCode : "Connect wallet to generate code"}
-              readOnly
-              outlined
-              className="text-sm"
-              containerClassName={`w-80 max-w-full ${isWalletConnected ? "border-pinto-green" : "border-gray-300"}`}
-              disabled={!isWalletConnected}
-            />
-            <Button
-              onClick={handleCopyCode}
-              variant="outline"
-              size="icon"
-              className="w-10 h-10 flex-shrink-0"
-              title="Copy code"
-              disabled={!isWalletConnected}
-            >
-              <CopyIcon className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        {/* Only show referral code/link if user meets requirement */}
+        {meetsRequirement && isWalletConnected && (
+          <>
+            {/* Referral Code */}
+            <div className="flex flex-col gap-2">
+              <label className="pinto-sm text-pinto-light">Referral Code</label>
+              <div className="flex flex-row gap-2">
+                <Input
+                  value={referralCode}
+                  readOnly
+                  outlined
+                  className="text-sm"
+                  containerClassName="w-80 max-w-full border-pinto-green"
+                />
+                <Button
+                  onClick={handleCopyCode}
+                  variant="outline"
+                  size="icon"
+                  className="w-10 h-10 flex-shrink-0"
+                  title="Copy code"
+                >
+                  <CopyIcon className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
 
-        {/* Referral Link */}
-        <div className="flex flex-col gap-2">
-          <label className="pinto-sm text-pinto-light">Referral Link</label>
-          <div className="flex flex-row gap-2">
-            <Input
-              value={isWalletConnected ? referralUrl : "Connect wallet to generate link"}
-              readOnly
-              outlined
-              className="text-sm"
-              containerClassName={`w-80 max-w-full ${isWalletConnected ? "border-pinto-green" : "border-gray-300"}`}
-              disabled={!isWalletConnected}
-            />
-            <Button
-              onClick={handleCopyLink}
-              variant="outline"
-              size="icon"
-              className="w-10 h-10 flex-shrink-0"
-              title="Copy link"
-              disabled={!isWalletConnected}
-            >
-              <CopyIcon className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+            {/* Referral Link */}
+            <div className="flex flex-col gap-2">
+              <label className="pinto-sm text-pinto-light">Referral Link</label>
+              <div className="flex flex-row gap-2">
+                <Input
+                  value={referralUrl}
+                  readOnly
+                  outlined
+                  className="text-sm"
+                  containerClassName="w-80 max-w-full border-pinto-green"
+                />
+                <Button
+                  onClick={handleCopyLink}
+                  variant="outline"
+                  size="icon"
+                  className="w-10 h-10 flex-shrink-0"
+                  title="Copy link"
+                >
+                  <CopyIcon className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
 
-        <div className="flex justify-between gap-4 mt-4 flex-wrap">
-          {" "}
-          {/* Conditional rendering based on sow requirement */}
-          {!meetsRequirement || !isWalletConnected ? (
-            <SowRequirementCard
-              totalPods={totalPods}
-              amountNeeded={amountNeeded}
-              progressPercentage={progressPercentage}
-              disabled={!isWalletConnected}
-            />
-          ) : (
-            /* Pod Destination Address and Share via - Row Layout */
+        {/* Conditional rendering based on sow requirement */}
+        {!meetsRequirement || !isWalletConnected ? (
+          <SowRequirementCard
+            totalBeansSown={totalBeansSown}
+            amountNeeded={amountNeeded}
+            progressPercentage={progressPercentage}
+            disabled={!isWalletConnected}
+          />
+        ) : (
+          <div className="flex justify-between gap-4 mt-4 flex-wrap">
+            {/* Pod Destination Address and Share via - Row Layout */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-start">
               {/* Pod Destination Address */}
               <div className="flex flex-col gap-2 flex-1">
                 <label className="pinto-sm text-pinto-light">Pod Destination Address</label>
                 <div className="flex flex-col">
                   <span className="pinto-body text-pinto-dark">
-                    {podDestinationAddress ? truncateHex(podDestinationAddress, 6, 4) : "-"}
+                    {podDestinationAddress ? (
+                      <>
+                        <a
+                          href={`https://basescan.org/address/${podDestinationAddress}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-pinto-green underline hover:text-pinto-dark transition"
+                        >
+                          {truncateHex(podDestinationAddress, 6, 4)}
+                        </a>
+                        {podDestinationAddress === address && <span className="text-gray-500 ml-2">(Delegated)</span>}
+                      </>
+                    ) : (
+                      "-"
+                    )}
                   </span>
-                  <Button type="button" onClick={onChangeAddress} variant="link" noPadding={true}>
-                    Change address
-                  </Button>
+                  {podDestinationAddress !== address && (
+                    <Button type="button" onClick={onChangeAddress} variant="link" noPadding={true}>
+                      Delegate Pods to a different address
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
-          )}
-          {/* Social Sharing Icons */}
-          <div className="flex flex-col gap-2">
-            <label className="pinto-sm text-pinto-light">Share via</label>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleTwitterShare}
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 p-2"
-                title="Share on X (Twitter)"
-                disabled={!isWalletConnected}
-              >
-                <img src={xLogo} alt="X" className="w-4 h-4 object-contain" />
-              </Button>
-              <Button
-                onClick={handleTelegramShare}
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 p-2"
-                title="Share on Telegram"
-                disabled={!isWalletConnected}
-              >
-                <img src={telegramLogo} alt="Telegram" className="w-5 h-5 object-contain" />
-              </Button>
+            {/* Social Sharing Icons */}
+            <div className="flex flex-col gap-2">
+              <label className="pinto-sm text-pinto-light">Share via</label>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleTwitterShare}
+                  variant="outline"
+                  size="icon"
+                  className="w-10 h-10 p-2"
+                  title="Share on X (Twitter)"
+                >
+                  <img src={xLogo} alt="X" className="w-4 h-4 object-contain" />
+                </Button>
+                <Button
+                  onClick={handleTelegramShare}
+                  variant="outline"
+                  size="icon"
+                  className="w-10 h-10 p-2"
+                  title="Share on Telegram"
+                >
+                  <img src={telegramLogo} alt="Telegram" className="w-5 h-5 object-contain" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
