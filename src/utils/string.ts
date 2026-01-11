@@ -3,6 +3,9 @@ import { isAddress } from "viem";
 import { HashString } from "./types.generic";
 import { exists } from "./utils";
 
+/** Maximum allowed input value: 1 quadrillion (10^15) */
+export const MAX_INPUT_VALUE = 1e15;
+
 export const truncateAddress = (
   address: string | HashString | undefined,
   options?: { suffix?: boolean; letters?: number },
@@ -72,7 +75,12 @@ const cleanAmount = (value: string, allowNegative?: boolean) => {
   return value.replace(/[^0-9.]/g, "");
 };
 
-export const sanitizeNumericInputValue = (val: string, valueDecimals: number, allowNegative?: boolean) => {
+export const sanitizeNumericInputValue = (
+  val: string,
+  valueDecimals: number,
+  allowNegative?: boolean,
+  maxValue?: number,
+) => {
   const cleaned = cleanAmount(val, allowNegative);
 
   const obj = {
@@ -112,6 +120,13 @@ export const sanitizeNumericInputValue = (val: string, valueDecimals: number, al
 
   obj.tv = TokenValue.fromHuman(obj.strValue, valueDecimals);
   obj.nonAmount = false;
+
+  // Clamp to maxValue if provided
+  if (maxValue !== undefined && obj.tv.toNumber() > maxValue) {
+    obj.str = maxValue.toString();
+    obj.strValue = maxValue.toString();
+    obj.tv = TokenValue.fromHuman(maxValue.toString(), valueDecimals);
+  }
 
   return obj;
 };

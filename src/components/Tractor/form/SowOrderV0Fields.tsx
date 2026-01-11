@@ -1,31 +1,50 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
+import podIcon from "@/assets/protocol/Pod.png";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
+import { MultiSlider } from "@/components/ui/Slider";
+import { Switch } from "@/components/ui/Switch";
 import { MAIN_TOKEN } from "@/constants/tokens";
+import { useReadBeanstalk_MaxTemperature } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
-import { usePodLine } from "@/state/useFieldData";
+import { useTemperature } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
-import { formatter } from "@/utils/format";
-import { postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
+import { NUMBER_ABBR_THRESHOLDS, formatter } from "@/utils/format";
+import { MAX_INPUT_VALUE, postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
 
+import { TV } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
-import { Label } from "@/components/ui/Label";
+import { Label, TooltipLabel } from "@/components/ui/Label";
 import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
 import { decodeReferralAddress } from "@/utils/referral";
 import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
+import { useAccount } from "wagmi";
+
+import { useReferralCode } from "@/hooks/tractor/useReferralCode";
 
 const sharedInputProps = {
   type: "text",
   inputMode: "decimal",
   pattern: "[0-9]*.?[0-9]*",
+} as const;
+
+export const TOOLTIP_COPY = {
+  tokenStrategy: "The source token(s) to use for the Sow Order.",
+  totalAmount: "The total amount of PINTO to Sow in this order.",
+  temperature: "The minimum Temperature at which this order can be executed.",
+  morningAuction:
+    "The Morning is the first 10 minutes of the Season, where the Temperature slowly increases to its maximum.\nFarmers can opt for their orders to execute during the Morning, such that their orders fill first.",
 } as const;
 
 interface BaseIFormContextHandlers {
@@ -42,13 +61,9 @@ const useSharedInputHandlers = (
 
   const handleNumericInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals);
+      const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals, false, MAX_INPUT_VALUE);
 
-      if (cleaned.nonAmount) {
-        ctx.setValue(name, cleaned.str, { shouldValidate: true });
-      } else {
-        ctx.setValue(name, cleaned.str, { shouldValidate: true });
-      }
+      ctx.setValue(name, cleaned.str, { shouldValidate: true });
       return cleaned;
     },
     [ctx.setValue, mainToken.decimals, name],
@@ -97,11 +112,133 @@ const MainTokenAdornment = () => {
   );
 };
 
-SowOrderV0Fields.TotalAmount = function TotalAmount() {
+const TotalAmountSlider = ({
+  disabled,
+  ctx,
+  maxAmount,
+  handlers,
+}: {
+  disabled?: boolean;
+  ctx: ReturnType<typeof useFormContext<SowOrderV0FormSchema>>;
+  maxAmount?: TV;
+  handlers: ReturnType<typeof useSharedInputHandlers>;
+}) => {
+  const decimals = useChainConstant(MAIN_TOKEN).decimals;
+  const [totalAmount] = useWatch({ control: ctx.control, name: ["totalAmount"] });
+  const sliderValue = useMemo(() => [Number(totalAmount.replace(/,/g, "") || "0")], [totalAmount]);
+
+  const handleOnChange = useCallback(
+    (value: number[]) => {
+      // Truncate to max decimals (but limit to 6 for UI precision)
+      // Use toFixed to avoid floating-point precision issues (e.g., 65.599999 instead of 65.6)
+      const maxDecimals = Math.min(decimals, 6);
+      const truncatedValue = Number(value[0].toFixed(maxDecimals));
+      // use the blur handler to set the value with commas
+      handlers.onBlur({ target: { value: truncatedValue.toString() } } as React.FocusEvent<HTMLInputElement>);
+      // Trigger cross validation after setting value
+      const cleaned = sanitizeNumericInputValue(truncatedValue.toString(), decimals);
+      handleCrossValidate(ctx, cleaned, "minSoil", decimals, "gte");
+      handleCrossValidate(ctx, cleaned, "maxPerSeason", decimals, "lte");
+    },
+    [handlers, ctx, decimals],
+  );
+
+  return (
+    <MultiSlider
+      min={0}
+      max={maxAmount?.toNumber() ?? 1000}
+      disabled={disabled}
+      step={0.1}
+      value={sliderValue}
+      onValueChange={handleOnChange}
+    />
+  );
+};
+
+SowOrderV0Fields.TotalAmount = function TotalAmount({
+  farmerDeposits,
+}: {
+  farmerDeposits?: ReturnType<typeof useFarmerSilo>["deposits"];
+}) {
+  const { address: accountAddress } = useAccount();
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const handlers = useSharedInputHandlers(ctx, "totalAmount");
-
   const decimals = useChainConstant(MAIN_TOKEN).decimals;
+  const [tokenStrategy, totalAmountValue] = useWatch({
+    control: ctx.control,
+    name: ["selectedTokenStrategy", "totalAmount"],
+  });
+  const farmerBalances = useFarmerBalances();
+  const priceData = usePriceData();
+  const tokenData = useTokenData();
+
+  const maxAmount = useMemo(() => {
+    if (!accountAddress || !farmerDeposits) {
+      return undefined;
+    }
+
+    const summary = StrategyUtil.getSummary(tokenStrategy);
+    let totalAmount = TV.ZERO;
+
+    if (summary.type === "SPECIFIC_TOKEN" && summary.addresses) {
+      // Sum amounts for specific tokens
+      summary.addresses.forEach((address) => {
+        const token = tokenData.whitelistedTokens.find((t) => t.address === address);
+        if (token) {
+          const deposit = farmerDeposits.get(token);
+          if (deposit?.amount) {
+            // For LP tokens, use price to convert to main token value
+            if (token.isLP) {
+              const price = priceData.tokenPrices.get(token)?.instant;
+              if (price) {
+                totalAmount = totalAmount.add(deposit.amount.mul(price));
+              }
+            } else {
+              // For main token, use amount directly
+              totalAmount = totalAmount.add(deposit.amount);
+            }
+          } else {
+            // Check balances if no deposits
+            const balance = farmerBalances.balances.get(token);
+            if (balance?.total) {
+              if (token.isLP) {
+                const price = priceData.tokenPrices.get(token)?.instant;
+                if (price) {
+                  totalAmount = totalAmount.add(balance.total.mul(price));
+                }
+              } else {
+                totalAmount = totalAmount.add(balance.total);
+              }
+            }
+          }
+        }
+      });
+    } else {
+      // For LOWEST_SEEDS or LOWEST_PRICE, sum all available amounts
+      farmerDeposits.forEach((deposit, token) => {
+        if (deposit.amount) {
+          if (token.isLP) {
+            const price = priceData.tokenPrices.get(token)?.instant;
+            if (price) {
+              totalAmount = totalAmount.add(deposit.amount.mul(price));
+            }
+          } else {
+            totalAmount = totalAmount.add(deposit.amount);
+          }
+        }
+      });
+    }
+
+    return totalAmount.gt(0) ? totalAmount : undefined;
+  }, [accountAddress, farmerDeposits, tokenStrategy, farmerBalances, priceData, tokenData]);
+
+  // Check if total amount exceeds max deposits
+  const exceedsDeposits = useMemo(() => {
+    if (!maxAmount || !totalAmountValue) return false;
+    const cleaned = sanitizeNumericInputValue(totalAmountValue, decimals);
+    if (cleaned.nonAmount) return false;
+    return cleaned.tv.toNumber() > maxAmount.toNumber();
+  }, [maxAmount, totalAmountValue, decimals]);
 
   const getHandlers = (): BaseIFormContextHandlers => {
     return {
@@ -115,112 +252,36 @@ SowOrderV0Fields.TotalAmount = function TotalAmount() {
     };
   };
 
-  return (
-    <FormField
-      control={ctx.control}
-      name="totalAmount"
-      render={({ field, fieldState }) => (
-        <FormItem>
-          <FormLabel>I want to Sow up to</FormLabel>
-          <FormControl>
-            <Input
-              {...field}
-              {...sharedInputProps}
-              placeholder="0.00"
-              outlined
-              {...getHandlers()}
-              isError={!!fieldState.error}
-              endIcon={<MainTokenAdornment />}
-            />
-          </FormControl>
-        </FormItem>
-      )}
-    />
-  );
-};
-
-SowOrderV0Fields.MinSoil = function MinSoil() {
-  const ctx = useFormContext<SowOrderV0FormSchema>();
-  const handlers = useSharedInputHandlers(ctx, "minSoil");
-  const decimals = useChainConstant(MAIN_TOKEN).decimals;
-
-  const getHandlers = (): BaseIFormContextHandlers => {
-    return {
-      ...handlers,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-        const cleaned = handlers.onChange(e);
-        handleCrossValidate(ctx, cleaned, "maxPerSeason", decimals, "lte");
-        handleCrossValidate(ctx, cleaned, "totalAmount", decimals, "lte");
-        return cleaned;
-      },
-    };
-  };
+  // Disable slider if no token strategy selected or no balance available
+  const isSliderDisabled = !tokenStrategy || !maxAmount || maxAmount.lte(0);
 
   return (
-    <FormField
-      control={ctx.control}
-      name="minSoil"
-      render={({ field, fieldState }) => (
-        <FormItem className="flex-1">
-          <FormLabel>Min per Season</FormLabel>
-          <div className="flex-1">
+    <Col className="flex-1 gap-2">
+      <TooltipLabel tooltipText={TOOLTIP_COPY.totalAmount}>I want to Sow up to</TooltipLabel>
+      <Row className="flex-1 gap-4 w-full">
+        <TotalAmountSlider maxAmount={maxAmount} disabled={isSliderDisabled} ctx={ctx} handlers={handlers} />
+        <FormField
+          control={ctx.control}
+          name="totalAmount"
+          render={({ field, fieldState }) => (
             <FormControl>
               <Input
                 {...field}
                 {...sharedInputProps}
                 placeholder="0.00"
                 outlined
+                disabled={isSliderDisabled}
                 {...getHandlers()}
-                isError={!!fieldState.error}
+                isError={!!fieldState.error || exceedsDeposits}
+                containerClassName="w-full max-w-[25rem]"
+                className="min-w-0 text-ellipsis"
                 endIcon={<MainTokenAdornment />}
               />
             </FormControl>
-          </div>
-        </FormItem>
-      )}
-    />
-  );
-};
-
-SowOrderV0Fields.MaxPerSeason = function MaxPerSeason() {
-  const ctx = useFormContext<SowOrderV0FormSchema>();
-  const handlers = useSharedInputHandlers(ctx, "maxPerSeason");
-
-  const decimals = useChainConstant(MAIN_TOKEN).decimals;
-
-  const getHandlers = (): BaseIFormContextHandlers => {
-    return {
-      ...handlers,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-        const cleaned = handlers.onChange(e);
-        handleCrossValidate(ctx, cleaned, "minSoil", decimals, "gte");
-        handleCrossValidate(ctx, cleaned, "totalAmount", decimals, "lte");
-        return cleaned;
-      },
-    };
-  };
-
-  return (
-    <FormField
-      control={ctx.control}
-      name="maxPerSeason"
-      render={({ field, fieldState }) => (
-        <FormItem className="flex-1">
-          <FormLabel>Max per Season</FormLabel>
-          <FormControl className="flex-1">
-            <Input
-              {...field}
-              {...sharedInputProps}
-              placeholder="0.00"
-              outlined
-              {...getHandlers()}
-              isError={!!fieldState.error}
-              endIcon={<MainTokenAdornment />}
-            />
-          </FormControl>
-        </FormItem>
-      )}
-    />
+          )}
+        />
+      </Row>
+    </Col>
   );
 };
 
@@ -290,7 +351,7 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
     } else if (strategy?.type === "LOWEST_PRICE") {
       return "Token with Best Price";
     } else if (strategy?.type === "SPECIFIC_TOKEN") {
-      return selectedToken?.symbol || "Select Token";
+      return selectedToken ? `Dep. ${selectedToken.symbol}` : "Select Token";
     }
     return "Select Deposited Silo Token";
   };
@@ -298,7 +359,7 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
-        <Label variant="form">Fund order using</Label>
+        <TooltipLabel tooltipText={TOOLTIP_COPY.tokenStrategy}>Sow Using</TooltipLabel>
         <Button variant="outline-gray-shadow" size="xl" rounded="full" onClick={openDialog}>
           <div className="flex items-center gap-2">
             {selectedToken && <IconImage src={selectedToken.logoURI} alt="token" size={6} className="rounded-full" />}
@@ -311,146 +372,97 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
   );
 };
 
+const TemperatureSlider = ({
+  disabled,
+  ctx,
+  minTemp,
+  maxTemp,
+}: {
+  disabled?: boolean;
+  ctx: ReturnType<typeof useFormContext<SowOrderV0FormSchema>>;
+  minTemp: number;
+  maxTemp: number;
+}) => {
+  const [temperature] = useWatch({ control: ctx.control, name: ["temperature"] });
+  const sliderValue = useMemo(() => {
+    const value = Number(temperature.replace(/,/g, "") || "0");
+    return [Math.max(minTemp, Math.min(maxTemp, value))];
+  }, [temperature, minTemp, maxTemp]);
+
+  const handleOnChange = useCallback(
+    (value: number[]) => {
+      const truncatedValue = Math.floor(value[0]);
+      ctx.setValue("temperature", truncatedValue.toString(), { shouldValidate: true });
+    },
+    [ctx],
+  );
+
+  return (
+    <MultiSlider
+      min={minTemp}
+      max={maxTemp}
+      disabled={disabled}
+      step={1}
+      value={sliderValue}
+      onValueChange={handleOnChange}
+    />
+  );
+};
+
 SowOrderV0Fields.Temperature = function Temperature() {
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const handlers = useSharedInputHandlers(ctx, "temperature");
+  const { data: maxTemperature } = useReadBeanstalk_MaxTemperature();
+  const temperature = useTemperature();
+  const hasInitialized = useRef(false);
 
-  const currTemp = useScaledTemperature();
+  const currentTempValue = useMemo(() => {
+    // Use max temperature from contract if available, otherwise use temperature state
+    if (maxTemperature !== undefined) {
+      return Math.floor(TV.fromBigInt(maxTemperature, 6).toNumber());
+    }
+    return Math.floor(temperature.max?.toNumber() || 0);
+  }, [maxTemperature, temperature.max]);
+
+  const minTemp = useMemo(() => Math.max(0, currentTempValue - 100), [currentTempValue]);
+  const maxTemp = useMemo(() => currentTempValue + 100, [currentTempValue]);
+
+  // Set default value to current temperature only on initial mount
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    const currentValue = ctx.getValues("temperature");
+    if (!currentValue || currentValue === "") {
+      ctx.setValue("temperature", currentTempValue.toString(), { shouldValidate: false });
+    }
+    hasInitialized.current = true;
+  }, [currentTempValue, ctx]);
+
   return (
-    <FormField
-      control={ctx.control}
-      name="temperature"
-      render={({ field, fieldState }) => (
-        <FormItem className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
-          <FormLabel>Execute when Temperature is at least</FormLabel>
-          <div className="flex flex-col">
+    <Col className="flex-1 gap-2">
+      <TooltipLabel tooltipText={TOOLTIP_COPY.temperature}>Minimum Temperature to Sow</TooltipLabel>
+      <Row className="flex-1 gap-4 w-full">
+        <TemperatureSlider minTemp={minTemp} maxTemp={maxTemp} disabled={false} ctx={ctx} />
+        <FormField
+          control={ctx.control}
+          name="temperature"
+          render={({ field, fieldState }) => (
             <FormControl>
               <Input
                 {...field}
                 {...sharedInputProps}
-                className="rounded-lg w-[140px]"
-                placeholder={`${Math.max(10, Math.floor(currTemp.scaled?.toNumber() || 0) + 1)}`}
+                className="rounded-lg min-w-0 text-ellipsis"
+                placeholder={currentTempValue.toString()}
                 outlined
                 {...handlers}
                 isError={!!fieldState.error}
+                containerClassName="w-full max-w-[30rem]"
                 endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">%</div>}
               />
             </FormControl>
-          </div>
-        </FormItem>
-      )}
-    />
-  );
-};
-
-const POD_LINE_INCREMENTS = [5, 10, 25, 50, 100] as const;
-SowOrderV0Fields.PodLineLength = function PodLineLength() {
-  const ctx = useFormContext<SowOrderV0FormSchema>();
-  const handlers = useSharedInputHandlers(ctx, "podLineLength");
-
-  const podLine = usePodLine();
-
-  const value = useWatch({ control: ctx.control, name: "podLineLength" });
-
-  const calculatePodLineValue = useCallback(
-    (increment: number) => {
-      const increase = podLine.mul(increment).div(100);
-      const newValue = podLine.add(increase);
-      return formatter.number(newValue);
-    },
-    [podLine],
-  );
-
-  const isButtonActive = useCallback(
-    (increment: number) => {
-      return value === calculatePodLineValue(increment);
-    },
-    [value, calculatePodLineValue],
-  );
-
-  const handlePodLineSelect = useCallback(
-    (increment: number) => {
-      // if the button is active, set the value to empty
-      if (isButtonActive(increment)) {
-        ctx.setValue("podLineLength", "");
-        return;
-      }
-
-      if (increment === 0) {
-        const formattedValue = formatter.number(podLine);
-        ctx.setValue("podLineLength", formattedValue, { shouldValidate: true });
-      } else {
-        const increase = podLine.mul(increment).div(100);
-        const newValue = podLine.add(increase);
-        const formattedValue = formatter.number(newValue);
-        ctx.setValue("podLineLength", formattedValue, { shouldValidate: true });
-      }
-    },
-    [ctx, podLine, isButtonActive],
-  );
-
-  return (
-    <FormField
-      control={ctx.control}
-      name="podLineLength"
-      render={({ field, fieldState }) => (
-        <FormItem>
-          <FormLabel>Execute when the length of the Pod Line is at most</FormLabel>
-          <FormControl>
-            <Input
-              {...field}
-              {...sharedInputProps}
-              placeholder={podLine.gt(0) ? formatter.number(podLine) : "0.00"}
-              outlined
-              isError={!!fieldState.error}
-              {...handlers}
-            />
-          </FormControl>
-          <div className="flex justify-between gap-2 mt-1 w-full">
-            {POD_LINE_INCREMENTS.map((increment) => (
-              <Button
-                key={increment}
-                variant="outline"
-                size="sm"
-                className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                  isButtonActive(increment)
-                    ? "bg-pinto-green-1 border border-pinto-green-4 text-pinto-green-4 hover:bg-pinto-green-1 hover:text-pinto-green-4 hover:border-pinto-green-4"
-                    : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                } flex-1`}
-                onClick={() => handlePodLineSelect(increment)}
-                type="button"
-              >
-                {increment}% ↑
-              </Button>
-            ))}
-          </div>
-        </FormItem>
-      )}
-    />
-  );
-};
-
-const MorningAuctionButton = ({
-  label,
-  value,
-  fieldValue,
-  onChange,
-}: { label: string; value: boolean; fieldValue: boolean; onChange: (value: boolean) => void }) => {
-  const isActive = value === fieldValue;
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-        isActive
-          ? "bg-pinto-green-1 border border-pinto-green-4 text-pinto-green-4 hover:bg-pinto-green-1 hover:text-pinto-green-4 hover:border-pinto-green-4"
-          : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-      } flex-1`}
-      onClick={() => onChange(value)}
-      type="button"
-    >
-      {label}
-    </Button>
+          )}
+        />
+      </Row>
+    </Col>
   );
 };
 
@@ -462,15 +474,104 @@ SowOrderV0Fields.MorningAuction = function MorningAuction() {
       control={ctx.control}
       name="morningAuction"
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>Execute during the Morning Auction</FormLabel>
-          <div className="flex justify-between gap-2 w-full">
-            <MorningAuctionButton label="Yes" value={true} fieldValue={field.value} onChange={field.onChange} />
-            <MorningAuctionButton label="No" value={false} fieldValue={field.value} onChange={field.onChange} />
-          </div>
+        <FormItem className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
+          <FormLabel tooltipText={TOOLTIP_COPY.morningAuction}>Execute during the Morning</FormLabel>
+          <FormControl>
+            <Switch checked={field.value} onCheckedChange={field.onChange} />
+          </FormControl>
         </FormItem>
       )}
     />
+  );
+};
+
+// TODO: ADD REFERRAL CODE VALIDATOR!
+
+const BONUS_MULTIPLIER = 0.1;
+
+SowOrderV0Fields.PodDisplay = function PodDisplay({
+  onOpenReferralPopover,
+}: {
+  onOpenReferralPopover?: () => void;
+}) {
+  const ctx = useFormContext<SowOrderV0FormSchema>();
+  const mainToken = useChainConstant(MAIN_TOKEN);
+  const [totalAmount, temperature] = useWatch({ control: ctx.control, name: ["totalAmount", "temperature"] });
+  const { data: maxTemperature } = useReadBeanstalk_MaxTemperature();
+  const temperatureState = useTemperature();
+  const { validReferralCodeFromStorage } = useReferralCode();
+
+  const estimatedPods = useMemo(() => {
+    if (!totalAmount || totalAmount === "") {
+      return TV.ZERO;
+    }
+
+    const totalAmountTV = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
+    if (totalAmountTV.eq(0)) {
+      return TV.ZERO;
+    }
+
+    // Use temperature from form if available, otherwise use max temperature from contract
+    const tempValue =
+      temperature && temperature !== ""
+        ? Number(temperature.replace(/,/g, ""))
+        : maxTemperature !== undefined
+          ? TV.fromBigInt(maxTemperature, 6).toNumber()
+          : temperatureState.max?.toNumber() || 0;
+
+    // Calculate pods: amount * (temperature + 100) / 100
+    const multiplier = TV.fromHuman(tempValue + 100, 6).div(100);
+    return multiplier.mul(totalAmountTV);
+  }, [totalAmount, temperature, mainToken.decimals, maxTemperature, temperatureState.max]);
+
+  const bonusPods = useMemo(() => {
+    return estimatedPods.mul(BONUS_MULTIPLIER);
+  }, [estimatedPods]);
+
+  // Use validReferralCodeFromStorage for conditional rendering (from localStorage)
+  const hasReferralCode = Boolean(validReferralCodeFromStorage);
+
+  return (
+    <Col className="w-full gap-2">
+      <Row className="w-full items-start justify-between gap-4">
+        <div className="pinto-sm-light text-pinto-light shrink-0">Pods</div>
+        <div className="flex items-start gap-2 min-w-0">
+          <IconImage src={podIcon} alt="Pods" size={5} className="shrink-0 mt-0.5" />
+          <div className="pinto-body-bold text-black break-all text-right">
+            {formatter.number(estimatedPods, {
+              minValue: 0.01,
+              compact: estimatedPods.toNumber() >= NUMBER_ABBR_THRESHOLDS.TRILLION,
+            })}{" "}
+            Pods
+          </div>
+        </div>
+      </Row>
+      {hasReferralCode ? (
+        <Row className="w-full items-start justify-between gap-4">
+          <div className="pinto-sm-light text-pinto-light shrink-0">Bonus Pods</div>
+          <div className="flex items-start gap-2 min-w-0">
+            <IconImage src={podIcon} alt="Bonus Pods" size={5} className="shrink-0 mt-0.5" />
+            <div className="pinto-body-bold text-pinto-green-4 break-all text-right">
+              {formatter.number(bonusPods, {
+                minValue: 0.01,
+                compact: bonusPods.toNumber() >= NUMBER_ABBR_THRESHOLDS.TRILLION,
+              })}{" "}
+              Pods
+            </div>
+          </div>
+        </Row>
+      ) : (
+        <Row className="w-full justify-start">
+          <button
+            type="button"
+            onClick={onOpenReferralPopover}
+            className="pinto-sm-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
+          >
+            Use a referral code and gain 10% more pods!
+          </button>
+        </Row>
+      )}
+    </Col>
   );
 };
 
@@ -663,8 +764,16 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
       lowerBound = Math.max(1, lowerBound);
       const lowerTip = lowerBound * tipValue;
 
+      // Helper to format tip values with compact notation for large numbers
+      const formatTip = (val: number) => {
+        if (val >= NUMBER_ABBR_THRESHOLDS.BILLION) {
+          return formatter.number(val, { maxDecimals: 2, compact: true });
+        }
+        return val.toFixed(2);
+      };
+
       if (min.eq(0)) {
-        return `~${lowerTip.toFixed(2)}-∞`;
+        return `~${formatTip(lowerTip)}-∞`;
       }
 
       let upperBound = Math.ceil(total.div(min).toNumber());
@@ -672,9 +781,9 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
       const upperTip = upperBound * tipValue;
 
       if (lowerTip === upperTip) {
-        return `~${lowerTip.toFixed(2)}`;
+        return `~${formatTip(lowerTip)}`;
       } else {
-        return `~${lowerTip.toFixed(2)}-${upperTip.toFixed(2)}`;
+        return `~${formatTip(lowerTip)}-${formatTip(upperTip)}`;
       }
     } catch (e) {
       console.error("Error calculating total tip:", e);
@@ -711,8 +820,8 @@ SowOrderV0Fields.ReferralCode = function ReferralCode() {
     return decodeReferralAddress(referralCode);
   }, [referralCode]);
 
-  const isValid = referralCode && referralAddress;
-  const isInvalid = referralCode && !referralAddress;
+  const isValid = Boolean(referralCode && referralAddress);
+  const isInvalid = Boolean(referralCode && !referralAddress);
 
   return (
     <FormField

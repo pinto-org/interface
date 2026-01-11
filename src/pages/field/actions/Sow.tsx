@@ -8,6 +8,7 @@ import sowWithMin from "@/encoders/sowWithMin";
 import sowWithReferral from "@/encoders/sowWithReferral";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useReferralCode } from "@/hooks/tractor/useReferralCode";
 import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
 import useTransaction from "@/hooks/useTransaction";
 import { inputExceedsSoilAtom } from "@/state/protocol/field/field.atoms";
@@ -29,6 +30,7 @@ import { useAccount } from "wagmi";
 import settingsIcon from "@/assets/misc/Settings.svg";
 import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
+import TooltipSimple from "@/components/TooltipSimple";
 
 import { Col, Row } from "@/components/Container";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
@@ -70,6 +72,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   const farmerField = useFarmerField();
   const account = useAccount();
   const [searchParams] = useSearchParams();
+  const { referralCode, validReferralCodeFromStorage, setReferralCode } = useReferralCode();
+
+  // Decode referral code to address for conditional rendering (from localStorage)
+  const referralAddress = useMemo(() => {
+    if (!validReferralCodeFromStorage) return null;
+    return decodeReferralAddress(validReferralCodeFromStorage);
+  }, [validReferralCodeFromStorage]);
 
   const temperature = useScaledTemperature();
   const podLine = usePodLine();
@@ -81,10 +90,6 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   // Form State
   const [tokenSource, setTokenSource] = useState<TokenSource>("balances");
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  // Referral State
-  const [referralCode, setReferralCode] = useState("");
-  const [referralAddress, setReferralAddress] = useState<Address | null>(null);
 
   // Preferred Tokens
   const preferredSiloDepositToken = usePreferredInputSiloDepositToken(farmerSilo, mainToken);
@@ -187,6 +192,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
     return TV.ZERO;
   }, [amountInTV, currentTemperature, isUsingMain, swap.data?.buyAmount]);
+
+  const bonusPods = useMemo(() => {
+    if (!referralAddress || !pods || pods.lte(0)) return TV.ZERO;
+    return pods.mul(0.1);
+  }, [referralAddress, pods]);
+
+  const hasReferralCode = Boolean(referralAddress);
 
   const onSubmit = useCallback(async () => {
     try {
@@ -394,23 +406,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     setLoading(swap.isLoading);
   }, [swap.isLoading]);
 
-  // Read referral code from URL params on mount
+  // Read referral code from URL params on mount and set to hook
   useEffect(() => {
     const refParam = searchParams.get("ref");
     if (refParam) {
       setReferralCode(refParam);
     }
-  }, [searchParams]);
-
-  // Decode referral code to address
-  useEffect(() => {
-    if (referralCode) {
-      const decoded = decodeReferralAddress(referralCode);
-      setReferralAddress(decoded);
-    } else {
-      setReferralAddress(null);
-    }
-  }, [referralCode]);
+  }, [searchParams, setReferralCode]);
 
   // Derived State
   const hasSoil = Boolean(!totalSoilLoading && totalSoil.gt(0));
@@ -445,8 +447,6 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   const buttonText = inputError ? "Amount too large" : "Sow";
 
-  const animationHeight = getAnimateHeight({ fromSilo, hasSoil, tokenIn });
-
   return (
     <Col className="gap-4 w-full">
       <Col className="w-full">
@@ -457,9 +457,6 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
             setSlippage={setSlippage}
             minTemperature={minTemperature}
             setMinTemperature={setMinTemperature}
-            referralCode={referralCode}
-            setReferralCode={setReferralCode}
-            referralAddress={referralAddress}
             open={settingsOpen}
             onOpenChange={setSettingsOpen}
           />
@@ -485,7 +482,6 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           filterTokens={filterTokens}
           disableClamping={true}
         />
-        <ReferralCodeLink onOpenSettings={() => setSettingsOpen(true)} hasReferralCode={!!referralAddress} />
       </Col>
       <Row className="justify-between my-2">
         <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use Silo Deposits</div>
@@ -497,13 +493,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
         {(isLoading || ready) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: animationHeight }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.1 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="relative overflow-hidden"
           >
             {isLoading ? (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="flex items-center justify-center min-h-[8rem]">
                 <FrameAnimator size={64} />
               </div>
             ) : (
@@ -524,9 +520,26 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                       <OutputDisplay.Item label="Pods">
                         <OutputDisplay.Value value={formatter.token(pods, PODS)} token={PODS} suffix={PODS.symbol} />
                       </OutputDisplay.Item>
-                      <OutputDisplay.Item label="Place in Line">
+                      {hasReferralCode && bonusPods.gt(0) && (
+                        <OutputDisplay.Item label="Bonus Pods">
+                          <OutputDisplay.Value
+                            value={formatter.token(bonusPods, PODS)}
+                            token={PODS}
+                            suffix={PODS.symbol}
+                            className="text-pinto-green-4"
+                          />
+                        </OutputDisplay.Item>
+                      )}
+                      <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light flex flex-row justify-between items-center py-2">
+                        <div className="flex flex-row gap-2 items-center">
+                          <span>Place in Line</span>
+                          <TooltipSimple
+                            content="Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line."
+                            variant="outlined"
+                          />
+                        </div>
                         <OutputDisplay.Value value={formatter.noDec(podLine)} />
-                      </OutputDisplay.Item>
+                      </div>
                       {fromSilo ? (
                         <>
                           <OutputDisplay.Item label="Stalk">
@@ -554,7 +567,24 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                   <div className="flex flex-col gap-0">
                     <Col className="gap-4">
                       {!hasSoil && <Warning>Your usable balance is 0.00 because there is no Soil available.</Warning>}
-                      <Warning>Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line.</Warning>
+                      {hasReferralCode && bonusPods.gt(0) ? (
+                        <div className="px-2 py-3">
+                          <span className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
+                            You gained <span className="text-pinto-green-4 font-medium">10% more Pods</span> due to
+                            using a referral link!
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="px-2 py-3">
+                          <button
+                            type="button"
+                            onClick={() => setSettingsOpen(true)}
+                            className="pinto-sm sm:pinto-body-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
+                          >
+                            Use a referral code and gain 10% more Pods!
+                          </button>
+                        </div>
+                      )}
                     </Col>
                     {!tokenIn.isMain && swapSummary?.swap && (
                       <RoutingAndSlippageInfo
@@ -611,9 +641,6 @@ const SettingsPoppover = ({
   setSlippage,
   minTemperature,
   setMinTemperature,
-  referralCode,
-  setReferralCode,
-  referralAddress,
   open,
   onOpenChange,
 }: {
@@ -621,15 +648,18 @@ const SettingsPoppover = ({
   setSlippage: React.Dispatch<React.SetStateAction<number>>;
   minTemperature: number;
   setMinTemperature: React.Dispatch<React.SetStateAction<number>>;
-  referralCode: string;
-  setReferralCode: React.Dispatch<React.SetStateAction<string>>;
-  referralAddress: Address | null;
-  open: boolean;
-  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) => {
   const [internalAmount, setInternalAmount] = useState(slippage);
   const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
-  const [internalReferralCode, setInternalReferralCode] = useState(referralCode);
+  const { referralCode, validReferralCodeFromStorage, setReferralCode } = useReferralCode();
+
+  // Decode referral code from localStorage for conditional rendering
+  const referralAddress = useMemo(() => {
+    if (!validReferralCodeFromStorage) return null;
+    return decodeReferralAddress(validReferralCodeFromStorage);
+  }, [validReferralCodeFromStorage]);
 
   const handlePopoverOpen = (isOpen: boolean) => {
     if (isOpen) {
@@ -638,16 +668,21 @@ const SettingsPoppover = ({
         current_min_temperature: minTemperature,
       });
     }
-    onOpenChange(isOpen);
+    onOpenChange?.(isOpen);
   };
 
   // Effects
   useDebouncedEffect(() => setSlippage(internalAmount), [internalAmount], 100);
   useDebouncedEffect(() => setMinTemperature(internalMinTemperature), [internalMinTemperature], 100);
-  useDebouncedEffect(() => setReferralCode(internalReferralCode), [internalReferralCode], 100);
 
   return (
-    <Popover open={open} onOpenChange={handlePopoverOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(newOpen) => {
+        handlePopoverOpen(newOpen);
+        onOpenChange?.(newOpen);
+      }}
+    >
       <PopoverTrigger asChild>
         <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10 ">
           <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />
@@ -682,8 +717,8 @@ const SettingsPoppover = ({
             <Input
               type="text"
               placeholder="Enter referral code"
-              value={internalReferralCode}
-              onChange={(e) => setInternalReferralCode(e.target.value)}
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
               className={referralAddress ? "border-green-500" : ""}
             />
             {referralAddress && (
@@ -692,9 +727,7 @@ const SettingsPoppover = ({
                 <span>Valid referral code</span>
               </div>
             )}
-            {internalReferralCode && !referralAddress && (
-              <div className="pinto-sm text-red-600">Invalid referral code</div>
-            )}
+            {referralCode && !referralAddress && <div className="pinto-sm text-red-600">Invalid referral code</div>}
           </div>
         </div>
       </PopoverContent>
@@ -786,53 +819,4 @@ const transformTokenLabels = (token: Token) => {
     label: `Dep. ${token.symbol}`,
     sublabel: `Silo Deposited ${token.name}`,
   };
-};
-
-// TODO: This is hard to maintain and not that generic...
-const heightMapping = {
-  fromSilo: {
-    isMain: { 0: "20rem", 1: "25.5rem" },
-    notMain: { 0: "25.5rem", 1: "31rem" },
-  },
-  fromBalance: {
-    isMain: { 0: "13.75rem", 1: "19rem" },
-    notMain: { 0: "18.5rem", 1: "24.5rem" },
-  },
-} as const;
-
-const getAnimateHeight = (args: {
-  fromSilo: boolean;
-  hasSoil: boolean;
-  tokenIn: Token;
-}) => {
-  const { fromSilo, hasSoil, tokenIn } = args;
-
-  const baseKey = fromSilo ? "fromSilo" : "fromBalance";
-  const isMainKey = tokenIn.isMain ? "isMain" : "notMain";
-  const soilKey = !hasSoil ? 1 : 0;
-
-  return heightMapping[baseKey]?.[isMainKey]?.[soilKey] ?? "auto";
-};
-
-// ------------------------------ REFERRAL CODE LINK ------------------------------
-
-const ReferralCodeLink = ({
-  onOpenSettings,
-  hasReferralCode,
-}: { onOpenSettings: () => void; hasReferralCode: boolean }) => {
-  return (
-    <button
-      type="button"
-      onClick={onOpenSettings}
-      className="pinto-sm text-pinto-green hover:underline text-left mt-2 flex items-center gap-1"
-    >
-      {hasReferralCode ? (
-        <>
-          Referral code set <span>✓</span>
-        </>
-      ) : (
-        "Have a referral code?"
-      )}
-    </button>
-  );
 };

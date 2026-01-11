@@ -1,6 +1,32 @@
 # Get list of staged files before running formatter/linter
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
+# Check if any GraphQL queries or schema-related files are being committed
+GRAPHQL_FILES=$(echo "$STAGED_FILES" | grep -E '\.(graphql|gql)$' || true)
+SCHEMA_RELATED_FILES=$(echo "$STAGED_FILES" | grep -E '(codegen\.ts|wagmi\.config\.ts)$' || true)
+
+# If GraphQL or schema files are being committed, check codegen
+if [ -n "$GRAPHQL_FILES" ] || [ -n "$SCHEMA_RELATED_FILES" ]; then
+  echo "🔍 GraphQL or schema files detected, checking codegen..."
+  
+  # Run codegen
+  yarn generate
+  
+  # Check if codegen outputs changed
+  if ! git diff --exit-code src/generated/; then
+    echo "⚠️  Codegen outputs have changed!"
+    echo "The following files were updated:"
+    git diff --name-only src/generated/
+    echo ""
+    echo "These changes will be automatically staged for commit."
+    
+    # Stage the generated files
+    git add src/generated/
+  else
+    echo "✅ Codegen outputs are up to date"
+  fi
+fi
+
 # Run format and lint
 yarn format-and-lint
 
