@@ -3,7 +3,7 @@ import { useConnect } from "wagmi";
 import type { Connector } from "wagmi";
 import { WalletConnectorButton } from "./WalletConnectorButton";
 
-// import coinbaseIcon from "@/assets/wallets/coinbase.png";
+import coinbaseIcon from "@/assets/wallets/coinbase.png";
 import metamaskIcon from "@/assets/wallets/metamask.png";
 import rabbyIcon from "@/assets/wallets/rabby.png";
 import walletconnectIcon from "@/assets/wallets/walletconnect.png";
@@ -38,17 +38,17 @@ const WALLET_ORDER: WalletConfig[] = [
     icon: walletconnectIcon,
     checkInstalled: () => true, // WalletConnect is always available (QR code)
   },
-  // {
-  //   id: "coinbase",
-  //   name: "Coinbase Wallet",
-  //   icon: coinbaseIcon,
-  //   checkInstalled: () => true, // Coinbase Wallet can use QR code if extension not installed
-  // },
+  {
+    id: "coinbase",
+    name: "Coinbase Wallet",
+    icon: coinbaseIcon,
+    checkInstalled: () => true, // Coinbase Wallet can use QR code if extension not installed
+  },
 ];
 
 /**
  * List of wallet connectors in a fixed order
- * Shows: Rabby, MetaMask, WalletConnect (Coinbase Wallet disabled)
+ * Shows: Rabby, MetaMask, WalletConnect, Coinbase Wallet
  */
 export function WalletConnectorList({ onConnect }: WalletConnectorListProps) {
   const { connectors } = useConnect();
