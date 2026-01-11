@@ -7,6 +7,7 @@ import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import sowWithMin from "@/encoders/sowWithMin";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useReferralCode } from "@/hooks/tractor/useReferralCode";
 import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
 import useTransaction from "@/hooks/useTransaction";
 import { inputExceedsSoilAtom } from "@/state/protocol/field/field.atoms";
@@ -25,6 +26,7 @@ import { useAccount } from "wagmi";
 import settingsIcon from "@/assets/misc/Settings.svg";
 import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
+import TooltipSimple from "@/components/TooltipSimple";
 
 import { Col, Row } from "@/components/Container";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
@@ -65,6 +67,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const account = useAccount();
+  const { referralCode } = useReferralCode();
 
   const temperature = useScaledTemperature();
   const podLine = usePodLine();
@@ -95,6 +98,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   const [didSetPreferred, setDidSetPreferred] = useState(!preferredLoading);
   const [inputError, setInputError] = useState(false);
+  const [settingsPopoverOpen, setSettingsPopoverOpen] = useState(false);
 
   //
   const { loading, setLoading } = useDelayedLoading();
@@ -177,6 +181,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
     return TV.ZERO;
   }, [amountInTV, currentTemperature, isUsingMain, swap.data?.buyAmount]);
+
+  const bonusPods = useMemo(() => {
+    if (!referralCode || !pods || pods.lte(0)) return TV.ZERO;
+    return pods.mul(0.1);
+  }, [referralCode, pods]);
+
+  const hasReferralCode = Boolean(referralCode);
 
   const onSubmit = useCallback(async () => {
     try {
@@ -400,8 +411,6 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   const buttonText = inputError ? "Amount too large" : "Sow";
 
-  const animationHeight = getAnimateHeight({ fromSilo, hasSoil, tokenIn });
-
   return (
     <Col className="gap-4 w-full">
       <Col className="w-full">
@@ -412,6 +421,8 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
             setSlippage={setSlippage}
             minTemperature={minTemperature}
             setMinTemperature={setMinTemperature}
+            open={settingsPopoverOpen}
+            onOpenChange={setSettingsPopoverOpen}
           />
         </Row>
         <ComboInputField
@@ -446,13 +457,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
         {(isLoading || ready) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: animationHeight }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.1 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="relative overflow-hidden"
           >
             {isLoading ? (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="flex items-center justify-center min-h-[8rem]">
                 <FrameAnimator size={64} />
               </div>
             ) : (
@@ -473,9 +484,26 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                       <OutputDisplay.Item label="Pods">
                         <OutputDisplay.Value value={formatter.token(pods, PODS)} token={PODS} suffix={PODS.symbol} />
                       </OutputDisplay.Item>
-                      <OutputDisplay.Item label="Place in Line">
+                      {hasReferralCode && bonusPods.gt(0) && (
+                        <OutputDisplay.Item label="Bonus Pods">
+                          <OutputDisplay.Value
+                            value={formatter.token(bonusPods, PODS)}
+                            token={PODS}
+                            suffix={PODS.symbol}
+                            className="text-pinto-green-4"
+                          />
+                        </OutputDisplay.Item>
+                      )}
+                      <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light flex flex-row justify-between items-center py-2">
+                        <div className="flex flex-row gap-2 items-center">
+                          <span>Place in Line</span>
+                          <TooltipSimple
+                            content="Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line."
+                            variant="outlined"
+                          />
+                        </div>
                         <OutputDisplay.Value value={formatter.noDec(podLine)} />
-                      </OutputDisplay.Item>
+                      </div>
                       {fromSilo ? (
                         <>
                           <OutputDisplay.Item label="Stalk">
@@ -503,7 +531,24 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                   <div className="flex flex-col gap-0">
                     <Col className="gap-4">
                       {!hasSoil && <Warning>Your usable balance is 0.00 because there is no Soil available.</Warning>}
-                      <Warning>Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line.</Warning>
+                      {hasReferralCode && bonusPods.gt(0) ? (
+                        <div className="px-2 py-3">
+                          <span className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
+                            You gained <span className="text-pinto-green-4 font-medium">10% more Pods</span> due to
+                            using a referral link!
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="px-2 py-3">
+                          <button
+                            type="button"
+                            onClick={() => setSettingsPopoverOpen(true)}
+                            className="pinto-sm sm:pinto-body-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
+                          >
+                            Use a referral code and gain 10% more Pods!
+                          </button>
+                        </div>
+                      )}
                     </Col>
                     {!tokenIn.isMain && swapSummary?.swap && (
                       <RoutingAndSlippageInfo
@@ -560,14 +605,19 @@ const SettingsPoppover = ({
   setSlippage,
   minTemperature,
   setMinTemperature,
+  open,
+  onOpenChange,
 }: {
   slippage: number;
   setSlippage: React.Dispatch<React.SetStateAction<number>>;
   minTemperature: number;
   setMinTemperature: React.Dispatch<React.SetStateAction<number>>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) => {
   const [internalAmount, setInternalAmount] = useState(slippage);
   const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
+  const { referralCode, setReferralCode } = useReferralCode();
 
   const handlePopoverOpen = () => {
     trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_SETTINGS_OPEN, {
@@ -581,7 +631,13 @@ const SettingsPoppover = ({
   useDebouncedEffect(() => setMinTemperature(internalMinTemperature), [internalMinTemperature], 100);
 
   return (
-    <Popover onOpenChange={(open) => open && handlePopoverOpen()}>
+    <Popover
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (newOpen) handlePopoverOpen();
+        onOpenChange?.(newOpen);
+      }}
+    >
       <PopoverTrigger asChild>
         <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10 ">
           <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />
@@ -611,6 +667,13 @@ const SettingsPoppover = ({
             />
             <div className="text-xl self-center">%</div>
           </div>
+          <div className="pinto-md">Referral Code</div>
+          <Input
+            type="text"
+            placeholder="Enter referral code"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value)}
+          />
         </div>
       </PopoverContent>
     </Popover>
@@ -701,30 +764,4 @@ const transformTokenLabels = (token: Token) => {
     label: `Dep. ${token.symbol}`,
     sublabel: `Silo Deposited ${token.name}`,
   };
-};
-
-// TODO: This is hard to maintain and not that generic...
-const heightMapping = {
-  fromSilo: {
-    isMain: { 0: "20rem", 1: "25.5rem" },
-    notMain: { 0: "25.5rem", 1: "31rem" },
-  },
-  fromBalance: {
-    isMain: { 0: "13.75rem", 1: "19rem" },
-    notMain: { 0: "18.5rem", 1: "24.5rem" },
-  },
-} as const;
-
-const getAnimateHeight = (args: {
-  fromSilo: boolean;
-  hasSoil: boolean;
-  tokenIn: Token;
-}) => {
-  const { fromSilo, hasSoil, tokenIn } = args;
-
-  const baseKey = fromSilo ? "fromSilo" : "fromBalance";
-  const isMainKey = tokenIn.isMain ? "isMain" : "notMain";
-  const soilKey = !hasSoil ? 1 : 0;
-
-  return heightMapping[baseKey]?.[isMainKey]?.[soilKey] ?? "auto";
 };
