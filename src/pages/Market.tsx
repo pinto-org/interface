@@ -235,6 +235,12 @@ export function Market() {
     orderId: string;
   } | null>(null);
 
+  // Filter parameters from FillListing for chart highlighting
+  const [fillListingFilters, setFillListingFilters] = useState<{
+    maxPrice: number;
+    maxPlaceInLine: number;
+  } | null>(null);
+
   useEffect(() => {
     setTimeout(() => {
       setMounted(true);
@@ -311,31 +317,33 @@ export function Market() {
     return [...baseData, selectedPlotsDataset];
   }, [data, harvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
 
-  // Calculate highlighted event IDs (listings in the selected listing's area)
+  // Calculate highlighted event IDs (filtered by FillListing parameters)
   const highlightedEventIds = useMemo(() => {
-    if (!exists(selectedListingData?.placeInLine) || !exists(selectedListingData?.pricePerPod)) {
+    // Only show highlights in buy/fill mode with active filters
+    if (mode !== "buy" || id !== "fill") {
       return undefined;
     }
 
-    const selectedPlaceInLineMillions = selectedListingData.placeInLine / MILLION;
-    const selectedPrice = selectedListingData.pricePerPod;
+    if (fillListingFilters) {
+      const { maxPrice, maxPlaceInLine } = fillListingFilters;
 
-    const ids = new Set<string>();
+      if (maxPrice > 0 && maxPlaceInLine > 0) {
+        const ids = new Set<string>();
+        const listingsData = scatterChartData[1]?.data || [];
 
-    // Add the selected listing itself
-    ids.add(selectedListingData.listingId);
+        listingsData.forEach((point) => {
+          // Filter by both price and place in line criteria
+          if (point.y <= maxPrice && point.x <= maxPlaceInLine / MILLION) {
+            ids.add(point.eventId);
+          }
+        });
 
-    // Find listings in area (podline < selected AND price < selected)
-    const listingsData = scatterChartData[1]?.data || [];
-    listingsData.forEach((point) => {
-      if (point.eventId === selectedListingData.listingId) return; // Already added
-      if (point.x < selectedPlaceInLineMillions && point.y < selectedPrice) {
-        ids.add(point.eventId);
+        return ids.size > 0 ? ids : undefined;
       }
-    });
+    }
 
-    return ids.size > 0 ? ids : undefined;
-  }, [selectedListingData, scatterChartData]);
+    return undefined;
+  }, [scatterChartData, mode, id, fillListingFilters]);
 
   // Generate unique key for chart when selectedPlotData changes
   const chartDataKey = useMemo(() => {
@@ -548,6 +556,13 @@ export function Market() {
     // Reset navigation flag
     setIsNavigating(false);
   }, [tab]);
+
+  // Clear fillListingFilters when not in buy/fill mode
+  useEffect(() => {
+    if (mode !== "buy" || id !== "fill") {
+      setFillListingFilters(null);
+    }
+  }, [mode, id]);
 
   // Clear freezed state when switching between Buy/Sell modes
   useEffect(() => {
@@ -837,8 +852,8 @@ export function Market() {
             placeInLine: placeInLine || undefined,
             pricePerPod: dataPoint.y || undefined,
           });
-          // Switch to buy mode and listings tab
-          if (mode !== "buy") {
+          // Switch to buy mode and fill action
+          if (mode !== "buy" || id !== "fill") {
             setIsNavigating(true);
             navigate("/market/pods/buy/fill");
           }
@@ -848,8 +863,8 @@ export function Market() {
           setSelectedOrderData({
             orderId: dataPoint.eventId,
           });
-          // Switch to sell mode and orders tab
-          if (mode !== "sell") {
+          // Switch to sell mode and fill action
+          if (mode !== "sell" || id !== "fill") {
             setIsNavigating(true);
             navigate("/market/pods/sell/fill");
           }
@@ -882,8 +897,8 @@ export function Market() {
           placeInLine: placeInLine || undefined,
           pricePerPod: dataPoint.y || undefined,
         });
-        // Switch to buy mode and listings tab
-        if (mode !== "buy") {
+        // Switch to buy mode and fill action
+        if (mode !== "buy" || id !== "fill") {
           setIsNavigating(true);
           navigate("/market/pods/buy/fill");
         }
@@ -893,8 +908,8 @@ export function Market() {
         setSelectedOrderData({
           orderId: dataPoint.eventId,
         });
-        // Switch to sell mode and orders tab
-        if (mode !== "sell") {
+        // Switch to sell mode and fill action
+        if (mode !== "sell" || id !== "fill") {
           setIsNavigating(true);
           navigate("/market/pods/sell/fill");
         }
@@ -1048,6 +1063,7 @@ export function Market() {
                       <FillListing
                         selectedListingId={selectedListingData?.listingId}
                         selectedPlaceInLine={selectedListingData?.placeInLine}
+                        onFilterChange={setFillListingFilters}
                       />
                     )}
                     {viewMode === "sell" && viewAction === "create" && (

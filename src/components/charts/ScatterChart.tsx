@@ -580,38 +580,6 @@ const ScatterChart = React.memo(
                 drawSelectionPoint(x, y, pointRadius, pointStyle);
               }
             }
-
-            // Draw the circle around currently selected element (i.e. clicked)
-            const [selectedPointDatasetIndex, selectedPointIndex] = selectedPointRef.current || [];
-            if (selectedPointDatasetIndex !== undefined && selectedPointIndex !== undefined) {
-              const dataPoint = chart.getDatasetMeta(selectedPointDatasetIndex).data[selectedPointIndex];
-              if (dataPoint) {
-                const { x, y } = dataPoint.getProps(["x", "y"], true);
-                const pointRadius = dataPoint.options.radius;
-                const pointStyle = dataPoint.options.pointStyle;
-                drawSelectionPoint(x, y, pointRadius, pointStyle, "#387F5C");
-
-                // Draw grid lines from selected point to axes
-                ctx.save();
-                ctx.strokeStyle = "#387F5C";
-                ctx.lineWidth = 1.5;
-                ctx.setLineDash([4, 4]);
-
-                // Draw vertical line from point to X axis (bottom)
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x, chart.chartArea.bottom);
-                ctx.stroke();
-
-                // Draw horizontal line from point to Y axis (left)
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(chart.chartArea.left, y);
-                ctx.stroke();
-
-                ctx.restore();
-              }
-            }
           },
         }),
         [],
@@ -774,7 +742,7 @@ const ScatterChart = React.memo(
 
             let wasUnfrozen = false;
 
-            // Don't freeze/unfreeze when clicking on preview plots
+            // Don't freeze/unfreeze when clicking on preview plots or data points
             if (!isPreviewPlot) {
               // If already frozen, unfreeze on ANY click (including pods)
               if (frozenCrosshairRef.current) {
@@ -788,6 +756,7 @@ const ScatterChart = React.memo(
                 onFreezeChange?.(true);
                 chart.render();
               }
+              // When clicking on a data point, don't freeze - just pass through the click
             }
 
             // Prepare payload
@@ -807,12 +776,8 @@ const ScatterChart = React.memo(
             if (activeElements.length > 0) {
               const activeElement = activeElements[0];
 
-              // Don't set selected point for preview plots (they should not show selection indicator)
-              if (!isPreviewPlot) {
-                selectedPointRef.current = [activeElement.datasetIndex, activeElement.index];
-              } else {
-                selectedPointRef.current = null;
-              }
+              // Don't set selected point - we're removing the green border selection indicator
+              selectedPointRef.current = null;
 
               const dataPoint = chart.data.datasets[activeElement.datasetIndex].data[activeElement.index] as Point & {
                 [key: string]: any;
