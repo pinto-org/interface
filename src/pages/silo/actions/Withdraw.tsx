@@ -495,6 +495,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           setError={setInputError}
           selectedToken={siloToken}
           tokenAndBalanceMap={convertData}
+          mode="balance"
           disableButton
         />
       </div>
