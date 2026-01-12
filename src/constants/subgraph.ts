@@ -12,12 +12,12 @@ export const subgraphs: { [chainId: number]: { beanstalk: string; bean: string; 
     basin: "https://graph.pinto.money/exchange",
   },
   [localhost.id]: {
-    beanstalk: "https://graph.pinto.money/pintostalk",
+    beanstalk: "https://graph.pinto.money/pintostalk-dev",
     bean: "https://graph.pinto.money/pinto",
     basin: "https://graph.pinto.money/exchange",
   },
   [41337]: {
-    beanstalk: "https://graph.pinto.money/pintostalk",
+    beanstalk: "https://graph.pinto.money/pintostalk-dev",
     bean: "https://graph.pinto.money/pinto",
     basin: "https://graph.pinto.money/exchange",
   },
