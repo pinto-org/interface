@@ -180,20 +180,6 @@ function ConvertForm({
   const [routeIndex, setRouteIndex] = useState<number | undefined>(undefined);
 
   const { results: convertResults, sortedIndexes, showRoutes } = useSiloConvertResult(siloToken, targetToken, quote);
-
-  // Debug logging
-  console.log("[Convert Debug]", {
-    quoteEnabled,
-    quoteConditionsEnabled,
-    deltaPEnabled,
-    maxConvert: maxConvert.toHuman(),
-    isValidAmountIn,
-    isDefaultConvert,
-    deltaP: deltaP.toHuman(),
-    quoteLength: quote?.length,
-    sortedIndexes,
-    routeIndex,
-  });
   const grownStalkPenaltyQuery = useSiloConvertDownPenaltyQuery(siloToken, targetToken, convertResults, isDownConvert);
 
   const convertPriceResults = useExtractSiloConvertResultPriceResults(quote);
@@ -457,6 +443,12 @@ function ConvertForm({
     };
   }, [canExceedMax, hasGerminating]);
 
+  const tokenBalanceMap = useMemo(() => {
+    const map = new Map<Token, TV>();
+    map.set(siloToken, farmerConvertibleAmount);
+    return map;
+  }, [siloToken, farmerConvertibleAmount]);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -474,6 +466,7 @@ function ConvertForm({
           customMaxAmount={maxConvert}
           setAmount={setAmountIn}
           selectedToken={siloToken}
+          tokenAndBalanceMap={tokenBalanceMap}
           {...altTextProps}
           mode="balance"
           disableButton
