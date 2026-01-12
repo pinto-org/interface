@@ -130,8 +130,9 @@ export default function Footer({ landingPageVersion }: { landingPageVersion?: bo
             />
           </div>
 
+          {/* Removed netlify logo until reattempting to get on open source plan */}
           {/* Netlify Section - Center on desktop, bottom on mobile */}
-          {landingPageVersion && (
+          {/* {landingPageVersion && (
             <div className="flex items-center gap-2 sm:absolute sm:left-1/2 sm:-translate-x-1/2">
               <a
                 href="https://www.netlify.com"
@@ -143,7 +144,7 @@ export default function Footer({ landingPageVersion }: { landingPageVersion?: bo
                 <img src={NetlifyLogo} alt="Netlify Logo" className="h-8" />
               </a>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </footer>
