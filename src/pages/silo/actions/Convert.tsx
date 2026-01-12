@@ -180,6 +180,20 @@ function ConvertForm({
   const [routeIndex, setRouteIndex] = useState<number | undefined>(undefined);
 
   const { results: convertResults, sortedIndexes, showRoutes } = useSiloConvertResult(siloToken, targetToken, quote);
+
+  // Debug logging
+  console.log("[Convert Debug]", {
+    quoteEnabled,
+    quoteConditionsEnabled,
+    deltaPEnabled,
+    maxConvert: maxConvert.toHuman(),
+    isValidAmountIn,
+    isDefaultConvert,
+    deltaP: deltaP.toHuman(),
+    quoteLength: quote?.length,
+    sortedIndexes,
+    routeIndex,
+  });
   const grownStalkPenaltyQuery = useSiloConvertDownPenaltyQuery(siloToken, targetToken, convertResults, isDownConvert);
 
   const convertPriceResults = useExtractSiloConvertResultPriceResults(quote);
