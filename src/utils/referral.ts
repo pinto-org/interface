@@ -30,12 +30,17 @@ export function encodeReferralAddress(address: Address): string {
  */
 export function decodeReferralAddress(encoded: string): Address | null {
   try {
+    if (!encoded || encoded.trim() === "") return null;
+
     // Decode base64 to bytes
     const decoded = atob(encoded);
     const bytes = new Uint8Array(decoded.length);
     for (let i = 0; i < decoded.length; i++) {
       bytes[i] = decoded.charCodeAt(i);
     }
+
+    // Ethereum address must be exactly 20 bytes
+    if (bytes.length !== 20) return null;
 
     // Convert bytes to hex string
     const hex = `0x${Array.from(bytes)
@@ -45,6 +50,15 @@ export function decodeReferralAddress(encoded: string): Address | null {
     // Validate it's a proper address
     if (!isAddress(hex)) return null;
     if (hex === zeroAddress) return null;
+
+    // Verify round-trip: re-encode to ensure the input was correctly formatted
+    // This catches cases where padding was removed but atob still decoded it
+    const reEncoded = encodeReferralAddress(hex);
+
+    // The re-encoded value should match the input exactly (padding must match)
+    if (encoded.trim() !== reEncoded.trim()) {
+      return null;
+    }
 
     return hex as Address;
   } catch {

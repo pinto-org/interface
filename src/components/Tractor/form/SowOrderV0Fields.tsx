@@ -1,9 +1,11 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
+import settingsIcon from "@/assets/misc/Settings.svg";
 import podIcon from "@/assets/protocol/Pod.png";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { MultiSlider } from "@/components/ui/Slider";
 import { Switch } from "@/components/ui/Switch";
 import { MAIN_TOKEN } from "@/constants/tokens";
@@ -26,7 +28,6 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
-import { decodeReferralAddress } from "@/utils/referral";
 import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useAccount } from "wagmi";
@@ -809,41 +810,49 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
   );
 };
 
-// Referral Code field component
-SowOrderV0Fields.ReferralCode = function ReferralCode() {
-  const ctx = useFormContext<SowOrderV0FormSchema>();
-  const referralCode = useWatch({ control: ctx.control, name: "referralCode" });
-
-  // Validate referral code
-  const referralAddress = useMemo(() => {
-    if (!referralCode) return null;
-    return decodeReferralAddress(referralCode);
-  }, [referralCode]);
-
-  const isValid = Boolean(referralCode && referralAddress);
-  const isInvalid = Boolean(referralCode && !referralAddress);
+// Referral Code Popover component
+SowOrderV0Fields.ReferralCodePopover = function ReferralCodePopover({
+  children,
+  open,
+  onOpenChange,
+}: {
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const { referralCode, isReferralCodeValid, setReferralCode } = useReferralCode();
 
   return (
-    <FormField
-      control={ctx.control}
-      name="referralCode"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Referral Code (Optional)</FormLabel>
-          <FormControl>
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        {children ?? (
+          <Button variant="ghost" noPadding className="rounded-full w-10 h-10">
+            <img src={settingsIcon} className="w-4 h-4 transition-all" alt="settings" />
+          </Button>
+        )}
+      </PopoverTrigger>
+      <PopoverContent side="bottom" align="end" className="w-64 flex flex-col shadow-none">
+        <div className="flex flex-col gap-4">
+          <div className="pinto-md">Referral Code</div>
+          <div className="flex flex-col gap-2">
             <Input
-              {...field}
-              value={field.value || ""}
+              type="text"
               placeholder="Enter referral code"
-              outlined
-              isError={isInvalid}
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
+              className={isReferralCodeValid ? "border-green-500" : ""}
             />
-          </FormControl>
-          {isValid && <span className="text-xs text-pinto-green">✓ Valid referral code</span>}
-          {isInvalid && <span className="text-xs text-red-500">Invalid referral code</span>}
-        </FormItem>
-      )}
-    />
+            {isReferralCodeValid && (
+              <div className="pinto-sm text-green-600 flex items-center gap-1">
+                <span>✓</span>
+                <span>Valid referral code</span>
+              </div>
+            )}
+            {referralCode && !isReferralCodeValid && <div className="pinto-sm text-red-600">Invalid referral code</div>}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

@@ -26,7 +26,6 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Col, Row } from "./Container";
 import TooltipSimple from "./TooltipSimple";
-import { ReferralCodePopover } from "./Tractor/ReferralCodePopover";
 import { SowOrderEstimatedTipPaid } from "./Tractor/Sow/SowOrderEstimatedTipPaid";
 import {
   SowOrderEntryFormParametersSummary,
@@ -144,6 +143,14 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       form.setValue("referralCode", hookReferralCode);
     }
   }, [hookReferralCode, form]);
+
+  // Sync customOperatorTip to operatorTip when Custom preset is selected
+  const customOperatorTip = useWatch({ control: form.control, name: "customOperatorTip" });
+  useEffect(() => {
+    if (operatorTipPreset === "Custom" && customOperatorTip) {
+      form.setValue("operatorTip", customOperatorTip);
+    }
+  }, [customOperatorTip, operatorTipPreset, form]);
 
   // Calculate max amount based on farmer deposits and token strategy
   const maxDepositAmount = useMemo(() => {
@@ -302,6 +309,14 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       }
     }
 
+    // For Custom preset, update operatorTip from customOperatorTip
+    if (preset === "Custom") {
+      const customTip = form.getValues("customOperatorTip");
+      if (customTip) {
+        form.setValue("operatorTip", customTip);
+      }
+    }
+
     setOperatorTipPreset(preset);
   };
 
@@ -375,7 +390,10 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         <div className="pinto-body font-medium text-pinto-secondary">
                           🚜 Place a bid to Sow in the Field
                         </div>
-                        <ReferralCodePopover open={referralPopoverOpen} onOpenChange={setReferralPopoverOpen} />
+                        <SowOrderV0Fields.ReferralCodePopover
+                          open={referralPopoverOpen}
+                          onOpenChange={setReferralPopoverOpen}
+                        />
                       </div>
                       <div className="h-[1px] w-full bg-pinto-gray-2" />
                     </div>

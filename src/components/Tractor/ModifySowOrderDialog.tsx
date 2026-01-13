@@ -41,7 +41,6 @@ import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import { SowOrderV0TokenStrategyDialog } from "../SowOrderDialog";
-import { ReferralCodePopover } from "./ReferralCodePopover";
 import { SowOrderEstimatedTipPaid } from "./Sow/SowOrderEstimatedTipPaid";
 import {
   SowOrderEntryFormParametersSummary,
@@ -301,7 +300,10 @@ export default function ModifyTractorOrderDialog({
                     <div className="pinto-body font-medium text-pinto-secondary">
                       🚜 Update Conditions for automated Sowing
                     </div>
-                    <ReferralCodePopover open={referralPopoverOpen} onOpenChange={setReferralPopoverOpen} />
+                    <SowOrderV0Fields.ReferralCodePopover
+                      open={referralPopoverOpen}
+                      onOpenChange={setReferralPopoverOpen}
+                    />
                   </div>
                 </DialogTitle>
                 <DialogDescription className="pinto-sm-light text-pinto-light pt-2">

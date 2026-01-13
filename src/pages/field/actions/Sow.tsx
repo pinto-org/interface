@@ -653,13 +653,7 @@ const SettingsPoppover = ({
 }) => {
   const [internalAmount, setInternalAmount] = useState(slippage);
   const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
-  const { referralCode, validReferralCodeFromStorage, setReferralCode } = useReferralCode();
-
-  // Decode referral code from localStorage for conditional rendering
-  const referralAddress = useMemo(() => {
-    if (!validReferralCodeFromStorage) return null;
-    return decodeReferralAddress(validReferralCodeFromStorage);
-  }, [validReferralCodeFromStorage]);
+  const { referralCode, isReferralCodeValid, setReferralCode } = useReferralCode();
 
   const handlePopoverOpen = (isOpen: boolean) => {
     if (isOpen) {
@@ -719,15 +713,15 @@ const SettingsPoppover = ({
               placeholder="Enter referral code"
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value)}
-              className={referralAddress ? "border-green-500" : ""}
+              className={isReferralCodeValid ? "border-green-500" : ""}
             />
-            {referralAddress && (
+            {isReferralCodeValid && (
               <div className="pinto-sm text-green-600 flex items-center gap-1">
                 <span>✓</span>
                 <span>Valid referral code</span>
               </div>
             )}
-            {referralCode && !referralAddress && <div className="pinto-sm text-red-600">Invalid referral code</div>}
+            {referralCode && !isReferralCodeValid && <div className="pinto-sm text-red-600">Invalid referral code</div>}
           </div>
         </div>
       </PopoverContent>

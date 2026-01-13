@@ -164,8 +164,18 @@ export const useSowOrderV0Form = (): SowOrderV0Form => {
   );
 
   const getAreAllFieldsFilled = useCallback(() => {
-    return Object.values(form.getValues()).every((v) => {
-      if (typeof v === "string") return Boolean(v.trim());
+    const values = form.getValues();
+    // Fields that are optional and shouldn't be checked
+    const optionalFields = ["referralCode"];
+
+    return Object.keys(values).every((key) => {
+      // Skip optional fields
+      if (optionalFields.includes(key)) {
+        return true;
+      }
+
+      const value = values[key as keyof SowOrderV0FormSchema];
+      if (typeof value === "string") return Boolean(value.trim());
       return true;
     });
   }, [form.getValues]);
@@ -179,10 +189,16 @@ export const useSowOrderV0Form = (): SowOrderV0Form => {
 
     // Fields that are auto-populated and shouldn't be shown as missing
     const autoPopulatedFields = ["minSoil", "maxPerSeason", "podLineLength"];
+    // Fields that are optional and shouldn't be shown as missing
+    const optionalFields = ["referralCode"];
 
     const missingFields = Object.keys(values).filter((key) => {
       // Skip auto-populated fields
       if (autoPopulatedFields.includes(key)) {
+        return false;
+      }
+      // Skip optional fields
+      if (optionalFields.includes(key)) {
         return false;
       }
 

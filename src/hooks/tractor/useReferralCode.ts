@@ -1,8 +1,8 @@
 import { isValidReferralCode } from "@/utils/referral";
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
-const REFERRAL_CODE_STORAGE_KEY = "tractor-referral-code";
-const DEBOUNCE_DELAY = 500;
+const REFERRAL_CODE_STORAGE_KEY = "pinto-referral";
+const DEBOUNCE_DELAY = 100;
 
 // Global state for cross-component sync
 let globalReferralCode: string = "";
@@ -100,9 +100,16 @@ export function useReferralCode() {
     // Invalid codes are not saved to localStorage, but are kept in global state for typing
   }, []);
 
+  // Validate referral code for real-time validation
+  const isReferralCodeValid = useMemo(() => {
+    if (!referralCode) return false;
+    return isValidReferralCode(referralCode);
+  }, [referralCode]);
+
   return {
     referralCode, // For input field (can be invalid during typing)
     validReferralCodeFromStorage, // For conditional rendering (only valid codes from localStorage)
+    isReferralCodeValid, // For real-time validation (true if referralCode is valid)
     setReferralCode,
   };
 }
