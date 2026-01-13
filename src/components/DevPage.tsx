@@ -10,7 +10,7 @@ import useTransaction from "@/hooks/useTransaction";
 import { generateBatchSortDepositsCallData, simulateAndPrepareFarmCalls } from "@/lib/claim/depositUtils";
 import { morningFieldDevModeAtom } from "@/state/protocol/field/field.atoms";
 import { getIsMorning, getSecondsElapsedInMorning } from "@/state/protocol/sun";
-import { morningAtom, seasonAtom, sunQueryKeysAtom } from "@/state/protocol/sun/sun.atoms";
+import { morningAtom, seasonAtom } from "@/state/protocol/sun/sun.atoms";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldQueryKeys, useInvalidateField } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
@@ -34,7 +34,6 @@ import {
   createPublicClient,
   decodeEventLog,
   decodeFunctionData,
-  decodeFunctionResult,
   encodeFunctionData,
   erc20Abi,
   isAddress,
@@ -341,7 +340,7 @@ export default function DevPage() {
 
   const calculatePercentAmounts = (percent: number) => {
     console.log("priceData", priceData.pools);
-    const tokenOrder = ["WETH", "cbETH", "cbBTC", "USDC", "WSOL"];
+    const tokenOrder = ["WETH", "cbETH", "cbBTC", "USDC", "WSOL", "wstETH"];
     const amounts = tokenOrder.map((symbol) => {
       const pool = priceData.pools.find((p) => p.tokens.some((token) => token.symbol === symbol));
 
@@ -743,7 +742,7 @@ export default function DevPage() {
             <div className="flex flex-col gap-4">
               <div className="text-sm text-gray-500">
                 Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order:
-                WETH,cbETH,cbBTC,USDC,WSOL
+                WETH,cbETH,cbBTC,USDC,WSOL,wstETH
               </div>
               <div className="flex flex-col gap-2">
                 <Input
@@ -794,6 +793,7 @@ export default function DevPage() {
             <h2 className="text-2xl mb-4">Token Balance Management</h2>
             <div className="text-sm text-gray-500 mb-4">
               Available tokens: PINTO, WETH, USDC, cbBTC, cbETH, wstETH. You can use either token symbols or addresses.
+              Decimal precision is dependent on the token. (i.e "1" is 1 token)
             </div>
             <div className="flex flex-col gap-2">
               <Input
