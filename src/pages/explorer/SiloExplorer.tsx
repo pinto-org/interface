@@ -24,7 +24,9 @@ const SiloExplorer = () => {
       {/* For debugging, cant double comment out with the comment in the middle */}
       <div className="flex flex-col sm:flex-row w-full sm:space-x-8">
         <div className="w-full sm:w-1/2">
-          <TotalLiquidityChart season={season} />
+          <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-8 h-[400px]">
+            <p className="text-gray-500 dark:text-gray-400 text-center">Liquidity chart temporarily unavailable</p>
+          </div>
         </div>
         <div className="w-full sm:w-1/2">
           <L2SRChart season={season} />

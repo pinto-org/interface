@@ -34,11 +34,29 @@ jobs:
         # if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: yarn install
       
-      # 5. Build only if build artifacts aren't cached
+      # 5. Check codegen is up to date
+      - name: Check codegen is up to date
+        run: |
+          echo "Running codegen to check if outputs are current..."
+          yarn generate
+          
+          echo "Checking if codegen outputs changed..."
+          if ! git diff --exit-code src/generated/; then
+            echo "❌ Codegen outputs are outdated!"
+            echo "The following files have changes:"
+            git diff --name-only src/generated/
+            echo ""
+            echo "Please run 'yarn generate' locally and commit the changes."
+            exit 1
+          fi
+          
+          echo "✅ Codegen outputs are up to date"
+
+      # 6. Build only if build artifacts aren't cached
       - name: Build
         run: yarn build
 
-      # 6. Run tests
+      # 7. Run tests
       - name: Run tests
         run: yarn test
 

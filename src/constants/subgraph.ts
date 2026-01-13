@@ -12,13 +12,15 @@ export const subgraphs: { [chainId: number]: { beanstalk: string; bean: string; 
     basin: "https://graph.pinto.money/exchange",
   },
   [localhost.id]: {
-    beanstalk: "https://graph.pinto.money/pintostalk-dev",
+    beanstalk: "https://graph.pinto.money/pintostalk",
     bean: "https://graph.pinto.money/pinto",
     basin: "https://graph.pinto.money/exchange",
   },
   [41337]: {
-    beanstalk: "https://graph.pinto.money/pintostalk-dev",
+    beanstalk: "https://graph.pinto.money/pintostalk",
     bean: "https://graph.pinto.money/pinto",
     basin: "https://graph.pinto.money/exchange",
   },
 };
+
+export const SG_FETCH_DISABLED = import.meta.env.VITE_SG_FETCH_DISABLED === "true";

@@ -1,0 +1,369 @@
+name: Claude Issue Implement
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+jobs:
+  check-permissions:
+    runs-on: ubuntu-latest
+    outputs:
+      has-write-permission: ${{ steps.check.outputs.has-write-permission }}
+    steps:
+      - name: Check user permissions
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.actor,
+            });
+
+            const hasWritePermission = ['admin', 'maintain', 'write'].includes(permission.permission);
+            console.log(`User ${context.actor} has permission: ${permission.permission}`);
+            console.log(`Has write permission: ${hasWritePermission}`);
+
+            core.setOutput('has-write-permission', hasWritePermission);
+
+  claude-issue-implement:
+    needs: check-permissions
+    # Only run when:
+    # - actor has write perms
+    # - issue has `ai-implement` label
+    # - and:
+    #   - issue was opened or labeled, OR
+    #   - issue_comment contains @claude (for follow-ups)
+    if: |
+      needs.check-permissions.outputs.has-write-permission == 'true' &&
+      (
+        (
+          github.event_name == 'issues' &&
+          contains(join(github.event.issue.labels.*.name, ','), 'ai-implement')
+        ) ||
+        (
+          github.event_name == 'issue_comment' &&
+          contains(join(github.event.issue.labels.*.name, ','), 'ai-implement') &&
+          contains(github.event.comment.body, '@claude')
+        )
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Configure git identity for Claude
+        run: |
+          git config --global user.name 'claude-code[bot]'
+          git config --global user.email 'claude-code[bot]@users.noreply.github.com'
+
+      - name: Run Claude Issue Implement
+        id: claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          timeout_minutes: 25
+          max_turns: 10
+          allowed_tools: repo,github
+          label_trigger: ai-implement
+          trigger_phrase: "@claude"
+          branch_prefix: claude/issue-
+          custom_instructions: |
+            ============================================================
+            REPOSITORY RULES (CLAUDE.md)
+            ============================================================
+            Before doing anything else in this run:
+
+            1. Use the repository tools to try to read the file `CLAUDE.md`
+               from the root of the repository.
+               - If it exists, read it completely.
+               - Treat the contents of `CLAUDE.md` as persistent, system-level
+                 instructions for this repository.
+               - Follow the conventions, patterns, and rules defined there
+                 for all implementation work, unless they directly conflict
+                 with an explicit instruction in the issue text.
+
+            2. If `CLAUDE.md` does NOT exist:
+               - Proceed without it, but still follow the rest of these
+                 instructions.
+
+            You MUST attempt to load `CLAUDE.md` on every run.
+
+            ============================================================
+            BRANCH AND PR REQUIREMENTS
+            ============================================================
+
+            CRITICAL: You MUST work on a feature branch (never push to main):
+
+            1. Check what branch you're currently on using git commands
+            2. Determine your path:
+               - If you're already on a feature branch (not main): Work on that branch
+               - If you're on 'main': Create a new feature branch using: git checkout -b claude/issue-<issue_number>
+            3. Make your implementation changes and commit them to the feature branch
+            4. Push the feature branch to origin: git push -u origin HEAD
+            5. NEVER push directly to main
+            6. The CI will automatically format/lint and create the PR after you're done
+
+            If you do not create/use a feature branch and push commits, the workflow will fail.
+            Every successful implementation run MUST result in a pushed feature branch with commits.
+
+            ============================================================
+            IMPLEMENTATION REQUIREMENTS
+            ============================================================
+
+            1. Understand the request
+               - Read the issue title, body, and comments.
+               - Infer intent. Many of these will be UI/copy tweaks or small features.
+
+            2. Decide whether you have enough information
+               - If you can reasonably infer the required behavior or text changes,
+                 proceed to implementation.
+               - Only treat the issue as "blocking" if you truly cannot make a reasonable
+                 assumption without risking obviously incorrect behavior.
+
+            3A. If you DO have enough information (preferred path): IMPLEMENT
+               - Follow BRANCH AND PR REQUIREMENTS above to ensure you're on a feature branch
+               - Make the minimal, focused changes needed to implement the issue.
+               - Prefer touching only the most relevant files. For UI/copy tweaks,
+                 avoid broad refactors.
+               - Commit your changes with a clear commit message
+               - Push the feature branch to origin (never push to main)
+               - DO NOT run `yarn format` or `yarn lint:fix-all` yourself - the CI workflow
+                 will handle formatting and linting automatically after you finish.
+               - Focus on implementing the functionality correctly.
+
+            3B. If you DO NOT have enough information (fallback path): ASK ONCE
+               - Post a comment on the issue asking for clarification
+               - Quote or reference the ambiguous part(s) of the issue
+               - Ask 1–3 very specific questions needed to unblock implementation
+               - Explicitly say that once they reply with `@claude`, you will try again
+               - Do NOT attempt a partial implementation if you are clearly confused
+               - Do NOT create a branch or push commits if you're only asking questions
+
+            ============================================================
+            NON-INTERACTIVE ENVIRONMENT RULES
+            ============================================================
+
+            - You are running in a CI workflow and CANNOT wait for user replies within a single run.
+            - Do NOT "pause" or assume a back-and-forth conversation.
+            - In each run, you must either:
+              - (A) If already on a feature branch: Fully implement the change, commit, push, and the CI will create a PR, OR
+              - (B) If on main: Create a new feature branch, commit, push to that feature branch (never push to main), and the CI will create a PR, OR
+              - (C) If unclear: Post a single clarifying comment and stop (no branch/commits).
+            - Never ask follow-up questions more than once per run.
+            - Prefer making reasonable, safe assumptions over stalling, when ambiguity is minor.
+
+            ============================================================
+            SAFETY AND SCOPE
+            ============================================================
+
+            - Do not modify GitHub workflow files, secrets, or unrelated project configuration.
+            - Keep changes small, localized, and directly related to the `ai-implement` request.
+            - Prefer existing patterns and conventions in this repository (as documented in `CLAUDE.md`
+              and in the existing code).
+
+      - name: Ensure feature branch exists
+        if: success()
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          echo "Current branch after Claude action: $BRANCH_NAME"
+
+          # Check if we're on a feature branch, create one if not
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "⚠️ Still on main branch - creating feature branch for issue #$ISSUE_NUMBER"
+            TIMESTAMP=$(date +%Y%m%d-%H%M)
+            NEW_BRANCH="claude/issue-$ISSUE_NUMBER-$TIMESTAMP"
+            git checkout -b "$NEW_BRANCH"
+            BRANCH_NAME="$NEW_BRANCH"
+            echo "✅ Created and switched to branch: $BRANCH_NAME"
+          fi
+
+          echo "Working on branch: $BRANCH_NAME"
+
+      - name: Format and lint code
+        if: success()
+        run: |
+          yarn format
+          yarn lint:fix-all || true
+
+      - name: Commit formatting changes
+        if: success()
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .
+            git commit -m "chore: auto-format and lint code
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+            echo "✅ Committed formatting changes"
+          else
+            echo "No formatting changes needed"
+          fi
+
+      - name: Push all commits to remote
+        if: success()
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+
+          # Check if there are any commits on this branch that aren't on main
+          COMMIT_COUNT=$(git rev-list --count main..HEAD)
+
+          if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+            echo "❌ No commits found on branch $BRANCH_NAME"
+            echo "This indicates Claude action did not make any changes and formatting also made no changes."
+            echo "This is unexpected - the workflow should not reach this point without changes."
+            exit 1
+          fi
+
+          echo "✅ Found $COMMIT_COUNT commit(s) to push"
+
+          # Push all commits to remote
+          git push -u origin HEAD --force-with-lease
+
+          echo "✅ Pushed $COMMIT_COUNT commit(s) to remote"
+
+          # Give GitHub API more time to replicate refs across zones
+          echo "Waiting for GitHub API to replicate..."
+          sleep 5
+
+          # Verify remote has the commits
+          git fetch origin "$BRANCH_NAME" 2>/dev/null || true
+          REMOTE_COMMITS=$(git rev-list --count main..origin/"$BRANCH_NAME" 2>/dev/null || echo "0")
+
+          if [[ "$REMOTE_COMMITS" -eq 0 ]]; then
+            echo "⚠️ Remote branch not showing commits yet, waiting additional time..."
+            sleep 3
+            git fetch origin "$BRANCH_NAME"
+            REMOTE_COMMITS=$(git rev-list --count main..origin/"$BRANCH_NAME" 2>/dev/null || echo "0")
+          fi
+
+          echo "✅ Remote branch has $REMOTE_COMMITS commit(s)"
+
+      - name: Create or update PR
+        if: success()
+        id: create-pr
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          # Verify we have commits (should always be true at this point)
+          COMMIT_COUNT=$(git rev-list --count main..HEAD)
+          echo "✅ Creating PR with $COMMIT_COUNT commit(s) on branch $BRANCH_NAME"
+
+          # Check if PR already exists for this branch
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
+
+          if [[ -n "$EXISTING_PR" && "$EXISTING_PR" != "null" ]]; then
+            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "✅ PR already exists: #$EXISTING_PR"
+          else
+            echo "Creating new PR..."
+
+            # Get issue title
+            ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --json title --jq '.title')
+
+            # Validate we got the title
+            if [[ -z "$ISSUE_TITLE" ]]; then
+              echo "❌ Failed to fetch issue title for issue #$ISSUE_NUMBER"
+              exit 1
+            fi
+
+            echo "Issue title: $ISSUE_TITLE"
+
+            # Create new PR - capture output and exit code separately
+            set +e
+            PR_OUTPUT=$(gh pr create \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "$ISSUE_TITLE" \
+              --body "Closes #$ISSUE_NUMBER
+
+          ## Changes
+          This PR was automatically generated by Claude Code to address the issue.
+
+          Please review the changes and merge if they look good.
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)" 2>&1)
+            PR_EXIT_CODE=$?
+            set -e
+
+            if [[ $PR_EXIT_CODE -ne 0 ]]; then
+              echo "❌ Failed to create PR. Error output:"
+              echo "$PR_OUTPUT"
+              exit 1
+            fi
+
+            # Extract PR number from URL (format: https://github.com/owner/repo/pull/123)
+            PR_NUMBER=$(echo "$PR_OUTPUT" | grep -oE 'pull/[0-9]+' | grep -oE '[0-9]+' || echo "")
+
+            if [[ -z "$PR_NUMBER" ]]; then
+              echo "⚠️ PR created but could not extract PR number from output:"
+              echo "$PR_OUTPUT"
+              # Try alternative extraction methods
+              PR_NUMBER=$(echo "$PR_OUTPUT" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
+            fi
+
+            if [[ -n "$PR_NUMBER" ]]; then
+              echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+              echo "✅ Created PR #$PR_NUMBER"
+              echo "PR URL: $PR_OUTPUT"
+            else
+              echo "❌ Could not determine PR number"
+              exit 1
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on issue with PR link
+        if: success() && steps.create-pr.outputs.pr_number
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = '${{ steps.create-pr.outputs.pr_number }}';
+            const issueNumber = ${{ github.event.issue.number }};
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `✅ I've implemented this issue and created PR #${prNumber} for review.\n\nThe code has been formatted and linted automatically.`
+            });
+
+      - name: Comment on issue if no changes were made
+        if: failure() && steps.create-pr.conclusion == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.issue.number }};
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `⚠️ I analyzed this issue but was unable to create a pull request.\n\nThis could mean:\n- No code changes were needed\n- I need more information to implement this\n- The issue may have already been resolved\n\nPlease check the [workflow logs](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for more details.`
+            });

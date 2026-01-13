@@ -14,7 +14,14 @@ import { externalLinks } from "@/constants/links";
 import { useCardFlipAnimation } from "@/hooks/useCardFlipAnimation";
 import { type NFTData, type ViewMode, useNFTData } from "@/state/useNFTData";
 import { trackClick, trackSimpleEvent, withTracking } from "@/utils/analytics";
-import { ChevronLeftIcon, ChevronRightIcon, GridIcon, StackIcon } from "@radix-ui/react-icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DoubleArrowLeftIcon,
+  DoubleArrowRightIcon,
+  GridIcon,
+  StackIcon,
+} from "@radix-ui/react-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount } from "wagmi";
@@ -64,6 +71,20 @@ function PaginationControls({
         Showing {startItem}-{endItem} of {totalItems} items
       </div>
       <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={withTracking(ANALYTICS_EVENTS.COLLECTION.PAGE_FIRST_CLICK, () => onPageChange(1), {
+            current_page: currentPage,
+            total_pages: totalPages,
+            total_items: totalItems,
+          })}
+          disabled={currentPage === 1}
+          className="rounded-lg"
+        >
+          <DoubleArrowLeftIcon className="w-4 h-4 mr-2" />
+          First
+        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -122,6 +143,20 @@ function PaginationControls({
         >
           Next
           <ChevronRightIcon className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={withTracking(ANALYTICS_EVENTS.COLLECTION.PAGE_LAST_CLICK, () => onPageChange(totalPages), {
+            current_page: currentPage,
+            total_pages: totalPages,
+            total_items: totalItems,
+          })}
+          disabled={currentPage === totalPages}
+          className="rounded-lg"
+        >
+          Last
+          <DoubleArrowRightIcon className="w-4 h-4 ml-2" />
         </Button>
       </div>
     </div>

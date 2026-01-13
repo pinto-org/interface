@@ -69,6 +69,7 @@ const WALLET_EVENTS = {
   PANEL_SWAP_NAVIGATE: "wallet_panel_swap_navigate",
   PANEL_SEND_NAVIGATE: "wallet_panel_send_navigate",
   PANEL_NFT_COLLECTION_NAVIGATE: "wallet_panel_nft_collection_navigate",
+  PANEL_FUND_WALLET: "wallet_panel_fund",
 
   // Wallet Management
   DISCONNECT_BUTTON_CLICK: "wallet_disconnect_button_click",
@@ -204,6 +205,7 @@ const MARKET_EVENTS = {
   BUY_SELL_TAB_CLICK: "market_buy_sell_tab_click",
   CREATE_FILL_TAB_CLICK: "market_create_fill_tab_click",
   CHART_POINT_CLICK: "market_chart_point_click",
+  CONTEXT_MENU_OPEN: "market_context_menu_open",
 
   // Pod Order Events
   POD_ORDER_CREATE: "market_pod_order_create",
@@ -216,6 +218,7 @@ const MARKET_EVENTS = {
   // Pod Listing Events
   POD_LIST_CREATE: "market_pod_list_create",
   LISTING_PLOT_SELECTED: "market_listing_plot_selected",
+  LISTING_AUTO_SELECTED: "market_listing_auto_selected",
   LISTING_PRICE_INPUT: "market_listing_price_input",
   LISTING_AMOUNT_INPUT: "market_listing_amount_input",
   POD_LIST_FILL: "market_pod_list_fill",
@@ -238,6 +241,8 @@ const COLLECTION_EVENTS = {
   OPENSEA_CLICK: "collection_opensea_click",
 
   // Pagination
+  PAGE_FIRST_CLICK: "collection_page_first_click",
+  PAGE_LAST_CLICK: "collection_page_last_click",
   PAGE_NEXT_CLICK: "collection_page_next_click",
   PAGE_PREVIOUS_CLICK: "collection_page_previous_click",
   PAGE_NUMBER_CLICK: "collection_page_number_click",

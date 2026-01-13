@@ -1,5 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import InlineStats, { InlineStat } from "@/components/InlineStats";
+import WalletConnectionModal from "@/components/WalletConnectionModal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import GradientCard from "@/components/ui/GradientCard";
@@ -20,35 +21,38 @@ import { formatter, numberAbbr } from "@/utils/format";
 import { normalizeTV } from "@/utils/number";
 import { cn } from "@/utils/utils";
 import { Separator } from "@radix-ui/react-separator";
-import { useModal } from "connectkit";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
 import { throttle } from "lodash";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 /// ------------ BANNERS ------------ ///
 
 const ConnectWalletBanner = () => {
-  const modal = useModal();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <GradientCard variant="light" className="w-full">
-      <div className="flex flex-row w-full items-center justify-between py-3 px-6 gap-4">
-        <div className="pinto-h4 font-light">Connect your wallet to see your Deposits and Plots</div>
-        <Button
-          variant="gradient"
-          size="xl"
-          rounded="full"
-          onClick={withTracking(ANALYTICS_EVENTS.OVERVIEW.NEWUSER_CONNECT_WALLET_CLICK, () => modal.setOpen(true), {
-            user_type: "new_user",
-            source_component: "connect_wallet_banner",
-            page_section: "new_user_onboarding",
-          })}
-        >
-          Connect Wallet
-        </Button>
-      </div>
-    </GradientCard>
+    <>
+      <GradientCard variant="light" className="w-full">
+        <div className="flex flex-row w-full items-center justify-between py-3 px-6 gap-4">
+          <div className="pinto-h4 font-light">Connect your wallet to see your Deposits and Plots</div>
+          <Button
+            variant="gradient"
+            size="xl"
+            rounded="full"
+            onClick={withTracking(ANALYTICS_EVENTS.OVERVIEW.NEWUSER_CONNECT_WALLET_CLICK, () => setIsModalOpen(true), {
+              user_type: "new_user",
+              source_component: "connect_wallet_banner",
+              page_section: "new_user_onboarding",
+            })}
+          >
+            Connect Wallet
+          </Button>
+        </div>
+      </GradientCard>
+      <WalletConnectionModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+    </>
   );
 };
 

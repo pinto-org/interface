@@ -1,4 +1,5 @@
 import { TV } from "@/classes/TokenValue";
+import { SG_FETCH_DISABLED } from "@/constants/subgraph";
 import { atom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
 import { Field, FieldPodLine, FieldQueryKeys, FieldTemperature, FieldWeather, InitialSoil, TotalSoil } from ".";
@@ -10,7 +11,8 @@ export const fieldTotalSoilAtom = atom<TotalSoil>({
 
 export const fieldInitialSoilAtom = atom<InitialSoil>({
   initialSoil: TV.fromHuman(-1, 6),
-  isLoading: true,
+  // biome-ignore lint/complexity/noUselessTernary: nodata default when sg is down
+  isLoading: SG_FETCH_DISABLED ? false : true,
 });
 
 export const fieldTemperatureAtom = atomWithImmer<FieldTemperature>({
