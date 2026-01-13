@@ -36,9 +36,11 @@ import FillOrder from "./market/actions/FillOrder";
 const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
 const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 
+const SELECTED_PLOT_PURPLE_COLOR = "#8B5CF6";
+const SELECTED_PLOT_BORDER_WIDTH = 1.75;
+
 const MILLION = 1_000_000;
 const TOOLTIP_Z_INDEX = 50;
-const CHART_MAX_PRICE = 100;
 // Only use listings with at least this many Pods when computing the Pod Score color range.
 const MIN_PODS_FOR_POD_SCORE_RANGE = 100;
 
@@ -310,8 +312,8 @@ export function Market() {
       color: "#e0b57d", // fallback color
       pointStyle: "rect" as PointStyle,
       pointRadius: 6,
-      pointBorderColor: "#FF0000", // Red border
-      pointBorderWidth: 1,
+      pointBorderColor: SELECTED_PLOT_PURPLE_COLOR,
+      pointBorderWidth: SELECTED_PLOT_BORDER_WIDTH,
     };
 
     return [...baseData, selectedPlotsDataset];
@@ -515,7 +517,10 @@ export function Market() {
   }, []);
 
   useEffect(() => {
-    if (mode === "buy" && !id) {
+    if (!mode) {
+      // No mode specified (e.g. /market/pods), redirect to buy/fill
+      navigate("/market/pods/buy/fill", { replace: true });
+    } else if (mode === "buy" && !id) {
       navigate("/market/pods/buy/fill", { replace: true });
     } else if (mode === "sell" && !id) {
       navigate("/market/pods/sell/create", { replace: true });

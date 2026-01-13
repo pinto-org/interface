@@ -21,6 +21,9 @@ import { ReactChart } from "../ReactChart";
 
 Chart.register(LineController, LineElement, LinearScale, LogarithmicScale, CategoryScale, PointElement, Filler);
 
+const SELECTED_PLOT_PURPLE_COLOR = "#8B5CF6";
+const SELECTED_PLOT_BORDER_WIDTH = 1.75;
+
 export type MakeGradientFunction = (
   ctx: CanvasRenderingContext2D | null,
   position: number,
@@ -543,8 +546,8 @@ const ScatterChart = React.memo(
                       // Draw border directly on the point (no gap)
                       ctx.save();
                       ctx.fillStyle = "transparent";
-                      ctx.strokeStyle = "#FF0000";
-                      ctx.lineWidth = 1;
+                      ctx.strokeStyle = SELECTED_PLOT_PURPLE_COLOR;
+                      ctx.lineWidth = SELECTED_PLOT_BORDER_WIDTH;
 
                       // For rect pointStyle, Chart.js draws a square with side = pointRadius * 2
                       // But the actual rendered size might be slightly different
