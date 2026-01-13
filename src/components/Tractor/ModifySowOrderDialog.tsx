@@ -20,16 +20,18 @@ import { Separator } from "@/components/ui/Separator";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
+import { useReferralCode } from "@/hooks/tractor/useReferralCode";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent, SowBlueprintData, prepareRequisitionForTxn } from "@/lib/Tractor";
+import { RequisitionEvent, SowBlueprintData, decodeSowTractorData, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
+import { encodeReferralAddress, isValidReferralCode } from "@/utils/referral";
 import { postSanitizedSanitizedValue, sanitizeNumericInputValue } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { cn } from "@/utils/utils";
@@ -37,6 +39,7 @@ import { ArrowRightIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
@@ -100,29 +103,79 @@ export default function ModifyTractorOrderDialog({
   const previousPresetRef = useRef<TractorOperatorTipStrategy | null>(null);
   const originalTipRef = useRef<string | null>(null);
 
+  // Referral code hook
+  const [searchParams] = useSearchParams();
+  const { referralCode: hookReferralCode, setReferralCode: setHookReferralCode } = useReferralCode();
+
   // Effects. Pre-fill form with existing order data
   const [didPrefill, setDidPrefill] = useState(false);
 
   useEffect(() => {
+    if (!open) {
+      // Reset when dialog closes
+      setDidPrefill(false);
+      return;
+    }
     if (didPrefill || getStrategyProps.isLoading || !existingOrder.decodedData) return;
 
-    if (open) {
-      const data = existingOrder.decodedData;
-      const tokenStrategy = getStrategyProps.getTokenStrategy(data);
+    const data = existingOrder.decodedData;
+    const tokenStrategy = getStrategyProps.getTokenStrategy(data);
 
-      prefillValues({
-        totalAmount: formatter.noDecTrunc(data.sowAmounts.totalAmountToSowAsString),
-        minSoil: formatter.noDecTrunc(data.sowAmounts.minAmountToSowPerSeasonAsString),
-        maxPerSeason: formatter.noDecTrunc(data.sowAmounts.maxAmountToSowPerSeasonAsString),
-        temperature: formatter.noDecTrunc(data.minTempAsString),
-        podLineLength: formatter.noDecTrunc(data.maxPodlineLengthAsString),
-        operatorTip: formatter.noDecTrunc(data.operatorParams.operatorTipAmountAsString),
-        morningAuction: data.runBlocksAfterSunrise === 0n,
-        selectedTokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
-      });
-      setDidPrefill(true);
+    // Try to extract referral address from existing order
+    let referralCodeFromOrder: string | undefined;
+    try {
+      const decodedResult = decodeSowTractorData(existingOrder.requisition.blueprint.data);
+      if (decodedResult && "blueprintData" in decodedResult && decodedResult.referralAddress) {
+        // Encode referral address to referral code
+        referralCodeFromOrder = encodeReferralAddress(decodedResult.referralAddress);
+      }
+    } catch (e) {
+      console.debug("Could not extract referral address from existing order:", e);
     }
-  }, [open, existingOrder, didPrefill, prefillValues, getStrategyProps]);
+
+    // Priority: URL param > existing order > hook value
+    const refParam = searchParams.get("ref");
+    // Fix: searchParams.get() converts + to space, so we need to restore it
+    const decodedRef = refParam ? refParam.replace(/ /g, "+") : null;
+    const referralCodeCandidate = decodedRef || referralCodeFromOrder || hookReferralCode || "";
+
+    // Only use referral code if it's valid
+    const referralCodeToUse =
+      referralCodeCandidate && isValidReferralCode(referralCodeCandidate) ? referralCodeCandidate : "";
+
+    if (referralCodeToUse) {
+      setHookReferralCode(referralCodeToUse);
+    }
+
+    prefillValues({
+      totalAmount: formatter.noDecTrunc(data.sowAmounts.totalAmountToSowAsString),
+      minSoil: formatter.noDecTrunc(data.sowAmounts.minAmountToSowPerSeasonAsString),
+      maxPerSeason: formatter.noDecTrunc(data.sowAmounts.maxAmountToSowPerSeasonAsString),
+      temperature: formatter.noDecTrunc(data.minTempAsString),
+      podLineLength: formatter.noDecTrunc(data.maxPodlineLengthAsString),
+      operatorTip: formatter.noDecTrunc(data.operatorParams.operatorTipAmountAsString),
+      morningAuction: data.runBlocksAfterSunrise === 0n,
+      selectedTokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
+      referralCode: referralCodeToUse,
+    });
+    setDidPrefill(true);
+  }, [
+    open,
+    existingOrder,
+    didPrefill,
+    prefillValues,
+    getStrategyProps,
+    searchParams,
+    hookReferralCode,
+    setHookReferralCode,
+  ]);
+
+  // Sync hook referral code changes to form
+  useEffect(() => {
+    if (hookReferralCode && hookReferralCode !== form.getValues("referralCode")) {
+      form.setValue("referralCode", hookReferralCode);
+    }
+  }, [hookReferralCode, form]);
 
   // Set default values for minSoil and maxPerSeason based on totalAmount
   const mainToken = useChainConstant(MAIN_TOKEN);

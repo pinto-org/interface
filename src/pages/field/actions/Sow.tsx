@@ -409,8 +409,10 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   // Read referral code from URL params on mount and set to hook
   useEffect(() => {
     const refParam = searchParams.get("ref");
-    if (refParam) {
-      setReferralCode(refParam);
+    // Fix: searchParams.get() converts + to space, so we need to restore it
+    const decodedRef = refParam ? refParam.replace(/ /g, "+") : null;
+    if (decodedRef) {
+      setReferralCode(decodedRef);
     }
   }, [searchParams, setReferralCode]);
 

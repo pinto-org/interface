@@ -26,7 +26,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
   const isWalletConnected = !!address;
 
   const referralCode = address ? encodeReferralAddress(address) : "";
-  const referralUrl = `${window.location.origin}/field?ref=${referralCode}`;
+  const referralUrl = `${window.location.origin}/field?ref=${encodeURIComponent(referralCode)}`;
   const podDestinationAddress = delegateAddress === ZERO_ADDRESS_HEX ? address : delegateAddress || address;
 
   const handleCopyCode = () => {

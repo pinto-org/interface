@@ -14,7 +14,7 @@ import { useAccount, usePublicClient } from "wagmi";
 import { z } from "zod";
 
 import FormUtils from "@/utils/form";
-import { decodeReferralAddress } from "@/utils/referral";
+import { decodeReferralAddress, isValidReferralCode } from "@/utils/referral";
 
 const {
   schema: { tokenStrategy, positiveNumber },
@@ -276,9 +276,9 @@ export const useSowOrderV0State = () => {
       try {
         const formData = form.getValues();
 
-        // Decode referral code if provided
+        // Decode referral code if provided and valid
         let referralAddress: `0x${string}` | undefined;
-        if (formData.referralCode) {
+        if (formData.referralCode && isValidReferralCode(formData.referralCode)) {
           referralAddress = decodeReferralAddress(formData.referralCode) || undefined;
         }
 

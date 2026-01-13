@@ -16,6 +16,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePodLine } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
+import { isValidReferralCode } from "@/utils/referral";
 import { sanitizeNumericInputValue } from "@/utils/string";
 import { cn } from "@/utils/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -125,21 +126,33 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   // Read referral code from URL params when dialog opens and sync with hook and form
   const [didInitReferralCode, setDidInitReferralCode] = useState(false);
   useEffect(() => {
-    if (!open || didInitReferralCode) return;
+    if (!open) {
+      // Reset when dialog closes
+      setDidInitReferralCode(false);
+      return;
+    }
+    if (didInitReferralCode) return;
     const refParam = searchParams.get("ref");
-    if (refParam) {
-      setHookReferralCode(refParam);
-      form.setValue("referralCode", refParam);
-    } else if (hookReferralCode) {
-      // If no URL param but hook has a value, sync to form
+    // Fix: searchParams.get() converts + to space, so we need to restore it
+    const decodedRef = refParam ? refParam.replace(/ /g, "+") : null;
+    if (decodedRef && isValidReferralCode(decodedRef)) {
+      // Only set if valid
+      setHookReferralCode(decodedRef);
+      form.setValue("referralCode", decodedRef);
+    } else if (hookReferralCode && isValidReferralCode(hookReferralCode)) {
+      // If no URL param but hook has a valid value, sync to form
       form.setValue("referralCode", hookReferralCode);
     }
     setDidInitReferralCode(true);
   }, [open, searchParams, didInitReferralCode, setHookReferralCode, form, hookReferralCode]);
 
-  // Sync hook referral code changes to form
+  // Sync hook referral code changes to form (only if valid)
   useEffect(() => {
-    if (hookReferralCode && hookReferralCode !== form.getValues("referralCode")) {
+    if (
+      hookReferralCode &&
+      isValidReferralCode(hookReferralCode) &&
+      hookReferralCode !== form.getValues("referralCode")
+    ) {
       form.setValue("referralCode", hookReferralCode);
     }
   }, [hookReferralCode, form]);
