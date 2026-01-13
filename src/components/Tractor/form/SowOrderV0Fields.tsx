@@ -529,7 +529,7 @@ SowOrderV0Fields.PodDisplay = function PodDisplay({
     return estimatedPods.mul(BONUS_MULTIPLIER);
   }, [estimatedPods]);
 
-  // Use validReferralCodeFromStorage for conditional rendering (from localStorage)
+  // Use validReferralCodeFromStorage for conditional rendering (from localStorage, cleared when invalid)
   const hasReferralCode = Boolean(validReferralCodeFromStorage);
 
   return (

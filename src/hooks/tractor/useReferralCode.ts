@@ -93,11 +93,18 @@ export function useReferralCode() {
     globalReferralCode = trimmed;
     notifyListeners();
 
-    // Only save to localStorage if the code is valid or empty
-    if (!trimmed || isValidReferralCode(trimmed)) {
+    // Save to localStorage only if valid, otherwise clear it
+    if (!trimmed) {
+      // Empty value: clear localStorage
+      saveToLocalStorage("");
+    } else if (isValidReferralCode(trimmed)) {
+      // Valid code: save to localStorage
       saveToLocalStorage(trimmed);
+    } else {
+      // Invalid code: clear localStorage
+      saveToLocalStorage("");
     }
-    // Invalid codes are not saved to localStorage, but are kept in global state for typing
+    // Invalid codes are kept in global state for typing feedback, but localStorage is cleared
   }, []);
 
   // Validate referral code for real-time validation
