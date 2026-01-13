@@ -167,6 +167,7 @@ export default function DevPage() {
   const [selectedPercent, setSelectedPercent] = useState<number>(10);
 
   const [blockSkipAmount, setBlockSkipAmount] = useState("6"); // default to 6 blocks because the morning auction updates every 6 blocks (12 seconds on eth, 2 seconds on base, 12/2 = 6)
+  const [sunriseCount, setSunriseCount] = useState("1"); // number of times to call sunrise
 
   const [mockAddress, setMockAddress] = useAtom(mockAddressAtom);
 
@@ -382,6 +383,25 @@ export default function DevPage() {
     }
   };
 
+  const callSunriseN = async () => {
+    try {
+      const count = parseInt(sunriseCount);
+      if (Number.isNaN(count) || count < 1) {
+        toast.error("Please enter a valid number of seasons");
+        return;
+      }
+
+      setLoading("callSunriseN");
+      await executeTask("callSunriseN", { n: count });
+      toast.success(`Called sunrise ${count} time${count > 1 ? "s" : ""}`);
+      setLoading(null);
+    } catch (error) {
+      console.error("Failed to call sunrise N times:", error);
+      toast.error("Failed to call sunrise multiple times");
+      setLoading(null);
+    }
+  };
+
   const handleQuickMint = async () => {
     if (!address) {
       toast.error("No wallet connected");
@@ -582,6 +602,18 @@ export default function DevPage() {
                   className="bg-pinto-green-4 hover:bg-pinto-green-5 text-white"
                 >
                   Mint Me ETH/USDC/Pinto
+                </Button>
+              </div>
+              <div className="flex gap-2 items-center">
+                <Input
+                  placeholder="# Seasons to advance"
+                  outlined
+                  value={sunriseCount}
+                  onChange={(e) => setSunriseCount(e.target.value)}
+                  className="h-10 w-48"
+                />
+                <Button disabled={!sunriseCount || loading === "callSunriseN"} onClick={callSunriseN}>
+                  Call Sunrise N Times
                 </Button>
               </div>
               <div className="flex gap-2 items-center">
@@ -1064,6 +1096,9 @@ export default function DevPage() {
 
         {/* Farmer Silo Deposits section - render component directly */}
         <FarmerSiloDeposits />
+
+        {/* SiloToken Gauge Data section */}
+        <SiloTokenGaugeData />
       </div>
     </div>
   );
@@ -2241,6 +2276,188 @@ function FarmerSiloDeposits() {
               <span className="font-mono">{formatValue(farmerSilo.activeSeedsBalance)}</span>
             </div>
           </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// SiloToken Gauge Data Component
+function SiloTokenGaugeData() {
+  const publicClient = usePublicClient();
+  const protocolAddress = useProtocolAddress();
+  const tokenData = useTokenData();
+  const [loading, setLoading] = useState(false);
+  const [tokenSettings, setTokenSettings] = useState<Map<string, any>>(new Map());
+
+  const siloTokens = useMemo(() => {
+    if (!tokenData) return [];
+    return tokenData.whitelistedTokens;
+  }, [tokenData]);
+
+  const fetchTokenSettings = async () => {
+    if (!publicClient || !protocolAddress || siloTokens.length === 0) return;
+
+    setLoading(true);
+    try {
+      const settingsMap = new Map();
+
+      for (const token of siloTokens) {
+        try {
+          const settings = await publicClient.readContract({
+            address: protocolAddress,
+            abi: diamondABI,
+            functionName: "tokenSettings",
+            args: [token.address],
+          });
+          settingsMap.set(token.address, settings);
+        } catch (error) {
+          console.error(`Failed to fetch settings for ${token.symbol}:`, error);
+        }
+      }
+
+      setTokenSettings(settingsMap);
+    } catch (error) {
+      console.error("Error fetching token settings:", error);
+      toast.error("Failed to fetch token settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTokenSettings();
+  }, [publicClient, protocolAddress, siloTokens.length]);
+
+  const formatBigInt = (value: any, decimals = 0) => {
+    if (!value) return "0";
+    try {
+      const num = BigInt(value);
+      if (decimals > 0) {
+        const divisor = BigInt(10 ** decimals);
+        const wholePart = num / divisor;
+        const fractionalPart = num % divisor;
+        return `${wholePart}.${fractionalPart.toString().padStart(decimals, "0")}`;
+      }
+      return num.toString();
+    } catch {
+      return String(value);
+    }
+  };
+
+  const formatBytes = (value: any) => {
+    if (!value) return "0x0";
+    return String(value);
+  };
+
+  return (
+    <Card className="p-6">
+      <h2 className="text-2xl mb-4">SiloToken Gauge Data</h2>
+
+      <div className="flex justify-between items-center mb-6">
+        <div className="text-sm text-gray-500">
+          Displaying token settings for {siloTokens.length} silo token{siloTokens.length !== 1 ? "s" : ""}
+        </div>
+        <Button onClick={fetchTokenSettings} disabled={loading} className="px-4 py-2">
+          {loading ? "Loading..." : "Refresh Token Settings"}
+        </Button>
+      </div>
+
+      {loading && tokenSettings.size === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <div className="flex items-center justify-center gap-2">
+            <div className="animate-spin h-5 w-5 border-2 border-pinto-green-3 border-t-transparent rounded-full" />
+            <span>Loading token settings...</span>
+          </div>
+        </div>
+      ) : tokenSettings.size === 0 ? (
+        <div className="text-center py-8 text-gray-500">No token settings available</div>
+      ) : (
+        <div className="space-y-6">
+          {siloTokens.map((token) => {
+            const settings = tokenSettings.get(token.address);
+            if (!settings) return null;
+
+            return (
+              <div key={token.address} className="border rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <img src={token.logoURI} alt={token.symbol} className="w-8 h-8 rounded-full" />
+                  <div>
+                    <div className="font-medium text-lg">{token.symbol}</div>
+                    <div className="text-xs text-gray-500 font-mono">{token.address}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Selector:</span>
+                      <span className="font-mono text-xs">{formatBytes(settings.selector)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Stalk Earned Per Season:</span>
+                      <span className="font-mono">{formatBigInt(settings.stalkEarnedPerSeason, 6)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Stalk Issued Per BDV:</span>
+                      <span className="font-mono">{formatBigInt(settings.stalkIssuedPerBdv, 16)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Milestone Season:</span>
+                      <span className="font-mono">{formatBigInt(settings.milestoneSeason)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Milestone Stem:</span>
+                      <span className="font-mono">{formatBigInt(settings.milestoneStem)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Encode Type:</span>
+                      <span className="font-mono text-xs">{formatBytes(settings.encodeType)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Delta Stalk Earned Per Season:</span>
+                      <span className="font-mono">{formatBigInt(settings.deltaStalkEarnedPerSeason, 6)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Gauge Points:</span>
+                      <span className="font-mono">{formatBigInt(settings.gaugePoints, 18)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Optimal % Deposited BDV:</span>
+                      <span className="font-mono">{formatBigInt(settings.optimalPercentDepositedBdv, 6)}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t">
+                  <div className="text-sm font-medium mb-2">Implementations:</div>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="bg-gray-50 p-2 rounded">
+                      <div className="font-medium text-gray-700 mb-1">Gauge Point Implementation</div>
+                      <div className="space-y-1 font-mono">
+                        <div className="truncate">Target: {settings.gaugePointImplementation?.target || "N/A"}</div>
+                        <div>Selector: {formatBytes(settings.gaugePointImplementation?.selector)}</div>
+                        <div>Encode: {formatBytes(settings.gaugePointImplementation?.encodeType)}</div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <div className="font-medium text-gray-700 mb-1">Liquidity Weight Implementation</div>
+                      <div className="space-y-1 font-mono">
+                        <div className="truncate">
+                          Target: {settings.liquidityWeightImplementation?.target || "N/A"}
+                        </div>
+                        <div>Selector: {formatBytes(settings.liquidityWeightImplementation?.selector)}</div>
+                        <div>Encode: {formatBytes(settings.liquidityWeightImplementation?.encodeType)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </Card>
