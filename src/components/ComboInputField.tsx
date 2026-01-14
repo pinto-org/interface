@@ -14,7 +14,7 @@ import { sanitizeNumericInputValue, stringEq, stringToNumber, toValidStringNumIn
 import { FarmFromMode, Plot, Token } from "@/utils/types";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
-import {
+import React, {
   Dispatch,
   InputHTMLAttributes,
   SetStateAction,
@@ -28,9 +28,31 @@ import PlotSelect from "./PlotSelect";
 import TextSkeleton from "./TextSkeleton";
 import TokenSelectWithBalances, { TransformTokenLabelsFunction } from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
 import { Skeleton } from "./ui/Skeleton";
+import { Slider } from "./ui/Slider";
 
 const ETH_GAS_RESERVE = TokenValue.fromHuman("0.0003333333333", 18); // Reserve $1 of gas if eth is $3k
+
+/**
+ * Convert slider value (0-100) to TokenValue
+ */
+const sliderToTokenValue = (sliderValue: number, maxAmount: TokenValue): TokenValue => {
+  const percentage = sliderValue / 100;
+  return maxAmount.mul(percentage);
+};
+
+/**
+ * Convert TokenValue to slider value (0-100)
+ */
+const tokenValueToSlider = (tokenValue: TokenValue, maxAmount: TokenValue): number => {
+  if (maxAmount.eq(0)) return 0;
+  return tokenValue.div(maxAmount).mul(100).toNumber();
+};
+
+const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
+  return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
+};
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   // Token mode props
@@ -75,6 +97,11 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
   // Token select props
   transformTokenLabels?: TransformTokenLabelsFunction;
+
+  // Slider props
+  enableSlider?: boolean;
+  sliderMarkers?: number[];
+  customTokenSelector?: React.ReactNode;
 }
 
 function ComboInputField({
@@ -111,7 +138,10 @@ function ComboInputField({
   filterTokens,
   selectKey,
   transformTokenLabels,
+  customTokenSelector,
   placeholder,
+  enableSlider,
+  sliderMarkers,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
@@ -166,30 +196,52 @@ function ComboInputField({
       : selectedTokenPrice.mul(disableInput ? amountAsTokenValue : internalAmount)
     : undefined;
 
+  // Helper to get balance from farmerTokenBalance based on balanceFrom mode
+  const getFarmerBalanceByMode = useCallback(
+    (farmerBalance: typeof farmerTokenBalance, mode: FarmFromMode | undefined): TokenValue => {
+      if (!farmerBalance) return TokenValue.ZERO;
+      switch (mode) {
+        case FarmFromMode.EXTERNAL:
+          return farmerBalance.external || TokenValue.ZERO;
+        case FarmFromMode.INTERNAL:
+          return farmerBalance.internal || TokenValue.ZERO;
+        default:
+          return farmerBalance.total || TokenValue.ZERO;
+      }
+    },
+    [],
+  );
+
   const maxAmount = useMemo(() => {
     if (mode === "plots" && selectedPlots) {
       return selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
     }
 
-    if (customMaxAmount) {
-      return customMaxAmount;
-    }
-
+    // Get base balance first
+    let baseBalance = TokenValue.ZERO;
     if (tokenAndBalanceMap && selectedToken) {
-      return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
+      baseBalance = tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
+    } else if (farmerTokenBalance) {
+      baseBalance = getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);
     }
 
-    if (!farmerTokenBalance) return TokenValue.ZERO;
-
-    switch (balanceFrom) {
-      case FarmFromMode.EXTERNAL:
-        return farmerTokenBalance.external || TokenValue.ZERO;
-      case FarmFromMode.INTERNAL:
-        return farmerTokenBalance.internal || TokenValue.ZERO;
-      default:
-        return farmerTokenBalance.total || TokenValue.ZERO;
+    // If customMaxAmount is provided and greater than 0, use the minimum of base balance and customMaxAmount
+    if (customMaxAmount?.gt(0)) {
+      return TokenValue.min(baseBalance, customMaxAmount);
     }
-  }, [mode, selectedPlots, customMaxAmount, tokenAndBalanceMap, selectedToken, balanceFrom, farmerTokenBalance]);
+
+    // Otherwise use base balance
+    return baseBalance;
+  }, [
+    mode,
+    selectedPlots,
+    customMaxAmount,
+    tokenAndBalanceMap,
+    selectedToken,
+    balanceFrom,
+    farmerTokenBalance,
+    getFarmerBalanceByMode,
+  ]);
 
   const balance = useMemo(() => {
     if (mode === "plots" && selectedPlots) {
@@ -200,8 +252,9 @@ function ComboInputField({
         return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
       }
     }
-    return maxAmount;
-  }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, maxAmount]);
+    // Always use farmerTokenBalance for display, not maxAmount (which may be limited by customMaxAmount)
+    return getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);
+  }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, farmerTokenBalance, balanceFrom, getFarmerBalanceByMode]);
 
   /**
    * Clamp the input amount to the max amount ONLY IF clamping is enabled
@@ -246,6 +299,18 @@ function ComboInputField({
     },
     [connectedAccount, setError],
   );
+
+  /**
+   * Reset amount when token changes
+   */
+  useEffect(() => {
+    setInternalAmount(TokenValue.ZERO);
+    setDisplayValue("0");
+    if (setAmount) {
+      setAmount("0");
+      lastInternalAmountRef.current = "0";
+    }
+  }, [selectedToken, setAmount]);
 
   /**
    * Clamp the internal amount to the max amount
@@ -331,11 +396,39 @@ function ComboInputField({
   );
 
   const [shouldRefocus, setShouldRefocus] = useState(false);
+  const keepCursorAtStartRef = useRef(false);
+  const cursorPositionRef = useRef<number | null>(null);
+
+  // Save and restore cursor position after render
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input || document.activeElement !== input) return;
+
+    // If we want to keep cursor at start, save position 0
+    if (keepCursorAtStartRef.current && cursorPositionRef.current === null) {
+      cursorPositionRef.current = 0;
+    }
+
+    // Restore cursor position if we have one saved
+    if (cursorPositionRef.current !== null) {
+      const position = cursorPositionRef.current;
+
+      setTimeout(() => {
+        if (document.activeElement === input) {
+          input.setSelectionRange(position, position);
+          cursorPositionRef.current = null;
+        }
+      }, 0);
+    }
+  }, [displayValue]);
 
   useEffect(() => {
     if (shouldRefocus && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.setSelectionRange(0, 0);
+      const input = inputRef.current;
+      input.focus();
+      setTimeout(() => {
+        input.setSelectionRange(0, 0);
+      }, 0);
       setShouldRefocus(false);
     }
   }, [shouldRefocus]);
@@ -388,6 +481,11 @@ function ComboInputField({
 
   const handleSetMax = () => {
     if (disableInput) return;
+
+    // Enable cursor anchoring at start
+    keepCursorAtStartRef.current = true;
+    cursorPositionRef.current = 0;
+
     if (selectedToken?.isNative) {
       // For ETH, subtract gas reserve from max amount
       const maxWithGasReserve = maxAmount.gt(ETH_GAS_RESERVE) ? maxAmount.sub(ETH_GAS_RESERVE) : TokenValue.ZERO;
@@ -404,7 +502,10 @@ function ComboInputField({
       lastInternalAmountRef.current = newAmount;
     }
 
-    setShouldRefocus(true);
+    // Focus and set cursor position
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const plotIdsToShow = useMemo(() => {
@@ -412,6 +513,58 @@ function ComboInputField({
     const sortedPlots = [...selectedPlots].sort((a, b) => Number(a.index.sub(b.index).toHuman()));
     return sortedPlots.map((plot) => truncateHex(plot.idHex)).join(", ");
   }, [selectedPlots]);
+
+  // Calculate slider value from internal amount
+  const sliderValue = useMemo(() => {
+    if (!enableSlider || maxAmount.eq(0)) return 0;
+    return tokenValueToSlider(internalAmount, maxAmount);
+  }, [enableSlider, internalAmount, maxAmount]);
+
+  // Handle slider value changes
+  const handleSliderChange = useCallback(
+    (values: number[]) => {
+      if (disableInput || !enableSlider) return;
+
+      const sliderVal = values[0] ?? 0;
+      const tokenVal = sliderToTokenValue(sliderVal, maxAmount);
+
+      setIsUserInput(true);
+      setInternalAmount(tokenVal);
+      setDisplayValue(tokenVal.toHuman());
+      handleSetError(tokenVal.gt(maxAmount));
+    },
+    [disableInput, enableSlider, maxAmount, handleSetError],
+  );
+
+  // Handle percentage input changes
+  const handlePercentageChange = useCallback(
+    (value: string) => {
+      if (disableInput || !enableSlider) return;
+
+      // Allow empty string or valid number input
+      if (value === "") {
+        const tokenVal = TokenValue.ZERO;
+        setIsUserInput(true);
+        setInternalAmount(tokenVal);
+        setDisplayValue(tokenVal.toHuman());
+        return;
+      }
+
+      // Sanitize and validate percentage input (0-100)
+      const numValue = parseFloat(value);
+      if (Number.isNaN(numValue)) return;
+
+      // Clamp between 0 and 100
+      const clampedPct = Math.max(0, Math.min(100, numValue));
+      const tokenVal = sliderToTokenValue(clampedPct, maxAmount);
+
+      setIsUserInput(true);
+      setInternalAmount(tokenVal);
+      setDisplayValue(tokenVal.toHuman());
+      handleSetError(tokenVal.gt(maxAmount));
+    },
+    [disableInput, enableSlider, maxAmount, handleSetError],
+  );
 
   return (
     <>
@@ -441,29 +594,35 @@ function ComboInputField({
                 }
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}
+                onKeyDown={() => {
+                  keepCursorAtStartRef.current = false;
+                  cursorPositionRef.current = null;
+                }}
               />
             </TextSkeleton>
             {mode === "plots"
               ? setPlots && (
                   <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
                 )
-              : setToken &&
-                selectedToken && (
-                  <TokenSelectWithBalances
-                    selectedToken={selectedToken}
-                    tokenNameOverride={tokenNameOverride}
-                    balanceFrom={balanceFrom}
-                    balancesToShow={balancesToShow}
-                    tokenAndBalanceMap={tokenAndBalanceMap}
-                    disabled={disableButton}
-                    isLoading={tokenSelectLoading}
-                    filterTokens={filterTokens}
-                    selectKey={selectKey}
-                    setToken={setToken}
-                    setBalanceFrom={setBalanceFrom}
-                    transformTokenLabels={transformTokenLabels}
-                  />
-                )}
+              : customTokenSelector
+                ? customTokenSelector
+                : setToken &&
+                  selectedToken && (
+                    <TokenSelectWithBalances
+                      selectedToken={selectedToken}
+                      tokenNameOverride={tokenNameOverride}
+                      balanceFrom={balanceFrom}
+                      balancesToShow={balancesToShow}
+                      tokenAndBalanceMap={tokenAndBalanceMap}
+                      disabled={disableButton}
+                      isLoading={tokenSelectLoading}
+                      filterTokens={filterTokens}
+                      selectKey={selectKey}
+                      setToken={setToken}
+                      setBalanceFrom={setBalanceFrom}
+                      transformTokenLabels={transformTokenLabels}
+                    />
+                  )}
           </div>
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">
@@ -542,6 +701,37 @@ function ComboInputField({
                     <div className="pinto-sm px-1.5 py-1 text-pinto-green-3">Max</div>
                   </Button>
                 )}
+              </div>
+            </div>
+          )}
+          {enableSlider && (
+            <div className="mt-2">
+              <div className="flex flex-row items-center gap-3">
+                <div className="flex-1">
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={0.1}
+                    value={[sliderValue]}
+                    onValueChange={handleSliderChange}
+                    markers={sliderMarkers}
+                    disabled={disableInput || maxAmount.eq(0)}
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={sliderValue ? formatter.noDec(sliderValue) : ""}
+                    onChange={(e) => handlePercentageChange(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    placeholder={formatter.noDec(sliderValue)}
+                    outlined
+                    containerClassName="w-[6rem]"
+                    disabled={disableInput || maxAmount.eq(0)}
+                    endIcon={<TextAdornment text="%" className="bg-white" />}
+                  />
+                </div>
               </div>
             </div>
           )}

@@ -3,7 +3,6 @@ import { type VariantProps, cva } from "class-variance-authority";
 import * as React from "react";
 
 import { cn } from "@/utils/utils";
-import clsx from "clsx";
 
 const Tabs = TabsPrimitive.Root;
 
@@ -14,6 +13,7 @@ const tabsListVariants = cva("inline-flex items-center", {
         "h-[3.25rem] justify-center rounded-[0.75rem] bg-white border border-pinto-gray-2 p-0.5 sm:p-1 text-muted-foreground",
       text: "flex-row justify-between overflow-x-auto",
       textSecondary: "flex flex-row gap-4 w-full overflow-x-auto",
+      textSecondaryLarge: "flex flex-row gap-6 w-full overflow-x-auto",
     },
     borderBottom: {
       true: "border-b",
@@ -34,10 +34,15 @@ const tabsTriggerVariants = cva(
         primary:
           "rounded-[0.75rem] text-pinto-gray-4 px-3 text-[1rem] sm:text-[1.25rem] py-2.5 sm:py-1.5 font-medium ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:bg-pinto-green-1 data-[state=active]:text-pinto-green data-[state=active]:shadow-sm",
         text: "pinto-h3 py-2 pr-4 pl-0 text-left data-[state=active]:text-pinto-secondary data-[state=inactive]:text-pinto-gray-4",
-        textSecondary: clsx(
+        textSecondary: cn(
           "pb-2 border-b-2 pinto-sm",
           "data-[state=inactive]:text-pinto-gray-4 data-[state=inactive]:border-transparent",
           "data-[state=active]:border-pinto-green-4 data-[state=active]:font-medium",
+        ),
+        textSecondaryLarge: cn(
+          "pb-2 border-b-2 pinto-body",
+          "data-[state=inactive]:text-pinto-gray-4 data-[state=inactive]:border-transparent",
+          "data-[state=active]:border-pinto-green-4 data-[state=active]:font-semibold",
         ),
       },
     },
@@ -49,18 +54,39 @@ const tabsTriggerVariants = cva(
 
 // Context for sharing variant between TabsList and TabsTrigger
 type TabsVariant = VariantProps<typeof tabsListVariants>["variant"];
-const TabsVariantContext = React.createContext<TabsVariant | undefined>(undefined);
+
+interface TabsVariantContextValue {
+  variant: TabsVariant;
+}
+
+const TabsVariantContext = React.createContext<TabsVariantContextValue | null>(null);
+
+/**
+ * Hook to access the tabs variant from context
+ */
+function useTabsVariant(): TabsVariant {
+  const context = React.useContext(TabsVariantContext);
+  return context?.variant ?? "primary";
+}
 
 export interface TabsListProps
   extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>,
     VariantProps<typeof tabsListVariants> {}
 
 const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.List>, TabsListProps>(
-  ({ className, variant, borderBottom, ...props }, ref) => (
-    <TabsVariantContext.Provider value={variant}>
-      <TabsPrimitive.List ref={ref} className={cn(tabsListVariants({ variant, borderBottom }), className)} {...props} />
-    </TabsVariantContext.Provider>
-  ),
+  ({ className, variant, borderBottom, ...props }, ref) => {
+    const contextValue = React.useMemo(() => ({ variant }), [variant]);
+
+    return (
+      <TabsVariantContext.Provider value={contextValue}>
+        <TabsPrimitive.List
+          ref={ref}
+          className={cn(tabsListVariants({ variant, borderBottom }), className)}
+          {...props}
+        />
+      </TabsVariantContext.Provider>
+    );
+  },
 );
 TabsList.displayName = TabsPrimitive.List.displayName;
 
@@ -70,9 +96,8 @@ export interface TabsTriggerProps
 
 const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigger>, TabsTriggerProps>(
   ({ className, variant, ...props }, ref) => {
-    // Use provided variant, fallback to context, then default
-    const contextVariant = React.useContext(TabsVariantContext);
-    const finalVariant = variant ?? contextVariant ?? "primary";
+    const contextVariant = useTabsVariant();
+    const finalVariant = variant ?? contextVariant;
 
     return (
       <TabsPrimitive.Trigger

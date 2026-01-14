@@ -2,12 +2,12 @@ import pintoExchangeLogo from "@/assets/misc/pinto-exchange-logo.svg";
 import podIcon from "@/assets/protocol/Pod.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import { MIN_ADV_SEASON } from "@/components/charts/AdvancedChart";
 import { CBBTC_TOKEN, CBETH_TOKEN, WETH_TOKEN, WSOL_TOKEN, WSTETH_TOKEN } from "@/constants/tokens";
 import { chartFormatters, formatNum, formatPct, formatUSD } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
 import useTokenData from "./useTokenData";
-import { MIN_ADV_SEASON } from "@/components/charts/AdvancedChart";
 
 type ChartType = "Pinto" | "Field" | "Silo" | "Tractor" | "Exchange" | "Inflow" | "Market";
 interface ChartSetupBase {
@@ -95,7 +95,7 @@ export const chartColors: ChartColors = [
     lineColor: "#1E6091", // Deep Blue
   },
   {
-    lineColor: "#D62828", // Vibrant Red
+    lineColor: "#854f96", // Lavender
   },
   {
     lineColor: "#8338EC", // Bright Purple
@@ -1378,7 +1378,6 @@ export function useChartSetupData() {
     const pintoCharts = createPintoCharts(mainToken);
     const siloCharts = createSiloCharts(mainToken);
     const fieldCharts = createFieldCharts(mainToken);
-    const exchangeCharts = createExchangeCharts(mainToken);
     const tractorCharts = createTractorCharts(mainToken);
     const inflowCharts = createInflowCharts(mainToken);
     const marketCharts = createMarketCharts(mainToken);
@@ -1387,7 +1386,6 @@ export function useChartSetupData() {
       ...pintoCharts,
       ...siloCharts,
       ...fieldCharts,
-      ...exchangeCharts,
       ...tractorCharts,
       ...inflowCharts,
       ...marketCharts,

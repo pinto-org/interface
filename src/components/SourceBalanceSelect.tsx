@@ -28,7 +28,7 @@ export default function SourceBalanceSelect({ setBalanceFrom, balanceFrom, balan
           className={style}
           variant={"outline"}
         >
-          External Balance
+          External Wallet
         </ToggleGroupItem>
       )}
       {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL)) && (

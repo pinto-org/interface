@@ -162,7 +162,7 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
     };
 
     const farmCalls: AdvancedFarmCall[] = [];
-    farmCalls.push(reStrategy.encodeFromQuote(newQuote));
+    farmCalls.push(...reStrategy.encodeFromQuote(newQuote).calls);
 
     // Only add additional transfer calls for INTERNAL mode
     if (mode === FarmToMode.INTERNAL) {
