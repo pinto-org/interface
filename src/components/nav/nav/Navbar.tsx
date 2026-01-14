@@ -349,10 +349,9 @@ export const navLinks = {
   github: "https://github.com/pinto-org",
   disclosures: "https://docs.pinto.money/disclosures",
   exchange: "https://pinto.exchange/",
-  blog: "https://mirror.xyz/0x8F02813a0AC20affC2C7568e0CB9a7cE5288Ab27",
-  communityBlog: "https://mirror.xyz/0xe7731147bBe1BEBe5CF1Ab101C6EceD384dAbD07",
-  printsToThePeople:
-    "https://mirror.xyz/0x8F02813a0AC20affC2C7568e0CB9a7cE5288Ab27/VC2bqtuWvmo2EssZhWGCVgGRC1_SR2Bg82voJJxI7MU",
+  blog: "https://paragraph.com/0x8f02813a0ac20affc2c7568e0cb9a7ce5288ab27",
+  communityBlog: "https://paragraph.com/@pinto-community",
+  printsToThePeople: "https://paragraph.com/@pinto-2/pinto-prints-for-the-people",
 } as const;
 
 export const navPathNameToTopMenu = {
