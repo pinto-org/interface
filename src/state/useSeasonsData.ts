@@ -73,6 +73,26 @@ export interface SeasonsTableData {
   convertUpBonusStalkPerBdv: TokenValue;
   convertUpBonusMaxCapacity: TokenValue;
   convertUpBonusCapacityUsedThisSeason: TokenValue;
+  cumulativeVolumeNet: number;
+  cumulativeBuyVolumeUSD: number;
+  cumulativeSellVolumeUSD: number;
+  cumulativeVolumeUSD: number;
+  deltaVolumeNet: number;
+  deltaBuyVolumeUSD: number;
+  deltaSellVolumeUSD: number;
+  deltaVolumeUSD: number;
+  cumulativeConvertVolumeNet: number;
+  cumulativeConvertUpVolumeUSD: number;
+  cumulativeConvertDownVolumeUSD: number;
+  cumulativeConvertVolumeUSD: number;
+  cumulativeConvertNeutralTransferVolumeUSD: number;
+  deltaConvertVolumeNet: number;
+  deltaConvertUpVolumeUSD: number;
+  deltaConvertDownVolumeUSD: number;
+  deltaConvertVolumeUSD: number;
+  deltaConvertNeutralTransferVolumeUSD: number;
+  liquidityUSD: number;
+  deltaLiquidityUSD: number;
   pinto30d: number;
   pinto7d: number;
   pinto24h: number;
@@ -249,6 +269,13 @@ export default function useSeasonsData(
     [chainId],
   );
 
+  const basinQueryFnFactory = useCallback(
+    (vars: SeasonalQueryVars) => async () => {
+      return paginateSubgraph(basinPaginateSettings, subgraphs[chainId].basin, BasinAdvancedChartDocument, vars);
+    },
+    [chainId],
+  );
+
   const useStalkQuery = useMultiSeasonalQueries("all_seasonsTableStalk", {
     fromSeason: fromSeason - syncOffset,
     toSeason,
@@ -279,6 +306,22 @@ export default function useSeasonsData(
     },
     orderBy: "desc",
     enabled: beanData,
+  });
+
+  const useBasinQuery = useSeasonalQueries("all_seasonsTableBasin", {
+    fromSeason: fromSeason - syncOffset,
+    toSeason,
+    queryVars: {},
+    historicalQueryFnFactory: basinQueryFnFactory,
+    currentQueryFnFactory: basinQueryFnFactory,
+    resultTimestamp: (entry) => {
+      return new Date(Number(entry.createdTimestamp) * 1000);
+    },
+    convertResult: (entry: any) => {
+      return entry;
+    },
+    orderBy: "desc",
+    enabled: basinData,
   });
 
   const useAPYQuery = useSeasonalAPYs(tokenData.mainToken.address, fromSeason, toSeason, { enabled: apyData });
@@ -332,6 +375,7 @@ export default function useSeasonsData(
     if (
       (beanstalkData && Object.keys(useStalkQuery.data || {}).length === 0) ||
       (beanData && (useBeanQuery.data?.length ?? 0) === 0) ||
+      (basinData && (useBasinQuery.data?.length ?? 0) === 0) ||
       (apyData && Object.keys(useAPYQuery.data || {}).length === 0) ||
       (tractorData && (useTractorQuery.data?.length ?? 0) === 0) ||
       (inflowData && (useInflowQuery.data?.length ?? 0) === 0) ||
@@ -341,6 +385,7 @@ export default function useSeasonsData(
     }
     const stalkResults = useStalkQuery?.data || { fieldHourlySnapshots: [], siloHourlySnapshots: [], stalkSeasons: [] };
     const beanResults = useBeanQuery?.data || ([] as any);
+    const basinResults = useBasinQuery?.data || ([] as any);
     const {
       [APYWindow.MONTHLY]: apy30d,
       [APYWindow.WEEKLY]: apy7d,
@@ -353,6 +398,7 @@ export default function useSeasonsData(
     let maxLength = Math.max(
       beanResults.length - syncOffset,
       stalkResults.fieldHourlySnapshots.length - syncOffset,
+      basinResults.length - syncOffset,
       apy24h?.length || 0,
       tractorSnapshots.length,
       inflowSnapshots.length,
@@ -481,6 +527,41 @@ export default function useSeasonsData(
           const season = beanResults[idx].season;
           allData.season = season.season;
           allData.timestamp = Number(season.timestamp || 0);
+        }
+      }
+
+      if (basinData && idx + syncOffset < countSubgraphSeasons) {
+        const currBasinSeason = basinResults[idx + syncOffset];
+        allData.cumulativeVolumeNet =
+          Number(currBasinSeason.cumulativeBuyVolumeUSD) - Number(currBasinSeason.cumulativeSellVolumeUSD);
+        allData.cumulativeBuyVolumeUSD = Number(currBasinSeason.cumulativeBuyVolumeUSD);
+        allData.cumulativeSellVolumeUSD = Number(currBasinSeason.cumulativeSellVolumeUSD);
+        allData.cumulativeVolumeUSD = Number(currBasinSeason.cumulativeTradeVolumeUSD);
+        allData.deltaVolumeNet = Number(currBasinSeason.deltaBuyVolumeUSD) - Number(currBasinSeason.deltaSellVolumeUSD);
+        allData.deltaBuyVolumeUSD = Number(currBasinSeason.deltaBuyVolumeUSD);
+        allData.deltaSellVolumeUSD = Number(currBasinSeason.deltaSellVolumeUSD);
+        allData.deltaVolumeUSD = Number(currBasinSeason.deltaTradeVolumeUSD);
+        allData.cumulativeConvertVolumeNet =
+          Number(currBasinSeason.cumulativeConvertUpVolumeUSD) - Number(currBasinSeason.cumulativeConvertDownVolumeUSD);
+        allData.cumulativeConvertUpVolumeUSD = Number(currBasinSeason.cumulativeConvertUpVolumeUSD);
+        allData.cumulativeConvertDownVolumeUSD = Number(currBasinSeason.cumulativeConvertDownVolumeUSD);
+        allData.cumulativeConvertVolumeUSD = Number(currBasinSeason.cumulativeConvertVolumeUSD);
+        allData.cumulativeConvertNeutralTransferVolumeUSD = Number(
+          currBasinSeason.cumulativeConvertNeutralTransferVolumeUSD,
+        );
+        allData.deltaConvertVolumeNet =
+          Number(currBasinSeason.deltaConvertUpVolumeUSD) - Number(currBasinSeason.deltaConvertDownVolumeUSD);
+        allData.deltaConvertUpVolumeUSD = Number(currBasinSeason.deltaConvertUpVolumeUSD);
+        allData.deltaConvertDownVolumeUSD = Number(currBasinSeason.deltaConvertDownVolumeUSD);
+        allData.deltaConvertVolumeUSD = Number(currBasinSeason.deltaConvertVolumeUSD);
+        allData.deltaConvertNeutralTransferVolumeUSD = Number(currBasinSeason.deltaConvertNeutralTransferVolumeUSD);
+        allData.liquidityUSD = Number(currBasinSeason.totalLiquidityUSD);
+        allData.deltaLiquidityUSD = Number(currBasinSeason.deltaLiquidityUSD);
+
+        if (!allData.season) {
+          const season = basinResults[idx].season;
+          allData.season = season.season;
+          allData.timestamp = Number(season.createdTimestamp);
         }
       }
 
@@ -627,6 +708,7 @@ export default function useSeasonsData(
   }, [
     useBeanQuery.data,
     useStalkQuery.data,
+    useBasinQuery.data,
     useAPYQuery.data,
     useTractorQuery.data,
     useInflowQuery.data,

@@ -1378,6 +1378,7 @@ export function useChartSetupData() {
     const pintoCharts = createPintoCharts(mainToken);
     const siloCharts = createSiloCharts(mainToken);
     const fieldCharts = createFieldCharts(mainToken);
+    const exchangeCharts = createExchangeCharts(mainToken);
     const tractorCharts = createTractorCharts(mainToken);
     const inflowCharts = createInflowCharts(mainToken);
     const marketCharts = createMarketCharts(mainToken);
@@ -1386,6 +1387,7 @@ export function useChartSetupData() {
       ...pintoCharts,
       ...siloCharts,
       ...fieldCharts,
+      ...exchangeCharts,
       ...tractorCharts,
       ...inflowCharts,
       ...marketCharts,
