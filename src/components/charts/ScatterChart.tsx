@@ -21,6 +21,9 @@ import { ReactChart } from "../ReactChart";
 
 Chart.register(LineController, LineElement, LinearScale, LogarithmicScale, CategoryScale, PointElement, Filler);
 
+const SELECTED_PLOT_PURPLE_COLOR = "#8B5CF6";
+const SELECTED_PLOT_BORDER_WIDTH = 1.75;
+
 export type MakeGradientFunction = (
   ctx: CanvasRenderingContext2D | null,
   position: number,
@@ -118,6 +121,8 @@ export interface ScatterChartProps {
   yOptions: ScatterChartAxisOptions;
   customValueTransform?: CustomChartValueTransform;
   toolTipOptions?: TooltipOptions;
+  /** Event IDs to highlight with red border */
+  highlightedEventIds?: Set<string>;
 }
 
 const ScatterChart = React.memo(
@@ -138,6 +143,7 @@ const ScatterChart = React.memo(
         onHover,
         onFreezeChange,
         toolTipOptions,
+        highlightedEventIds,
       },
       ref,
     ) => {
@@ -148,12 +154,21 @@ const ScatterChart = React.memo(
       const frozenCrosshairRef = useRef<{ x: number; y: number } | null>(null);
       const lastHoverTimeRef = useRef<number>(0);
       const onHoverRef = useRef(onHover);
+      const highlightedEventIdsRef = useRef<Set<string> | undefined>(highlightedEventIds);
       const HOVER_THROTTLE_MS = 16; // ~60fps for smooth updates
 
       // Keep the ref updated but don't trigger re-renders
       useEffect(() => {
         onHoverRef.current = onHover;
       }, [onHover]);
+
+      // Keep highlightedEventIds ref updated
+      useEffect(() => {
+        highlightedEventIdsRef.current = highlightedEventIds;
+        if (chartRef.current) {
+          chartRef.current.render(); // Re-render to show highlights
+        }
+      }, [highlightedEventIds]);
 
       useEffect(() => {
         activeIndexRef.current = activeIndex;
@@ -265,11 +280,11 @@ const ScatterChart = React.memo(
         (ctx: CanvasRenderingContext2D | null): ChartData => {
           return {
             datasets: data.map(
-              ({ label, data, color, pointStyle, pointRadius, pointBorderColor, pointBorderWidth }) => ({
+              ({ label, data: dataPoints, color, pointStyle, pointRadius, pointBorderColor, pointBorderWidth }) => ({
                 label,
-                data,
+                data: dataPoints,
                 // Use per-point colors if available, otherwise use dataset color
-                backgroundColor: data.map((point: any) => point.color || color),
+                backgroundColor: dataPoints.map((point: any) => point.color || color),
                 pointStyle,
                 pointRadius: pointRadius,
                 hoverRadius: pointRadius + 1,
@@ -466,12 +481,12 @@ const ScatterChart = React.memo(
               pointRadius: number,
               pointStyle: PointStyle,
               color?: string,
+              lineWidth?: number,
             ) => {
-              // console.info("🚀 ~ drawSelectionPoint ~ pointRadius:", pointRadius);
               ctx.save();
               ctx.fillStyle = "transparent";
               ctx.strokeStyle = color || "black";
-              ctx.lineWidth = !!color ? 2 : 1;
+              ctx.lineWidth = lineWidth ?? (!!color ? 2 : 1);
 
               const rectWidth = pointRadius * 2.5 || 10;
               const rectHeight = pointRadius * 2.5 || 10;
@@ -514,6 +529,46 @@ const ScatterChart = React.memo(
               ctx.restore();
             };
 
+            // Draw red border for highlighted points (from highlightedEventIds)
+            const highlightedIds = highlightedEventIdsRef.current;
+            if (highlightedIds && highlightedIds.size > 0) {
+              // Iterate through all datasets and points to find highlighted ones
+              chart.data.datasets.forEach((dataset, datasetIndex) => {
+                const meta = chart.getDatasetMeta(datasetIndex);
+                dataset.data.forEach((dataPoint: any, pointIndex: number) => {
+                  if (dataPoint.eventId && highlightedIds.has(dataPoint.eventId)) {
+                    const element = meta.data[pointIndex];
+                    if (element) {
+                      const { x, y } = element.getProps(["x", "y"], true);
+                      const pointRadius = element.options.radius;
+                      const pointStyle = element.options.pointStyle;
+
+                      // Draw border directly on the point (no gap)
+                      ctx.save();
+                      ctx.fillStyle = "transparent";
+                      ctx.strokeStyle = SELECTED_PLOT_PURPLE_COLOR;
+                      ctx.lineWidth = SELECTED_PLOT_BORDER_WIDTH;
+
+                      // For rect pointStyle, Chart.js draws a square with side = pointRadius * 2
+                      // But the actual rendered size might be slightly different
+                      const size = pointRadius * 2 - 3;
+                      const halfSize = size / 2;
+
+                      if (pointStyle === "rect") {
+                        ctx.strokeRect(x - halfSize, y - halfSize, size, size);
+                      } else {
+                        // Circle
+                        ctx.beginPath();
+                        ctx.arc(x, y, pointRadius - 1.5, 0, Math.PI * 2);
+                        ctx.stroke();
+                      }
+                      ctx.restore();
+                    }
+                  }
+                });
+              });
+            }
+
             // Draw selection point for the hovered data point
             const activeElements = chart.getActiveElements();
             for (const activeElement of activeElements) {
@@ -526,38 +581,6 @@ const ScatterChart = React.memo(
                 const pointRadius = dataPoint.options.radius;
                 const pointStyle = dataPoint.options.pointStyle;
                 drawSelectionPoint(x, y, pointRadius, pointStyle);
-              }
-            }
-
-            // Draw the circle around currently selected element (i.e. clicked)
-            const [selectedPointDatasetIndex, selectedPointIndex] = selectedPointRef.current || [];
-            if (selectedPointDatasetIndex !== undefined && selectedPointIndex !== undefined) {
-              const dataPoint = chart.getDatasetMeta(selectedPointDatasetIndex).data[selectedPointIndex];
-              if (dataPoint) {
-                const { x, y } = dataPoint.getProps(["x", "y"], true);
-                const pointRadius = dataPoint.options.radius;
-                const pointStyle = dataPoint.options.pointStyle;
-                drawSelectionPoint(x, y, pointRadius, pointStyle, "#387F5C");
-
-                // Draw grid lines from selected point to axes
-                ctx.save();
-                ctx.strokeStyle = "#387F5C";
-                ctx.lineWidth = 1.5;
-                ctx.setLineDash([4, 4]);
-
-                // Draw vertical line from point to X axis (bottom)
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x, chart.chartArea.bottom);
-                ctx.stroke();
-
-                // Draw horizontal line from point to Y axis (left)
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(chart.chartArea.left, y);
-                ctx.stroke();
-
-                ctx.restore();
               }
             }
           },
@@ -722,7 +745,7 @@ const ScatterChart = React.memo(
 
             let wasUnfrozen = false;
 
-            // Don't freeze/unfreeze when clicking on preview plots
+            // Don't freeze/unfreeze when clicking on preview plots or data points
             if (!isPreviewPlot) {
               // If already frozen, unfreeze on ANY click (including pods)
               if (frozenCrosshairRef.current) {
@@ -736,6 +759,7 @@ const ScatterChart = React.memo(
                 onFreezeChange?.(true);
                 chart.render();
               }
+              // When clicking on a data point, don't freeze - just pass through the click
             }
 
             // Prepare payload
@@ -755,12 +779,8 @@ const ScatterChart = React.memo(
             if (activeElements.length > 0) {
               const activeElement = activeElements[0];
 
-              // Don't set selected point for preview plots (they should not show selection indicator)
-              if (!isPreviewPlot) {
-                selectedPointRef.current = [activeElement.datasetIndex, activeElement.index];
-              } else {
-                selectedPointRef.current = null;
-              }
+              // Don't set selected point - we're removing the green border selection indicator
+              selectedPointRef.current = null;
 
               const dataPoint = chart.data.datasets[activeElement.datasetIndex].data[activeElement.index] as Point & {
                 [key: string]: any;
@@ -882,6 +902,11 @@ const ScatterChart = React.memo(
  * - Early exits minimize unnecessary computation
  */
 function areScatterChartPropsEqual(prevProps: ScatterChartProps, nextProps: ScatterChartProps): boolean {
+  // Check highlightedEventIds first - if different, re-render
+  if (prevProps.highlightedEventIds !== nextProps.highlightedEventIds) {
+    return false;
+  }
+
   // Fast reference equality check first - if data objects are the same, skip deep comparison
   if (prevProps.data === nextProps.data) {
     // Still need to check other props for changes
