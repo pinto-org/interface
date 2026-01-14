@@ -1,0 +1,14 @@
+query ReferralLeaderboard($first: Int!, $skip: Int!, $block: Block_height) {
+  farmers(
+    first: $first
+    skip: $skip
+    orderBy: totalReferralRewardPodsReceived
+    orderDirection: desc
+    where: { refereeCount_gte: 0 }
+    block: $block
+  ) {
+    id
+    refereeCount
+    totalReferralRewardPodsReceived
+  }
+}

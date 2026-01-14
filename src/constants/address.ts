@@ -19,9 +19,13 @@ export const SILO_HELPERS_ADDRESS: HashString = "0xE145082A7C5EDd1767f8148A6c29a
 
 export const SOW_BLUEPRINT_V0_ADDRESS: HashString = "0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B";
 
+export const SOW_BLUEPRINT_REFERRAL_V0_ADDRESS: HashString = "0xCa9fdD6653c851014Ef8aBE7Bd7ec8A8B02c41d0"; // Placeholder - update after deployment
+
 export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = "0x5167Ae1fF37bE08D9cc9188C7e64DB228B6F06ca";
 
 export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
+
+export const SOW_BLUEPRINT_REFERRAL_V0_SELECTOR = "0xd3936ead" as const; // Placeholder - update after deployment
 
 export const CONVERT_UP_BLUEPRINT_V0_SELECTOR = "0x0fd2f3ed" as const;
 

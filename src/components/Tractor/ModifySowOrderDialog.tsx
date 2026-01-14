@@ -1,9 +1,11 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
 
+import { TV } from "@/classes/TokenValue";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import { Form } from "@/components/Form";
 import TooltipSimple from "@/components/TooltipSimple";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
 import {
   Dialog,
@@ -14,28 +16,48 @@ import {
   DialogPortal,
   DialogTitle,
 } from "@/components/ui/Dialog";
+import { Separator } from "@/components/ui/Separator";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
+import { useReferralCode } from "@/hooks/tractor/useReferralCode";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent, SowBlueprintData, prepareRequisitionForTxn } from "@/lib/Tractor";
+import { RequisitionEvent, SowBlueprintData, decodeSowTractorData, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
-import { postSanitizedSanitizedValue } from "@/utils/string";
+import { encodeReferralAddress, isValidReferralCode } from "@/utils/referral";
+import { postSanitizedSanitizedValue, sanitizeNumericInputValue } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
+import { cn } from "@/utils/utils";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useWatch } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import { SowOrderV0TokenStrategyDialog } from "../SowOrderDialog";
+import { SowOrderEstimatedTipPaid } from "./Sow/SowOrderEstimatedTipPaid";
+import {
+  SowOrderEntryFormParametersSummary,
+  SowOrderFormAdvancedParametersSummary,
+  SowOrderFormButtonRow,
+} from "./Sow/SowOrderSharedComponents";
+import SowOrderTractorAdvancedForm from "./Sow/SowOrderTractorAdvancedForm";
 import SowOrderV0Fields from "./form/SowOrderV0Fields";
 import { useSowOrderV0Form, useSowOrderV0State } from "./form/SowOrderV0Schema";
+import {
+  OperatorTipFormField,
+  TractorOperatorTipStrategy,
+  getTractorOperatorTipAmountFromPreset,
+} from "./form/fields/sharedFields";
 
 interface ModifyTractorOrderDialogProps {
   open: boolean;
@@ -63,55 +85,247 @@ export default function ModifyTractorOrderDialog({
   // Local State
   const [showReview, setShowReview] = useState(false);
   const [showTokenSelectionDialog, setShowTokenSelectionDialog] = useState(false);
+  const [formStep, setFormStep] = useState<1 | 2 | 3>(1); // MAIN_FORM = 1, REVIEW = 2, ADVANCED = 3
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
+  const [operatorTipPreset, setOperatorTipPreset] = useState<TractorOperatorTipStrategy>("Normal");
+  const [referralPopoverOpen, setReferralPopoverOpen] = useState(false);
+
+  // Draft state management for advanced editing
+  const [draftState, setDraftState] = useState<{
+    isActive: boolean;
+    originalValues: Partial<ReturnType<typeof useSowOrderV0Form>["form"]["getValues"]> | null;
+  }>({
+    isActive: false,
+    originalValues: null,
+  });
+
+  // Refs for operator tip state management
+  const previousPresetRef = useRef<TractorOperatorTipStrategy | null>(null);
+  const originalTipRef = useRef<string | null>(null);
+
+  // Referral code hook
+  const [searchParams] = useSearchParams();
+  const { referralCode: hookReferralCode, setReferralCode: setHookReferralCode } = useReferralCode();
 
   // Effects. Pre-fill form with existing order data
   const [didPrefill, setDidPrefill] = useState(false);
 
   useEffect(() => {
+    if (!open) {
+      // Reset when dialog closes
+      setDidPrefill(false);
+      return;
+    }
     if (didPrefill || getStrategyProps.isLoading || !existingOrder.decodedData) return;
 
-    if (open) {
-      const data = existingOrder.decodedData;
-      const tokenStrategy = getStrategyProps.getTokenStrategy(data);
+    const data = existingOrder.decodedData;
+    const tokenStrategy = getStrategyProps.getTokenStrategy(data);
 
-      prefillValues({
-        totalAmount: formatter.noDecTrunc(data.sowAmounts.totalAmountToSowAsString),
-        minSoil: formatter.noDecTrunc(data.sowAmounts.minAmountToSowPerSeasonAsString),
-        maxPerSeason: formatter.noDecTrunc(data.sowAmounts.maxAmountToSowPerSeasonAsString),
-        temperature: formatter.noDecTrunc(data.minTempAsString),
-        podLineLength: formatter.noDecTrunc(data.maxPodlineLengthAsString),
-        operatorTip: formatter.noDecTrunc(data.operatorParams.operatorTipAmountAsString),
-        morningAuction: data.runBlocksAfterSunrise === 0n,
-        selectedTokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
-      });
-      setDidPrefill(true);
+    // Try to extract referral address from existing order
+    let referralCodeFromOrder: string | undefined;
+    try {
+      const decodedResult = decodeSowTractorData(existingOrder.requisition.blueprint.data);
+      if (decodedResult && "blueprintData" in decodedResult && decodedResult.referralAddress) {
+        // Encode referral address to referral code
+        referralCodeFromOrder = encodeReferralAddress(decodedResult.referralAddress);
+      }
+    } catch (e) {
+      console.debug("Could not extract referral address from existing order:", e);
     }
-  }, [open, existingOrder, didPrefill, prefillValues, getStrategyProps]);
+
+    // Priority: URL param > existing order > hook value
+    const refParam = searchParams.get("ref");
+    // Fix: searchParams.get() converts + to space, so we need to restore it
+    const decodedRef = refParam ? refParam.replace(/ /g, "+") : null;
+    const referralCodeCandidate = decodedRef || referralCodeFromOrder || hookReferralCode || "";
+
+    // Only use referral code if it's valid
+    const referralCodeToUse =
+      referralCodeCandidate && isValidReferralCode(referralCodeCandidate) ? referralCodeCandidate : "";
+
+    if (referralCodeToUse) {
+      setHookReferralCode(referralCodeToUse);
+    }
+
+    prefillValues({
+      totalAmount: formatter.noDecTrunc(data.sowAmounts.totalAmountToSowAsString),
+      minSoil: formatter.noDecTrunc(data.sowAmounts.minAmountToSowPerSeasonAsString),
+      maxPerSeason: formatter.noDecTrunc(data.sowAmounts.maxAmountToSowPerSeasonAsString),
+      temperature: formatter.noDecTrunc(data.minTempAsString),
+      podLineLength: formatter.noDecTrunc(data.maxPodlineLengthAsString),
+      operatorTip: formatter.noDecTrunc(data.operatorParams.operatorTipAmountAsString),
+      morningAuction: data.runBlocksAfterSunrise === 0n,
+      selectedTokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
+      referralCode: referralCodeToUse,
+    });
+    setDidPrefill(true);
+  }, [
+    open,
+    existingOrder,
+    didPrefill,
+    prefillValues,
+    getStrategyProps,
+    searchParams,
+    hookReferralCode,
+    setHookReferralCode,
+  ]);
+
+  // Sync hook referral code changes to form
+  useEffect(() => {
+    if (hookReferralCode && hookReferralCode !== form.getValues("referralCode")) {
+      form.setValue("referralCode", hookReferralCode);
+    }
+  }, [hookReferralCode, form]);
+
+  // Set default values for minSoil and maxPerSeason based on totalAmount
+  const mainToken = useChainConstant(MAIN_TOKEN);
+  const [totalAmount] = useWatch({ control: form.control, name: ["totalAmount"] });
+
+  useEffect(() => {
+    if (!totalAmount || totalAmount === "") return;
+
+    const totalAmountTV = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
+    if (totalAmountTV.eq(0)) return;
+
+    // minSoil: min(TotalValueToSow, 25 PINTO)
+    const twentyFivePinto = TV.fromHuman(25, mainToken.decimals);
+    const minSoilValue = TV.min(totalAmountTV, twentyFivePinto);
+    const minSoilFormatted = formatter.number(minSoilValue);
+    form.setValue("minSoil", minSoilFormatted, { shouldValidate: false });
+
+    // maxPerSeason: TotalValueToSow
+    const maxPerSeasonFormatted = formatter.number(totalAmountTV);
+    form.setValue("maxPerSeason", maxPerSeasonFormatted, { shouldValidate: false });
+  }, [totalAmount, mainToken.decimals, form]);
+
+  // Handlers for advanced form
+  const handleSetAdvanced = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Store current form values as original before entering draft mode
+    setDraftState({
+      isActive: true,
+      originalValues: form.getValues(),
+    });
+
+    setFormStep(3); // ADVANCED
+  };
+
+  const handleAdvancedSubmit = () => {
+    // Commit the changes - clear draft state
+    setDraftState({
+      isActive: false,
+      originalValues: null,
+    });
+    setFormStep(2); // REVIEW
+  };
+
+  const handleAdvancedCancel = () => {
+    // Revert changes - restore original values
+    if (draftState.originalValues) {
+      form.reset(draftState.originalValues);
+    }
+
+    setDraftState({
+      isActive: false,
+      originalValues: null,
+    });
+    setFormStep(2); // REVIEW
+  };
+
+  const handleSetAccordionValue = (value: string) => {
+    if (accordionValue === "advanced-settings" && formStep === 3) {
+      return;
+    }
+    setAccordionValue(value);
+  };
+
+  const handleSetOperatorTipPreset = (preset: TractorOperatorTipStrategy) => {
+    if (preset === "Custom") {
+      if (operatorTipPreset !== "Custom") {
+        // First time going to Custom: store original state
+        previousPresetRef.current = operatorTipPreset;
+        originalTipRef.current = form.getValues("operatorTip") ?? null;
+      } else {
+        // Re-entering Custom: reset tip to original + cache current state for cancel
+        if (originalTipRef.current) {
+          form.setValue("operatorTip", originalTipRef.current);
+        }
+      }
+    } else {
+      // Switching to non-Custom preset: clear refs and update operatorTip value
+      previousPresetRef.current = null;
+      originalTipRef.current = null;
+
+      // Calculate and set the new tip value based on preset
+      const tipAmount = getTractorOperatorTipAmountFromPreset(
+        preset,
+        averageTipValue,
+        form.getValues("customOperatorTip"),
+        mainToken.decimals,
+      );
+      if (tipAmount) {
+        form.setValue("operatorTip", tipAmount.toHuman());
+      }
+    }
+
+    // For Custom preset, update operatorTip from customOperatorTip
+    if (preset === "Custom") {
+      const customTip = form.getValues("customOperatorTip");
+      if (customTip) {
+        form.setValue("operatorTip", customTip);
+      }
+    }
+
+    setOperatorTipPreset(preset);
+  };
 
   // Callbacks
   // Handle creating the modified order
   const handleNext = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    e.stopPropagation();
 
-    const isValid = await form.trigger();
-
-    if (!isValid) {
+    if (formStep === 1) {
+      // MAIN_FORM -> REVIEW
+      const isValid = await form.trigger();
+      if (isValid) {
+        setFormStep(2);
+      }
       return;
     }
 
-    await handleCreateBlueprint(form, undefined, {
-      onSuccess: () => {
-        setShowReview(true);
-      },
-      onFailure: () => {
-        toast.error(e instanceof Error ? e.message : "Failed to create order");
-      },
-    });
+    if (formStep === 2) {
+      // REVIEW -> Create blueprint and show review dialog
+      await handleCreateBlueprint(form, undefined, {
+        onSuccess: () => {
+          setShowReview(true);
+        },
+        onFailure: () => {
+          toast.error("Failed to create order");
+        },
+      });
+    }
   };
 
   // Handle back button
-  const handleBack = () => {
-    onOpenChange(false);
+  const handleBack = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (formStep === 2) {
+      // REVIEW -> MAIN_FORM
+      setFormStep(1);
+    } else if (formStep === 3) {
+      // ADVANCED -> REVIEW
+      handleAdvancedCancel();
+    } else {
+      // MAIN_FORM -> Close dialog
+      onOpenChange(false);
+    }
   };
 
   if (!open) return null;
@@ -135,8 +349,14 @@ export default function ModifyTractorOrderDialog({
             <Col className="gap-6">
               <DialogHeader>
                 <DialogTitle>
-                  <div className="pinto-body font-medium text-pinto-secondary">
-                    🚜 Update Conditions for automated Sowing
+                  <div className="flex justify-between items-center">
+                    <div className="pinto-body font-medium text-pinto-secondary">
+                      🚜 Update Conditions for automated Sowing
+                    </div>
+                    <SowOrderV0Fields.ReferralCodePopover
+                      open={referralPopoverOpen}
+                      onOpenChange={setReferralPopoverOpen}
+                    />
                   </div>
                 </DialogTitle>
                 <DialogDescription className="pinto-sm-light text-pinto-light pt-2">
@@ -147,80 +367,134 @@ export default function ModifyTractorOrderDialog({
               <Form {...form}>
                 <div className="h-[1px] w-full bg-pinto-gray-2" />
                 <div className="flex flex-col gap-6">
-                  {/* Main Form */}
-                  <SowOrderV0Fields>
-                    {/* I want to Sow up to */}
-                    <SowOrderV0Fields.TotalAmount />
-                    {/* Min and Max per Season - combined in a single row */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex gap-4">
-                        <SowOrderV0Fields.MinSoil />
-                        <SowOrderV0Fields.MaxPerSeason />
-                      </div>
-                    </div>
-                    {/* Fund order using */}
-                    <SowOrderV0Fields.TokenStrategy openDialog={() => setShowTokenSelectionDialog(true)} />
-                    {/* Execute when Temperature is at least */}
-                    <SowOrderV0Fields.Temperature />
-                    {/* Execute when the length of the Pod Line is at most */}
-                    <SowOrderV0Fields.PodLineLength />
-                    {/* Execute during the Morning Auction */}
-                    <SowOrderV0Fields.MorningAuction />
-                    <SowOrderV0Fields.OperatorTip averageTipPaid={averageTipValue} noInitToAverageTipPaid />
-                    <SowOrderV0Fields.ExecutionsAndTip />
-                  </SowOrderV0Fields>
-
-                  <Row className="gap-6">
-                    <Button
-                      variant="outline"
-                      size="xlargest"
-                      rounded="full"
-                      className="flex-1 text-pinto-light bg-pinto-gray-1"
-                      onClick={handleBack}
-                      type="button"
-                    >
-                      ← Back
-                    </Button>
-                    <TooltipSimple
-                      content={
-                        isMissingFields ? (
-                          <div className="p-1">
-                            <div className="font-medium mb-1">Please fill in the following fields:</div>
-                            <ul className="list-disc pl-4 text-sm">
-                              {missingFields.map((field) => (
-                                <li key={field}>{field}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        ) : null
-                      }
-                      side="top"
-                      align="center"
-                      // Only show tooltip when there are missing fields or errors
-                      disabled={!isMissingFields}
-                    >
-                      <div className="flex-1">
+                  {formStep === 1 ? (
+                    // Step 1 - Main Form
+                    <Col className="gap-6 pinto-sm-light text-pinto-light">
+                      <SowOrderV0Fields>
+                        {/* Sow Using */}
+                        <SowOrderV0Fields.TokenStrategy openDialog={() => setShowTokenSelectionDialog(true)} />
+                        {/* I want to Sow up to */}
+                        <SowOrderV0Fields.TotalAmount farmerDeposits={farmerDeposits} />
+                        {/* Execute when Temperature is at least */}
+                        <SowOrderV0Fields.Temperature />
+                        {/* Execute during the Morning Auction */}
+                        <SowOrderV0Fields.MorningAuction />
+                        {/* Pods Display */}
+                        <SowOrderV0Fields.PodDisplay onOpenReferralPopover={() => setReferralPopoverOpen(true)} />
+                      </SowOrderV0Fields>
+                      <Row className="gap-6">
                         <Button
+                          variant="outline"
                           size="xlargest"
                           rounded="full"
-                          className={`w-full ${
-                            isLoading ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"
-                          }`}
-                          disabled={nextDisabled}
-                          onClick={handleNext}
+                          className="flex-1 text-pinto-light bg-pinto-gray-1"
+                          onClick={handleBack}
                           type="button"
                         >
-                          {isLoading ? (
-                            <div className="flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
-                            </div>
-                          ) : (
-                            "Review"
-                          )}
+                          ← Back
                         </Button>
+                        <TooltipSimple
+                          content={
+                            isMissingFields ? (
+                              <div className="p-1">
+                                <div className="font-medium mb-1">Please fill in the following fields:</div>
+                                <ul className="list-disc pl-4 text-sm">
+                                  {missingFields.map((field) => (
+                                    <li key={field}>{field}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null
+                          }
+                          side="top"
+                          align="center"
+                          disabled={!isMissingFields}
+                        >
+                          <div className="flex-1">
+                            <Button
+                              size="xlargest"
+                              rounded="full"
+                              className={`w-full ${
+                                isLoading ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"
+                              }`}
+                              disabled={nextDisabled}
+                              onClick={handleNext}
+                              type="button"
+                            >
+                              {isLoading ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                                </div>
+                              ) : (
+                                "Next"
+                              )}
+                            </Button>
+                          </div>
+                        </TooltipSimple>
+                      </Row>
+                    </Col>
+                  ) : formStep === 2 ? (
+                    // Step 2 - Review
+                    <Col className="gap-6 w-full">
+                      <div className="flex flex-col gap-2">
+                        <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Review your bid</div>
+                        <Separator className="h-[1px] w-full bg-pinto-gray-2" />
                       </div>
-                    </TooltipSimple>
-                  </Row>
+                      <Col className="w-full gap-5">
+                        <Col className="w-full gap-3">
+                          <SowOrderEntryFormParametersSummary />
+                          <Accordion
+                            className="AccordionRoot"
+                            type="single"
+                            collapsible
+                            value={accordionValue}
+                            onValueChange={handleSetAccordionValue}
+                          >
+                            <AccordionItem
+                              className={cn(
+                                "AccordionItem",
+                                "border-[1px] px-2 border-pinto-gray-2 rounded-md bg-white",
+                              )}
+                              value="advanced-settings"
+                            >
+                              <AccordionTrigger
+                                className="pinto-sm-light text-pinto-secondary"
+                                iconClassName="text-pinto-secondary"
+                              >
+                                <span>Advanced</span>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <SowOrderFormAdvancedParametersSummary toggleEdit={handleSetAdvanced} />
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                          <Col className="gap-2">
+                            <OperatorTipFormField
+                              averageTipPaid={averageTipValue}
+                              preset={operatorTipPreset}
+                              setPreset={handleSetOperatorTipPreset}
+                            />
+                            <SowOrderEstimatedTipPaid
+                              averageTipPaid={averageTipValue}
+                              operatorTipPreset={operatorTipPreset}
+                            />
+                          </Col>
+                        </Col>
+                      </Col>
+                      <SowOrderFormButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
+                    </Col>
+                  ) : formStep === 3 ? (
+                    // Step 3 - Advanced Form
+                    <Col className="gap-6 w-full">
+                      <div className="flex flex-col gap-2">
+                        <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Advanced Parameters</div>
+                        <Separator className="h-[1px] w-full bg-pinto-gray-2" />
+                      </div>
+                      <div className="py-3">
+                        <SowOrderTractorAdvancedForm onSubmit={handleAdvancedSubmit} onCancel={handleAdvancedCancel} />
+                      </div>
+                    </Col>
+                  ) : null}
                 </div>
                 {/* Token Selection Dialog */}
                 <SowOrderV0TokenStrategyDialog
@@ -483,7 +757,9 @@ const RenderConstantParam = (props: ValueDiff<unknown>) => {
         const strategy = prev as ExtendedTractorTokenStrategy;
         switch (true) {
           case strategy.type === "SPECIFIC_TOKEN":
-            return strategy.token?.symbol ?? "Unknown Token";
+            return (
+              (strategy as { type: "SPECIFIC_TOKEN"; token?: { symbol: string } }).token?.symbol ?? "Unknown Token"
+            );
           case strategy.type === "LOWEST_PRICE":
             return "Token with lowest price";
           default:
@@ -531,7 +807,7 @@ const RenderTokenStrategyDiff = ({ prev, curr }: RenderDiffProps<ExtendedTractor
   const getName = (strategy: ExtendedTractorTokenStrategy) => {
     switch (true) {
       case strategy.type === "SPECIFIC_TOKEN":
-        return strategy.token?.symbol ?? "Unknown Token";
+        return (strategy as { type: "SPECIFIC_TOKEN"; token?: { symbol: string } }).token?.symbol ?? "Unknown Token";
       case strategy.type === "LOWEST_PRICE":
         return "Token with lowest price";
       default:

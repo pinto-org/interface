@@ -6105,6 +6105,115 @@ export const beanstalkAbi = [
     outputs: [{ name: '', internalType: 'string', type: 'string' }],
     stateMutability: 'view',
   },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'referrer',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'referrerIndex',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'referrerPods',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'referee',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'refereeIndex',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'refereePods',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'SowReferral',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'delegate', internalType: 'address', type: 'address' }],
+    name: 'delegateReferralRewards',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getBeanSownEligibilityThreshold',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'referrer', internalType: 'address', type: 'address' }],
+    name: 'getBeansSownForReferral',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'referrer', internalType: 'address', type: 'address' }],
+    name: 'getDelegate',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getRefereePercentage',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getReferrerPercentage',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'referrer', internalType: 'address', type: 'address' }],
+    name: 'isValidReferrer',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'beans', internalType: 'uint256', type: 'uint256' },
+      { name: 'minTemperature', internalType: 'uint256', type: 'uint256' },
+      { name: 'minSoil', internalType: 'uint256', type: 'uint256' },
+      { name: 'mode', internalType: 'enum LibTransfer.From', type: 'uint8' },
+      { name: 'referral', internalType: 'address', type: 'address' },
+    ],
+    name: 'sowWithReferral',
+    outputs: [
+      { name: 'pods', internalType: 'uint256', type: 'uint256' },
+      { name: 'referrerPods', internalType: 'uint256', type: 'uint256' },
+      { name: 'refereePods', internalType: 'uint256', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+  },
 ] as const
 
 /**
@@ -13200,6 +13309,99 @@ export const useReadBeanstalk_Uri = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBeanSownEligibilityThreshold"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadBeanstalk_GetBeanSownEligibilityThreshold =
+  /*#__PURE__*/ createUseReadContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'getBeanSownEligibilityThreshold',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBeansSownForReferral"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadBeanstalk_GetBeansSownForReferral =
+  /*#__PURE__*/ createUseReadContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'getBeansSownForReferral',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getDelegate"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadBeanstalk_GetDelegate = /*#__PURE__*/ createUseReadContract(
+  { abi: beanstalkAbi, address: beanstalkAddress, functionName: 'getDelegate' },
+)
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRefereePercentage"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadBeanstalk_GetRefereePercentage =
+  /*#__PURE__*/ createUseReadContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'getRefereePercentage',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getReferrerPercentage"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadBeanstalk_GetReferrerPercentage =
+  /*#__PURE__*/ createUseReadContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'getReferrerPercentage',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"isValidReferrer"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadBeanstalk_IsValidReferrer =
+  /*#__PURE__*/ createUseReadContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'isValidReferrer',
+  })
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -14402,6 +14604,38 @@ export const useWriteBeanstalk_Sunrise = /*#__PURE__*/ createUseWriteContract({
   address: beanstalkAddress,
   functionName: 'sunrise',
 })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"delegateReferralRewards"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_DelegateReferralRewards =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'delegateReferralRewards',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sowWithReferral"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_SowWithReferral =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'sowWithReferral',
+  })
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__
@@ -15628,6 +15862,38 @@ export const useSimulateBeanstalk_Sunrise =
   })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"delegateReferralRewards"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_DelegateReferralRewards =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'delegateReferralRewards',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sowWithReferral"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_SowWithReferral =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'sowWithReferral',
+  })
+
+/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -16804,6 +17070,22 @@ export const useWatchBeanstalk_Uri = /*#__PURE__*/ createUseWatchContractEvent({
   address: beanstalkAddress,
   eventName: 'URI',
 })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"SowReferral"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWatchBeanstalk_SowReferral =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    eventName: 'SowReferral',
+  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkPriceAbi}__

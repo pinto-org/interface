@@ -18,6 +18,7 @@ const NAVIGATION_EVENTS = {
   MAIN_SILO_CLICK: "navigation_main_silo_click",
   MAIN_FIELD_CLICK: "navigation_main_field_click",
   MAIN_SWAP_CLICK: "navigation_main_swap_click",
+  MAIN_REFERRAL_CLICK: "navigation_main_referral_click",
   MAIN_PODMARKET_CLICK: "navigation_main_podmarket_click",
   MAIN_SPINTO_CLICK: "navigation_main_spinto_click",
   MAIN_COLLECTION_CLICK: "navigation_main_collection_click",
@@ -146,6 +147,26 @@ const SILO_EVENTS = {
   WRAPPED_TOKEN_SPECTRA_POOL_CLICK: "silo_wrapped_token_spectra_pool_click",
   WRAPPED_TOKEN_SPECTRA_FIXED_RATE_CLICK: "silo_wrapped_token_spectra_fixed_rate_click",
   WRAPPED_TOKEN_SPECTRA_YIELD_TRADING_CLICK: "silo_wrapped_token_spectra_yield_trading_click",
+} as const;
+
+// Referral Events
+const REFERRAL_EVENTS = {
+  // Referral Tab & Page
+  TAB_OPENED: "referral_tab_opened",
+  PAGE_VIEWED: "referral_page_viewed",
+
+  // Link Generation & Sharing
+  LINK_GENERATED: "referral_link_generated",
+  LINK_COPIED: "referral_link_copied",
+  LINK_SHARED: "referral_link_shared",
+  TWITTER_SHARE: "referral_twitter_share",
+
+  // Validation
+  ELIGIBILITY_CHECKED: "referral_eligibility_checked",
+  VALIDATION_FAILED: "referral_validation_failed",
+
+  // Transaction Events
+  SOW_WITH_REFERRAL: "referral_sow_executed",
 } as const;
 
 // Field Events
@@ -424,6 +445,7 @@ export const ANALYTICS_EVENTS = {
   WALLET: WALLET_EVENTS,
   SILO: SILO_EVENTS,
   FIELD: FIELD_EVENTS,
+  REFERRAL: REFERRAL_EVENTS,
   SWAP: SWAP_EVENTS,
   MARKET: MARKET_EVENTS,
   COLLECTION: COLLECTION_EVENTS,
@@ -442,6 +464,7 @@ export type AnalyticsEventName =
   | (typeof WALLET_EVENTS)[keyof typeof WALLET_EVENTS]
   | (typeof SILO_EVENTS)[keyof typeof SILO_EVENTS]
   | (typeof FIELD_EVENTS)[keyof typeof FIELD_EVENTS]
+  | (typeof REFERRAL_EVENTS)[keyof typeof REFERRAL_EVENTS]
   | (typeof SWAP_EVENTS)[keyof typeof SWAP_EVENTS]
   | (typeof MARKET_EVENTS)[keyof typeof MARKET_EVENTS]
   | (typeof COLLECTION_EVENTS)[keyof typeof COLLECTION_EVENTS]

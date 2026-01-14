@@ -402,3 +402,70 @@ export interface MinimumViableBlock<T extends number | bigint = number> {
   number: T;
   timestamp: T;
 }
+
+// ---------- REFERRAL LEADERBOARD TYPES ----------
+
+/**
+ * Farmer entity with referral-specific fields
+ */
+export interface ReferralFarmer {
+  /** Ethereum address of the farmer */
+  id: string;
+  /** Number of farmers who used this farmer's referral link */
+  refereeCount: number;
+  /** Total pods earned from referral rewards (as string for BigInt compatibility) */
+  totalReferralRewardPodsReceived: string;
+}
+
+/**
+ * Response type for ReferralLeaderboard query
+ */
+export interface ReferralLeaderboardQuery {
+  farmers: ReferralFarmer[];
+}
+
+/**
+ * Variables for ReferralLeaderboard query
+ */
+export interface ReferralLeaderboardQueryVariables {
+  /** Maximum number of farmers to return */
+  first?: number;
+  /** Number of farmers to skip (for pagination) */
+  skip?: number;
+}
+
+/**
+ * Plot entity for referral-sourced plots
+ */
+export interface ReferralPlot {
+  /** Unique identifier for the plot */
+  id: string;
+  /** Total pods in the plot (as string for BigInt compatibility) */
+  pods: string;
+  /** Plot index */
+  index: string;
+  /** Farmer who owns this plot */
+  farmer: {
+    /** Ethereum address of the farmer */
+    id: string;
+  };
+}
+
+/**
+ * Response type for ReferralPlots query
+ */
+export interface ReferralPlotsQuery {
+  plots: ReferralPlot[];
+}
+
+/**
+ * Variables for ReferralPlots query
+ */
+export interface ReferralPlotsQueryVariables {
+  /** Ethereum address of the farmer to query plots for */
+  farmer: string;
+  /** Maximum number of plots to return */
+  first?: number;
+  /** Number of plots to skip (for pagination) */
+  skip?: number;
+}

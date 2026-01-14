@@ -106,6 +106,11 @@ const AppNavi = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
+            <Link href={navLinks.referral} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_REFERRAL_CLICK)}>
+              Referral
+            </Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
             <Link href={navLinks.sPinto} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_SPINTO_CLICK)}>
               sPinto
             </Link>
