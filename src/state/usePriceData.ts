@@ -70,7 +70,7 @@ const useSelectWellPriceData = () => {
 
       const pool = tokenMap[getTokenIndex(data.pool)];
       const tokens = data.tokens.map((token) => tokenMap[getTokenIndex(token)]);
-      const balances = tokens.map((token, index) => TokenValue.fromBigInt(data.balances[index], token.decimals));
+      const balances = tokens.map((token, index) => TokenValue.fromBigInt(data.balances[index], token?.decimals ?? 0));
 
       return {
         pool,
@@ -247,7 +247,7 @@ export function usePriceData() {
       const combined = [...price.ps, ...deWhitelistedWellsQuery.data];
       for (const wellPriceData of combined) {
         const poolData = selectWellPriceData(wellPriceData);
-        if (poolData) {
+        if (poolData && poolData.pool) {
           pools.push(poolData);
         }
       }

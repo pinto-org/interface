@@ -1,19 +1,11 @@
 import { subgraphs } from "@/constants/subgraph";
 import {
-  PINTO_CBBTC_TOKEN,
-  PINTO_CBETH_TOKEN,
-  PINTO_USDC_TOKEN,
-  PINTO_WETH_TOKEN,
-  PINTO_WSOL_TOKEN,
-} from "@/constants/tokens";
-import {
   BeanstalkSeasonalMarketPerformanceDocument,
   BeanstalkSeasonalMarketPerformanceQuery,
   MarketPerformanceSeasonal,
 } from "@/generated/gql/pintostalk/graphql";
 import { useLPTokenToNonPintoUnderlyingMap } from "@/hooks/pinto/useTokenMap";
 import useTokenData from "@/state/useTokenData";
-import { useChainConstant } from "@/utils/chain";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import {
   SeasonalMarketPerformanceChartData,
@@ -167,35 +159,38 @@ export function useMarketPerformanceCalc(
           }
 
           if (chartType !== SMPChartType.TOKEN_PRICES) {
-            result[symbol] ??= [
-              {
-                season: season.season - 1,
-                value: 0,
-                timestamp: new Date((Number(season.timestamp) - 60 * 60) * 1000),
-              },
-            ];
-            const arr = result[symbol];
+            const seasonValue = season[CHART_FIELDS[chartType % 2][0]][tokenIdx];
+            if (!!seasonValue) {
+              result[symbol] ??= [
+                {
+                  season: season.season - 1,
+                  value: 0,
+                  timestamp: new Date((Number(season.timestamp) - 60 * 60) * 1000),
+                },
+              ];
+              const arr = result[symbol];
 
-            const value =
-              chartType < SMPChartType.USD_CUMULATIVE
-                ? Number(season[CHART_FIELDS[chartType % 2][0]][tokenIdx])
-                : accumulator(chartType)(
-                    arr[arr.length - 1].value,
-                    Number(season[CHART_FIELDS[chartType % 2][0]][tokenIdx]),
-                  );
-            arr.push({
-              season: season.season,
-              value,
-              timestamp: new Date(Number(season.timestamp) * 1000),
-            });
+              const value =
+                chartType < SMPChartType.USD_CUMULATIVE
+                  ? Number(seasonValue)
+                  : accumulator(chartType)(arr[arr.length - 1].value, Number(seasonValue));
+              arr.push({
+                season: season.season,
+                value,
+                timestamp: new Date(Number(season.timestamp) * 1000),
+              });
+            }
           } else {
-            result[symbol] ??= [];
-            result[symbol].push({
-              season: season.season,
-              // biome-ignore lint/style/noNonNullAssertion: can't be null given only valid=true is retrieved from sg.
-              value: Number(season.thisSeasonTokenUsdPrices![tokenIdx]),
-              timestamp: new Date(Number(season.timestamp) * 1000),
-            });
+            // biome-ignore lint/style/noNonNullAssertion: can't be null given only valid=true is retrieved from sg.
+            const seasonValue = season.thisSeasonTokenUsdPrices![tokenIdx];
+            if (!!seasonValue) {
+              result[symbol] ??= [];
+              result[symbol].push({
+                season: season.season,
+                value: Number(seasonValue),
+                timestamp: new Date(Number(season.timestamp) * 1000),
+              });
+            }
           }
           ++tokenIdx;
         }
@@ -203,6 +198,7 @@ export function useMarketPerformanceCalc(
     }
     return result;
   }, [seasonalData, chartType, startSeasons, mainToken.address, lpToUnderlyingMap]);
+
   return responseData;
 }
 

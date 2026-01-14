@@ -165,19 +165,31 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
       const chartData: LineChartData[] = [];
       const tokens: (Token | undefined)[] = [];
       const chartStrokeGradients: StrokeGradientFunction[] = [];
-      for (const token of ["NET", "WETH", "cbETH", "cbBTC", "WSOL"]) {
+      const allTokens = ["NET", "WETH", "cbETH", "wstETH", "cbBTC", "WSOL"];
+      const tokensPresent: string[] = [];
+      for (const token of allTokens) {
+        if (allData[token]?.length > 0) {
+          tokensPresent.push(token);
+        }
+      }
+      for (const token of tokensPresent) {
+        const missingDatapoints = allData.NET.length - allData[token].length;
         for (let i = 0; i < allData[token].length; i++) {
-          chartData[i] ??= {
+          chartData[i + missingDatapoints] ??= {
             timestamp: allData[token][i].timestamp,
             values: [],
           };
           if (dataType !== DataType.PRICE) {
-            chartData[i].values.push(allData[token][i].value);
+            chartData[i + missingDatapoints].values.push(allData[token][i].value);
           } else {
-            chartData[i].values.push(
+            chartData[i + missingDatapoints].values.push(
               transformValue(allData[token][i].value, minValues[token], maxValues[token], priceTransformRanges[token]),
             );
           }
+        }
+        for (let i = 0; i < missingDatapoints; i++) {
+          // Datapoint was missing for this token but present for other tokens
+          chartData[i].values.push(null);
         }
         const tokenObj = tokenConfig.find((t) => t.symbol === token);
         tokens.push(tokenObj);
@@ -298,6 +310,8 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
                 {chartDataset.tokens.map((token, idx) => {
                   const tokenSymbol = token?.symbol ?? "NET";
                   const isNetToken = tokenSymbol === "NET";
+                  const missingDatapoints = allData.NET.length - allData[tokenSymbol].length;
+                  const value = allData[tokenSymbol][displayIndex - missingDatapoints]?.value;
                   return (
                     <div
                       key={`${tokenSymbol}-value`}
@@ -324,7 +338,7 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
                       <div style={{ color: token?.color }} className={`${!token?.color && "text-pinto-green-3"}`}>
                         {tokenSymbol === "NET" && "Total: "}
                         <p className="inline-block w-[7.1ch] text-right">
-                          {displayValueFormatter(allData[tokenSymbol][displayIndex].value)}
+                          {typeof value === "number" ? displayValueFormatter(value) : "-"}
                         </p>
                       </div>
                       {idx < Object.keys(allData).length - 1 && (

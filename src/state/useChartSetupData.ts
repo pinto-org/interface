@@ -2,7 +2,8 @@ import pintoExchangeLogo from "@/assets/misc/pinto-exchange-logo.svg";
 import podIcon from "@/assets/protocol/Pod.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
-import { CBBTC_TOKEN, CBETH_TOKEN, WETH_TOKEN, WSOL_TOKEN } from "@/constants/tokens";
+import { MIN_ADV_SEASON } from "@/components/charts/AdvancedChart";
+import { CBBTC_TOKEN, CBETH_TOKEN, WETH_TOKEN, WSOL_TOKEN, WSTETH_TOKEN } from "@/constants/tokens";
 import { chartFormatters, formatNum, formatPct, formatUSD } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
@@ -72,9 +73,9 @@ interface ChartSetupBase {
   shortTickFormatter: (value: number) => string;
   /**
    * Optinal extra required inputs when using this chart.
-   * START_SEASON: numeric entry for a season number
+   * SEASON: numeric entry for a season number
    */
-  inputOptions?: "SEASON";
+  inputOptions?: { type: "SEASON"; minSeason: number };
 }
 
 export type ChartSetup = ChartSetupBase & {
@@ -1099,7 +1100,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
     description: string;
     formatter: (v: number) => string;
     valueAxis?: string;
-    inputOptions?: "SEASON";
+    inputOptions?: { type: "SEASON"; minSeason: number };
   }) => {
     return {
       id,
@@ -1138,6 +1139,15 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       formatter: usdFormatter,
     }),
     marketEntry({
+      id: "marketPriceWsteth",
+      name: "wstETH Price",
+      icon: WSTETH_TOKEN[mainToken.chainId].logoURI,
+      tooltipTitle: "wstEth Price",
+      description: "wstEth Price",
+      valueAxis: "ethPrice",
+      formatter: usdFormatter,
+    }),
+    marketEntry({
       id: "marketPriceCbbtc",
       name: "cbBTC Price",
       icon: CBBTC_TOKEN[mainToken.chainId].logoURI,
@@ -1160,7 +1170,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative Non-Pinto Value Change",
       description: "Change of non-Pinto liquidity USD value since a selectable starting season.",
       formatter: usdFormatter,
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketCumulativeWethUsd",
@@ -1169,7 +1179,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative WETH Value Change",
       description: "Change of WETH liquidity USD value since a selectable starting season.",
       formatter: usdFormatter,
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketCumulativeCbethUsd",
@@ -1178,7 +1188,16 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative cbETH Value Change",
       description: "Change of cbETH liquidity USD value since a selectable starting season.",
       formatter: usdFormatter,
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
+    }),
+    marketEntry({
+      id: "marketCumulativeWstethUsd",
+      name: "Protocol Cumulative wstETH Value Change (USD)",
+      icon: WSTETH_TOKEN[mainToken.chainId].logoURI,
+      tooltipTitle: "Market: Cumulative wstETH Value Change",
+      description: "Change of wstETH liquidity USD value since a selectable starting season.",
+      formatter: usdFormatter,
+      inputOptions: { type: "SEASON", minSeason: 8000 }, // TODO(wsteth): set this to the wsteth deployment season + 1
     }),
     marketEntry({
       id: "marketCumulativeCbbtcUsd",
@@ -1187,7 +1206,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative cbBTC Value Change",
       description: "Change of cbBTC liquidity USD value since a selectable starting season.",
       formatter: usdFormatter,
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketCumulativeWsolUsd",
@@ -1196,7 +1215,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative WSOL Value Change",
       description: "Change of WSOL liquidity USD value since a selectable starting season.",
       formatter: usdFormatter,
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketSeasonalNonPintoUsd",
@@ -1223,6 +1242,14 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       formatter: usdFormatter,
     }),
     marketEntry({
+      id: "marketSeasonalWstethUsd",
+      name: "Protocol Seasonal wstETH Value Change (USD)",
+      icon: WSTETH_TOKEN[mainToken.chainId].logoURI,
+      tooltipTitle: "Market: Seasonal wstETH Value Change",
+      description: "Change of wstETH liquidity USD value by season.",
+      formatter: usdFormatter,
+    }),
+    marketEntry({
       id: "marketSeasonalCbbtcUsd",
       name: "Protocol Seasonal cbBTC Value Change (USD)",
       icon: CBBTC_TOKEN[mainToken.chainId].logoURI,
@@ -1245,7 +1272,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative Non-Pinto Value Change",
       description: "Percentage change of Non-Pinto liquidity value since a selectable starting season.",
       formatter: chartFormatters.percentFormatter(4),
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketCumulativeWethPercent",
@@ -1254,7 +1281,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative WETH Value Change",
       description: "Percentage change of WETH liquidity value since a selectable starting season.",
       formatter: chartFormatters.percentFormatter(4),
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketCumulativeCbethPercent",
@@ -1263,7 +1290,16 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative cbETH Value Change",
       description: "Percentage change of cbETH liquidity value since a selectable starting season.",
       formatter: chartFormatters.percentFormatter(4),
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
+    }),
+    marketEntry({
+      id: "marketCumulativeWstethPercent",
+      name: "Protocol Cumulative wstETH Value Change (%)",
+      icon: WSTETH_TOKEN[mainToken.chainId].logoURI,
+      tooltipTitle: "Market: Cumulative wstETH Value Change",
+      description: "Percentage change of wstETH liquidity value since a selectable starting season.",
+      formatter: chartFormatters.percentFormatter(4),
+      inputOptions: { type: "SEASON", minSeason: 8000 }, // TODO(wsteth): set this to the wsteth deployment season + 1
     }),
     marketEntry({
       id: "marketCumulativeCbbtcPercent",
@@ -1272,7 +1308,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative cbBTC Value Change",
       description: "Percentage change of cbBTC liquidity value since a selectable starting season.",
       formatter: chartFormatters.percentFormatter(4),
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketCumulativeWsolPercent",
@@ -1281,7 +1317,7 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       tooltipTitle: "Market: Cumulative WSOL Value Change",
       description: "Percentage change of WSOL liquidity value since a selectable starting season.",
       formatter: chartFormatters.percentFormatter(4),
-      inputOptions: "SEASON",
+      inputOptions: { type: "SEASON", minSeason: MIN_ADV_SEASON },
     }),
     marketEntry({
       id: "marketSeasonalNonPintoPercent",
@@ -1305,6 +1341,14 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       icon: CBETH_TOKEN[mainToken.chainId].logoURI,
       tooltipTitle: "Market: Seasonal cbETH Value Change",
       description: "Percentage change of cbETH liquidity value by season.",
+      formatter: chartFormatters.percentFormatter(4),
+    }),
+    marketEntry({
+      id: "marketSeasonalWstethPercent",
+      name: "Protocol Seasonal wstETH Value Change (%)",
+      icon: WSTETH_TOKEN[mainToken.chainId].logoURI,
+      tooltipTitle: "Market: Seasonal wstETH Value Change",
+      description: "Percentage change of wstETH liquidity value by season.",
       formatter: chartFormatters.percentFormatter(4),
     }),
     marketEntry({

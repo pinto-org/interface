@@ -18,7 +18,7 @@ import { LineChartHorizontalReferenceLine, plugins } from "./chartHelpers";
 Chart.register(LineController, LineElement, LinearScale, LogarithmicScale, CategoryScale, PointElement, Filler);
 
 export type LineChartData = {
-  values: number[];
+  values: Array<number | null>;
 } & Record<string, any>;
 
 export type MakeGradientFunction = (
@@ -96,8 +96,14 @@ const LineChart = React.memo(
 
     const [yTickMin, yTickMax] = useMemo(() => {
       // Otherwise calculate based on data
-      const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
-      const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
+      const maxData = data.reduce(
+        (acc, next) => Math.max(acc, ...next.values.filter((v): v is number => v !== null)),
+        Number.MIN_SAFE_INTEGER,
+      );
+      const minData = data.reduce(
+        (acc, next) => Math.min(acc, ...next.values.filter((v): v is number => v !== null)),
+        Number.MAX_SAFE_INTEGER,
+      );
 
       const maxTick = maxData === minData && maxData === 0 ? 1 : maxData;
       let minTick = minData - (maxData - minData) * 0.1;
