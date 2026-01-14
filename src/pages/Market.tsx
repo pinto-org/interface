@@ -17,6 +17,7 @@ import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { calculatePodScore } from "@/utils/podScore";
 import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
+import { exists } from "@/utils/utils";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -35,9 +36,11 @@ import FillOrder from "./market/actions/FillOrder";
 const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
 const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 
+const SELECTED_PLOT_PURPLE_COLOR = "#8B5CF6";
+const SELECTED_PLOT_BORDER_WIDTH = 1.75;
+
 const MILLION = 1_000_000;
 const TOOLTIP_Z_INDEX = 50;
-const CHART_MAX_PRICE = 100;
 // Only use listings with at least this many Pods when computing the Pod Score color range.
 const MIN_PODS_FOR_POD_SCORE_RANGE = 100;
 
@@ -228,9 +231,16 @@ export function Market() {
   const [selectedListingData, setSelectedListingData] = useState<{
     listingId: string;
     placeInLine?: number;
+    pricePerPod?: number;
   } | null>(null);
   const [selectedOrderData, setSelectedOrderData] = useState<{
     orderId: string;
+  } | null>(null);
+
+  // Filter parameters from FillListing for chart highlighting
+  const [fillListingFilters, setFillListingFilters] = useState<{
+    maxPrice: number;
+    maxPlaceInLine: number;
   } | null>(null);
 
   useEffect(() => {
@@ -302,12 +312,40 @@ export function Market() {
       color: "#e0b57d", // fallback color
       pointStyle: "rect" as PointStyle,
       pointRadius: 6,
-      pointBorderColor: "#FF0000", // pinto-red-2 from tailwind config
-      pointBorderWidth: 1, // 1px border
+      pointBorderColor: SELECTED_PLOT_PURPLE_COLOR,
+      pointBorderWidth: SELECTED_PLOT_BORDER_WIDTH,
     };
 
     return [...baseData, selectedPlotsDataset];
   }, [data, harvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
+
+  // Calculate highlighted event IDs (filtered by FillListing parameters)
+  const highlightedEventIds = useMemo(() => {
+    // Only show highlights in buy/fill mode with active filters
+    if (mode !== "buy" || id !== "fill") {
+      return undefined;
+    }
+
+    if (fillListingFilters) {
+      const { maxPrice, maxPlaceInLine } = fillListingFilters;
+
+      if (maxPrice > 0 && maxPlaceInLine > 0) {
+        const ids = new Set<string>();
+        const listingsData = scatterChartData[1]?.data || [];
+
+        listingsData.forEach((point) => {
+          // Filter by both price and place in line criteria
+          if (point.y <= maxPrice && point.x <= maxPlaceInLine / MILLION) {
+            ids.add(point.eventId);
+          }
+        });
+
+        return ids.size > 0 ? ids : undefined;
+      }
+    }
+
+    return undefined;
+  }, [scatterChartData, mode, id, fillListingFilters]);
 
   // Generate unique key for chart when selectedPlotData changes
   const chartDataKey = useMemo(() => {
@@ -479,7 +517,10 @@ export function Market() {
   }, []);
 
   useEffect(() => {
-    if (mode === "buy" && !id) {
+    if (!mode) {
+      // No mode specified (e.g. /market/pods), redirect to buy/fill
+      navigate("/market/pods/buy/fill", { replace: true });
+    } else if (mode === "buy" && !id) {
       navigate("/market/pods/buy/fill", { replace: true });
     } else if (mode === "sell" && !id) {
       navigate("/market/pods/sell/create", { replace: true });
@@ -503,10 +544,8 @@ export function Market() {
 
   // Clear freezed state when switching between any pages (listing/selling)
   useEffect(() => {
-    console.log("Tab changed:", tab, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
     // Only reset chart if not navigating (user manually changed tab)
     if (!isNavigating) {
-      console.log("Unfreezing chart due to tab change");
       setIsCrosshairFrozen(false);
 
       // Force chart re-render to clear frozen state
@@ -523,12 +562,17 @@ export function Market() {
     setIsNavigating(false);
   }, [tab]);
 
+  // Clear fillListingFilters when not in buy/fill mode
+  useEffect(() => {
+    if (mode !== "buy" || id !== "fill") {
+      setFillListingFilters(null);
+    }
+  }, [mode, id]);
+
   // Clear freezed state when switching between Buy/Sell modes
   useEffect(() => {
-    console.log("Mode changed:", mode, "isCrosshairFrozen state:", isCrosshairFrozen, "isNavigating:", isNavigating);
     // Only reset chart if not navigating (user manually changed mode)
     if (!isNavigating) {
-      console.log("Unfreezing chart due to mode change");
       setIsCrosshairFrozen(false);
 
       // Force chart re-render to clear frozen state
@@ -811,9 +855,10 @@ export function Market() {
           setSelectedListingData({
             listingId: dataPoint.eventId,
             placeInLine: placeInLine || undefined,
+            pricePerPod: dataPoint.y || undefined,
           });
-          // Switch to buy mode and listings tab
-          if (mode !== "buy") {
+          // Switch to buy mode and fill action
+          if (mode !== "buy" || id !== "fill") {
             setIsNavigating(true);
             navigate("/market/pods/buy/fill");
           }
@@ -823,8 +868,8 @@ export function Market() {
           setSelectedOrderData({
             orderId: dataPoint.eventId,
           });
-          // Switch to sell mode and orders tab
-          if (mode !== "sell") {
+          // Switch to sell mode and fill action
+          if (mode !== "sell" || id !== "fill") {
             setIsNavigating(true);
             navigate("/market/pods/sell/fill");
           }
@@ -855,9 +900,10 @@ export function Market() {
         setSelectedListingData({
           listingId: dataPoint.eventId,
           placeInLine: placeInLine || undefined,
+          pricePerPod: dataPoint.y || undefined,
         });
-        // Switch to buy mode and listings tab
-        if (mode !== "buy") {
+        // Switch to buy mode and fill action
+        if (mode !== "buy" || id !== "fill") {
           setIsNavigating(true);
           navigate("/market/pods/buy/fill");
         }
@@ -867,8 +913,8 @@ export function Market() {
         setSelectedOrderData({
           orderId: dataPoint.eventId,
         });
-        // Switch to sell mode and orders tab
-        if (mode !== "sell") {
+        // Switch to sell mode and fill action
+        if (mode !== "sell" || id !== "fill") {
           setIsNavigating(true);
           navigate("/market/pods/sell/fill");
         }
@@ -932,8 +978,6 @@ export function Market() {
   const viewMode = mode || "buy";
   const viewAction = id || (viewMode === "buy" ? "fill" : "create");
 
-  console.log("Chart Ref", chartRef.current);
-
   return (
     <>
       <div className="sm:hidden mt-[100px] flex flex-col gap-4 items-center justify-center">
@@ -981,6 +1025,7 @@ export function Market() {
                   onHover={onHover}
                   onFreezeChange={setIsCrosshairFrozen}
                   toolTipOptions={toolTipOptions as TooltipOptions}
+                  highlightedEventIds={highlightedEventIds}
                 />
 
                 {/* Gradient Legend - positioned in top-right corner */}
@@ -1023,6 +1068,7 @@ export function Market() {
                       <FillListing
                         selectedListingId={selectedListingData?.listingId}
                         selectedPlaceInLine={selectedListingData?.placeInLine}
+                        onFilterChange={setFillListingFilters}
                       />
                     )}
                     {viewMode === "sell" && viewAction === "create" && (
