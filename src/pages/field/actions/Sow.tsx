@@ -490,7 +490,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
-            className="text-xs text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
+            className="pinto-sm sm:pinto-body-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
           >
             Have a referral code?
           </button>

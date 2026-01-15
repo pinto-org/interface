@@ -40,6 +40,11 @@ const sharedInputProps = {
   pattern: "[0-9]*.?[0-9]*",
 } as const;
 
+const TEMPERATURE_SLIDER_BOUNDS = {
+  MIN_OFFSET: 100,
+  MAX_OFFSET: 300,
+} as const;
+
 export const TOOLTIP_COPY = {
   tokenStrategy: "The source token(s) to use for the Sow Order.",
   totalAmount: "The total amount of PINTO to Sow in this order.",
@@ -425,8 +430,11 @@ SowOrderV0Fields.Temperature = function Temperature() {
     return Math.floor(temperature.max?.toNumber() || 0);
   }, [maxTemperature, temperature.max]);
 
-  const minTemp = useMemo(() => Math.max(0, currentTempValue - 100), [currentTempValue]);
-  const maxTemp = useMemo(() => currentTempValue + 300, [currentTempValue]);
+  const minTemp = useMemo(
+    () => Math.max(0, currentTempValue - TEMPERATURE_SLIDER_BOUNDS.MIN_OFFSET),
+    [currentTempValue],
+  );
+  const maxTemp = useMemo(() => currentTempValue + TEMPERATURE_SLIDER_BOUNDS.MAX_OFFSET, [currentTempValue]);
 
   // Set default value to current temperature only on initial mount
   useEffect(() => {
