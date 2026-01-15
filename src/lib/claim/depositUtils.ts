@@ -90,7 +90,7 @@ export function generateCombineAndL2LCallData(farmerDeposits: Map<Token, TokenDe
   /*  const highVolumeToken = tokenEntries.find(
       ([_, depositData]) => depositData.deposits.length >= PROCESS_SINGLE_TOKEN_ONLY_THRESHOLD,
     );
-  
+
     if (highVolumeToken) {
       console.debug("Processing single high-volume token:", {
         name: highVolumeToken[0].name,
@@ -467,9 +467,40 @@ export async function generateBatchSortDepositsCallData(
   }
 
   if (!USE_SIMULATION_METHOD) {
-    // Add a pipe call with a call to sortDeposits
-    const sortDepositsCall = encodeSortDepositsCall(account);
-    callData.push(sortDepositsCall);
+    // Check if deposits need sorting by comparing current order
+    const hasNonGerminatingDeposits = Array.from(farmerDeposits.values()).some((data) =>
+      data.deposits.some((d) => !d.isGerminating),
+    );
+
+    let needsSorting = false;
+
+    // Only check if we have combine calls or non-germinating deposits
+    if (callData.length > 0 || hasNonGerminatingDeposits) {
+      // Check if any token's deposits are not already sorted in descending order
+      tokenLoop: for (const [token, depositData] of farmerDeposits.entries()) {
+        const nonGerminatingDeposits = depositData.deposits.filter((d) => !d.isGerminating);
+
+        if (nonGerminatingDeposits.length === 0) continue;
+
+        // Get stems and check if they're already in descending order
+        const stems = nonGerminatingDeposits.map((d) => d.stem.toBigInt());
+
+        // Check if stems are sorted descending - break at first unsorted pair
+        for (let i = 1; i < stems.length; i++) {
+          if (stems[i] > stems[i - 1]) {
+            // Not in descending order
+            needsSorting = true;
+            break tokenLoop;
+          }
+        }
+      }
+    }
+
+    if (needsSorting) {
+      // Add a pipe call with a call to sortDeposits
+      const sortDepositsCall = encodeSortDepositsCall(account);
+      callData.push(sortDepositsCall);
+    }
   }
 
   console.debug(`Generated ${callData.length} total calls (combines + sort deposits)`);
@@ -493,7 +524,9 @@ export function createSmartGroups(deposits: DepositData[], targetGroups: number 
   // Only slice if we have more than MAX_DEPOSITS
   const slicedDeposits = validDeposits.length > MAX_DEPOSITS ? validDeposits.slice(-MAX_DEPOSITS) : validDeposits;
 
-  if (slicedDeposits.length === 0) return [];
+  if (slicedDeposits.length === 0) {
+    return [];
+  }
 
   // Calculate ratio differences between adjacent deposits
   const ratioDiffs = slicedDeposits.slice(1).map((deposit, i) => ({
@@ -548,8 +581,8 @@ export function encodeGroupCombineCalls(
   token: Token,
   deposits: DepositData[],
 ): `0x${string}`[] {
-  // Exclude groups with only one deposit, since they are already alone
-  const groupsToEncode = validGroups.filter((group) => group.deposits.length > 0);
+  // Exclude groups with only one deposit, since they don't need combining
+  const groupsToEncode = validGroups.filter((group) => group.deposits.length > 1);
 
   return groupsToEncode.map((group) => {
     // Get selected deposits for this group
