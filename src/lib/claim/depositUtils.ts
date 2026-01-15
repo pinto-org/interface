@@ -476,19 +476,18 @@ export async function generateBatchSortDepositsCallData(
 
     // Only check if we have combine calls or non-germinating deposits
     if (callData.length > 0 || hasNonGerminatingDeposits) {
-      // Check if any token's deposits are not already sorted in descending order
+      // Check if any token's deposits are not already sorted in ascending order
       tokenLoop: for (const [token, depositData] of farmerDeposits.entries()) {
         const nonGerminatingDeposits = depositData.deposits.filter((d) => !d.isGerminating);
 
         if (nonGerminatingDeposits.length === 0) continue;
 
-        // Get stems and check if they're already in descending order
+        // Get stems and check if they're already in ascending order
         const stems = nonGerminatingDeposits.map((d) => d.stem.toBigInt());
 
-        // Check if stems are sorted descending - break at first unsorted pair
+        // Check if stems are sorted ascending - break at first unsorted pair
         for (let i = 1; i < stems.length; i++) {
-          if (stems[i] > stems[i - 1]) {
-            // Not in descending order
+          if (stems[i] < stems[i - 1]) {
             needsSorting = true;
             break tokenLoop;
           }
