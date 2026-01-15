@@ -27,7 +27,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
   const referralCode = address ? encodeReferralAddress(address) : "";
   const referralUrl = `${window.location.origin}/field?ref=${encodeURIComponent(referralCode)}`;
-  const podDestinationAddress = delegateAddress === ZERO_ADDRESS_HEX ? address : delegateAddress || address;
+  const podDestinationAddress = delegateAddress === ZERO_ADDRESS_HEX ? address : delegateAddress;
 
   const handleCopyCode = () => {
     if (!isWalletConnected) return;
@@ -165,13 +165,15 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
                         >
                           {truncateHex(podDestinationAddress, 6, 4)}
                         </a>
-                        {podDestinationAddress === address && <span className="text-gray-500 ml-2">(Delegated)</span>}
+                        {podDestinationAddress === delegateAddress && (
+                          <span className="text-gray-500 ml-2">(Delegated)</span>
+                        )}
                       </>
                     ) : (
                       "-"
                     )}
                   </span>
-                  {podDestinationAddress !== address && (
+                  {podDestinationAddress !== delegateAddress && (
                     <Button type="button" onClick={onChangeAddress} variant="link" noPadding={true}>
                       Delegate Pods to a different address
                     </Button>
