@@ -1,14 +1,11 @@
-import podIcon from "@/assets/protocol/Pod.png";
 import FrameAnimator from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { useReferralLeaderboard } from "@/state/referral";
-import { formatter, truncateHex } from "@/utils/format";
-import { cn } from "@/utils/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
+import { ReferralLeaderboardRow } from "./ReferralLeaderboardRow";
 
 /**
  * Shows top referrers ranked by Pods earned in a paginated table.
@@ -157,7 +154,7 @@ export default function ReferralLeaderboard() {
             <TableHeader>
               <TableRow noHoverMute className="z-[1] [&>*]:text-pinto-gray-4 sticky -top-[1px]">
                 <TableHead className="w-[5rem]">No.</TableHead>
-                <TableHead className="w-[12.5rem]">Address</TableHead>
+                <TableHead className="w-[12.5rem]">Farmer</TableHead>
                 <TableHead className="w-[9.375rem]">Pods Earned</TableHead>
                 <TableHead className="text-right w-[6.25rem]">Referrals</TableHead>
               </TableRow>
@@ -207,28 +204,18 @@ export default function ReferralLeaderboard() {
           <TableHeader>
             <TableRow noHoverMute className="z-[1] [&>*]:text-pinto-gray-4 sticky -top-[1px]">
               <TableHead className="w-[5rem]">No.</TableHead>
-              <TableHead className="w-[12.5rem]">Address</TableHead>
+              <TableHead className="w-[12.5rem]">Farmer</TableHead>
               <TableHead className="w-[9.375rem]">Pods Earned</TableHead>
               <TableHead className="text-right w-[6.25rem]">Referrals</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginationState.displayData?.map((entry) => (
-              <TableRow key={entry.address} noHoverMute>
-                <TableCell className="font-medium">{entry.rank}</TableCell>
-                <TableCell
-                  className={walletAddress?.toLowerCase() === entry.address.toLowerCase() ? "text-pinto-green" : ""}
-                >
-                  {truncateHex(entry.address, 6, 4)}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <IconImage src={podIcon} size={4} className="scale-110 mr-[0.375rem]" alt="pod icon" />
-                    {formatter.noDec(entry.podsEarned)}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">{entry.totalSuccessfulReferrals}</TableCell>
-              </TableRow>
+              <ReferralLeaderboardRow
+                key={entry.address}
+                entry={entry}
+                isCurrentUser={walletAddress?.toLowerCase() === entry.address.toLowerCase()}
+              />
             ))}
           </TableBody>
         </Table>
