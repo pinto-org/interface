@@ -1,9 +1,17 @@
+import { Link } from "react-router-dom";
 import { StepItem } from "./ui/StepItem";
 
 const steps = [
   {
     title: "Qualify as a Referrer",
-    description: "Sow at least 1,000 Pinto in the Field to unlock your referral link.",
+    description: (
+      <>
+        Sow at least 1,000 Pinto in the Field to unlock your referral link.{" "}
+        <Link to="/field" className="text-pinto-green underline hover:text-pinto-green-3 transition-colors">
+          Sow now
+        </Link>
+      </>
+    ),
   },
   {
     title: "Share Your Link",

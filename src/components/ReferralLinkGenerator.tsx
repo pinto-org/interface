@@ -58,7 +58,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
     console.log("Twitter/X share clicked");
     const tweetText =
-      "🌱 I'm farming on @PintoProtocol and earning passive rewards!\n\nJoin me and I'll earn bonus Pods when you Sow Pinto 🫘\n\nStart farming today:";
+      "I'm farming on @pintodotmoney to contributing to the Pinto economy! 🌱\n\nStart farming today and get a 5% bonus:";
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(referralUrl)}`;
     window.open(twitterUrl, "_blank", "noopener,noreferrer");
 
@@ -72,7 +72,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
     console.log("Telegram share clicked");
     const shareText =
-      "🌱 I'm farming on Pinto Protocol and earning passive rewards! Join me and I'll earn bonus Pods when you Sow Pinto 🫘 Start farming today";
+      "\nI'm farming on @pintodotmoney to contributing to the Pinto economy! 🌱 Start farming today and get a 5% bonus.";
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(shareText)}`;
     window.open(telegramUrl, "_blank", "noopener,noreferrer");
 
@@ -84,7 +84,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="pinto-h3 sm:pinto-h2">Invite via</div>
+      <div className="pinto-h3 sm:pinto-h2">Your Referral Link</div>
 
       <div className="flex flex-col gap-4">
         {/* Only show referral code/link if user meets requirement */}

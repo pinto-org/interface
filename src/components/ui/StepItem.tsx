@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
+
 interface StepItemProps {
   stepNumber: number;
   title: string;
-  description: string;
+  description: string | ReactNode;
 }
 
 export function StepItem({ stepNumber, title, description }: StepItemProps) {
