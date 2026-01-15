@@ -12,12 +12,12 @@ import { PublicClient, decodeAbiParameters, encodeFunctionData } from "viem";
 
 // Constants for deposit management
 const MIN_DEPOSITS_FOR_COMBINING = 25; // Minimum deposits to trigger combining logic
-const MIN_DEPOSITS_FOR_ELIGIBILITY = 20; // Combine down to this many deposits
-const PROCESS_SINGLE_TOKEN_ONLY_THRESHOLD = 200; // If a single token has more than this many deposits, process it alone
-const LARGE_DEPOSITS_THRESHOLD = 100; // If a single token has more than this many deposits, process it along with not more than the next variable's worth of tokens at time
-const MAX_TOKENS_WITH_LARGE_DEPOSITS = 3; // Maximum number of tokens to process when large deposits are present
-const MAX_TOP_DEPOSITS = 10; // Maximum number of deposits to L2L update in regular Claim
-const MIN_BDV_THRESHOLD = TokenValue.ONE; // Minimum BDV difference threshold for regular updates, this filters out "dust" updates that are not worth L2L'ing
+// const MIN_DEPOSITS_FOR_ELIGIBILITY = 20; // Combine down to this many deposits
+// const PROCESS_SINGLE_TOKEN_ONLY_THRESHOLD = 200; // If a single token has more than this many deposits, process it alone
+// const LARGE_DEPOSITS_THRESHOLD = 100; // If a single token has more than this many deposits, process it along with not more than the next variable's worth of tokens at time
+// const MAX_TOKENS_WITH_LARGE_DEPOSITS = 3; // Maximum number of tokens to process when large deposits are present
+// const MAX_TOP_DEPOSITS = 10; // Maximum number of deposits to L2L update in regular Claim
+// const MIN_BDV_THRESHOLD = TokenValue.ONE; // Minimum BDV difference threshold for regular updates, this filters out "dust" updates that are not worth L2L'ing
 
 const USE_SIMULATION_METHOD = false; // Turning this off for now because it fails due to a complex simulation issue, instead it gets sorted deposits within txn
 
@@ -84,7 +84,7 @@ export function generateCombineAndL2LCallData(farmerDeposits: Map<Token, TokenDe
   //   });
   // }
 
-  console.debug(`Combining logic triggered (${MIN_DEPOSITS_FOR_COMBINING}+ deposits of a single token)`);
+  // console.debug(`Combining logic triggered (${MIN_DEPOSITS_FOR_COMBINING}+ deposits of a single token)`);
 
   // Check if any token has more than PROCESS_SINGLE_TOKEN_ONLY_THRESHOLD deposits
   /*  const highVolumeToken = tokenEntries.find(
@@ -157,7 +157,6 @@ function decodeSortedDepositsResult(
 
     if (stemCount > 0 && stemCount < 1000) {
       // Sanity check on the count
-      console.debug(`Decoding ${stemCount} sorted deposits`);
 
       // Start position for stem array elements (after the length field)
       const stemStartPos = stemCountPosition + 64;
@@ -186,7 +185,6 @@ function decodeSortedDepositsResult(
           amounts.push(amountValue);
         }
 
-        console.debug(`Successfully decoded ${stems.length} stems and ${amounts.length} amounts`);
         return { stems, amounts };
       } else {
         console.error(`Amount count (${amountCount}) doesn't match stem count (${stemCount})`);
@@ -247,8 +245,6 @@ export async function simulateAndPrepareFarmCalls(
   farmerDeposits: Map<Token, TokenDepositData>,
   sender?: `0x${string}`,
 ): Promise<`0x${string}`[] | null> {
-  console.debug(`Simulating and preparing farm calls for ${token.symbol}`);
-
   try {
     // Create a call to getSortedDeposits from the TractorHelpers contract
     const getSortedDepositsCall = encodeFunctionData({
@@ -277,18 +273,14 @@ export async function simulateAndPrepareFarmCalls(
       // Generate convert calls with smart limits using our utility function
       const combineCalls = generateCombineAndL2LCallData(farmerDeposits);
       if (combineCalls.length > 0) {
-        console.debug(`Adding ${combineCalls.length} combine/L2L calls to execute before sort deposits`);
         farmCalls.push(...combineCalls);
       } else {
-        console.debug("No combine/L2L calls needed");
       }
     } else {
-      console.debug("No farmer deposits provided, skipping combine/L2L calls");
     }
 
     // Add the pipe call last so we can capture its result
     farmCalls.push(pipeCall);
-    console.debug(`Total farm calls to execute in simulation: ${farmCalls.length}`);
 
     // Simulate the farm call
     const simulationResult = await publicClient.simulateContract({
@@ -299,9 +291,6 @@ export async function simulateAndPrepareFarmCalls(
       account: address,
     });
 
-    console.debug("Simulation completed successfully");
-    console.debug("Number of results:", simulationResult.result?.length || 0);
-
     // The getSortedDeposits result will be the last item in the results array
     const sortDepositsResult = simulationResult.result?.[simulationResult.result.length - 1];
 
@@ -309,8 +298,6 @@ export async function simulateAndPrepareFarmCalls(
       console.error("Sort deposits result is undefined");
       return null;
     }
-
-    console.debug(`Sort deposits result length: ${(sortDepositsResult as `0x${string}`).length}`);
 
     // Decode the result data
     const decodedResult = decodeSortedDepositsResult(sortDepositsResult as `0x${string}`);
@@ -320,8 +307,6 @@ export async function simulateAndPrepareFarmCalls(
       return null;
     }
 
-    console.debug(`Successfully decoded ${decodedResult.stems.length} stems and amounts`);
-
     // Extract the combine/L2L calls from the simulation result
     // Note: We want all calls except the last one (the pipe call)
     const combineCalls: `0x${string}`[] = [];
@@ -329,13 +314,10 @@ export async function simulateAndPrepareFarmCalls(
     // Only add combine calls if we have them in the simulation
     if (farmCalls.length > 1) {
       combineCalls.push(...farmCalls.slice(0, -1));
-      console.debug(`Extracted ${combineCalls.length} combine/L2L calls`);
     }
 
     // Convert the sorted stems to deposit IDs and reverse them for proper sorting order
     const reversedDepositIds = createReversedDepositIds(token.address, decodedResult.stems);
-
-    console.debug(`Generated ${reversedDepositIds.length} deposit IDs from sorted stems`);
 
     // For the actual transaction, we need to use the real sender address in the call
     // Use address for simulation, but zero address for transaction to avoid "tx from field is set" error
@@ -350,9 +332,6 @@ export async function simulateAndPrepareFarmCalls(
 
     // Prepare the final farm calls: combine/L2L calls followed by updateSortedDepositIds
     const finalFarmCalls = [...combineCalls, updateSortedIdsCall];
-
-    // Log details about the operations
-    console.debug(`Final farm calls: ${finalFarmCalls.length} total (${combineCalls.length} combine + 1 update)`);
 
     return finalFarmCalls;
   } catch (error) {
@@ -418,18 +397,13 @@ export async function generateBatchSortDepositsCallData(
   protocolAddress: `0x${string}`,
   sender?: `0x${string}`,
 ): Promise<`0x${string}`[]> {
-  console.debug(`Generating batch sort deposits call data for ${farmerDeposits.size} tokens`);
-
   const callData: `0x${string}`[] = [];
 
   // Process each token in the farmer's deposits
   for (const [token, depositData] of farmerDeposits.entries()) {
     if (!depositData.deposits.length) {
-      console.debug(`Skipping ${token.symbol} - no deposits`);
       continue;
     }
-
-    console.debug(`Processing ${token.symbol} with ${depositData.deposits.length} deposits`);
 
     try {
       // Create a map with only this token's deposits
@@ -459,7 +433,6 @@ export async function generateBatchSortDepositsCallData(
       if (farmCalls && farmCalls.length > 0) {
         // Include all calls from simulateAndPrepareFarmCalls including combines
         callData.push(...farmCalls);
-        console.debug(`Added ${farmCalls.length} calls for ${token.symbol} (includes combine operations)`);
       }
     } catch (error) {
       console.error(`Error processing ${token.symbol}:`, error);
@@ -502,7 +475,6 @@ export async function generateBatchSortDepositsCallData(
     }
   }
 
-  console.debug(`Generated ${callData.length} total calls (combines + sort deposits)`);
   return callData;
 }
 
@@ -613,20 +585,8 @@ export function encodeClaimRewardCombineCalls(
   token: Token,
   targetGroups: number = 20,
 ): `0x${string}`[] {
-  console.debug("Processing deposits for", token.symbol, ":", {
-    depositCount: deposits.length,
-  });
-
   // Use our existing smart grouping logic
   const groups = createSmartGroups(deposits, targetGroups);
-
-  console.debug("Created groups for", token.symbol, ":", {
-    groupCount: groups.length,
-    groups: groups.map((g) => ({
-      id: g.id,
-      depositCount: g.deposits.length,
-    })),
-  });
 
   // Sort groups by average Stalk/BDV ratio
   const groupsWithRatio = groups.map((group) => {
@@ -652,25 +612,12 @@ export function encodeClaimRewardCombineCalls(
     .sort((a, b) => b.stalkPerBdv.sub(a.stalkPerBdv).toNumber())
     .map(({ id, deposits, stalkPerBdv }) => ({ id, deposits, stalkPerBdv }));
 
-  console.debug("Sorted groups by Stalk/BDV ratio for", token.symbol, ":", {
-    sortedGroups: sortedGroups.map((g) => ({
-      id: g.id,
-      depositCount: g.deposits.length,
-      stalkPerBdv: g.stalkPerBdv.toHuman(),
-    })),
-  });
-
   // Use our existing encode function with sorted groups - strip stalkPerBdv before passing
   const result = encodeGroupCombineCalls(
     sortedGroups.map(({ id, deposits }) => ({ id, deposits })),
     token,
     deposits,
   );
-
-  console.debug("Final encoded calls for", token.symbol, ":", {
-    groupCount: sortedGroups.length,
-    encodedCallCount: result.length,
-  });
 
   return result;
 }
