@@ -91,14 +91,14 @@ export interface UseReferralLeaderboardReturn {
 export function useReferralLeaderboard(): UseReferralLeaderboardReturn {
   const chainId = useChainId();
   const { address: userAddress } = useAccount();
-  const { data: latestBlock, isLoading: isBlockLoading } = useLatestBlock();
+  const { data: latestBlock } = useLatestBlock();
 
-  // Create stable query key that includes block height when available
+  // Use block height for pagination consistency but not in query key
+  // This prevents unnecessary refetches while maintaining data consistency
   const blockHeight = latestBlock?.number ? Number(latestBlock.number) : null;
-  const queryKey = ["referralLeaderboard", chainId.toString(), blockHeight?.toString() || "latest"];
 
   const query = useQuery({
-    queryKey,
+    queryKey: ["referralLeaderboard", chainId.toString()],
     queryFn: async () => {
       const initialVars: FarmersLeaderboardVariables = {
         first: 1000,
@@ -119,9 +119,10 @@ export function useReferralLeaderboard(): UseReferralLeaderboardReturn {
       );
     },
     select: selectLeaderboardEntries,
-    enabled: !!chainId && !isBlockLoading,
+    enabled: !!chainId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 
   // Calculate user's rank in the leaderboard
@@ -150,7 +151,7 @@ export function useReferralLeaderboard(): UseReferralLeaderboardReturn {
 
   return {
     data: query.data || [],
-    isLoading: query.isLoading || isBlockLoading,
+    isLoading: query.isLoading,
     error: query.error,
     refetch: query.refetch,
     userRank,

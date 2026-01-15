@@ -485,6 +485,17 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           disableClamping={true}
         />
       </Col>
+      {!hasReferralCode && (
+        <Row className="w-full justify-start">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="text-xs text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
+          >
+            Have a referral code?
+          </button>
+        </Row>
+      )}
       <Row className="justify-between my-2">
         <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use Silo Deposits</div>
         <TextSkeleton loading={false} className="w-11 h-6">
@@ -569,22 +580,12 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                   <div className="flex flex-col gap-0">
                     <Col className="gap-4">
                       {!hasSoil && <Warning>Your usable balance is 0.00 because there is no Soil available.</Warning>}
-                      {hasReferralCode && bonusPods.gt(0) ? (
+                      {hasReferralCode && bonusPods.gt(0) && (
                         <div className="px-2 py-3">
                           <span className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
                             You gained <span className="text-pinto-green-4 font-medium">10% more Pods</span> due to
                             using a referral link!
                           </span>
-                        </div>
-                      ) : (
-                        <div className="px-2 py-3">
-                          <button
-                            type="button"
-                            onClick={() => setSettingsOpen(true)}
-                            className="pinto-sm sm:pinto-body-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
-                          >
-                            Use a referral code and gain 10% more Pods!
-                          </button>
                         </div>
                       )}
                     </Col>

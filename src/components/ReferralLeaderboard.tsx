@@ -105,7 +105,6 @@ export default function ReferralLeaderboard() {
       <Card className="p-4 sm:p-6">
         <CardHeader className="p-0 pb-4">
           <div className="pinto-h3 sm:pinto-h2">Referral Leaderboard</div>
-          <p className="pinto-body-light text-pinto-light">Top referrers ranked by Pods earned</p>
         </CardHeader>
         <CardContent className="p-0">
           <div className="flex items-center justify-center h-64">
@@ -152,7 +151,6 @@ export default function ReferralLeaderboard() {
       <Card className="p-4 sm:p-6">
         <CardHeader className="p-0 pb-4">
           <div className="pinto-h3 sm:pinto-h2">Referral Leaderboard</div>
-          <p className="pinto-body-light text-pinto-light">Top referrers ranked by Pods earned</p>
         </CardHeader>
         <CardContent className="p-0">
           <Table noOverflow>
@@ -187,7 +185,6 @@ export default function ReferralLeaderboard() {
           <div className="pinto-h3 sm:pinto-h2">Referral Leaderboard</div>
           {(isLoading || isRetrying) && <FrameAnimator className="-mt-5 -mb-12" size={80} />}
         </div>
-        <p className="pinto-body-light text-pinto-light">Top referrers ranked by Pods earned</p>
         {error && allData.length > 0 && (
           <div className="text-sm text-orange-600 bg-orange-50 p-2 rounded-md mt-2">
             <div className="flex items-center justify-between">

@@ -426,7 +426,7 @@ SowOrderV0Fields.Temperature = function Temperature() {
   }, [maxTemperature, temperature.max]);
 
   const minTemp = useMemo(() => Math.max(0, currentTempValue - 100), [currentTempValue]);
-  const maxTemp = useMemo(() => currentTempValue + 100, [currentTempValue]);
+  const maxTemp = useMemo(() => currentTempValue + 300, [currentTempValue]);
 
   // Set default value to current temperature only on initial mount
   useEffect(() => {
@@ -456,7 +456,7 @@ SowOrderV0Fields.Temperature = function Temperature() {
                 outlined
                 {...handlers}
                 isError={!!fieldState.error}
-                containerClassName="w-full max-w-[30rem]"
+                containerClassName="w-full max-w-[8rem]"
                 endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">%</div>}
               />
             </FormControl>
@@ -568,7 +568,7 @@ SowOrderV0Fields.PodDisplay = function PodDisplay({
             onClick={onOpenReferralPopover}
             className="pinto-sm-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
           >
-            Use a referral code and gain 10% more pods!
+            Have a referral code?
           </button>
         </Row>
       )}
