@@ -4,9 +4,10 @@ import { formatter } from "@/utils/format";
 
 export function ReferralStatsCard() {
   const { data, isLoading } = useFarmerReferralData();
-  const { data: leaderboardData, userRank, isLoading: isLeaderboardLoading } = useReferralLeaderboard();
+  const { userRank, isLoading: isLeaderboardLoading } = useReferralLeaderboard();
 
-  if (isLoading || isLeaderboardLoading) {
+  // Only show loading on initial load (when there's no data yet)
+  if ((isLoading && !data) || (isLeaderboardLoading && !userRank)) {
     return (
       <div className="space-y-4">
         <div className="pinto-h3 sm:pinto-h2">Your Referral Stats</div>
@@ -16,6 +17,8 @@ export function ReferralStatsCard() {
       </div>
     );
   }
+
+  const hasEarnedPods = data && data.totalPodsEarned.gt(0);
 
   const statsData = [
     {
@@ -30,7 +33,7 @@ export function ReferralStatsCard() {
     },
     {
       label: "Referral Ranking",
-      value: userRank && leaderboardData ? `#${userRank}/${leaderboardData.length}` : "-",
+      value: hasEarnedPods && userRank ? `#${userRank}` : "#N/A",
       description: "Your rank among all referrers",
     },
   ];

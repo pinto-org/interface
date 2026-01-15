@@ -27,10 +27,10 @@ export default function Referral() {
           <Separator />
 
           {/* Main Referral Cards - Two Column Layout */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 sm:items-stretch">
             {/* Invite via - with overlay pattern like Field page */}
-            <div className="relative">
-              <Card className="p-4 sm:p-6">
+            <div className="relative h-full">
+              <Card className="p-4 sm:p-6 h-full">
                 <ReferralLinkGenerator onChangeAddress={() => setIsDelegateModalOpen(true)} />
               </Card>
               <AnimatePresence>
@@ -53,7 +53,7 @@ export default function Referral() {
             </div>
 
             {/* How to */}
-            <Card className="p-4 sm:p-6">
+            <Card className="p-4 sm:p-6 h-full">
               <HowToCard />
             </Card>
           </div>

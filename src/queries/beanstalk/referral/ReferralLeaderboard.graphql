@@ -4,7 +4,7 @@ query ReferralLeaderboard($first: Int!, $skip: Int!, $block: Block_height) {
     skip: $skip
     orderBy: totalReferralRewardPodsReceived
     orderDirection: desc
-    where: { refereeCount_gte: 0 }
+    where: { totalReferralRewardPodsReceived_gt: "0" }
     block: $block
   ) {
     id
