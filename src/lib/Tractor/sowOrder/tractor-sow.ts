@@ -378,6 +378,24 @@ export function transformSowRequisitionEvent(params: unknown | null, chainId: nu
 }
 
 /**
+ * Unwraps decoded sow data if it's in the referral format
+ * Returns just the SowBlueprintData regardless of whether it came from v0 or referral blueprint
+ */
+export function unwrapSowBlueprintData(
+  decodedResult: SowBlueprintData | { blueprintData: SowBlueprintData; referralAddress: `0x${string}` } | null,
+): SowBlueprintData | null {
+  if (!decodedResult) return null;
+
+  if ("blueprintData" in decodedResult && typeof decodedResult.blueprintData === "object") {
+    // Wrapped referral format
+    return decodedResult.blueprintData;
+  }
+
+  // Already unwrapped v0 format
+  return decodedResult;
+}
+
+/**
  * Decodes sow data from encoded function call
  * Supports both v0 and referralV0 blueprints
  */
@@ -401,7 +419,12 @@ export function decodeSowTractorData(
         // Use v0 blueprint ABI
         return handleDecodeSowV0BlueprintFromAdvancedPipe(calls, chainId);
       } else {
-        console.warn(`Unknown blueprint selector: ${selector}`);
+        console.warn(
+          `Unknown blueprint selector: ${selector}.`,
+          `Expected ${SOW_BLUEPRINT_V0_SELECTOR} (v0) or ${SOW_BLUEPRINT_REFERRAL_V0_SELECTOR} (referral)`,
+          "This order will be skipped.",
+        );
+        return null; // Make explicit
       }
     }
   } catch (e) {
@@ -510,31 +533,42 @@ export async function loadOrderbookData(
     });
 
     // Decode data and sort requisitions by temperature (lowest first)
-    const requisitionsWithTemperature = activeRequisitions.map((requisition) => {
-      const decodedResult = decodeSowTractorData(requisition.requisition.blueprint.data);
+    const requisitionsWithTemperature = activeRequisitions
+      .map((requisition) => {
+        const decodedResult = decodeSowTractorData(requisition.requisition.blueprint.data);
 
-      // Handle both v0 and referral blueprint formats
-      let blueprintData: SowBlueprintData | null = null;
-      let referralAddress: `0x${string}` | undefined;
+        // Handle both v0 and referral blueprint formats
+        let blueprintData: SowBlueprintData | null = null;
+        let referralAddress: `0x${string}` | undefined;
 
-      if (decodedResult) {
-        if ("blueprintData" in decodedResult) {
-          // Referral blueprint
-          blueprintData = decodedResult.blueprintData;
-          referralAddress = decodedResult.referralAddress;
-        } else {
-          // Regular v0 blueprint
-          blueprintData = decodedResult;
+        if (decodedResult) {
+          if ("blueprintData" in decodedResult) {
+            // Referral blueprint
+            blueprintData = decodedResult.blueprintData;
+            referralAddress = decodedResult.referralAddress;
+          } else {
+            // Regular v0 blueprint
+            blueprintData = decodedResult;
+          }
         }
-      }
 
-      return {
-        requisition,
-        temperature: blueprintData?.minTemp || 0n,
-        decodedData: blueprintData,
-        referralAddress,
-      };
-    });
+        return {
+          requisition,
+          temperature: blueprintData?.minTemp || 0n,
+          decodedData: blueprintData,
+          referralAddress,
+        };
+      })
+      .filter((item) => {
+        // Filter out requisitions that failed to decode
+        if (!item.decodedData) {
+          console.warn(
+            `Skipping requisition ${item.requisition.requisition.blueprintHash} - failed to decode blueprint data`,
+          );
+          return false;
+        }
+        return true;
+      });
 
     // Sort requisitions by temperature
     requisitionsWithTemperature.sort((a, b) => Number(a.temperature - b.temperature));
@@ -574,9 +608,23 @@ export async function loadOrderbookData(
       // console.debug(`Publisher: ${publisher}`);
 
       try {
-        // Determine which blueprint contract to query based on the blueprint address
-        const blueprintAddress = requisition.requisition.blueprint.operator;
-        const isReferralBlueprint = blueprintAddress.toLowerCase() === SOW_BLUEPRINT_REFERRAL_V0_ADDRESS.toLowerCase();
+        // Determine blueprint address from the selector in the encoded data
+        const blueprintData = requisition.requisition.blueprint.data;
+        let blueprintAddress: `0x${string}` = SOW_BLUEPRINT_V0_ADDRESS;
+        let isReferralBlueprint = false;
+
+        try {
+          const calls = decodeEncodedTractorDataToAdvancedPipeCalls(blueprintData, "sowV0");
+          if (calls?.length) {
+            const selector = calls[0].callData.slice(0, 10) as `0x${string}`;
+            if (selector === SOW_BLUEPRINT_REFERRAL_V0_SELECTOR) {
+              blueprintAddress = SOW_BLUEPRINT_REFERRAL_V0_ADDRESS;
+              isReferralBlueprint = true;
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to determine blueprint address, defaulting to v0:", error);
+        }
 
         // Get pintos left to sow from the appropriate contract
         const pintosLeft = await publicClient.readContract({
@@ -698,7 +746,7 @@ export async function loadOrderbookData(
 
         // Calculate amountSowableNextSeason as the greater of currentlySowable and minAmountToSowPerSeason
         let amountSowableNextSeason = currentlySowable;
-        if (decodedData && decodedData.sowAmounts.maxAmountToSowPerSeason) {
+        if (decodedData?.sowAmounts.maxAmountToSowPerSeason) {
           const maxAmountToSowPerSeason = TokenValue.fromBlockchain(decodedData.sowAmounts.maxAmountToSowPerSeason, 6);
           amountSowableNextSeason = TokenValue.min(currentlySowable, maxAmountToSowPerSeason);
           // console.debug(`Min amount to sow per season: ${maxAmountToSowPerSeason.toHuman()}`);
@@ -795,8 +843,28 @@ export async function loadOrderbookData(
 
     // Sort orderbook entries by operator tip amount (highest first)
     const orderbookDataWithTips = orderbookData.map((entry) => {
-      const decodedData = decodeSowTractorData(entry.requisition.blueprint.data);
-      const tipAmount = decodedData?.operatorParams.operatorTipAmount || 0n;
+      const decodedResult = decodeSowTractorData(entry.requisition.blueprint.data);
+
+      // Handle both v0 and referral blueprint formats
+      let decodedData: SowBlueprintData | null = null;
+      if (decodedResult) {
+        if ("blueprintData" in decodedResult) {
+          // Referral blueprint format
+          decodedData = decodedResult.blueprintData;
+        } else {
+          // Regular v0 blueprint format
+          decodedData = decodedResult;
+        }
+      }
+
+      console.debug("[TRACTOR/loadOrderbookData] Decoded data:", {
+        hash: entry.requisition.blueprintHash,
+        hasData: !!decodedData,
+        hasOperatorParams: !!decodedData?.operatorParams,
+        tipAmount: decodedData?.operatorParams?.operatorTipAmount?.toString(),
+      });
+
+      const tipAmount = decodedData?.operatorParams?.operatorTipAmount || 0n;
       return {
         decodedData,
         entry,

@@ -60,8 +60,16 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
     let maxTimes: TV;
 
     // Check if we have all required data for accurate calculation
-    if (!cultivationFactor || !initialSoil || isCultivationLoading || isInitialSoilLoading || !pintoPrice) {
-      // Fallback to simple division while loading or if data unavailable
+    // Also check if initialSoil is effectively zero (≤ 0)
+    if (
+      !cultivationFactor ||
+      !initialSoil ||
+      initialSoil.lte(0) ||
+      isCultivationLoading ||
+      isInitialSoilLoading ||
+      !pintoPrice
+    ) {
+      // Fallback to simple division: total / minSoil
       maxTimes = min.gt(0) ? total.div(min) : TV.ZERO;
     } else {
       // Calculate initial value: initialSoil * INITIAL_CULTIVATION_FACTOR / cultivationFactor
@@ -78,10 +86,12 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
       maxTimes = TV.fromHuman(maxExecutions, mainToken.decimals);
     }
 
-    return {
+    const result = {
       min: minTimes.mul(tip),
       max: maxTimes.mul(tip),
     };
+
+    return result;
   }, [
     operatorTip,
     customOperatorTip,
