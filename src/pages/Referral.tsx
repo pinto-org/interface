@@ -1,8 +1,10 @@
-import { DelegateReferralModal } from "@/components/DelegateReferralModal";
 import { HowToCard } from "@/components/HowToCard";
-import ReferralLeaderboard from "@/components/ReferralLeaderboard";
-import { ReferralLinkGenerator } from "@/components/ReferralLinkGenerator";
-import { ReferralStatsCard } from "@/components/ReferralStatsCard";
+import {
+  DelegateReferralModal,
+  ReferralLeaderboard,
+  ReferralLinkGenerator,
+  ReferralStatsCard,
+} from "@/components/referral";
 import { Card } from "@/components/ui/Card";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
