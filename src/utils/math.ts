@@ -34,8 +34,11 @@ export function solveArithmeticSeriesForN(
 ): number {
   // Edge case: if delta is zero, fallback to simple division
   if (delta.eq(0)) {
-    if (initialValue.eq(0)) return 0;
-    return Number(totalAmount.div(initialValue).toHuman());
+    if (initialValue.eq(0)) {
+      return 0;
+    }
+    const result = Number(totalAmount.div(initialValue).toHuman());
+    return result;
   }
 
   // Edge case: if initialValue is zero and delta is positive
@@ -47,7 +50,9 @@ export function solveArithmeticSeriesForN(
     const term = totalAmount.mul(8).div(delta);
     const discriminant = TokenValue.ONE.add(term);
 
-    if (discriminant.lt(0)) return 0;
+    if (discriminant.lt(0)) {
+      return 0;
+    }
 
     const sqrtDiscriminant = Math.sqrt(Number(discriminant.toHuman()));
     const n = (1 + sqrtDiscriminant) / 2;
@@ -69,7 +74,7 @@ export function solveArithmeticSeriesForN(
 
   // Handle negative discriminant (shouldn't happen in practice for valid inputs)
   if (discriminant.lt(0)) {
-    console.warn("Negative discriminant in arithmetic series calculation, returning 0");
+    console.warn("[solveArithmeticSeriesForN] Negative discriminant in arithmetic series calculation, returning 0");
     return 0;
   }
 

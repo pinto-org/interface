@@ -5,7 +5,7 @@ import TextSkeleton from "@/components/TextSkeleton";
 import BarChart from "@/components/charts/BarChart";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { OrderbookEntry, decodeSowTractorData } from "@/lib/Tractor";
+import { OrderbookEntry, decodeSowTractorData, unwrapSowBlueprintData } from "@/lib/Tractor";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { formatter, numberAbbr } from "@/utils/format";
 import { useDebounceValue } from "@/utils/useDebounce";
@@ -72,7 +72,7 @@ const TractorOrdersChart = React.memo(({ className, variant = "default" }: Tract
       const filteredOrders =
         selectedTemperature !== null
           ? orders.filter((order) => {
-              const decodedData = decodeSowTractorData(order.requisition.blueprint.data);
+              const decodedData = unwrapSowBlueprintData(decodeSowTractorData(order.requisition.blueprint.data));
               if (!decodedData?.minTempAsString) return false;
               const orderTemp = parseFloat(decodedData.minTempAsString);
               return Math.abs(orderTemp - selectedTemperature) < 0.01; // Handle floating point precision
@@ -363,7 +363,7 @@ const processOrdersByTemperature = (orders: OrderbookEntry[]): ProcessedOrderDat
   const groupedData = new Map<number, { totalAmount: TokenValue; orders: OrderbookEntry[] }>();
 
   for (const order of orders) {
-    const decodedData = decodeSowTractorData(order.requisition.blueprint.data);
+    const decodedData = unwrapSowBlueprintData(decodeSowTractorData(order.requisition.blueprint.data));
     console.log("[processOrdersByTemperature] Decoded data for order:", decodedData);
 
     if (!decodedData?.minTempAsString) {
@@ -408,7 +408,7 @@ const processOrdersByTip = (orders: OrderbookEntry[]): ProcessedOrderData[] => {
   const groupedData = new Map<string, { totalAmount: TokenValue; orders: OrderbookEntry[]; tipValue: TokenValue }>();
 
   for (const order of orders) {
-    const decodedData = decodeSowTractorData(order.requisition.blueprint.data);
+    const decodedData = unwrapSowBlueprintData(decodeSowTractorData(order.requisition.blueprint.data));
     if (!decodedData?.operatorParams?.operatorTipAmountAsString) continue;
 
     const tipAmount = TokenValue.fromHuman(decodedData.operatorParams.operatorTipAmountAsString, 6);

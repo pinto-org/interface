@@ -7,7 +7,7 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { useCallback, useMemo, useState } from "react";
-import { BaseOrderType, ColumnConfig, ExecuteOrdersTab } from "./ExecuteOrdersTab";
+import { ColumnConfig, ExecuteOrdersTab } from "./ExecuteOrdersTab";
 import { PlowDetails } from "./PlowDetails";
 
 const BASESCAN_URL = "https://basescan.org/address/";
@@ -92,24 +92,54 @@ export function Plow() {
     (orders: RequisitionEvent<SowBlueprintData>[]): RequisitionEvent<SowBlueprintData>[] => {
       const currentTemperature = temperatures.scaled;
 
-      return orders.filter((req) => {
-        // Skip cancelled requisitions
-        if (req.isCancelled) return false;
-
-        // Skip requisitions with invalid data or non-positive tip
-        if (!req.decodedData || !req.decodedData.operatorParams) return false;
-        const tipAmount = req.decodedData.operatorParams.operatorTipAmount;
-
-        // Skip requisitions with temperature requirements higher than current temperature
-        if (currentTemperature && req.decodedData.minTemp) {
-          const reqMinTemp = TokenValue.fromBlockchain(req.decodedData.minTemp, 6);
-          if (reqMinTemp.gt(currentTemperature)) {
+      return orders
+        .filter((req) => {
+          // Skip cancelled requisitions
+          if (req.isCancelled) {
+            // console.log("[Plow/filterOrders] Skipping cancelled order:", req.requisition.blueprintHash);
             return false;
           }
-        }
 
-        return tipAmount > 0n;
-      });
+          // Skip requisitions with invalid data or non-positive tip
+          if (!req.decodedData) {
+            // console.log("[Plow/filterOrders] Skipping order with no decodedData:", req.requisition.blueprintHash);
+            return false;
+          }
+
+          if (!req.decodedData.operatorParams) {
+            // console.log("[Plow/filterOrders] Skipping order with no operatorParams:", {
+            //   hash: req.requisition.blueprintHash,
+            //   decodedData: req.decodedData,
+            // });
+            return false;
+          }
+
+          const tipAmount = req.decodedData.operatorParams.operatorTipAmount;
+
+          // Skip requisitions with temperature requirements higher than current temperature
+          if (currentTemperature && req.decodedData.minTemp) {
+            const reqMinTemp = TokenValue.fromBlockchain(req.decodedData.minTemp, 6);
+            if (reqMinTemp.gt(currentTemperature)) {
+              return false;
+            }
+          }
+
+          const passes = tipAmount > 0n;
+          // console.log("[Plow/filterOrders] Order filter result:", {
+          //   hash: req.requisition.blueprintHash,
+          //   passes,
+          //   tipAmount: tipAmount.toString(),
+          // });
+          return passes;
+        })
+        .map((req, idx, arr) => {
+          // if (idx === arr.length - 1) {
+          //   console.log("[Plow/filterOrders] AFTER filtering:", {
+          //     totalPassed: arr.length,
+          //   });
+          // }
+          return req;
+        });
     },
     [temperatures.scaled],
   );
