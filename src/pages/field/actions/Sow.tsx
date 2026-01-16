@@ -195,7 +195,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   const bonusPods = useMemo(() => {
     if (!referralAddress || !pods || pods.lte(0)) return TV.ZERO;
-    return pods.mul(0.1);
+    return pods.mul(0.05);
   }, [referralAddress, pods]);
 
   const hasReferralCode = Boolean(referralAddress);
@@ -583,8 +583,8 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                       {hasReferralCode && bonusPods.gt(0) && (
                         <div className="px-2 py-3">
                           <span className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-                            You gained <span className="text-pinto-green-4 font-medium">10% more Pods</span> due to
-                            using a referral link!
+                            You gained <span className="text-pinto-green-4 font-medium">5% more Pods</span> due to using
+                            a referral link!
                           </span>
                         </div>
                       )}
