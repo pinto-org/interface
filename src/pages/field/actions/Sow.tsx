@@ -478,6 +478,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           transformTokenLabels={fromSilo ? transformTokenLabels : undefined}
           tokenAndBalanceMap={fromSilo ? depositedByWhitelistedToken : undefined}
           balanceFrom={fromSilo ? undefined : balanceFrom}
+          mode={fromSilo ? "deposits" : undefined}
           disableButton={isConfirming}
           connectedAccount={!!account.address}
           altText={balanceExceedsSoil ? "Usable balance:" : undefined}
