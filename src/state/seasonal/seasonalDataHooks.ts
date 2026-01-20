@@ -358,10 +358,10 @@ export function useSeasonalWrappedDepositTotalSupply(fromSeason: number, toSeaso
 
 /** ==================== Tractor API Hourly Snapshots ==================== **/
 
-const ALL_ORDER_TYPES: MayArray<"SOW_V0" | "CONVERT_UP_V0"> = ["SOW_V0", "CONVERT_UP_V0"] as const;
+const ALL_ORDER_TYPES: MayArray<"SOW" | "CONVERT_UP"> = ["SOW", "CONVERT_UP"] as const;
 
 export function useSeasonalTractorSownPinto(fromSeason: number, toSeason: number): UseSeasonalResult {
-  return useSeasonalTractorSnapshots("SOW_V0", fromSeason, toSeason, (data) => ({
+  return useSeasonalTractorSnapshots("SOW", fromSeason, toSeason, (data) => ({
     season: data.season,
     value: TV.fromBlockchain(data.totalPintoSown, PODS.decimals).toNumber(),
     timestamp: new Date(data.snapshotTimestamp),
@@ -369,7 +369,7 @@ export function useSeasonalTractorSownPinto(fromSeason: number, toSeason: number
 }
 
 export function useSeasonalTractorPodsIssued(fromSeason: number, toSeason: number): UseSeasonalResult {
-  return useSeasonalTractorSnapshots("SOW_V0", fromSeason, toSeason, (data) => ({
+  return useSeasonalTractorSnapshots("SOW", fromSeason, toSeason, (data) => ({
     season: data.season,
     value: TV.fromBlockchain(data.totalPodsMinted, PODS.decimals).toNumber(),
     timestamp: new Date(data.snapshotTimestamp),
@@ -377,7 +377,7 @@ export function useSeasonalTractorPodsIssued(fromSeason: number, toSeason: numbe
 }
 
 export function useSeasonalTractorFundedAmount(fromSeason: number, toSeason: number): UseSeasonalResult {
-  return useSeasonalTractorSnapshots("SOW_V0", fromSeason, toSeason, (data) => ({
+  return useSeasonalTractorSnapshots("SOW", fromSeason, toSeason, (data) => ({
     season: data.season,
     value: TV.fromBlockchain(data.totalCascadeFundedBelowTemp, PINTO.decimals).toNumber(),
     timestamp: new Date(data.snapshotTimestamp),
@@ -389,7 +389,7 @@ export function useSeasonalTractorCumulativeTips(fromSeason: number, toSeason: n
 }
 
 export function useSeasonalTractorMaxSow(fromSeason: number, toSeason: number): UseSeasonalResult {
-  return useSeasonalTractorSnapshots("SOW_V0", fromSeason, toSeason, (data) => ({
+  return useSeasonalTractorSnapshots("SOW", fromSeason, toSeason, (data) => ({
     season: data.season,
     value: TV.fromBlockchain(data.maxSowThisSeason, PINTO.decimals).toNumber(),
     timestamp: new Date(data.snapshotTimestamp),
@@ -407,7 +407,7 @@ export function useSeasonalTractorExecutionsCount(fromSeason: number, toSeason: 
 export function useSeasonalTractorUniquePublishers(
   fromSeason: number,
   toSeason: number,
-  orderType: "SOW_V0" | "CONVERT_UP_V0",
+  orderType: "SOW" | "CONVERT_UP",
 ): UseSeasonalResult {
   return useSeasonalTractorSnapshots(orderType, fromSeason, toSeason, (data) => ({
     season: data.season,
@@ -461,7 +461,7 @@ const selectMultiOrderTypesV2Data = (
 ) => {
   const bySeason: { [season: number]: SeasonalChartData } = {};
 
-  data.SOW_V0.forEach((item) => {
+  data.SOW.forEach((item) => {
     bySeason[item.season] = {
       season: item.season,
       value: selectSow(item),
@@ -469,7 +469,7 @@ const selectMultiOrderTypesV2Data = (
     };
   });
 
-  data.CONVERT_UP_V0.forEach((item) => {
+  data.CONVERT_UP.forEach((item) => {
     const existing = bySeason[item.season];
     if (existing) {
       const value = combine ? combine(existing.value, selectConvertUp(item)) : selectConvertUp(item);

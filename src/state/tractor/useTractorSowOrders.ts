@@ -45,7 +45,7 @@ const useTractorAPISowOrders = ({
   // biome-ignore lint/correctness/useExhaustiveDependencies: only re-run when the address / chainId changes
   const selectAndTransformOrders = useMemo(() => transformAPIOrderbookData(chainId), [chainId, address]);
 
-  const args = { publisher: address, orderType: "SOW_V0", cancelled } as const;
+  const args = { publisher: address, orderType: "SOW", cancelled } as const;
 
   const queryKey = queryKeys.tractor.sowOrdersV0({ ...args });
 
@@ -59,7 +59,7 @@ const useTractorAPISowOrders = ({
           orders: [],
         };
 
-      const response = await TractorAPI.getOrders<"SOW_V0">({ ...args, orderType: "SOW_V0" });
+      const response = await TractorAPI.getOrders<"SOW">({ ...args, orderType: "SOW" });
       return response;
     },
     enabled: !!chainId && !chainOnly && !!enabled,
@@ -68,7 +68,7 @@ const useTractorAPISowOrders = ({
   });
 };
 
-const transformAPIOrderbookData = (chainId: number) => (response: TractorAPIOrdersResponse<"SOW_V0"> | undefined) => {
+const transformAPIOrderbookData = (chainId: number) => (response: TractorAPIOrdersResponse<"SOW"> | undefined) => {
   if (!response) return { orders: [], lastUpdated: 0, totalRecords: 0 };
 
   const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
@@ -96,7 +96,7 @@ const transformAPIOrderbookData = (chainId: number) => (response: TractorAPIOrde
       blockNumber: order.publishedBlock,
       timestamp: Number(new Date(order.publishedTimestamp).getTime()),
       isCancelled: order.cancelled,
-      requisitionType: order.orderType === "SOW_V0" ? "sowBlueprintv0" : "unknown",
+      requisitionType: order.orderType === "SOW" ? "sowBlueprintv0" : "unknown",
       pintosLeftToSow: totalAmountToSow.sub(pintoSownCounter),
       totalAvailablePinto: cascadeAmountFunded,
       currentlySowable: cascadeAmountFunded,

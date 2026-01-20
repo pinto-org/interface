@@ -326,7 +326,7 @@ export default function useSeasonsData(
 
   const useAPYQuery = useSeasonalAPYs(tokenData.mainToken.address, fromSeason, toSeason, { enabled: apyData });
 
-  const useTractorQuery = useSeasonalTractorSnapshots("SOW_V0", fromSeason, toSeason, (e: any) => e, {
+  const useTractorQuery = useSeasonalTractorSnapshots("SOW", fromSeason, toSeason, (e: any) => e, {
     orderBy: "desc",
     enabled: tractorData,
   });
