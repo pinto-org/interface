@@ -58,7 +58,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
     console.log("Twitter/X share clicked");
     const tweetText =
-      "I'm farming on @pintodotmoney to contributing to the Pinto economy! 🌱\n\nStart farming today and get a 5% bonus:";
+      "I'm farming on @pintodotmoney building crypto fiat credit! 🌱\n\nUse my link to lend to the Farm and get a 5% bonus";
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(referralUrl)}`;
     window.open(twitterUrl, "_blank", "noopener,noreferrer");
 
@@ -72,7 +72,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
     console.log("Telegram share clicked");
     const shareText =
-      "\nI'm farming on @pintodotmoney to contributing to the Pinto economy! 🌱 Start farming today and get a 5% bonus.";
+      "\nI'm farming on @pintodotmoney building crypto fiat credit! 🌱\n\nUse my link to lend to the Farm and get a 5% bonus";
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(shareText)}`;
     window.open(telegramUrl, "_blank", "noopener,noreferrer");
 
@@ -84,35 +84,14 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="pinto-h3 sm:pinto-h2">Your Referral Link</div>
-
+      <div className="flex flex-col gap-2">
+        <div className="pinto-h3 sm:pinto-h2">Your Referral Information</div>
+        <div className="pinto-sm text-pinto-light">Share to support the Farm and earn additional Pods.</div>
+      </div>
       <div className="flex flex-col gap-4">
         {/* Only show referral code/link if user meets requirement */}
         {meetsRequirement && isWalletConnected && (
           <>
-            {/* Referral Code */}
-            <div className="flex flex-col gap-2">
-              <label className="pinto-sm text-pinto-light">Referral Code</label>
-              <div className="flex flex-row gap-2">
-                <Input
-                  value={referralCode}
-                  readOnly
-                  outlined
-                  className="text-sm"
-                  containerClassName="w-80 max-w-full border-pinto-green"
-                />
-                <Button
-                  onClick={handleCopyCode}
-                  variant="outline"
-                  size="icon"
-                  className="w-10 h-10 flex-shrink-0"
-                  title="Copy code"
-                >
-                  <CopyIcon className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
             {/* Referral Link */}
             <div className="flex flex-col gap-2">
               <label className="pinto-sm text-pinto-light">Referral Link</label>
@@ -130,6 +109,28 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
                   size="icon"
                   className="w-10 h-10 flex-shrink-0"
                   title="Copy link"
+                >
+                  <CopyIcon className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            {/* Referral Code */}
+            <div className="flex flex-col gap-2">
+              <label className="pinto-sm text-pinto-light">Referral Code</label>
+              <div className="flex flex-row gap-2">
+                <Input
+                  value={referralCode}
+                  readOnly
+                  outlined
+                  className="text-sm"
+                  containerClassName="w-80 max-w-full border-pinto-green"
+                />
+                <Button
+                  onClick={handleCopyCode}
+                  variant="outline"
+                  size="icon"
+                  className="w-10 h-10 flex-shrink-0"
+                  title="Copy code"
                 >
                   <CopyIcon className="w-4 h-4" />
                 </Button>
