@@ -1,5 +1,7 @@
-import { isValidReferralCode } from "@/utils/referral";
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { decodeReferralAddress, isValidReferralCode } from "@/utils/referral";
+import { stringEq } from "@/utils/string";
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import { useAccount } from "wagmi";
 
 const REFERRAL_CODE_STORAGE_KEY = "pinto-referral";
 const DEBOUNCE_DELAY = 100;
@@ -81,37 +83,72 @@ const saveToLocalStorage = (value: string) => {
  * Uses global state for cross-component synchronization.
  */
 export function useReferralCode() {
+  const { address } = useAccount();
   const referralCode = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   // Get valid referral code from localStorage (for conditional rendering)
   const validReferralCodeFromStorage = useSyncExternalStore(subscribeStorage, getStorageSnapshot, getStorageSnapshot);
 
-  const setReferralCode = useCallback((value: string) => {
-    const trimmed = value.trim();
+  const setReferralCode = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
 
-    // Always update global state for immediate UI feedback (so user can type)
-    globalReferralCode = trimmed;
-    notifyListeners();
+      // Always update global state for immediate UI feedback (so user can type)
+      globalReferralCode = trimmed;
+      notifyListeners();
 
-    // Save to localStorage only if valid, otherwise clear it
-    if (!trimmed) {
-      // Empty value: clear localStorage
-      saveToLocalStorage("");
-    } else if (isValidReferralCode(trimmed)) {
-      // Valid code: save to localStorage
-      saveToLocalStorage(trimmed);
-    } else {
-      // Invalid code: clear localStorage
-      saveToLocalStorage("");
-    }
-    // Invalid codes are kept in global state for typing feedback, but localStorage is cleared
-  }, []);
+      // Save to localStorage only if valid, otherwise clear it
+      if (!trimmed) {
+        // Empty value: clear localStorage
+        saveToLocalStorage("");
+      } else {
+        // Check if referral code is valid and doesn't belong to connected wallet
+        const decodedAddress = decodeReferralAddress(trimmed);
+        const isValid = isValidReferralCode(trimmed);
+        const isOwnCode = address && decodedAddress && stringEq(decodedAddress, address);
+
+        if (isValid && !isOwnCode) {
+          // Valid code and not own code: save to localStorage
+          saveToLocalStorage(trimmed);
+        } else {
+          // Invalid code or own code: clear localStorage
+          saveToLocalStorage("");
+        }
+      }
+      // Invalid codes are kept in global state for typing feedback, but localStorage is cleared
+    },
+    [address],
+  );
 
   // Validate referral code for real-time validation
   const isReferralCodeValid = useMemo(() => {
     if (!referralCode) return false;
-    return isValidReferralCode(referralCode);
-  }, [referralCode]);
+
+    // Check if referral code is valid
+    if (!isValidReferralCode(referralCode)) return false;
+
+    // Check if referral code belongs to connected wallet
+    // If wallet is not connected (address is undefined), we can't check, so allow it
+    if (!address) return true;
+
+    const decodedAddress = decodeReferralAddress(referralCode);
+    if (decodedAddress && stringEq(decodedAddress, address)) {
+      return false; // Invalid if it's the user's own code
+    }
+
+    return true;
+  }, [referralCode, address]);
+
+  // Clean up localStorage if wallet connects and stored code is user's own code
+  useEffect(() => {
+    if (!address || !validReferralCodeFromStorage) return;
+
+    const decodedAddress = decodeReferralAddress(validReferralCodeFromStorage);
+    if (decodedAddress && stringEq(decodedAddress, address)) {
+      // Clear localStorage if stored code belongs to connected wallet
+      saveToLocalStorage("");
+    }
+  }, [address, validReferralCodeFromStorage]);
 
   return {
     referralCode, // For input field (can be invalid during typing)

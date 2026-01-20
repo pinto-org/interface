@@ -16,7 +16,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
+import { NUMBER_ABBR_THRESHOLDS, formatter } from "@/utils/format";
 import { decodeReferralAddress } from "@/utils/referral";
 import { stringToNumber, stringToStringNum } from "@/utils/string";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -214,6 +214,11 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
       if (inputError) {
         throw new Error("Invalid input");
       }
+      // Check soil availability before submitting
+      // This prevents transaction submission even if UI state is bypassed
+      if (totalSoilLoading || !totalSoil || totalSoil.lte(0)) {
+        throw new Error("No Soil available");
+      }
 
       // Track sow submission
       trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_SUBMIT, {
@@ -346,6 +351,8 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     currentTemperature,
     inputError,
     referralAddress,
+    totalSoil,
+    totalSoilLoading,
   ]);
 
   // Callbacks
@@ -435,7 +442,9 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   const initializing = !didSetPreferred || (hasSoil ? maxBuyQuery.isLoading : false);
 
   const isLoading = (numIn > 0 && loading) || (pods?.lte(0) && numIn > 0);
-  const ready = pods?.gt(0) && podLine.gte(0) && (hasSoil ? maxBuy?.gt(0) && amountInTV.gt(0) : true);
+  // If there's no soil, ready should be false (can't sow without soil)
+  // If there's soil, check that maxBuy is available and amount is greater than 0
+  const ready = pods?.gt(0) && podLine.gte(0) && (hasSoil ? maxBuy?.gt(0) && amountInTV.gt(0) : false);
 
   const tokenBalance = fromSilo
     ? depositedByWhitelistedToken.get(tokenIn)
@@ -447,7 +456,17 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   const ctaDisabled = isLoading || isConfirming || submitting || !ready || inputError || !canProceed;
 
-  const buttonText = inputError ? "Amount too large" : "Sow";
+  // Determine button text based on error conditions
+  // If no soil available, show "No Soil available" (consistent with warning message)
+  const noSoilAvailable = !hasSoil && !totalSoilLoading;
+  const buttonText = inputError ? "Amount too large" : noSoilAvailable ? "No Soil available" : "Sow";
+
+  // Helper for compact number formatting
+  const formatCompact = (value: TV | undefined, decimals = 2) =>
+    formatter.number(value, {
+      maxDecimals: decimals,
+      compact: (value?.toNumber() ?? 0) >= NUMBER_ABBR_THRESHOLDS.BILLION,
+    });
 
   return (
     <Col className="gap-4 w-full">
@@ -484,6 +503,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           altText={balanceExceedsSoil ? "Usable balance:" : undefined}
           filterTokens={filterTokens}
           disableClamping={true}
+          showAdditionalInfo={false}
         />
       </Col>
       {!hasReferralCode && (
@@ -525,19 +545,19 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                         <span>
                           Sow{" "}
                           <span className="text-pinto-primary">
-                            {`${formatter.twoDec(soilSown)}/${formatter.twoDec(totalSoil)}`}{" "}
+                            {`${formatCompact(soilSown)}/${formatCompact(totalSoil)}`}{" "}
                           </span>
                           {`available Soil and receive`}
                         </span>
                       }
                     >
                       <OutputDisplay.Item label="Pods">
-                        <OutputDisplay.Value value={formatter.token(pods, PODS)} token={PODS} suffix={PODS.symbol} />
+                        <OutputDisplay.Value value={formatCompact(pods)} token={PODS} suffix={PODS.symbol} />
                       </OutputDisplay.Item>
                       {hasReferralCode && bonusPods.gt(0) && (
                         <OutputDisplay.Item label="Bonus Pods">
                           <OutputDisplay.Value
-                            value={formatter.token(bonusPods, PODS)}
+                            value={formatCompact(bonusPods)}
                             token={PODS}
                             suffix={PODS.symbol}
                             className="text-pinto-green-4"
@@ -552,13 +572,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                             variant="outlined"
                           />
                         </div>
-                        <OutputDisplay.Value value={formatter.noDec(podLine)} />
+                        <OutputDisplay.Value value={formatCompact(podLine, 0)} />
                       </div>
                       {fromSilo ? (
                         <>
                           <OutputDisplay.Item label="Stalk">
                             <OutputDisplay.Value
-                              value={formatter.token(withdrawBreakdown?.stalk, STALK)}
+                              value={formatCompact(withdrawBreakdown?.stalk)}
                               delta="down"
                               suffix="Stalk"
                               token={STALK}
@@ -567,7 +587,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                           </OutputDisplay.Item>
                           <OutputDisplay.Item label="Seed">
                             <OutputDisplay.Value
-                              value={formatter.token(withdrawBreakdown?.seeds, SEEDS)}
+                              value={formatCompact(withdrawBreakdown?.seeds)}
                               token={SEEDS}
                               delta="down"
                               suffix="Seeds"
@@ -613,9 +633,9 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
         <SmartSubmitButton
           variant={isMorning ? "morning" : "gradient"}
           disabled={ctaDisabled}
-          token={!fromSilo ? tokenIn : undefined}
-          amount={!fromSilo ? amountIn : undefined}
-          balanceFrom={!fromSilo ? balanceFrom : undefined}
+          token={!fromSilo && !noSoilAvailable ? tokenIn : undefined}
+          amount={!fromSilo && !noSoilAvailable ? amountIn : undefined}
+          balanceFrom={!fromSilo && !noSoilAvailable ? balanceFrom : undefined}
           submitFunction={onSubmit}
           submitButtonText={buttonText}
         />
@@ -624,9 +644,9 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
         <SmartSubmitButton
           variant={isMorning ? "morning" : "gradient"}
           disabled={ctaDisabled}
-          token={!fromSilo ? tokenIn : undefined}
-          amount={!fromSilo ? amountIn : undefined}
-          balanceFrom={!fromSilo ? balanceFrom : undefined}
+          token={!fromSilo && !noSoilAvailable ? tokenIn : undefined}
+          amount={!fromSilo && !noSoilAvailable ? amountIn : undefined}
+          balanceFrom={!fromSilo && !noSoilAvailable ? balanceFrom : undefined}
           submitFunction={onSubmit}
           submitButtonText={buttonText}
           className="h-full"

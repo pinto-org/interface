@@ -573,7 +573,10 @@ SowOrderV0Fields.PodDisplay = function PodDisplay({
         <Row className="w-full justify-start">
           <button
             type="button"
-            onClick={onOpenReferralPopover}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenReferralPopover?.();
+            }}
             className="pinto-sm-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
           >
             Have a referral code?
@@ -829,17 +832,24 @@ SowOrderV0Fields.ReferralCodePopover = function ReferralCodePopover({
   onOpenChange?: (open: boolean) => void;
 }) {
   const { referralCode, isReferralCodeValid, setReferralCode } = useReferralCode();
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Find the dialog content element to use as container
+    const dialogContent = document.querySelector('[role="dialog"]');
+    setContainer(dialogContent as HTMLElement | null);
+  }, [open]);
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         {children ?? (
-          <Button variant="ghost" noPadding className="rounded-full w-10 h-10">
+          <Button variant="ghost" noPadding className="rounded-full w-10 h-10" type="button">
             <img src={settingsIcon} className="w-4 h-4 transition-all" alt="settings" />
           </Button>
         )}
       </PopoverTrigger>
-      <PopoverContent side="bottom" align="end" className="w-64 flex flex-col shadow-none">
+      <PopoverContent side="bottom" align="end" className="w-64 flex flex-col shadow-none" container={container}>
         <div className="flex flex-col gap-4">
           <div className="pinto-md">Referral Code</div>
           <div className="flex flex-col gap-2">
