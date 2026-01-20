@@ -16,7 +16,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
+import { NUMBER_ABBR_THRESHOLDS, formatter } from "@/utils/format";
 import { decodeReferralAddress } from "@/utils/referral";
 import { stringToNumber, stringToStringNum } from "@/utils/string";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -461,6 +461,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   const noSoilAvailable = !hasSoil && !totalSoilLoading;
   const buttonText = inputError ? "Amount too large" : noSoilAvailable ? "No Soil available" : "Sow";
 
+  // Helper for compact number formatting
+  const formatCompact = (value: TV | undefined, decimals = 2) =>
+    formatter.number(value, {
+      maxDecimals: decimals,
+      compact: (value?.toNumber() ?? 0) >= NUMBER_ABBR_THRESHOLDS.BILLION,
+    });
+
   return (
     <Col className="gap-4 w-full">
       <Col className="w-full">
@@ -496,6 +503,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           altText={balanceExceedsSoil ? "Usable balance:" : undefined}
           filterTokens={filterTokens}
           disableClamping={true}
+          showAdditionalInfo={false}
         />
       </Col>
       {!hasReferralCode && (
@@ -537,19 +545,19 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                         <span>
                           Sow{" "}
                           <span className="text-pinto-primary">
-                            {`${formatter.twoDec(soilSown)}/${formatter.twoDec(totalSoil)}`}{" "}
+                            {`${formatCompact(soilSown)}/${formatCompact(totalSoil)}`}{" "}
                           </span>
                           {`available Soil and receive`}
                         </span>
                       }
                     >
                       <OutputDisplay.Item label="Pods">
-                        <OutputDisplay.Value value={formatter.token(pods, PODS)} token={PODS} suffix={PODS.symbol} />
+                        <OutputDisplay.Value value={formatCompact(pods)} token={PODS} suffix={PODS.symbol} />
                       </OutputDisplay.Item>
                       {hasReferralCode && bonusPods.gt(0) && (
                         <OutputDisplay.Item label="Bonus Pods">
                           <OutputDisplay.Value
-                            value={formatter.token(bonusPods, PODS)}
+                            value={formatCompact(bonusPods)}
                             token={PODS}
                             suffix={PODS.symbol}
                             className="text-pinto-green-4"
@@ -564,13 +572,13 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                             variant="outlined"
                           />
                         </div>
-                        <OutputDisplay.Value value={formatter.noDec(podLine)} />
+                        <OutputDisplay.Value value={formatCompact(podLine, 0)} />
                       </div>
                       {fromSilo ? (
                         <>
                           <OutputDisplay.Item label="Stalk">
                             <OutputDisplay.Value
-                              value={formatter.token(withdrawBreakdown?.stalk, STALK)}
+                              value={formatCompact(withdrawBreakdown?.stalk)}
                               delta="down"
                               suffix="Stalk"
                               token={STALK}
@@ -579,7 +587,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                           </OutputDisplay.Item>
                           <OutputDisplay.Item label="Seed">
                             <OutputDisplay.Value
-                              value={formatter.token(withdrawBreakdown?.seeds, SEEDS)}
+                              value={formatCompact(withdrawBreakdown?.seeds)}
                               token={SEEDS}
                               delta="down"
                               suffix="Seeds"
