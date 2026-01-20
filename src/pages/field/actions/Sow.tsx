@@ -214,6 +214,11 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
       if (inputError) {
         throw new Error("Invalid input");
       }
+      // Check soil availability before submitting
+      // This prevents transaction submission even if UI state is bypassed
+      if (totalSoilLoading || !totalSoil || totalSoil.lte(0)) {
+        throw new Error("No Soil available");
+      }
 
       // Track sow submission
       trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_SUBMIT, {
@@ -346,6 +351,8 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     currentTemperature,
     inputError,
     referralAddress,
+    totalSoil,
+    totalSoilLoading,
   ]);
 
   // Callbacks
@@ -435,7 +442,9 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   const initializing = !didSetPreferred || (hasSoil ? maxBuyQuery.isLoading : false);
 
   const isLoading = (numIn > 0 && loading) || (pods?.lte(0) && numIn > 0);
-  const ready = pods?.gt(0) && podLine.gte(0) && (hasSoil ? maxBuy?.gt(0) && amountInTV.gt(0) : true);
+  // If there's no soil, ready should be false (can't sow without soil)
+  // If there's soil, check that maxBuy is available and amount is greater than 0
+  const ready = pods?.gt(0) && podLine.gte(0) && (hasSoil ? maxBuy?.gt(0) && amountInTV.gt(0) : false);
 
   const tokenBalance = fromSilo
     ? depositedByWhitelistedToken.get(tokenIn)
@@ -447,7 +456,10 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   const ctaDisabled = isLoading || isConfirming || submitting || !ready || inputError || !canProceed;
 
-  const buttonText = inputError ? "Amount too large" : "Sow";
+  // Determine button text based on error conditions
+  // If no soil available, show "No Soil available" (consistent with warning message)
+  const noSoilAvailable = !hasSoil && !totalSoilLoading;
+  const buttonText = inputError ? "Amount too large" : noSoilAvailable ? "No Soil available" : "Sow";
 
   return (
     <Col className="gap-4 w-full">
@@ -613,9 +625,9 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
         <SmartSubmitButton
           variant={isMorning ? "morning" : "gradient"}
           disabled={ctaDisabled}
-          token={!fromSilo ? tokenIn : undefined}
-          amount={!fromSilo ? amountIn : undefined}
-          balanceFrom={!fromSilo ? balanceFrom : undefined}
+          token={!fromSilo && !noSoilAvailable ? tokenIn : undefined}
+          amount={!fromSilo && !noSoilAvailable ? amountIn : undefined}
+          balanceFrom={!fromSilo && !noSoilAvailable ? balanceFrom : undefined}
           submitFunction={onSubmit}
           submitButtonText={buttonText}
         />
@@ -624,9 +636,9 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
         <SmartSubmitButton
           variant={isMorning ? "morning" : "gradient"}
           disabled={ctaDisabled}
-          token={!fromSilo ? tokenIn : undefined}
-          amount={!fromSilo ? amountIn : undefined}
-          balanceFrom={!fromSilo ? balanceFrom : undefined}
+          token={!fromSilo && !noSoilAvailable ? tokenIn : undefined}
+          amount={!fromSilo && !noSoilAvailable ? amountIn : undefined}
+          balanceFrom={!fromSilo && !noSoilAvailable ? balanceFrom : undefined}
           submitFunction={onSubmit}
           submitButtonText={buttonText}
           className="h-full"
