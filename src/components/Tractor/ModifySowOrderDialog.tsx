@@ -27,12 +27,13 @@ import useTransaction from "@/hooks/useTransaction";
 import { RequisitionEvent, SowBlueprintData, decodeSowTractorData, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
+import { queryKeys } from "@/state/queryKeys";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { encodeReferralAddress, isValidReferralCode } from "@/utils/referral";
-import { postSanitizedSanitizedValue, sanitizeNumericInputValue } from "@/utils/string";
+import { postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { cn } from "@/utils/utils";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
@@ -172,7 +173,7 @@ export default function ModifyTractorOrderDialog({
 
   // Sync hook referral code changes to form
   useEffect(() => {
-    if (hookReferralCode && hookReferralCode !== form.getValues("referralCode")) {
+    if (!stringEq(hookReferralCode, form.getValues("referralCode"))) {
       form.setValue("referralCode", hookReferralCode);
     }
   }, [hookReferralCode, form]);
@@ -349,7 +350,7 @@ export default function ModifyTractorOrderDialog({
             <Col className="gap-6">
               <DialogHeader>
                 <DialogTitle>
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
                     <div className="pinto-body font-medium text-pinto-secondary">
                       🚜 Update Conditions for automated Sowing
                     </div>
@@ -522,6 +523,7 @@ export default function ModifyTractorOrderDialog({
           operatorPasteInstrs={state.operatorPasteInstructions}
           blueprint={state.blueprint}
           getStrategyProps={getStrategyProps}
+          currentReferralCode={hookReferralCode}
         />
       )}
     </>
@@ -541,6 +543,7 @@ interface ModifyTractorOrderReviewDialogProps {
   operatorPasteInstrs: `0x${string}`[];
   blueprint: Blueprint;
   getStrategyProps: ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>;
+  currentReferralCode: string;
 }
 
 function ModifyTractorOrderReviewDialog({
@@ -551,14 +554,15 @@ function ModifyTractorOrderReviewDialog({
   orderData,
   getStrategyProps,
   blueprint,
+  currentReferralCode,
 }: ModifyTractorOrderReviewDialogProps) {
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
   const queryClient = useQueryClient();
 
   const valueDiffs = useMemo(
-    () => getDiffs(getMapping(existingOrder, orderData, getStrategyProps)),
-    [existingOrder, orderData, getStrategyProps],
+    () => getDiffs(getMapping(existingOrder, orderData, getStrategyProps, currentReferralCode)),
+    [existingOrder, orderData, getStrategyProps, currentReferralCode],
   );
 
   // Use the imported Tractor utilities
@@ -569,7 +573,8 @@ function ModifyTractorOrderReviewDialog({
     successMessage: "Order modified successfully",
     errorMessage: "Failed to modify order",
     successCallback: () => {
-      queryClient.invalidateQueries();
+      // Invalidate tractor-related queries to refresh order data
+      queryClient.invalidateQueries({ queryKey: queryKeys.base.tractor });
       onOpenChange(false);
       if (onSuccess) {
         onSuccess();
@@ -748,7 +753,7 @@ const RenderConstantParam = (props: ValueDiff<unknown>) => {
   const getConstantParamValue = () => {
     try {
       if (typeof prev === "string") {
-        return prev;
+        return prev || "N/A";
       } else if (typeof prev === "boolean") {
         return prev ? "Yes" : "No";
       } else if (prev instanceof TokenValue) {
@@ -828,9 +833,21 @@ const getMapping = (
   requisition: RequisitionEvent<SowBlueprintData>,
   orderData: OrderData,
   getStrategyProps: ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>,
+  currentReferralCode: string,
 ) => {
   const existing = requisition.decodedData;
   if (!existing) return undefined;
+
+  // Extract referral code from existing order
+  let existingReferralCode = "";
+  try {
+    const decodedResult = decodeSowTractorData(requisition.requisition.blueprint.data);
+    if (decodedResult && "blueprintData" in decodedResult && decodedResult.referralAddress) {
+      existingReferralCode = encodeReferralAddress(decodedResult.referralAddress) || "";
+    }
+  } catch (e) {
+    console.debug("Could not extract referral address from existing order:", e);
+  }
 
   return {
     totalAmount: {
@@ -881,6 +898,11 @@ const getMapping = (
       prev: postSanitizedSanitizedValue(existing.operatorParams.operatorTipAmountAsString, 6).tv,
       curr: postSanitizedSanitizedValue(orderData.operatorTip, 6).tv,
     },
+    referralCode: {
+      label: "Referral Code",
+      prev: existingReferralCode,
+      curr: currentReferralCode,
+    },
   };
 };
 
@@ -916,7 +938,16 @@ const getDiffs = (mapping: ReturnType<typeof getMapping>) => {
           curr: curr ? "Yes" : "No",
         };
       }
-    } else if (typeof prev === "object" && "type" in prev) {
+    } else if (typeof prev === "string" && typeof curr === "string") {
+      if (prev !== curr) {
+        hasChanged = true;
+        valueDiff = {
+          label,
+          prev: prev || "N/A",
+          curr: curr || "N/A",
+        };
+      }
+    } else if (typeof prev === "object" && prev !== null && "type" in prev) {
       const current = curr as ExtendedTractorTokenStrategy;
       if (
         prev.type !== current.type ||

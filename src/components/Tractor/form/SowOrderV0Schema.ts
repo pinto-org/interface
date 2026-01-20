@@ -235,6 +235,7 @@ export type SowV0FormOrderData = {
   morningAuction: boolean;
   tokenStrategy: TractorTokenStrategy["type"];
   token: Token | undefined;
+  referralCode?: string;
 };
 
 export type SowOrderV0State = {
@@ -322,6 +323,7 @@ export const useSowOrderV0State = () => {
           tokenStrategy: formData.selectedTokenStrategy.type,
           token: tokenInstance,
           operatorTip: formData.operatorTip || "",
+          referralCode: formData.referralCode || "",
         });
 
         setState({
