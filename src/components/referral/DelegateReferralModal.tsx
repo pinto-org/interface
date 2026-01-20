@@ -129,7 +129,7 @@ export function DelegateReferralModal({ isOpen, onOpenChange }: DelegateReferral
           </div>
 
           <div className="pinto-sm-light text-pinto-light">
-            Farmers are able to delegate their referral to a different address. Pods will be sent to the delegated
+            Farmers are able to delegate their rewards to a different address. Pods will be sent to the delegated
             address. Your referral code will change to reflect the new delegated address.
           </div>
         </Col>

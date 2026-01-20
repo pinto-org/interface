@@ -22,8 +22,8 @@ export default function Referral() {
           <div className="flex flex-col gap-y-3">
             <div className="pinto-h2 sm:pinto-h1">Referral Program</div>
             <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-              Earn rewards by referring farmers to Pinto. Share your referral link and earn 10% of the Pods your
-              referees gain from Sowing. Referrals gain a 5% bonus on their Sow.
+              Earn bonus Pods when you refer someone to Pinto. You’ll receive an extra 10% of the Pods your referral
+              earns, and your referees get a 5% bonus too!
             </div>
           </div>
           <Separator />

@@ -86,7 +86,9 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <div className="pinto-h3 sm:pinto-h2">Your Referral Information</div>
-        <div className="pinto-sm text-pinto-light">Share to support the Farm and earn additional Pods.</div>
+        <div className="pinto-sm text-pinto-light">
+          Share to support the Farm, sweeten the deal for a friend, and earn additional Pods.
+        </div>
       </div>
       <div className="flex flex-col gap-4">
         {/* Only show referral code/link if user meets requirement */}
@@ -116,7 +118,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
             </div>
             {/* Referral Code */}
             <div className="flex flex-col gap-2">
-              <label className="pinto-sm text-pinto-light">Referral Code</label>
+              <label className="pinto-sm text-pinto-light">Referral Code (also works)</label>
               <div className="flex flex-row gap-2">
                 <Input
                   value={referralCode}

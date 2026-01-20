@@ -19,13 +19,12 @@ const steps = [
   },
   {
     title: "Earn Rewards",
-    description:
-      "When someone uses your link and Sows Pinto, you earn 10% of the Pods they receive as a referral bonus.",
+    description: "Earn 10% of the number of Pods your referees earn as a bonus, and they get an extra 5% too!",
   },
   {
     title: "Get Credited",
     description:
-      "Referral rewards are automatically credited to your wallet address when your referral completes their Sow transaction.",
+      "Referral rewards are automatically credited to your wallet address when your referee completes their Sow transaction.",
   },
 ];
 
