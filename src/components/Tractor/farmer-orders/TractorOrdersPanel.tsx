@@ -48,7 +48,7 @@ interface TractorOrdersPanelProps {
   initialFilters?: Partial<MixedOrderFilters>;
 }
 
-const ORDER_TYPES: OrderType[] = ["sow", "convertUp"] as const;
+const ORDER_TYPES: OrderType[] = ["sow", "convertUp"];
 
 function TractorOrdersPanelGeneric({
   orderTypes: _orderTypes = ORDER_TYPES,
@@ -271,7 +271,7 @@ function TractorOrdersPanelGeneric({
   }
 
   if (!unifiedOrders.length) {
-    return <EmptyTable type="tractorConvertUp" onTractorClick={onCreateOrder} />;
+    return <EmptyTable type="tractor" onTractorClick={onCreateOrder} />;
   }
 
   return (
