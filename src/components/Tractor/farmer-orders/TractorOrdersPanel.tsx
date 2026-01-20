@@ -111,10 +111,21 @@ function TractorOrdersPanelGeneric({
       sowOrders
         .filter((req) => stringEq(req.requisition.blueprint.publisher, address))
         .forEach((req) => {
-          const decodedData = ORDER_TYPE_REGISTRY.sow.decodeData(req.requisition.blueprint.data);
-          if (!decodedData) {
+          const decodedResult = ORDER_TYPE_REGISTRY.sow.decodeData(req.requisition.blueprint.data);
+          if (!decodedResult) {
             return;
           }
+
+          // Handle both unwrapped and wrapped referral formats
+          let decodedData: any;
+          if ("blueprintData" in decodedResult && typeof decodedResult.blueprintData === "object") {
+            // Wrapped referral format: { blueprintData, referralAddress }
+            decodedData = decodedResult.blueprintData;
+          } else {
+            // Regular SowBlueprintData format
+            decodedData = decodedResult;
+          }
+
           const reqWithDecodedData = { ...req, decodedData };
           const orderExecutions = executionsByHash?.[req.requisition.blueprintHash] || [];
 

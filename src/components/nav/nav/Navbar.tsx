@@ -331,6 +331,7 @@ export const navLinks = {
   silo: "/silo",
   field: "/field",
   swap: "/swap",
+  referral: "/referral",
   sPinto: "/sPinto",
   collection: "/collection",
   podmarket: "/market/pods",

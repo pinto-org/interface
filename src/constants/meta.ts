@@ -25,6 +25,7 @@ const slugs = [
   "PINTO",
   "sPinto",
   "tractor",
+  "referral",
 ] as const;
 
 const nestedSlugs = ["PINTOUSDC", "PINTOcbBTC", "PINTOWSOL", "PINTOWETH", "PINTOcbETH", "PINTO"] as const;
@@ -132,6 +133,11 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
     title: "My Collection | Pinto",
     description: "View and manage your collection of Pinto NFTs.",
     url: "https://pinto.money/collectionsoon",
+  },
+  referral: {
+    title: "Referral | Pinto",
+    description: "Share Pinto and earn rewards through referrals.",
+    url: "https://pinto.money/referral",
   },
 };
 

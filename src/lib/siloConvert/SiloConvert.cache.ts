@@ -1,5 +1,6 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
+import { diamondABI } from "@/constants/abi/diamondABI";
 import { diamondPriceABI } from "@/constants/abi/diamondPriceABI";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { MAIN_TOKEN } from "@/constants/tokens";
@@ -13,13 +14,21 @@ import { beanstalkPriceAddress } from "@/generated/contractHooks";
 import { AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { SiloConvertContext } from "@/lib/siloConvert/types";
 import { ExchangeWell } from "@/lib/well/ExchangeWell";
-import { PoolData } from "@/state/usePriceData";
+import { BasePoolData, PoolData } from "@/state/usePriceData";
 import { resolveChainId } from "@/utils/chain";
+import { stringEq } from "@/utils/string";
 import { getChainToken, getChainTokenMap, getTokenIndex } from "@/utils/token";
 import { tokensEqual } from "@/utils/token";
 import { AdvancedPipeCall, Token } from "@/utils/types";
 import { AddressLookup, HashString } from "@/utils/types.generic";
-import { Address, decodeFunctionResult, encodeFunctionData } from "viem";
+import {
+  Address,
+  ContractFunctionParameters,
+  MulticallReturnType,
+  decodeFunctionResult,
+  encodeFunctionData,
+} from "viem";
+import { multicall } from "viem/actions";
 
 /**
  * Extended pool data for the SiloConvertCache.
@@ -91,6 +100,11 @@ export class SiloConvertPriceCache {
 
   /** The last time the cache was updated. */
   lastUpdateTimestamp: number = 0;
+
+  /**
+   * A set of well addresses that failed to return any form of price data from the price / diamond contract
+   */
+  private invalidWells: Set<string> = new Set();
 
   constructor(context: SiloConvertContext) {
     this.context = context;
@@ -171,6 +185,14 @@ export class SiloConvertPriceCache {
     return well.pair.price;
   }
 
+  getIsWellAvailable(well: Address) {
+    if (this.invalidWells.has(getTokenIndex(well))) {
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * Returns the Extended Well data for a given Well address.
    */
@@ -196,7 +218,8 @@ export class SiloConvertPriceCache {
     console.debug("[SiloConvertCache/update] updating cache...");
     const diff = Date.now() - this.lastUpdateTimestamp;
     if (force || this.lastUpdateTimestamp === 0 || diff > REFETCH_INTERVAL) {
-      const priceResult = await this.fetch();
+      const priceResult = await this.fetchMulticall();
+      this.invalidWells = priceResult.erroredWells;
       this.priceStruct = priceResult;
       this.lastUpdateTimestamp = Date.now();
       console.debug("[PipelineConvert/Cache/update]: ", this);
@@ -236,15 +259,19 @@ export class SiloConvertPriceCache {
   }
 
   getPriceCallStructs(): AdvancedPipeCall[] {
+    const availWells = Object.values(this.dewhitelistedLP).filter((tk) => this.getIsWellAvailable(tk.address));
+
     return [
       encodePrice(this.context.chainId),
-      ...Object.values(this.dewhitelistedLP).map((tk) => encodeGetWell(this.context.chainId, tk.address)),
+      ...availWells.map((tk) => encodeGetWell(this.context.chainId, tk.address)),
     ];
   }
 
   decodePriceCallResults(results: HashString[]) {
+    const availWells = Object.values(this.dewhitelistedLP).filter((tk) => this.getIsWellAvailable(tk.address));
+
     // +1 for the price call
-    const expectedLength = Object.keys(this.dewhitelistedLP).length + 1;
+    const expectedLength = availWells.length + 1;
 
     if (results.length < expectedLength) {
       throw new Error(`Cannot decode price call results. Expected ${expectedLength} results but got ${results.length}`);
@@ -255,7 +282,7 @@ export class SiloConvertPriceCache {
 
     priceResult.pools = { ...priceResult.pools };
 
-    Object.values(this.dewhitelistedLP).forEach((tk, idx) => {
+    availWells.forEach((tk, idx) => {
       const res = decodeGetWell(dewhitelistedLPResults[idx]);
       priceResult.pools[getTokenIndex(tk.address)] = res;
     });
@@ -292,64 +319,123 @@ export class SiloConvertPriceCache {
     return advPipe;
   }
 
-  /**
-   * Fetches the relevant pool data from on chain
-   */
-  async fetch(): Promise<ExtendedPriceResult> {
-    console.debug("[SiloConvertCache/fetch] fetching price data...");
+  async fetchMulticall() {
+    const client = this.context.wagmiConfig.getClient({ chainId: this.context.chainId });
     const tokenMap = getChainTokenMap(this.context.chainId);
-    const mainToken = MAIN_TOKEN[resolveChainId(this.context.chainId)];
 
-    const advPipe = this.constructPriceAdvPipe();
+    const erroredWells: Set<string> = new Set();
 
-    // Fetch price contract data & price oracle data
+    const calls = this.getMultiCallPriceContracts();
 
-    const advPipeResult = await advPipe.readStatic();
-    const sliceIdx = Object.keys(this.dewhitelistedLP).length + 1;
-    const priceFragments = advPipeResult.slice(0, sliceIdx);
-    const tokenUsdData = advPipeResult.slice(sliceIdx, advPipeResult.length);
+    const { priceCalls, dewhitelistedWellLPCalls, lpPairTokenPriceCalls } = calls;
 
-    const priceResult = this.decodePriceCallResults(priceFragments);
+    const datas = await multicall(client, {
+      contracts: [...priceCalls, ...dewhitelistedWellLPCalls, ...lpPairTokenPriceCalls],
+      allowFailure: true,
+    });
+
+    const [priceData, ...remaining] = datas;
+    const dewhitelistedLPData = remaining.slice(0, dewhitelistedWellLPCalls.length) as MulticallReturnType<
+      typeof dewhitelistedWellLPCalls,
+      true
+    >;
+    const lpPairTokenPriceData = remaining.slice(dewhitelistedWellLPCalls.length, remaining.length);
+
+    const priceResult = priceData.result;
+
+    if (!priceResult || typeof priceResult !== "object" || !("ps" in priceResult)) {
+      throw new Error("[SiloConvertCache/fetchMulticall] Price data error");
+    }
 
     const map: AddressLookup<ExtendedPoolData> = {};
 
-    for (const [index, [lpTokenIndex, pairToken]] of Object.entries(this.lp2Pair).entries()) {
-      const pairPriceBigInt = decodeFunctionResult({
-        abi: abiSnippets.price.getTokenUsdPrice,
-        functionName: "getTokenUsdPrice",
-        data: tokenUsdData[index],
-      });
+    const dwLPs = Object.values(this.dewhitelistedLP);
 
-      const poolResult = priceResult.pools[lpTokenIndex];
-      const wellTokens = poolResult?.tokens.map((t) => getChainToken(this.context.chainId, t));
+    const dwLPData = dewhitelistedLPData
+      .map((d, i) => {
+        if (d.result && typeof d.result === "object") {
+          return d.result;
+        }
+
+        console.debug(
+          `[SiloConvertCache/fetchMulticall] Error decoding dewhitelisted LP data for ${dwLPs[i]?.address}. Adding to erroredWells set.`,
+        );
+        const erroredWell = Object.values(this.dewhitelistedLP)[i]?.address;
+        erroredWells.add(Object.values(this.dewhitelistedLP)[i]?.address);
+        return undefined;
+      })
+      .filter((d) => d !== undefined);
+
+    const reducedPs = priceResult.ps.reduce<AddressLookup<BasePoolData<Address, bigint>>>((prev, curr) => {
+      prev[getTokenIndex(curr.pool)] = {
+        ...curr,
+        tokens: [curr.tokens[0], curr.tokens[1]] satisfies Address[],
+        balances: [curr.balances[0], curr.balances[1]] satisfies bigint[],
+      };
+      return prev;
+    }, {});
+
+    for (const [index, [lpTokenIndex, pairToken]] of Object.entries(this.lp2Pair).entries()) {
+      const data = lpPairTokenPriceData[index];
+      const result = data.result;
+
+      if (!result || typeof result !== "bigint") {
+        continue;
+      }
+
+      let poolResult = reducedPs[getTokenIndex(lpTokenIndex)];
 
       if (!poolResult) {
-        throw new Error(`Pool result not found for ${lpTokenIndex}`);
-      }
-      if (!wellTokens.length) {
-        throw new Error(`No well tokens found with address: ${lpTokenIndex}`);
+        const mayPoolResult = dwLPData.find((d) => stringEq(d.pool, lpTokenIndex));
+        if (mayPoolResult) {
+          poolResult = {
+            ...mayPoolResult,
+            tokens: [mayPoolResult.tokens[0], mayPoolResult.tokens[1]] satisfies Address[],
+            balances: [mayPoolResult.balances[0], mayPoolResult.balances[1]] satisfies bigint[],
+          };
+        } else {
+          erroredWells.add(lpTokenIndex);
+          console.debug(
+            `[SiloConvertCache/fetchMulticall] No pool result found for ${lpTokenIndex}. Adding to erroredWells set.`,
+          );
+          continue;
+        }
       }
 
-      const poolPrice = TV.fromBigInt(poolResult.price, mainToken.decimals);
+      const wellTokens = poolResult.tokens.map((t) => getChainToken(this.context.chainId, t));
+      if (!wellTokens.length) {
+        erroredWells.add(lpTokenIndex);
+        console.debug(
+          `[SiloConvertCache/fetchMulticall] No well tokens found with address: ${lpTokenIndex}. Adding to erroredWells set.`,
+        );
+        continue;
+      }
+
+      const pairPrice = TV.fromBigInt(result, pairToken.decimals);
+      const poolPrice = TV.fromBigInt(poolResult.price, 6);
 
       const pairData = {
         token: pairToken,
         index: wellTokens[0].isMain ? 1 : 0,
-        price: TV.fromBigInt(pairPriceBigInt, mainToken.decimals),
+        price: pairPrice,
       };
 
       map[lpTokenIndex] = {
         pool: tokenMap[lpTokenIndex],
-        price: poolPrice,
+        price: TV.fromBigInt(poolResult.price, 6),
         pair: pairData,
         tokens: wellTokens,
         liquidity: TV.fromBigInt(poolResult.liquidity, 6),
-        lpUsd: TV.fromBigInt(poolResult.lpUsd, mainToken.decimals),
-        lpBdv: TV.fromBigInt(poolResult.lpBdv, mainToken.decimals),
-        deltaB: TV.fromBigInt(poolResult.deltaB, mainToken.decimals),
+        lpUsd: TV.fromBigInt(poolResult.lpUsd, 6),
+        lpBdv: TV.fromBigInt(poolResult.lpBdv, 6),
+        deltaB: TV.fromBigInt(poolResult.deltaB, 6),
         balances: wellTokens.map((t, i) => TV.fromBigInt(poolResult.balances[i], t.decimals)),
         prices: wellTokens.map((t) => (t.isMain ? poolPrice : pairData.price)),
       };
+    }
+
+    if (!dewhitelistedLPData.length || !lpPairTokenPriceData.length) {
+      throw new Error("No dewhitelistedLPData or lpPairTokenPriceData found");
     }
 
     return {
@@ -357,7 +443,49 @@ export class SiloConvertPriceCache {
       price: TV.fromBigInt(priceResult.price, 6),
       liquidity: TV.fromBigInt(priceResult.liquidity, 6),
       pools: map,
+      erroredWells,
     };
+  }
+
+  /**
+   *
+   * constructs the contracts for the price multicall
+   */
+  private getMultiCallPriceContracts() {
+    const priceAddress = beanstalkPriceAddress[resolveChainId(this.context.chainId)];
+
+    // Put this in an array so TS doesn't complain about the type mismatch when not in an array
+    const priceCalls: ContractFunctionParameters<typeof diamondPriceABI, "view", "price">[] = [
+      {
+        address: priceAddress,
+        abi: diamondPriceABI,
+        functionName: "price",
+        args: [],
+      },
+    ];
+    const dewhitelistedWellLPCalls: ContractFunctionParameters<typeof diamondPriceABI, "view", "getWell">[] =
+      Object.values(this.dewhitelistedLP).map((dwlp) => {
+        return {
+          address: priceAddress,
+          abi: diamondPriceABI,
+          functionName: "getWell",
+          args: [dwlp.address],
+        };
+      });
+    const lpPairTokenPriceCalls = Object.values(this.lp2Pair).map((data) => {
+      return {
+        address: this.context.diamond,
+        abi: diamondABI,
+        functionName: "getTokenUsdPrice",
+        args: [data.address],
+      } as const;
+    });
+
+    return {
+      priceCalls,
+      dewhitelistedWellLPCalls,
+      lpPairTokenPriceCalls,
+    } as const;
   }
 }
 

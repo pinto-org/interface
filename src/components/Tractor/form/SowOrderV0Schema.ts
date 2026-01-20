@@ -1,20 +1,23 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { Blueprint, TractorTokenStrategy, createBlueprint, createSowTractorData } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useChainConstant } from "@/utils/chain";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useAccount, usePublicClient } from "wagmi";
 import { z } from "zod";
 
 import FormUtils from "@/utils/form";
+import { decodeReferralAddress, isValidReferralCode } from "@/utils/referral";
 
 const {
-  schema: { tokenStrategy, positiveNumber, addCTXErrors },
+  schema: { tokenStrategy, positiveNumber },
   validate: { lte },
 } = FormUtils;
 
@@ -22,38 +25,92 @@ export const sowOrderSchemaErrors = {
   minLteMax: "Min per Season cannot exceed Max per Season",
   minLteTotal: "Min per Season cannot exceed the total amount to Sow",
   maxLteTotal: "Max per Season cannot exceed the total amount to Sow",
+  totalExceedsDeposits: "Total amount cannot exceed your available deposits",
+  temperatureZero: "Temperature must be greater than 0",
 } as const;
 
 // Main schema for sow order dialog
-export const sowOrderDialogSchema = z
-  .object({
-    totalAmount: positiveNumber("Total Amount"),
-    minSoil: positiveNumber("Min per Season"),
-    maxPerSeason: positiveNumber("Max per Season"),
-    temperature: positiveNumber("Temperature"),
-    podLineLength: positiveNumber("Pod Line Length"),
-    morningAuction: z.boolean().default(false),
-    operatorTip: positiveNumber("Operator Tip"),
-    selectedTokenStrategy: tokenStrategy,
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: minSoil <= maxPerSeason
-    if (!lte(data.minSoil, data.maxPerSeason, 6, 6)) {
-      addCTXErrors(ctx, sowOrderSchemaErrors.minLteMax, ["minSoil", "maxPerSeason"]);
+export const sowOrderDialogSchema = z.object({
+  totalAmount: positiveNumber("Total Amount"),
+  minSoil: positiveNumber("Min per Season"),
+  maxPerSeason: positiveNumber("Max per Season"),
+  temperature: positiveNumber("Temperature"),
+  podLineLength: positiveNumber("Pod Line Length"),
+  morningAuction: z.boolean().default(false),
+  operatorTip: positiveNumber("Operator Tip"),
+  customOperatorTip: z.string().optional(),
+  selectedTokenStrategy: tokenStrategy,
+  referralCode: z.string().optional(), // Optional referral code
+});
+
+// Validation helper for advanced form
+export const validateAdvancedFormFields = (
+  data: {
+    minSoil: string;
+    maxPerSeason: string;
+    totalAmount: string;
+  },
+  form: ReturnType<typeof useForm<SowOrderV0FormSchema>>,
+): { isValid: boolean; errors: string[] } => {
+  let hasErrors = false;
+  const minSoilErrors: string[] = [];
+  const maxPerSeasonErrors: string[] = [];
+  const allErrors: string[] = [];
+
+  // Cross-field validation: minSoil <= maxPerSeason
+  if (!lte(data.minSoil, data.maxPerSeason, 6, 6)) {
+    minSoilErrors.push(sowOrderSchemaErrors.minLteMax);
+    maxPerSeasonErrors.push(sowOrderSchemaErrors.minLteMax);
+    allErrors.push(sowOrderSchemaErrors.minLteMax);
+    hasErrors = true;
+  }
+
+  // Cross-field validation: minSoil <= totalAmount
+  if (!lte(data.minSoil, data.totalAmount, 6, 6)) {
+    minSoilErrors.push(sowOrderSchemaErrors.minLteTotal);
+    allErrors.push(sowOrderSchemaErrors.minLteTotal);
+    hasErrors = true;
+  }
+
+  // Cross-field validation: maxPerSeason <= totalAmount
+  if (!lte(data.maxPerSeason, data.totalAmount, 6, 6)) {
+    maxPerSeasonErrors.push(sowOrderSchemaErrors.maxLteTotal);
+    allErrors.push(sowOrderSchemaErrors.maxLteTotal);
+    hasErrors = true;
+  }
+
+  // Set errors (show first error message for each field)
+  if (minSoilErrors.length > 0) {
+    form.setError("minSoil", {
+      type: "manual",
+      message: minSoilErrors[0],
+    });
+  } else {
+    // Clear errors if validation passes
+    const currentError = form.formState.errors.minSoil?.message;
+    if (currentError === sowOrderSchemaErrors.minLteMax || currentError === sowOrderSchemaErrors.minLteTotal) {
+      form.clearErrors("minSoil");
     }
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: minSoil <= totalAmount
-    if (!lte(data.minSoil, data.totalAmount, 6, 6)) {
-      addCTXErrors(ctx, sowOrderSchemaErrors.minLteTotal, ["minSoil", "totalAmount"]);
+  }
+
+  if (maxPerSeasonErrors.length > 0) {
+    form.setError("maxPerSeason", {
+      type: "manual",
+      message: maxPerSeasonErrors[0],
+    });
+  } else {
+    // Clear errors if validation passes
+    const currentError = form.formState.errors.maxPerSeason?.message;
+    if (currentError === sowOrderSchemaErrors.minLteMax || currentError === sowOrderSchemaErrors.maxLteTotal) {
+      form.clearErrors("maxPerSeason");
     }
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: maxPerSeason <= totalAmount
-    if (!lte(data.maxPerSeason, data.totalAmount, 6, 6)) {
-      addCTXErrors(ctx, sowOrderSchemaErrors.maxLteTotal, ["maxPerSeason", "totalAmount"]);
-    }
-  });
+  }
+
+  // Remove duplicates from errors
+  const uniqueErrors = Array.from(new Set(allErrors));
+
+  return { isValid: !hasErrors, errors: uniqueErrors };
+};
 
 // Type inference from schema
 export type SowOrderV0FormSchema = z.infer<typeof sowOrderDialogSchema>;
@@ -68,6 +125,7 @@ export const defaultSowOrderDialogValues: Partial<SowOrderV0FormSchema> = {
   morningAuction: false,
   operatorTip: "1",
   selectedTokenStrategy: { type: "LOWEST_SEEDS" },
+  referralCode: "",
 };
 
 export type SowOrderV0Form = {
@@ -79,9 +137,22 @@ export type SowOrderV0Form = {
 };
 
 export const useSowOrderV0Form = (): SowOrderV0Form => {
+  const mainToken = useChainConstant(MAIN_TOKEN);
+
+  const defaultValues = useMemo(
+    () => ({
+      ...defaultSowOrderDialogValues,
+      selectedTokenStrategy: {
+        type: "SPECIFIC_TOKEN" as const,
+        addresses: [mainToken.address as `0x${string}`],
+      },
+    }),
+    [mainToken.address],
+  );
+
   const form = useForm<SowOrderV0FormSchema>({
     resolver: zodResolver(sowOrderDialogSchema),
-    defaultValues: { ...defaultSowOrderDialogValues },
+    defaultValues,
     mode: "onChange",
   });
 
@@ -93,8 +164,18 @@ export const useSowOrderV0Form = (): SowOrderV0Form => {
   );
 
   const getAreAllFieldsFilled = useCallback(() => {
-    return Object.values(form.getValues()).every((v) => {
-      if (typeof v === "string") return Boolean(v.trim());
+    const values = form.getValues();
+    // Fields that are optional and shouldn't be checked
+    const optionalFields = ["referralCode"];
+
+    return Object.keys(values).every((key) => {
+      // Skip optional fields
+      if (optionalFields.includes(key)) {
+        return true;
+      }
+
+      const value = values[key as keyof SowOrderV0FormSchema];
+      if (typeof value === "string") return Boolean(value.trim());
       return true;
     });
   }, [form.getValues]);
@@ -106,7 +187,21 @@ export const useSowOrderV0Form = (): SowOrderV0Form => {
   const getMissingFields = useCallback(() => {
     const values = form.getValues();
 
+    // Fields that are auto-populated and shouldn't be shown as missing
+    const autoPopulatedFields = ["minSoil", "maxPerSeason", "podLineLength"];
+    // Fields that are optional and shouldn't be shown as missing
+    const optionalFields = ["referralCode"];
+
     const missingFields = Object.keys(values).filter((key) => {
+      // Skip auto-populated fields
+      if (autoPopulatedFields.includes(key)) {
+        return false;
+      }
+      // Skip optional fields
+      if (optionalFields.includes(key)) {
+        return false;
+      }
+
       const value = values[key as keyof SowOrderV0FormSchema];
       if (typeof value === "string") {
         return value.trim() === "";
@@ -181,6 +276,12 @@ export const useSowOrderV0State = () => {
       try {
         const formData = form.getValues();
 
+        // Decode referral code if provided and valid
+        let referralAddress: `0x${string}` | undefined;
+        if (formData.referralCode && isValidReferralCode(formData.referralCode)) {
+          referralAddress = decodeReferralAddress(formData.referralCode) || undefined;
+        }
+
         const { data, operatorPasteInstrs, rawCall, depositOptimizationCalls } = await createSowTractorData({
           totalAmountToSow: formData.totalAmount,
           temperature: formData.temperature,
@@ -196,6 +297,7 @@ export const useSowOrderV0State = () => {
           farmerDeposits: deposits,
           userAddress: deposits ? address : undefined,
           protocolAddress: deposits ? protocolAddress : undefined,
+          referralAddress, // Pass the decoded referral address
         });
 
         const newBlueprint = createBlueprint({

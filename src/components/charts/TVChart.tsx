@@ -16,9 +16,7 @@ import {
   createChart,
 } from "lightweight-charts";
 import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
-import { GearIcon } from "../Icons";
 import TooltipSimple from "../TooltipSimple";
-import { ResponsivePopover } from "../ui/ResponsivePopover";
 
 export type TVChartFormattedData = {
   time: Time;

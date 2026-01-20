@@ -153,10 +153,10 @@ export const AdvancedChart = () => {
   const filtered = useMemo(() => {
     const output: TVChartFormattedData[][] = [];
     if (selectedCharts.length === 0) return output;
-    selectedCharts.forEach((selection, selectedIndex) => {
+    selectedCharts.forEach((selection) => {
       const selectedChart = chartSetupData[selection];
       const _output: TVChartFormattedData[] = [];
-      seasonsData.data.forEach((seasonData, index) => {
+      seasonsData.data.forEach((seasonData) => {
         // Verify a datapoint is available for this season (some data, like tractor, is not since season 1)
         if (selectedChart.priceScaleKey in seasonData) {
           const formatValue = selectedChart.valueFormatter;

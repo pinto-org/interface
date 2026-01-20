@@ -247,10 +247,9 @@ function ComboInputField({
     if (mode === "plots" && selectedPlots) {
       return selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
     }
-    if (mode === "balance") {
-      if (tokenAndBalanceMap && selectedToken) {
-        return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
-      }
+    // If tokenAndBalanceMap is provided and selectedToken exists, use it (for deposits mode or custom balance maps)
+    if (tokenAndBalanceMap && selectedToken) {
+      return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
     }
     // Always use farmerTokenBalance for display, not maxAmount (which may be limited by customMaxAmount)
     return getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);

@@ -116,6 +116,11 @@ const selectFieldSowEvents = (
     const beans = args.beans || BigInt(0); // PINTO amount in beans
     const pods = args.pods || BigInt(0);
 
+    // Skip events where 0 beans were sown
+    if (beans === BigInt(0)) {
+      continue;
+    }
+
     // Calculate timestamp using block number difference and 2-second block time
     // Base has 2 second blocks
     const blockDiff = latestBlockNumber - Number(blockNumber);

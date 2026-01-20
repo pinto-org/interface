@@ -81,7 +81,7 @@ export class SiloConvertSwapQuoter {
 
     const fee = quote.fees?.zeroExFee;
 
-    if (fee) {
+    if (fee && !usdIn.isZero && !usdOut.isZero) {
       const feeToken = stringEq(fee.token, sellToken.address) ? sellToken : buyToken;
       const feeAmount = TV.fromBlockchain(fee.amount, feeToken.decimals);
       const feeTokenUSD = tokensEqual(feeToken, sellToken) ? sellTokenUSD : buyTokenUSD;

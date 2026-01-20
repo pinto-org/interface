@@ -3,7 +3,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { TractorRequisitionEvent as RequisitionEvent, SowBlueprintData, decodeSowTractorData } from "@/lib/Tractor";
+import {
+  TractorRequisitionEvent as RequisitionEvent,
+  SowBlueprintData,
+  decodeSowTractorData,
+  unwrapSowBlueprintData,
+} from "@/lib/Tractor";
 import useTractorPublishedRequisitions from "@/state/tractor/useTractorPublishedRequisitions";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -108,7 +113,7 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
             } | null = null;
 
             try {
-              const decoded = decodeSowTractorData(req.requisition.blueprint.data);
+              const decoded = unwrapSowBlueprintData(decodeSowTractorData(req.requisition.blueprint.data));
               if (decoded) {
                 decodedData = {
                   minTempAsString: decoded.minTempAsString,
