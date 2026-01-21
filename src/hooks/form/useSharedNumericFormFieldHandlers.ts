@@ -1,4 +1,4 @@
-import { sanitizeNumericInputValue } from "@/utils/string";
+import { MAX_INPUT_VALUE, sanitizeNumericInputValue } from "@/utils/string";
 import { useCallback, useMemo } from "react";
 import { FieldPath, FieldValues, PathValue, useFormContext } from "react-hook-form";
 
@@ -16,15 +16,16 @@ export const useSharedNumericFormFieldHandlers = <
   name: TName,
   decimals: number,
   allowNegative?: boolean,
+  maxValue: number = MAX_INPUT_VALUE,
 ): BaseIFormContextHandlers => {
   const handleNumericInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement> | { target: { value: string } }) => {
-      const cleaned = sanitizeNumericInputValue(e.target.value, decimals, allowNegative);
+      const cleaned = sanitizeNumericInputValue(e.target.value, decimals, allowNegative, maxValue);
 
       ctx.setValue(name, cleaned.str as PathValue<TFieldValues, TName>, { shouldValidate: true });
       return cleaned;
     },
-    [ctx.setValue, decimals, name],
+    [ctx.setValue, decimals, name, maxValue],
   );
 
   const handleNumericInputBlur = useCallback(

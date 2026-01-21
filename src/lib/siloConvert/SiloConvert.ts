@@ -10,7 +10,7 @@ import { getChainConstant, getOverrideAllowanceStateOverride } from "@/utils/cha
 import { pickCratesMultiple } from "@/utils/convert";
 import { DepositData, FarmFromMode, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
-import { arrayify, throwIfAborted } from "@/utils/utils";
+import { throwIfAborted } from "@/utils/utils";
 import { Config } from "@wagmi/core";
 import { Address } from "viem";
 import { SiloConvertPriceCache } from "./SiloConvert.cache";
@@ -18,11 +18,7 @@ import { MaxConvertResult, SiloConvertMaxConvertQuoter } from "./SiloConvert.max
 import { SiloConvertRoute, SiloConvertStrategizer } from "./siloConvert.strategizer";
 import { ConvertStrategyQuote } from "./strategies/core";
 import { SiloConvertType } from "./strategies/core";
-import {
-  DefaultConvertStrategy,
-  SiloConvertLP2MainWithdrawPairStrategy,
-  SiloConvertMain2LPDepositPairStrategy,
-} from "./strategies/implementations";
+import { DefaultConvertStrategy, SiloConvertLP2MainWithdrawPairStrategy } from "./strategies/implementations";
 import { ConversionQuotationError, SiloConvertError, SimulationError } from "./strategies/validation/SiloConvertErrors";
 import { SiloConvertContext } from "./types";
 import { decodeConvertResults } from "./utils";
@@ -348,45 +344,59 @@ export class SiloConvert {
   /**
    *
    * @param quotedRoutes - The decoded quoted routes from the handleQuoteRoutes function
-   * @returns The raw simulation results
+   * @returns The raw simulation results with price success indicator
    */
-  private async handleSimulateQuotedRoutes(
-    // The decoded quoted routes from the handleQuoteRoutes function
-    quotedRoutes: Awaited<ReturnType<typeof this.handleQuoteRoutes>>,
-  ) {
-    const data = await Promise.all(
-      quotedRoutes.map((route) => {
-        // get all the approval tokens from the strategies
-        const approvalTokens = route.route.strategies
-          .flatMap((s) => s.strategy.getApprovalTokens())
-          .filter((t) => t !== undefined);
+  private async handleSimulateQuotedRoutes(quotedRoutes: Awaited<ReturnType<typeof this.handleQuoteRoutes>>) {
+    const runSimulate = (getPrices: boolean, warn?: boolean) => {
+      return Promise.all(
+        quotedRoutes.map((route) => {
+          // get all the approval tokens from the strategies
+          const approvalTokens = route.route.strategies
+            .flatMap((s) => {
+              const tokens = s.strategy.getApprovalTokens();
+              return tokens ? (Array.isArray(tokens) ? tokens : [tokens]) : [];
+            })
+            .filter((t): t is Token => t !== undefined);
 
-        return route.workflow
-          .simulate({
-            account: this.context.account,
-            after: this.priceCache.constructPriceAdvPipe({ noTokenPrices: true }),
-            // Add any state overrides that require approval tokens
-            stateOverrides: getOverrideAllowanceStateOverride(
-              this.context.chainId,
-              approvalTokens,
-              this.context.account,
-            ),
-          })
-          .catch((e) => {
-            logError("[SiloConvert/quote] FAILED to simulate routes : ", e);
-            throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
-              routes: route.route,
-              quotedRoutes,
+          return route.workflow
+            .simulate({
+              account: this.context.account,
+              after: getPrices ? this.priceCache.constructPriceAdvPipe({ noTokenPrices: true }) : undefined,
+              // Add any state overrides that require approval tokens
+              stateOverrides: getOverrideAllowanceStateOverride(
+                this.context.chainId,
+                approvalTokens,
+                this.context.account,
+              ),
+            })
+            .catch((e) => {
+              logError("[SiloConvert/quote] FAILED to simulate routes : ", e, warn);
+              throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
+                routes: route.route,
+                quotedRoutes,
+              });
+            })
+            .then((r) => {
+              console.debug("[SiloConvert/quote] simulated route!: ", route, r);
+              return r;
             });
-          })
-          .then((r) => {
-            console.debug("[SiloConvert/quote] simulated route!: ", route, r);
-            return r;
-          });
-      }),
-    );
+        }),
+      );
+    };
 
-    return data;
+    let didSucceedWithPrices = true;
+
+    const simulationsRawResults = await runSimulate(true, true).catch((e) => {
+      didSucceedWithPrices = false;
+      logError("[SiloConvert/quote] RETRYING to simulate routes w/o prices: ", e, true);
+      return runSimulate(false, false).catch((e) => {
+        throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
+          quotedRoutes,
+        });
+      });
+    });
+
+    return { simulationsRawResults, didSucceedWithPrices };
   }
 
   private handleDecodeRouteAndPriceResults(
@@ -394,7 +404,7 @@ export class SiloConvert {
     simulationsRawResults: Awaited<ReturnType<typeof this.handleSimulateQuotedRoutes>>,
   ) {
     const datas = quotedRoutes.map((route, i): SiloConvertSummary<SiloConvertType> => {
-      const rawResponse = simulationsRawResults[i];
+      const rawResponse = simulationsRawResults.simulationsRawResults[i];
 
       if (!rawResponse || !rawResponse.result) {
         throw new Error(`[SiloConvert/quote] Invalid route index: ${i}`);
@@ -405,7 +415,12 @@ export class SiloConvert {
       let decoded: ReturnType<typeof this.decodeRouteAndPriceResults>;
 
       try {
-        decoded = this.decodeRouteAndPriceResults(staticCallResult, route.route, route.decodeIndicies);
+        decoded = this.decodeRouteAndPriceResults(
+          staticCallResult,
+          route.route,
+          route.decodeIndicies,
+          simulationsRawResults.didSucceedWithPrices,
+        );
       } catch (e) {
         logError("[SiloConvert/quote] FAILED to decode route and price results: ", e);
         throw new ConversionQuotationError("Failed to decode route and price results", {
@@ -458,6 +473,7 @@ export class SiloConvert {
     rawResponse: HashString[],
     route: SiloConvertRoute<SiloConvertType>,
     decodeIndicies: number[],
+    priceCallSuccess: boolean,
   ): Pick<SiloConvertSummary<SiloConvertType>, "results" | "reducedResults" | "postPriceData"> {
     const mainToken = getChainConstant(this.context.chainId, MAIN_TOKEN);
 
@@ -465,16 +481,17 @@ export class SiloConvert {
       // Create a copy of the raw response
       const staticCallResult = [...rawResponse];
       // price result is the last element in the static call result
-      const priceResult = staticCallResult.pop();
+      const priceResult = !priceCallSuccess ? undefined : staticCallResult.pop();
 
       const decodeResults = decodeIndicies.map((decodeIdx) => staticCallResult[decodeIdx]);
 
       const decodedConvertResults = decodeConvertResults(decodeResults, route.convertType);
 
       const decodedPriceCalls = priceResult ? AdvancedPipeWorkflow.decodeResult(priceResult) : undefined;
-      const postPriceData = decodedPriceCalls?.length
-        ? this.priceCache.decodePriceCallResults([...decodedPriceCalls])
-        : undefined;
+      const postPriceData =
+        decodedPriceCalls?.length && priceCallSuccess
+          ? this.priceCache.decodePriceCallResults([...decodedPriceCalls])
+          : undefined;
 
       return {
         postPriceData,
@@ -530,12 +547,12 @@ export class SiloConvert {
   }
 }
 
-function logError(prefix: string, e: unknown) {
+function logError(prefix: string, e: unknown, warn?: boolean) {
   if (e instanceof SiloConvertError) {
-    console.error(prefix, e.toLogObject());
+    console[warn ? "warn" : "error"](prefix, e.toLogObject());
   } else if (e instanceof Error) {
-    console.error(prefix, e.message);
+    console[warn ? "warn" : "error"](prefix, e.message);
   } else {
-    console.error("[SiloConvert] Unknown error: ", e);
+    console[warn ? "warn" : "error"]("[SiloConvert] Unknown error: ", e);
   }
 }

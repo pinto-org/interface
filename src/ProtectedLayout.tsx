@@ -8,6 +8,7 @@ import Explorer from "./pages/Explorer";
 import Field from "./pages/Field";
 import { Market as MarketPage } from "./pages/Market";
 import Overview from "./pages/Overview";
+import Referral from "./pages/Referral";
 import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
@@ -57,6 +58,14 @@ export default function ProtectedLayout() {
         element={
           <PageMetaWrapper metaKey="swap">
             <Swap />
+          </PageMetaWrapper>
+        }
+      />
+      <Route
+        path="/referral"
+        element={
+          <PageMetaWrapper metaKey="referral">
+            <Referral />
           </PageMetaWrapper>
         }
       />

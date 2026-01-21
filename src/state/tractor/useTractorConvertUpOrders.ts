@@ -49,7 +49,7 @@ const useTractorAPIConvertUpOrders = ({
 
   const args = {
     publisher: address,
-    orderType: "CONVERT_UP_V0",
+    orderType: "CONVERT_UP",
     cancelled,
   } as const;
 
@@ -61,7 +61,7 @@ const useTractorAPIConvertUpOrders = ({
     queryKey: queryKeys.tractor.convertUpOrders({ ...args }),
     queryFn: async () => {
       if (!chainId) return;
-      return TractorAPI.getOrders<"CONVERT_UP_V0">({ ...args });
+      return TractorAPI.getOrders<"CONVERT_UP">({ ...args });
     },
     enabled: queryEnabled,
     select,
@@ -72,7 +72,7 @@ const useTractorAPIConvertUpOrders = ({
 };
 
 const transformAPIOrderbookData =
-  (chainId: number) => (response: TractorAPIOrdersResponse<"CONVERT_UP_V0"> | undefined) => {
+  (chainId: number) => (response: TractorAPIOrdersResponse<"CONVERT_UP"> | undefined) => {
     if (!response) {
       return {
         orders: [],

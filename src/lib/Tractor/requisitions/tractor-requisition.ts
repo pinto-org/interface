@@ -1,4 +1,5 @@
 import { TV, TokenValue } from "@/classes/TokenValue";
+import { sowBlueprintReferralV0ABI } from "@/constants/abi/SowBlueprintReferralV0ABI";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
@@ -152,7 +153,7 @@ type SelectRequisitionTypeArgs = {
   data: Awaited<ReturnType<typeof fetchTractorEvents>>;
 };
 
-const combinedABI = [...sowBlueprintv0ABI, ...convertUpBlueprintV0ABI] as const;
+const combinedABI = [...sowBlueprintv0ABI, ...sowBlueprintReferralV0ABI, ...convertUpBlueprintV0ABI] as const;
 
 type BaseDecodedTractorRequisition = {
   type: RequisitionType;
@@ -175,6 +176,17 @@ const blueprintTransformerLookup = {
     transformer: transformSowRequisitionEvent,
     type: "sowBlueprintv0",
   },
+  sowBlueprintReferral: {
+    transformer: (args: any, chainId: number) => {
+      // The referral blueprint wraps the params in a referral struct
+      // Extract the params and pass to the same transformer
+      if (typeof args === "object" && args !== null && "params" in args) {
+        return transformSowRequisitionEvent(args.params, chainId);
+      }
+      return null;
+    },
+    type: "sowBlueprintv0",
+  },
   convertUpBlueprint: {
     transformer: transformConvertUpRequisitionEvent,
     type: "convertUpBlueprint",
@@ -189,7 +201,6 @@ export const decodeTractorBlueprint = (
     const pipeCalls = decodeEncodedTractorDataToAdvancedPipeCalls(encodedData, "decodeTractorBlueprint");
 
     if (!pipeCalls?.length) {
-      console.debug("[Tractor/decodeTractorBlueprint] No pipe calls provided. Returning null.");
       return null;
     }
 
@@ -283,7 +294,6 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
       if (address && !stringEq(requisition.blueprint.publisher, address)) {
         continue;
       }
-
       const data = decodeTractorBlueprint(requisition.blueprint.data);
 
       // Filter by requisition type if provided

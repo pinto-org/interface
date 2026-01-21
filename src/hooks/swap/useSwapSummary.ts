@@ -60,7 +60,13 @@ export default function useSwapSummary(quote: BeanSwapNodeQuote | undefined): Sw
 
       if (node instanceof WellSyncSwapNode) {
         addLiquidityRoute = route;
-        addLiquiditySlippage = quote.usdIn.sub(quote.usdOut).div(quote.usdIn).mul(100).toNumber();
+        const usdOut = quote.usdOut.eq(0) ? TV.ONE : quote.usdOut;
+        const usdIn = quote.usdIn.eq(0) ? TV.ONE : quote.usdIn;
+        if (usdIn.isZero || usdOut.isZero) {
+          addLiquiditySlippage = undefined;
+        } else {
+          addLiquiditySlippage = usdIn.sub(usdOut).div(usdIn).mul(100).toNumber();
+        }
         routes.push(route);
       } else {
         if (node instanceof ZeroXSwapNode) {
@@ -69,7 +75,7 @@ export default function useSwapSummary(quote: BeanSwapNodeQuote | undefined): Sw
 
           if (fee?.feeToken) {
             const feeTokenUSD = tokenPrices.get(fee.feeToken);
-            if (feeTokenUSD) {
+            if (feeTokenUSD && !node.usdIn.isZero && !node.usdIn.isZero) {
               const feeUSD = fee.fee.mul(feeTokenUSD.instant);
               const feePct = feeUSD.div(node.usdIn).mul(100).toNumber();
               route.exchangeFee = feeUSD.toNumber();

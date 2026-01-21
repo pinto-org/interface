@@ -73,6 +73,7 @@ export interface OrderbookEntry extends Omit<TractorRequisitionEvent, "decodedDa
   minTemp: TokenValue;
   withdrawalPlan?: WithdrawalPlan;
   isComplete?: boolean;
+  referralAddress?: `0x${string}`; // Optional referral address for referralV0 blueprints
 }
 
 // Sow order book entry type
@@ -91,3 +92,11 @@ export interface SowBlueprintDisplayData {
   whitelistedOperators: readonly `0x${string}`[];
   tipAddress: `0x${string}`;
 }
+
+// Referral blueprint types
+export interface SowReferralBlueprintData {
+  params: SowBlueprintData;
+  referral: `0x${string}`;
+}
+
+export type SowBlueprintVersion = "v0" | "referralV0";

@@ -87,9 +87,10 @@ const useFilterTokens = () => {
 interface FillListingProps {
   selectedListingId?: string;
   selectedPlaceInLine?: number;
+  onFilterChange?: (filters: { maxPrice: number; maxPlaceInLine: number } | null) => void;
 }
 
-export default function FillListing({ selectedListingId, selectedPlaceInLine }: FillListingProps) {
+export default function FillListing({ selectedListingId, selectedPlaceInLine, onFilterChange }: FillListingProps) {
   const mainToken = useTokenData().mainToken;
   const diamondAddress = useProtocolAddress();
   const account = useAccount();
@@ -355,6 +356,26 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine }: 
 
     return { listingPlots: plots, eligibleListingIds: eligible, rangeOverlay: overlay };
   }, [allListings, maxPricePerPod, maxPlaceInLine, mainToken.decimals, harvestableIndex]);
+
+  // Notify parent component when filter values change for chart highlighting
+  useEffect(() => {
+    if (onFilterChange) {
+      if (maxPricePerPod > 0 && maxPlaceInLine !== undefined && maxPlaceInLine > 0) {
+        onFilterChange({ maxPrice: maxPricePerPod, maxPlaceInLine });
+      } else {
+        onFilterChange(null);
+      }
+    }
+  }, [maxPricePerPod, maxPlaceInLine, onFilterChange]);
+
+  // Cleanup: notify parent when component unmounts
+  useEffect(() => {
+    return () => {
+      if (onFilterChange) {
+        onFilterChange(null);
+      }
+    };
+  }, [onFilterChange]);
 
   // Calculate open available pods count (eligible listings only - already filtered by price AND place)
   const openAvailablePods = useMemo(() => {

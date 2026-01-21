@@ -1,0 +1,222 @@
+/**
+ * Address Name Generator
+ *
+ * Generates deterministic, human-readable names from Ethereum addresses
+ * for privacy-friendly display on the referral leaderboard.
+ */
+
+// List 1: Color/Quality words (25 entries, 0-indexed)
+export const COLOR_QUALITY_WORDS = [
+  "golden", // 0
+  "silver", // 1
+  "rusty", // 2
+  "muddy", // 3
+  "dusty", // 4
+  "shiny", // 5
+  "crusty", // 6
+  "mighty", // 7
+  "tiny", // 8
+  "hefty", // 9
+  "ancient", // 10
+  "humble", // 11
+  "noble", // 12
+  "wild", // 13
+  "gentle", // 14
+  "sturdy", // 15
+  "lazy", // 16
+  "busy", // 17
+  "lucky", // 18
+  "scrappy", // 19
+  "happy", // 20
+  "grumpy", // 21
+  "sleepy", // 22
+  "zippy", // 23
+  "chunky", // 24
+] as const;
+
+// List 2: Animal/Creature words (25 entries, 0-indexed)
+export const ANIMAL_CREATURE_WORDS = [
+  "chicken", // 0
+  "pig", // 1
+  "cow", // 2
+  "goat", // 3
+  "sheep", // 4
+  "horse", // 5
+  "rooster", // 6
+  "duck", // 7
+  "turkey", // 8
+  "mule", // 9
+  "ox", // 10
+  "llama", // 11
+  "donkey", // 12
+  "rabbit", // 13
+  "hen", // 14
+  "ram", // 15
+  "bull", // 16
+  "calf", // 17
+  "chick", // 18
+  "pony", // 19
+  "foal", // 20
+  "lamb", // 21
+  "piglet", // 22
+  "colt", // 23
+  "mare", // 24
+] as const;
+
+// List 3: Action/State/Role words (25 entries, 0-indexed)
+export const ACTION_STATE_ROLE_WORDS = [
+  "plowing", // 0
+  "farmer", // 1
+  "milking", // 2
+  "rancher", // 3
+  "reaping", // 4
+  "herder", // 5
+  "grazing", // 6
+  "keeper", // 7
+  "sowing", // 8
+  "tender", // 9
+  "hauling", // 10
+  "picker", // 11
+  "feeding", // 12
+  "grower", // 13
+  "wrangling", // 14
+  "hand", // 15
+  "tilling", // 16
+  "boss", // 17
+  "harvesting", // 18
+  "yokel", // 19
+  "mowing", // 20
+  "pruning", // 21
+  "foreman", // 22
+  "planter", // 23
+  "shepherd", // 24
+] as const;
+
+// List 4: Place/Thing words (25 entries, 0-indexed)
+export const PLACE_THING_WORDS = [
+  "barn", // 0
+  "field", // 1
+  "pasture", // 2
+  "silo", // 3
+  "coop", // 4
+  "stable", // 5
+  "meadow", // 6
+  "ranch", // 7
+  "acres", // 8
+  "creek", // 9
+  "shed", // 10
+  "mill", // 11
+  "fence", // 12
+  "trough", // 13
+  "haystack", // 14
+  "orchard", // 15
+  "garden", // 16
+  "prairie", // 17
+  "valley", // 18
+  "hillside", // 19
+  "farmhouse", // 20
+  "corral", // 21
+  "paddock", // 22
+  "grove", // 23
+  "homestead", // 24
+] as const;
+
+/**
+ * Validates if a string is a valid Ethereum address format
+ *
+ * @param address - The address string to validate
+ * @returns true if valid, false otherwise
+ */
+export function isValidAddress(address: string): boolean {
+  // Check if address exists and is a string
+  if (!address || typeof address !== "string") {
+    return false;
+  }
+
+  // Check for 0x prefix and at least 4 bytes (8 hex chars) after prefix
+  // Valid hex pattern: 0x followed by at least 8 hexadecimal characters
+  const hexPattern = /^0x[0-9a-fA-F]{8,}$/;
+  return hexPattern.test(address);
+}
+
+/**
+ * Extracts the first 4 bytes from an Ethereum address and calculates word indices
+ *
+ * @param address - Valid Ethereum address (0x-prefixed)
+ * @returns Array of 4 indices (0-24) for word selection
+ */
+function extractByteIndices(address: string): [number, number, number, number] {
+  // Extract first 4 bytes (8 hex characters) after 0x prefix
+  // Positions 2-9 in the string (0x[byte1][byte2][byte3][byte4]...)
+  const hexBytes = address.slice(2, 10);
+
+  // Extract individual byte pairs
+  const byte1 = hexBytes.slice(0, 2); // chars 0-1
+  const byte2 = hexBytes.slice(2, 4); // chars 2-3
+  const byte3 = hexBytes.slice(4, 6); // chars 4-5
+  const byte4 = hexBytes.slice(6, 8); // chars 6-7
+
+  // Convert hex to decimal and apply modulo 25 to get indices 0-24
+  const index1 = parseInt(byte1, 16) % 25;
+  const index2 = parseInt(byte2, 16) % 25;
+  const index3 = parseInt(byte3, 16) % 25;
+  const index4 = parseInt(byte4, 16) % 25;
+
+  return [index1, index2, index3, index4];
+}
+
+/**
+ * Formats an array of words into Title Case hyphenated string
+ *
+ * @param words - Array of lowercase words
+ * @returns Hyphenated string with each word in Title Case
+ */
+function formatTitleCase(words: string[]): string {
+  return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join("-");
+}
+
+/**
+ * Selects words from the four word lists using the provided indices
+ *
+ * @param indices - Array of 4 indices (0-24)
+ * @returns Array of 4 selected words
+ */
+function selectWords(indices: [number, number, number, number]): [string, string, string, string] {
+  const word1 = COLOR_QUALITY_WORDS[indices[0]];
+  const word2 = ANIMAL_CREATURE_WORDS[indices[1]];
+  const word3 = ACTION_STATE_ROLE_WORDS[indices[2]];
+  const word4 = PLACE_THING_WORDS[indices[3]];
+
+  return [word1, word2, word3, word4];
+}
+
+/**
+ * Generates a deterministic four-word name from an Ethereum address
+ *
+ * The name is generated by:
+ * 1. Extracting the first 4 bytes (8 hex chars) after the 0x prefix
+ * 2. Converting each byte to decimal and applying modulo 25
+ * 3. Using the results as indices to select words from 4 predefined lists
+ * 4. Formatting the words in Title Case joined with hyphens
+ *
+ * @param address - Ethereum address (0x-prefixed hex string)
+ * @returns Four-word hyphenated name in Title Case, or "Unknown-Unknown-Unknown-Unknown" for invalid input
+ *
+ * @example
+ * generateAddressName('0x113ad340...') // Returns "Scrappy-Turkey-Picker-Haystack"
+ */
+export function generateAddressName(address: string): string {
+  // Validate input
+  if (!isValidAddress(address)) {
+    return "Unknown-Unknown-Unknown-Unknown";
+  }
+
+  // Extract byte indices (0-24) from first 4 bytes of address
+  const indices = extractByteIndices(address);
+
+  // Select words from lists using calculated indices
+  const words = selectWords(indices);
+
+  // Format in Title Case with hyphens
+  return formatTitleCase(words);
+}

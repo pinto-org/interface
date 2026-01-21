@@ -5,12 +5,14 @@ import pintoWethIcon from "@/assets/tokens/PINTO_WETH.png";
 import pintoWsolIcon from "@/assets/tokens/PINTO_WSOL.png";
 import pintoCbbtcIcon from "@/assets/tokens/PINTO_cbBTC.png";
 import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
+import pintoWstethIcon from "@/assets/tokens/PINTO_wstETH.png";
 import spectrasPintoLPIcon from "@/assets/tokens/SPECTRA-sPINTO-LP.png";
 import spectrasPintoPTIcon from "@/assets/tokens/SPECTRA-sPINTO-PT.png";
 import spectrasPintoYTIcon from "@/assets/tokens/SPECTRA-sPINTO-YT.png";
 import wsolIcon from "@/assets/tokens/WSOL.png";
 import crsPintoIcon from "@/assets/tokens/crsPINTO.png";
 import sPintoIcon from "@/assets/tokens/sPINTO.png";
+import wstETHIcon from "@/assets/tokens/wstETH.png";
 import { Token, Token3PIntegration } from "@/utils/types";
 import { ChainLookup } from "@/utils/types.generic";
 import { arbitrum, base } from "viem/chains";
@@ -174,7 +176,46 @@ export const WSOL_TOKEN: ChainLookup<Token> = {
   },
 } as const;
 
+export const WSTETH_TOKEN: ChainLookup<Token> = {
+  [base.id]: {
+    chainId: base.id,
+    name: "Wrapped liquid staked Ether 2.0",
+    symbol: "wstETH",
+    address: "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452",
+    decimals: 18,
+    displayDecimals: 2,
+    isLPUnderlying: true,
+    isCompositeLPWhitelisted: true,
+    logoURI: wstETHIcon,
+    color: "#00A3FF",
+  },
+};
+
+const defaultLPTokenIndicies = {
+  tokenIndicies: {
+    main: 0,
+    pair: 1,
+  },
+} as const;
+
 // -------------------- LP TOKENS --------------------
+
+export const PINTO_WSTETH_TOKEN: ChainLookup<Token> = {
+  [base.id]: {
+    chainId: base.id,
+    name: "PINTOWSTETH LP",
+    symbol: "PINTOWSTETH",
+    address: "0x3e1155245FF9a6a019Bc35827e801c6ED2CE91b9", // temp address
+    decimals: 18,
+    displayDecimals: 2,
+    isLP: true,
+    isWhitelisted: true,
+    logoURI: pintoWstethIcon,
+    color: "#00A3FF",
+    tokens: [MAIN_TOKEN[base.id].address, WSTETH_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
+  },
+} as const;
 
 export const PINTO_WSOL_TOKEN: ChainLookup<Token> = {
   [base.id]: {
@@ -189,6 +230,7 @@ export const PINTO_WSOL_TOKEN: ChainLookup<Token> = {
     logoURI: pintoWsolIcon,
     color: "#9945FF",
     tokens: [MAIN_TOKEN[base.id].address, WSOL_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -205,6 +247,7 @@ export const PINTO_WETH_TOKEN: ChainLookup<Token> = {
     logoURI: pintoWethIcon,
     color: "#8C8C8C",
     tokens: [MAIN_TOKEN[base.id].address, WETH_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -221,6 +264,7 @@ export const PINTO_CBETH_TOKEN: ChainLookup<Token> = {
     logoURI: pintoCbethIcon,
     color: "#0052FF",
     tokens: [MAIN_TOKEN[base.id].address, CBETH_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -237,6 +281,7 @@ export const PINTO_USDC_TOKEN: ChainLookup<Token> = {
     logoURI: pintoUsdcIcon,
     color: "#2775CA",
     tokens: [MAIN_TOKEN[base.id].address, USDC_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -253,6 +298,7 @@ export const PINTO_CBBTC_TOKEN: ChainLookup<Token> = {
     logoURI: pintoCbbtcIcon,
     color: "#F7931A",
     tokens: [MAIN_TOKEN[base.id].address, CBBTC_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -367,6 +413,7 @@ export const LP_TOKENS: ChainLookup<Token[]> = {
     PINTO_CBETH_TOKEN[base.id],
     PINTO_CBBTC_TOKEN[base.id],
     PINTO_WSOL_TOKEN[base.id],
+    PINTO_WSTETH_TOKEN[base.id],
   ],
 } as const;
 
@@ -399,6 +446,7 @@ export const UNDERLYING_TOKENS: ChainLookup<Token[]> = {
     CBETH_TOKEN[base.id],
     CBBTC_TOKEN[base.id],
     WSOL_TOKEN[base.id],
+    WSTETH_TOKEN[base.id],
   ],
 } as const;
 
@@ -446,7 +494,7 @@ export const tokens: { [chainId: number]: Token[] } = {
 export const PINTO = MAIN_TOKEN[defaultChain];
 
 // Native Chain Token
-export const ETH = NATIVE_TOKEN[defaultChain][1];
+export const ETH = NATIVE_TOKEN[defaultChain];
 
 // Well LP Tokens
 export const PINTOWETH = LP_TOKENS[defaultChain][0];
@@ -454,6 +502,7 @@ export const PINTOCBETH = LP_TOKENS[defaultChain][1];
 export const PINTOUSDC = LP_TOKENS[defaultChain][2];
 export const PINTOCBBTC = LP_TOKENS[defaultChain][3];
 export const PINTOWSOL = LP_TOKENS[defaultChain][4];
+export const PINTOWSTETH = LP_TOKENS[defaultChain][5];
 
 // Underlying Tokens
 export const WETH = UNDERLYING_TOKENS[defaultChain][0];
@@ -461,3 +510,4 @@ export const USDC = UNDERLYING_TOKENS[defaultChain][1];
 export const CBETH = UNDERLYING_TOKENS[defaultChain][2];
 export const CBBTC = UNDERLYING_TOKENS[defaultChain][3];
 export const WSOL = UNDERLYING_TOKENS[defaultChain][4];
+export const WSTETH = UNDERLYING_TOKENS[defaultChain][5];

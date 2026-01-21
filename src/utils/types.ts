@@ -3,6 +3,7 @@ import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { PlotSource } from "@/generated/gql/pintostalk/graphql";
 import { ProtocolIntegration } from "@/state/integrations/types";
 import { APYWindow } from "@/state/seasonal/queries/useSeasonalAPY";
+import { Prettify } from "@/utils/types.generic";
 import { QueryKey, UseQueryOptions } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 import { ReactNode } from "react";
@@ -18,6 +19,16 @@ export enum FarmFromMode {
 export enum FarmToMode {
   EXTERNAL = "0",
   INTERNAL = "1",
+}
+
+interface LPIndicies {
+  main: number;
+  pair: number;
+}
+
+interface LPTokenIsh {
+  tokens: Address[];
+  tokenIndicies: LPIndicies;
 }
 
 export interface Token {
@@ -77,7 +88,16 @@ export interface Token {
    * Description of the token (If Applicable).
    */
   description?: string;
+  /**
+   * The Token indexes of the main & pair token for LPs
+   */
+  tokenIndicies?: {
+    main: number;
+    pair: number;
+  };
 }
+
+export type LPToken = Prettify<Omit<Token, "tokens" | "tokenIndicies"> & LPTokenIsh & { isLP: true }>;
 
 export interface Token3PIntegration extends Token {
   integration: ProtocolIntegration;
@@ -401,4 +421,71 @@ export type TypedAdvancedFarmCalls =
 export interface MinimumViableBlock<T extends number | bigint = number> {
   number: T;
   timestamp: T;
+}
+
+// ---------- REFERRAL LEADERBOARD TYPES ----------
+
+/**
+ * Farmer entity with referral-specific fields
+ */
+export interface ReferralFarmer {
+  /** Ethereum address of the farmer */
+  id: string;
+  /** Number of farmers who used this farmer's referral link */
+  refereeCount: number;
+  /** Total pods earned from referral rewards (as string for BigInt compatibility) */
+  totalReferralRewardPodsReceived: string;
+}
+
+/**
+ * Response type for ReferralLeaderboard query
+ */
+export interface ReferralLeaderboardQuery {
+  farmers: ReferralFarmer[];
+}
+
+/**
+ * Variables for ReferralLeaderboard query
+ */
+export interface ReferralLeaderboardQueryVariables {
+  /** Maximum number of farmers to return */
+  first?: number;
+  /** Number of farmers to skip (for pagination) */
+  skip?: number;
+}
+
+/**
+ * Plot entity for referral-sourced plots
+ */
+export interface ReferralPlot {
+  /** Unique identifier for the plot */
+  id: string;
+  /** Total pods in the plot (as string for BigInt compatibility) */
+  pods: string;
+  /** Plot index */
+  index: string;
+  /** Farmer who owns this plot */
+  farmer: {
+    /** Ethereum address of the farmer */
+    id: string;
+  };
+}
+
+/**
+ * Response type for ReferralPlots query
+ */
+export interface ReferralPlotsQuery {
+  plots: ReferralPlot[];
+}
+
+/**
+ * Variables for ReferralPlots query
+ */
+export interface ReferralPlotsQueryVariables {
+  /** Ethereum address of the farmer to query plots for */
+  farmer: string;
+  /** Maximum number of plots to return */
+  first?: number;
+  /** Number of plots to skip (for pagination) */
+  skip?: number;
 }

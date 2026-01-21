@@ -6,7 +6,7 @@ import { SoilOrderbookDialog } from "@/components/Tractor/SoilOrderbook";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { OrderbookEntry, SowBlueprintData, decodeSowTractorData } from "@/lib/Tractor";
+import { OrderbookEntry, SowBlueprintData, decodeSowTractorData, unwrapSowBlueprintData } from "@/lib/Tractor";
 import useFieldSowEvents from "@/state/events/useFieldSowEvents";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { useTemperature } from "@/state/useFieldData";
@@ -451,7 +451,8 @@ const FieldActivityNoDataDisplay = () => (
 const getOrderTemperature = (order: OrderbookEntry): number => {
   // Try to decode the data to get the temperature
   if (order.requisition && order.requisition.blueprint && order.requisition.blueprint.data) {
-    const decodedData = decodeSowTractorData(order.requisition.blueprint.data);
+    const decoded = decodeSowTractorData(order.requisition.blueprint.data);
+    const decodedData = unwrapSowBlueprintData(decoded);
     if (decodedData && decodedData.minTempAsString) {
       return parseFloat(decodedData.minTempAsString);
     }
@@ -463,7 +464,8 @@ const getOrderTemperature = (order: OrderbookEntry): number => {
 // Helper function to get the decoded tractor data
 const getDecodedTractorData = (order: OrderbookEntry): SowBlueprintData | null => {
   if (order.requisition && order.requisition.blueprint && order.requisition.blueprint.data) {
-    return decodeSowTractorData(order.requisition.blueprint.data);
+    const decoded = decodeSowTractorData(order.requisition.blueprint.data);
+    return unwrapSowBlueprintData(decoded);
   }
   return null;
 };

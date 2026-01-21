@@ -9,6 +9,7 @@ import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetT
 import useTransaction from "@/hooks/useTransaction";
 import { PublisherTractorExecution } from "@/lib/Tractor";
 import type { Blueprint } from "@/lib/Tractor";
+import { queryKeys } from "@/state/queryKeys";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
@@ -17,6 +18,7 @@ import { tryExtractErrorMessage } from "@/utils/error";
 import { stringEq } from "@/utils/string";
 import { MayArray } from "@/utils/types.generic";
 import { arrayify } from "@/utils/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
@@ -48,7 +50,7 @@ interface TractorOrdersPanelProps {
   initialFilters?: Partial<MixedOrderFilters>;
 }
 
-const ORDER_TYPES: OrderType[] = ["sow", "convertUp"] as const;
+const ORDER_TYPES: OrderType[] = ["sow", "convertUp"];
 
 function TractorOrdersPanelGeneric({
   orderTypes: _orderTypes = ORDER_TYPES,
@@ -60,6 +62,7 @@ function TractorOrdersPanelGeneric({
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
   const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
+  const queryClient = useQueryClient();
 
   // State for dialogs and filters
   const [selectedOrder, setSelectedOrder] = useState<UnifiedTractorOrder | null>(null);
@@ -111,10 +114,21 @@ function TractorOrdersPanelGeneric({
       sowOrders
         .filter((req) => stringEq(req.requisition.blueprint.publisher, address))
         .forEach((req) => {
-          const decodedData = ORDER_TYPE_REGISTRY.sow.decodeData(req.requisition.blueprint.data);
-          if (!decodedData) {
+          const decodedResult = ORDER_TYPE_REGISTRY.sow.decodeData(req.requisition.blueprint.data);
+          if (!decodedResult) {
             return;
           }
+
+          // Handle both unwrapped and wrapped referral formats
+          let decodedData: any;
+          if ("blueprintData" in decodedResult && typeof decodedResult.blueprintData === "object") {
+            // Wrapped referral format: { blueprintData, referralAddress }
+            decodedData = decodedResult.blueprintData;
+          } else {
+            // Regular SowBlueprintData format
+            decodedData = decodedResult;
+          }
+
           const reqWithDecodedData = { ...req, decodedData };
           const orderExecutions = executionsByHash?.[req.requisition.blueprintHash] || [];
 
@@ -174,14 +188,9 @@ function TractorOrdersPanelGeneric({
     successMessage: "Order cancelled successfully",
     errorMessage: "Failed to cancel order",
     successCallback: useCallback(() => {
-      executionsQuery.refetch();
-      if (filters.orderTypes.includes("sow")) {
-        sowOrdersQuery.refetch();
-      }
-      if (filters.orderTypes.includes("convertUp")) {
-        convertUpOrdersQuery.refetch();
-      }
-    }, [executionsQuery.refetch, sowOrdersQuery.refetch, convertUpOrdersQuery.refetch, filters.orderTypes]),
+      // Invalidate tractor-related queries to refresh order data
+      queryClient.invalidateQueries({ queryKey: queryKeys.base.tractor });
+    }, [queryClient]),
   });
 
   const handleCancelOrder = async (order: UnifiedTractorOrder, e: React.MouseEvent) => {
@@ -260,7 +269,7 @@ function TractorOrdersPanelGeneric({
   }
 
   if (!unifiedOrders.length) {
-    return <EmptyTable type="tractorConvertUp" onTractorClick={onCreateOrder} />;
+    return <EmptyTable type="tractor" onTractorClick={onCreateOrder} />;
   }
 
   return (

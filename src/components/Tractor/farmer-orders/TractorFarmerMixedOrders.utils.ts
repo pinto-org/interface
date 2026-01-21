@@ -19,7 +19,23 @@ export function transformSowOrderToUnified(
     throw new Error("Missing decoded data for Sow order");
   }
 
-  const data = req.decodedData;
+  // Handle both unwrapped and wrapped referral formats
+  let data: SowBlueprintData;
+  if ("blueprintData" in req.decodedData && typeof req.decodedData.blueprintData === "object") {
+    // Wrapped referral format: { blueprintData, referralAddress }
+    console.warn("[TractorFarmerMixedOrders] Received wrapped referral format, extracting blueprintData");
+    data = (req.decodedData as any).blueprintData;
+  } else {
+    // Regular SowBlueprintData format
+    data = req.decodedData;
+  }
+
+  // Additional safety check
+  if (!data.sowAmounts) {
+    console.error("[TractorFarmerMixedOrders] Invalid decoded data structure:", req.decodedData);
+    throw new Error("Invalid decoded data structure - missing sowAmounts");
+  }
+
   const totalAmount = TokenValue.fromBlockchain(data.sowAmounts.totalAmountToSow, 6);
 
   // Calculate progress from executions

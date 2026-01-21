@@ -32,7 +32,13 @@ interface IShowPositiveSign {
   showPlusOnZero?: boolean;
 }
 
-type FormatNumOptions = IMinValue & IDecimals & IDefaultValue & IAllowZero & IShowPositiveSign;
+type FormatNumOptions = IMinValue &
+  IDecimals &
+  IDefaultValue &
+  IAllowZero &
+  IShowPositiveSign & {
+    compact?: boolean;
+  };
 
 type FormatPctOptions = IDecimals & IShowPositiveSign & IDefaultValue;
 
@@ -62,6 +68,11 @@ export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
     if (num > 0 && num < options.minValue) {
       return `<${options.minValue}`;
     }
+  }
+
+  // Use compact notation for very large numbers
+  if (options?.compact) {
+    return numberAbbr(num, options?.maxDecimals ?? 2, 0, true);
   }
 
   const formatted = new Intl.NumberFormat("en-US", {
@@ -243,11 +254,21 @@ export const formatTokenAmount = (val: NumberPrimitive, token: Token | InternalT
   });
 };
 
+/** Thresholds for number abbreviation: [value, suffix] */
+export const NUMBER_ABBR_THRESHOLDS = {
+  QUADRILLION: 10 ** 15,
+  TRILLION: 10 ** 12,
+  BILLION: 10 ** 9,
+  MILLION: 10 ** 6,
+  THOUSAND: 10 ** 3,
+} as const;
+
 const numberAbbrThresholds: [number, string][] = [
-  [10 ** 12, "t"],
-  [10 ** 9, "b"],
-  [10 ** 6, "m"],
-  [10 ** 3, "k"],
+  [NUMBER_ABBR_THRESHOLDS.QUADRILLION, "q"],
+  [NUMBER_ABBR_THRESHOLDS.TRILLION, "t"],
+  [NUMBER_ABBR_THRESHOLDS.BILLION, "b"],
+  [NUMBER_ABBR_THRESHOLDS.MILLION, "m"],
+  [NUMBER_ABBR_THRESHOLDS.THOUSAND, "k"],
 ];
 
 export const numberAbbr = (

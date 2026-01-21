@@ -103,13 +103,13 @@ const segregateExecutionsByBlueprintType = (
 const isSowV0BlueprintExecution = (
   result: TractorAPIResponseExecution<unknown>,
 ): result is TractorAPIExecutionSowOrderItem<string> => {
-  return result.orderInfo.orderType === "SOW_V0";
+  return result.orderInfo.orderType === "SOW";
 };
 
 const isConvertUpBlueprintV0Execution = (
   result: TractorAPIResponseExecution<unknown>,
 ): result is TractorAPIExecutionConvertUpOrderItem<string, number, HashString> => {
-  return result.orderInfo.orderType === "CONVERT_UP_V0";
+  return result.orderInfo.orderType === "CONVERT_UP";
 };
 
 export interface TractorAPIExecutionsOptions {
@@ -203,7 +203,7 @@ const getTractorBaseURL = (isConvert?: boolean) => {
  * const results = await paginateTractorApiRequest(
  *   (body) => fetch('/api/orders', { body }),
  *   (res) => res.orders.length,
- *   { orderType: 'SOW_V0' }
+ *   { orderType: 'SOW' }
  * );
  * ```
  */

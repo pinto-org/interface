@@ -43,8 +43,8 @@ export type ConvertUpV0Snapshot = BaseTractorSnapshot & ConvertUpV0SnapshotBase;
 export type AggregatedTractorSnapshot = BaseTractorSnapshot & SowV0Snapshot & ConvertUpV0Snapshot;
 
 export type TractorSnapshotV2 = {
-  SOW_V0: SowV0Snapshot[];
-  CONVERT_UP_V0: ConvertUpV0Snapshot[];
+  SOW: SowV0Snapshot[];
+  CONVERT_UP: ConvertUpV0Snapshot[];
 };
 
 type BaseTractorSnapshotResponse<T> = {
@@ -57,7 +57,7 @@ export type TractorSnapshotResponse = BaseTractorSnapshotResponse<SowV0Snapshot[
 
 export type TractorSnapshotV2Response = BaseTractorSnapshotResponse<TractorSnapshotV2>;
 
-type TractorSnapshotOrderType = "SOW_V0" | "CONVERT_UP_V0";
+type TractorSnapshotOrderType = "SOW" | "CONVERT_UP";
 
 const sortBySeasonAsc = (a: { season: number }, b: { season: number }) => a.season - b.season;
 const sortBySeasonDesc = (a: { season: number }, b: { season: number }) => b.season - a.season;

@@ -168,7 +168,7 @@ export default function SmartSubmitButton({
   }
 
   const btnDisabled = disabled || allowanceFetching || submittingApproval || isConfirmingApproval;
-  const btnApproval = needsApproval && !allowanceFetching;
+  const btnApproval = needsApproval && !allowanceFetching && !disabled;
 
   return (
     <Button

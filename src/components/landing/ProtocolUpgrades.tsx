@@ -44,6 +44,17 @@ interface TimelineEvent {
 // Pinto Improvement Proposals
 const piAudits: TimelineEvent[] = [
   {
+    name: "PI-14",
+    description: "Protocol Upgrade",
+    githubLink: "https://github.com/pinto-org/protocol/pull/164",
+    hashLink: "",
+    date: "January 19, 2026",
+    timestamp: new Date("January 19, 2026").getTime(),
+    auditHash: "",
+    auditor: "bean",
+    type: ["modelImprovement"],
+  },
+  {
     name: "PI-13",
     description: "Dynamic Convert Up Bonus and Optimizations",
     githubLink: "https://github.com/pinto-org/protocol/pull/46",

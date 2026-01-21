@@ -125,10 +125,11 @@ const useUpdateInitialSoil = () => {
   const query = useQuery({
     queryKey: _queryKey,
     queryFn: async () => {
-      return request(subgraphs[chainId].beanstalk, FieldIssuedSoilDocument, {
+      const result = await request(subgraphs[chainId].beanstalk, FieldIssuedSoilDocument, {
         season: season,
         field_contains_nocase: diamond,
       });
+      return result;
     },
     enabled: !!season && season > 0 && !SG_FETCH_DISABLED,
     ...settings.query,
@@ -138,12 +139,14 @@ const useUpdateInitialSoil = () => {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies:
   useEffect(() => {
-    if (!exists(query?.data)) return;
-
-    console.debug("[protocol/field/useUpdateInitialSoil]: data", query.data);
+    if (!exists(query?.data)) {
+      return;
+    }
 
     setInitialSoil((prev) => {
-      const newSoil = TV.fromBlockchain(query.data.fieldHourlySnapshots[0]?.issuedSoil || 0, SOIL_DECIMALS);
+      const rawIssuedSoil = query.data.fieldHourlySnapshots[0]?.issuedSoil || 0;
+      const newSoil = TV.fromBlockchain(rawIssuedSoil, SOIL_DECIMALS);
+
       // return old value if it hasn't changed. Prevents new object reference of TokenValue.
       if (prev.initialSoil.eq(newSoil)) return prev;
       // otherwise, return the new value

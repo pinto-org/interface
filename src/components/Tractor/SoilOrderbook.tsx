@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/Switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PINTO } from "@/constants/tokens";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
-import { OrderbookEntry, SowBlueprintData, decodeSowTractorData } from "@/lib/Tractor";
+import { OrderbookEntry, SowBlueprintData, decodeSowTractorData, unwrapSowBlueprintData } from "@/lib/Tractor";
 import { Blueprint } from "@/lib/Tractor/types";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import useCachedLatestBlockQuery from "@/state/useCachedLatestBlockQuery";
@@ -131,7 +131,7 @@ export function SoilOrderbookContent({
       return;
     }
 
-    const d = decodeSowTractorData(selectedOrder.requisition.blueprint.data);
+    const d = unwrapSowBlueprintData(decodeSowTractorData(selectedOrder.requisition.blueprint.data));
     if (!d) return;
     setDecodedData({
       type: "sow",
@@ -152,8 +152,8 @@ export function SoilOrderbookContent({
     } else if (sortBy === "tip") {
       sorted = [...requisitions].sort((a, b) => {
         try {
-          const dataA = decodeSowTractorData(a.requisition.blueprint.data);
-          const dataB = decodeSowTractorData(b.requisition.blueprint.data);
+          const dataA = unwrapSowBlueprintData(decodeSowTractorData(a.requisition.blueprint.data));
+          const dataB = unwrapSowBlueprintData(decodeSowTractorData(b.requisition.blueprint.data));
           if (!dataA || !dataB) return 0;
           const tipA = BigInt(dataA.operatorParams.operatorTipAmount);
           const tipB = BigInt(dataB.operatorParams.operatorTipAmount);
@@ -175,7 +175,7 @@ export function SoilOrderbookContent({
       let matchesTemperatureFilter = true;
       if (!showAboveCurrentTemp) {
         try {
-          const data = decodeSowTractorData(req.requisition.blueprint.data);
+          const data = unwrapSowBlueprintData(decodeSowTractorData(req.requisition.blueprint.data));
           if (data) {
             const reqTemp = parseFloat(data.minTempAsString);
             matchesTemperatureFilter = reqTemp < temperature.max.toNumber();
@@ -202,7 +202,7 @@ export function SoilOrderbookContent({
     if (sortedReqs.length > 0) {
       sortedReqs.forEach((req, idx) => {
         try {
-          const data = decodeSowTractorData(req.requisition.blueprint.data);
+          const data = unwrapSowBlueprintData(decodeSowTractorData(req.requisition.blueprint.data));
           if (data) {
             // Parse the percentage string to just get the number
             const tempValue = parseFloat(data.minTempAsString);
@@ -217,8 +217,10 @@ export function SoilOrderbookContent({
     // Insert at the position where the first requisition temperature is GREATER than max temperature
     while (
       insertIndex < sortedReqs.length &&
-      parseFloat(decodeSowTractorData(sortedReqs[insertIndex].requisition.blueprint.data)?.minTempAsString || "0") <=
-        maxTemp
+      parseFloat(
+        unwrapSowBlueprintData(decodeSowTractorData(sortedReqs[insertIndex].requisition.blueprint.data))
+          ?.minTempAsString || "0",
+      ) <= maxTemp
     ) {
       insertIndex++;
     }
@@ -296,7 +298,7 @@ export function SoilOrderbookContent({
   const renderRequisitionRow = (req, index) => {
     let decodedData: SowBlueprintData | null = null;
     try {
-      decodedData = decodeSowTractorData(req.requisition.blueprint.data);
+      decodedData = unwrapSowBlueprintData(decodeSowTractorData(req.requisition.blueprint.data));
     } catch (error) {
       console.error("Failed to decode data for requisition:", error);
     }

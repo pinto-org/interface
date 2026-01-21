@@ -10,7 +10,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter, truncateHex } from "@/utils/format";
-import { sanitizeNumericInputValue, stringEq, stringToNumber, toValidStringNumInput } from "@/utils/string";
+import { MAX_INPUT_VALUE, sanitizeNumericInputValue, stringEq, stringToNumber } from "@/utils/string";
 import { FarmFromMode, Plot, Token } from "@/utils/types";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
@@ -102,6 +102,9 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   enableSlider?: boolean;
   sliderMarkers?: number[];
   customTokenSelector?: React.ReactNode;
+
+  // Additional info display
+  showAdditionalInfo?: boolean;
 }
 
 function ComboInputField({
@@ -142,6 +145,7 @@ function ComboInputField({
   placeholder,
   enableSlider,
   sliderMarkers,
+  showAdditionalInfo = true,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
@@ -247,10 +251,9 @@ function ComboInputField({
     if (mode === "plots" && selectedPlots) {
       return selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
     }
-    if (mode === "balance") {
-      if (tokenAndBalanceMap && selectedToken) {
-        return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
-      }
+    // If tokenAndBalanceMap is provided and selectedToken exists, use it (for deposits mode or custom balance maps)
+    if (tokenAndBalanceMap && selectedToken) {
+      return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
     }
     // Always use farmerTokenBalance for display, not maxAmount (which may be limited by customMaxAmount)
     return getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);
@@ -454,7 +457,7 @@ function ComboInputField({
       setIsUserInput(true);
 
       // Sanitize the input value
-      const cleaned = sanitizeNumericInputValue(value, getDecimals());
+      const cleaned = sanitizeNumericInputValue(value, getDecimals(), false, MAX_INPUT_VALUE);
       const clamped = getClamped(cleaned.tv, maxAmount);
 
       // Set the display value to the sanitized string value
@@ -632,7 +635,7 @@ function ComboInputField({
                     {formatter.usd(inputValue)}
                   </TextSkeleton>
                 ) : null}
-                {mode === "deposits" && shouldShowAdditionalInfo() && (
+                {mode === "deposits" && shouldShowAdditionalInfo() && showAdditionalInfo && (
                   <>
                     <span className="hidden sm:flex flex-row gap-1 items-center">
                       <img src={stalkIcon} alt="Stalk" className="w-6 h-6" />

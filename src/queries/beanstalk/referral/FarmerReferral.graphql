@@ -1,0 +1,7 @@
+query FarmerReferral($id: ID!) {
+  farmer(id: $id) {
+    id
+    totalReferralRewardPodsReceived
+    refereeCount
+  }
+}
