@@ -11,9 +11,9 @@ export type BaseTractorAPIResponse<T = unknown> = {
   totalRecords: number;
 } & T;
 
-export type TractorAPISowOrderType = "SOW_V0";
+export type TractorAPISowOrderType = "SOW";
 
-export type TractorAPIConvertOrderType = "CONVERT_UP_V0";
+export type TractorAPIConvertOrderType = "CONVERT_UP";
 
 export type TractorAPIOrderType = TractorAPISowOrderType | TractorAPIConvertOrderType;
 
@@ -74,8 +74,8 @@ interface TractorAPIConvertUpBlueprint {
 }
 
 type OrderBlueprintTypeLookup = {
-  SOW_V0: TractorAPISowOrderBlueprint;
-  CONVERT_UP_V0: TractorAPIConvertUpBlueprint;
+  SOW: TractorAPISowOrderBlueprint;
+  CONVERT_UP: TractorAPIConvertUpBlueprint;
 };
 
 export interface TractorAPIOrder<OrderType extends TractorAPIOrderType = TractorAPIOrderType> {

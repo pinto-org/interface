@@ -49,13 +49,13 @@ const TractorExplorer = () => {
   const uniquePublishersData = useSeasonalTractorUniquePublishers(
     Math.max(0, season - tabToSeasonalLookback(publishersTab)),
     season,
-    "SOW_V0",
+    "SOW",
   );
 
   const convertUpPublishersData = useSeasonalTractorUniquePublishers(
     Math.max(0, season - tabToSeasonalLookback(convertUpPublishersTab)),
     season,
-    "CONVERT_UP_V0",
+    "CONVERT_UP",
   );
 
   return (

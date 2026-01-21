@@ -95,7 +95,7 @@ export default function usePublisherTractorExecutions(
 
       const allExecutions: PublisherTractorExecution[] = [...sowBlueprintv0, ...convertUpBlueprint];
 
-      // Filter out any on-chain executions that already exist in the API data & add the SOW_V0 executions if sowEvent is present
+      // Filter out any on-chain executions that already exist in the API data & add the SOW executions if sowEvent is present
       onChainExecutions?.forEach((exec) => {
         if (!existingTxHashes.has(exec.transactionHash.toLowerCase())) {
           allExecutions.push(exec);
