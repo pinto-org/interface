@@ -60,7 +60,7 @@ export const getBaseConnectors = (): CreateConnectorFn[] => {
   connectors.push(
     coinbaseWallet({
       appName: "Pinto",
-      appLogoUrl: PintoIcon,
+      appLogoUrl: "https://pinto.money/pinto-logo.png",
       preference: "smartWalletOnly",
     }) as CreateConnectorFn,
   );
