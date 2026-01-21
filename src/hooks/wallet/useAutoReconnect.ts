@@ -1,144 +1,113 @@
 import { isCoinbaseWalletConnector } from "@/utils/wagmi/connectorFilters";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAccount, useConnect, useReconnect } from "wagmi";
 
 const COINBASE_STORAGE_KEY = "cbwsdk.store";
 
 /**
- * Clears Coinbase Wallet localStorage
+ * Gets account address from Coinbase localStorage if available
  */
-function clearCoinbaseStorage(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(COINBASE_STORAGE_KEY);
-  } catch (error) {
-    // localStorage might be unavailable (private browsing, etc.)
-    console.debug("Failed to clear Coinbase storage:", error);
-  }
-}
-
-/**
- * Checks if there's a previous Coinbase Wallet session in localStorage
- * by looking for the account object in cbwsdk.store
- */
-function checkCoinbaseLocalStorage(): boolean {
-  if (typeof window === "undefined") return false;
+function getCoinbaseStoredAccount(): `0x${string}` | null {
+  if (typeof window === "undefined") return null;
 
   try {
     const stored = localStorage.getItem(COINBASE_STORAGE_KEY);
-    if (!stored) return false;
+    if (!stored) return null;
 
     const parsed = JSON.parse(stored);
-    // Check if account exists in the stored state
-    return !!parsed?.state?.account;
-  } catch (error) {
-    // Failed to parse Coinbase storage, assume no session
-    console.debug("Failed to parse Coinbase storage:", error);
-    return false;
+    const accounts = parsed?.state?.account?.accounts;
+    return (accounts?.[0] as `0x${string}`) ?? null;
+  } catch {
+    return null;
   }
 }
 
 /**
- * Automatically reconnects to previously connected wallets on page refresh
+ * Automatically reconnects to previously connected wallets on page refresh.
  *
- * This hook:
- * 1. Uses wagmi's built-in reconnect mechanism
- * 2. Falls back to manual reconnect for specific connectors (injected + Coinbase)
- * 3. Only attempts reconnection once per session
- *
- * Must be used inside WagmiProvider
+ * - Uses wagmi's built-in reconnect mechanism
+ * - Falls back to manual reconnect for Coinbase Wallet
+ * - Only attempts reconnection once per session
  */
 export function useAutoReconnect(): void {
-  const { isConnected } = useAccount();
-  const { connectors, connectAsync, status } = useConnect();
-  const { reconnectAsync } = useReconnect();
+  const { isConnected, address } = useAccount();
+  const { connectors, connectAsync, status: connectStatus } = useConnect();
+  const { reconnect, status: reconnectStatus } = useReconnect();
   const hasAttemptedReconnect = useRef(false);
+  const [initialWaitComplete, setInitialWaitComplete] = useState(false);
 
+  const attemptManualReconnect = useCallback(async () => {
+    const storedAccount = getCoinbaseStoredAccount();
+    if (!storedAccount) return;
+
+    const coinbaseConnector = connectors.find(isCoinbaseWalletConnector);
+    if (!coinbaseConnector) return;
+
+    // Try connector.getAccounts() first
+    try {
+      const accounts = await coinbaseConnector.getAccounts();
+      if (accounts?.length > 0) {
+        await connectAsync({ connector: coinbaseConnector });
+        return;
+      }
+    } catch {
+      // Fall through to eth_accounts
+    }
+
+    // Try eth_accounts (doesn't open popup)
+    try {
+      const provider = (await coinbaseConnector.getProvider()) as {
+        request: (args: { method: string }) => Promise<unknown>;
+      };
+      const existingAccounts = (await provider.request({ method: "eth_accounts" })) as string[];
+
+      if (existingAccounts?.length > 0) {
+        await connectAsync({ connector: coinbaseConnector });
+      }
+    } catch {
+      // Silent fail - user can manually reconnect
+    }
+  }, [connectors, connectAsync]);
+
+  // Wait for Coinbase SDK to auto-reconnect before attempting manual reconnect
   useEffect(() => {
-    if (hasAttemptedReconnect.current || isConnected || status !== "idle") {
+    if (isConnected || address) {
+      hasAttemptedReconnect.current = true;
       return;
     }
 
-    const timeoutId = setTimeout(async () => {
-      if (isConnected) {
-        hasAttemptedReconnect.current = true;
-        return;
-      }
-
+    if (!getCoinbaseStoredAccount()) {
       hasAttemptedReconnect.current = true;
+      return;
+    }
 
-      // Check wagmi storage for last connected wallet
-      let lastConnectorId: string | undefined;
-      try {
-        const wagmiStore = localStorage.getItem("wagmi.store");
-        if (wagmiStore) {
-          const parsed = JSON.parse(wagmiStore);
-          lastConnectorId = parsed?.state?.connections?.value?.[0]?.[0];
-        }
-      } catch (error) {
-        // Failed to parse wagmi storage, continue without last connector info
-        console.debug("Failed to parse wagmi storage:", error);
-      }
+    const timer = setTimeout(() => setInitialWaitComplete(true), 1500);
+    return () => clearTimeout(timer);
+  }, [isConnected, address]);
 
-      const hasCoinbaseSession = checkCoinbaseLocalStorage();
-      const hasOtherWalletConnected = lastConnectorId && !lastConnectorId.toLowerCase().includes("coinbase");
+  // Attempt manual reconnect after initial wait
+  useEffect(() => {
+    if (!initialWaitComplete || hasAttemptedReconnect.current) return;
+    if (isConnected || address) {
+      hasAttemptedReconnect.current = true;
+      return;
+    }
+    if (reconnectStatus === "pending" || connectStatus === "pending") return;
 
-      // If another wallet was last connected, clear Coinbase storage to prevent popup
-      if (hasCoinbaseSession && hasOtherWalletConnected) {
-        clearCoinbaseStorage();
-      }
+    hasAttemptedReconnect.current = true;
+    attemptManualReconnect();
+  }, [initialWaitComplete, isConnected, address, reconnectStatus, connectStatus, attemptManualReconnect]);
 
-      // If Coinbase session exists and no other wallet is connected, try Coinbase
-      if (hasCoinbaseSession && !hasOtherWalletConnected) {
-        const coinbaseConnector = connectors.find((c) => isCoinbaseWalletConnector(c));
-        if (coinbaseConnector) {
-          try {
-            await connectAsync({ connector: coinbaseConnector });
-            return;
-          } catch (error) {
-            if (error instanceof Error && error.message.includes("already connected")) {
-              return;
-            }
-            // Coinbase connect failed, clear the stale session
-            clearCoinbaseStorage();
-          }
-        }
-      }
+  // Try wagmi's built-in reconnect on mount (skip if already connected)
+  useEffect(() => {
+    if (isConnected || address) return;
 
-      // Clear Coinbase storage if another wallet was last connected
-      if (hasCoinbaseSession && !hasOtherWalletConnected) {
-        clearCoinbaseStorage();
-      }
+    const coinbaseConnector = getCoinbaseStoredAccount() ? connectors.find(isCoinbaseWalletConnector) : null;
 
-      // Try wagmi's built-in reconnect for other wallets
-      try {
-        await reconnectAsync();
-        return;
-      } catch (error) {
-        // Built-in reconnect failed, try manual approaches
-        console.debug("Wagmi reconnect failed:", error);
-      }
-
-      // Manual reconnect for injected wallets
-      if (typeof window !== "undefined" && window.ethereum) {
-        const injectedConnectors = connectors.filter((c) => c.type === "injected" && !c.id.includes("privy"));
-
-        for (const connector of injectedConnectors) {
-          try {
-            const isAuthorized = await connector.isAuthorized();
-            if (isAuthorized) {
-              await connectAsync({ connector });
-              return;
-            }
-          } catch (error) {
-            if (error instanceof Error && error.message.includes("already connected")) {
-              return;
-            }
-          }
-        }
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [isConnected, status, connectors, connectAsync, reconnectAsync]);
+    if (coinbaseConnector) {
+      reconnect({ connectors: [coinbaseConnector] });
+    } else {
+      reconnect();
+    }
+  }, [reconnect, connectors, isConnected, address]);
 }
