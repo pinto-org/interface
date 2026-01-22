@@ -110,7 +110,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
   const maxExpiration = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
   const selectedExpiresIn = expiresIn ?? maxExpiration;
-  const minFill = TokenValue.fromHuman(1, PODS.decimals);
+  const minFill = TokenValue.fromHuman(0.1, PODS.decimals);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const plotPosition = plot.length > 0 ? plot[0].index.sub(harvestableIndex) : TV.ZERO;
