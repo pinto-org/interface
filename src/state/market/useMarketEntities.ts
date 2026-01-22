@@ -13,6 +13,17 @@ export function useMarketEntities(data: AllMarketActivityQuery | undefined, isFe
 
     if (isLoaded) {
       data.podListings.forEach((listing) => {
+        // Filter out listings that cannot be purchased (pricePerPod * remainingAmount < minFillAmount)
+        const pricePerPod = TokenValue.fromBlockchain(listing.pricePerPod, PINTO.decimals);
+        const remainingAmount = TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals);
+        const minFillAmount = TokenValue.fromBlockchain(listing.minFillAmount, PINTO.decimals);
+        const totalValue = pricePerPod.mul(remainingAmount);
+
+        // Skip listings where totalValue < minFillAmount
+        if (totalValue.lt(minFillAmount)) {
+          return;
+        }
+
         const parsed: Listing = {
           type: "LISTING",
           amount: TokenValue.fromBlockchain(listing.amount, PODS.decimals),
@@ -24,7 +35,7 @@ export function useMarketEntities(data: AllMarketActivityQuery | undefined, isFe
           id: listing.id,
           index: TokenValue.fromBlockchain(listing.index, PODS.decimals),
           maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals),
-          minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, PODS.decimals),
+          minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, PINTO.decimals),
           mode: listing.mode,
           originalAmount: TokenValue.fromBlockchain(listing.originalAmount, PODS.decimals),
           originalIndex: TokenValue.fromBlockchain(listing.originalIndex, PODS.decimals),
