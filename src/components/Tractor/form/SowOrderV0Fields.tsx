@@ -496,7 +496,7 @@ SowOrderV0Fields.MorningAuction = function MorningAuction() {
 
 // TODO: ADD REFERRAL CODE VALIDATOR!
 
-const BONUS_MULTIPLIER = 0.1;
+const BONUS_MULTIPLIER = 0.05;
 
 SowOrderV0Fields.PodDisplay = function PodDisplay({
   onOpenReferralPopover,
