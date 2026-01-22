@@ -3,12 +3,15 @@ import { getEnvEnabledChains, localhostNetwork as localhost } from "@/utils/wagm
 import { Chain, Transport, createTestClient } from "viem";
 import { http, createStorage } from "wagmi";
 import type { CreateConnectorFn } from "wagmi";
-import { /* coinbaseWallet, */ injected, walletConnect } from "wagmi/connectors";
+import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 
-export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
+export const anvilTestClient = createTestClient({
+  mode: "anvil",
+  chain: localhost,
+  transport: http(),
+});
 
 type ChainsConfig = readonly [Chain, ...Chain[]];
-
 type TransportsConfig = Record<number, Transport>;
 
 export const getChainConfig = (): ChainsConfig => {
@@ -21,9 +24,7 @@ export const getTransportsConfig = (): TransportsConfig => {
 
   for (const chain of getEnvEnabledChains()) {
     if (chain === undefined) {
-      console.error(
-        'Your VITE_CHAINS environment variable is not set correctly, try setting it to something like `VITE_CHAINS="41337,1337,8453,42161"`',
-      );
+      console.error('VITE_CHAINS environment variable is not set correctly. Try: VITE_CHAINS="41337,1337,8453,42161"');
     }
     config[chain.id] = http(chain.rpcUrls.default.http[0]);
   }
@@ -35,16 +36,11 @@ const getWalletConnectMetadataUrl = () => {
   if (typeof window !== "undefined") {
     return window.location.origin;
   }
-
   return import.meta.env.VITE_SITE_URL || "https://pinto.money/";
 };
 
 export const getBaseConnectors = (): CreateConnectorFn[] => {
-  const connectors: CreateConnectorFn[] = [
-    injected({
-      shimDisconnect: true,
-    }),
-  ];
+  const connectors: CreateConnectorFn[] = [injected({ shimDisconnect: true })];
 
   if (import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID) {
     connectors.push(
@@ -61,12 +57,13 @@ export const getBaseConnectors = (): CreateConnectorFn[] => {
     );
   }
 
-  // connectors.push(
-  //   coinbaseWallet({
-  //     appName: "Pinto",
-  //     appLogoUrl: PintoIcon,
-  //   }) as CreateConnectorFn,
-  // );
+  connectors.push(
+    coinbaseWallet({
+      appName: "Pinto",
+      appLogoUrl: "https://pinto.money/pinto-logo.png",
+      preference: "smartWalletOnly",
+    }) as CreateConnectorFn,
+  );
 
   return connectors;
 };
@@ -75,12 +72,7 @@ const resolveStorage = (provided?: Storage | null) => {
   if (typeof provided !== "undefined") {
     return provided ?? undefined;
   }
-
-  if (typeof window !== "undefined") {
-    return window.localStorage;
-  }
-
-  return undefined;
+  return typeof window !== "undefined" ? window.localStorage : undefined;
 };
 
 interface BuildBaseConfigParamsOptions {
@@ -99,12 +91,13 @@ export const buildBaseConfigParams = (options: BuildBaseConfigParamsOptions = {}
     connectors: [...getBaseConnectors(), ...additionalConnectors],
     storage: createStorage({
       storage: resolveStorage(storage),
+      key: "wagmi.pinto",
     }),
     ssr,
+    // Disable wagmi's automatic reconnect - handled manually in useAutoReconnect
+    reconnectOnMount: false,
     batch: {
-      multicall: {
-        wait: batchWait,
-      },
+      multicall: { wait: batchWait },
     },
   };
 };

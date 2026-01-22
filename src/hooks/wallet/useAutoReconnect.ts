@@ -1,90 +1,113 @@
-import { useEffect, useRef } from "react";
-import { useAccount, useConnect, useConnections } from "wagmi";
+import { isCoinbaseWalletConnector } from "@/utils/wagmi/connectorFilters";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useAccount, useConnect, useReconnect } from "wagmi";
+
+const COINBASE_STORAGE_KEY = "cbwsdk.store";
 
 /**
- * Automatically reconnects to previously connected wallets on page refresh
+ * Gets account address from Coinbase localStorage if available
+ */
+function getCoinbaseStoredAccount(): `0x${string}` | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const stored = localStorage.getItem(COINBASE_STORAGE_KEY);
+    if (!stored) return null;
+
+    const parsed = JSON.parse(stored);
+    const accounts = parsed?.state?.account?.accounts;
+    return (accounts?.[0] as `0x${string}`) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Automatically reconnects to previously connected wallets on page refresh.
  *
- * This hook:
- * 1. Checks for saved connections from previous session
- * 2. Attempts to reconnect to non-Privy connectors
- * 3. Checks injected wallets for authorization
- * 4. Only attempts reconnection once per session
- *
- * Must be used inside WagmiProvider
+ * - Uses wagmi's built-in reconnect mechanism
+ * - Falls back to manual reconnect for Coinbase Wallet
+ * - Only attempts reconnection once per session
  */
 export function useAutoReconnect(): void {
-  const { isConnected } = useAccount();
-  const { connectors, connectAsync, status } = useConnect();
-  const connections = useConnections();
+  const { isConnected, address } = useAccount();
+  const { connectors, connectAsync, status: connectStatus } = useConnect();
+  const { reconnect, status: reconnectStatus } = useReconnect();
   const hasAttemptedReconnect = useRef(false);
+  const [initialWaitComplete, setInitialWaitComplete] = useState(false);
 
+  const attemptManualReconnect = useCallback(async () => {
+    const storedAccount = getCoinbaseStoredAccount();
+    if (!storedAccount) return;
+
+    const coinbaseConnector = connectors.find(isCoinbaseWalletConnector);
+    if (!coinbaseConnector) return;
+
+    // Try connector.getAccounts() first
+    try {
+      const accounts = await coinbaseConnector.getAccounts();
+      if (accounts?.length > 0) {
+        await connectAsync({ connector: coinbaseConnector });
+        return;
+      }
+    } catch {
+      // Fall through to eth_accounts
+    }
+
+    // Try eth_accounts (doesn't open popup)
+    try {
+      const provider = (await coinbaseConnector.getProvider()) as {
+        request: (args: { method: string }) => Promise<unknown>;
+      };
+      const existingAccounts = (await provider.request({ method: "eth_accounts" })) as string[];
+
+      if (existingAccounts?.length > 0) {
+        await connectAsync({ connector: coinbaseConnector });
+      }
+    } catch {
+      // Silent fail - user can manually reconnect
+    }
+  }, [connectors, connectAsync]);
+
+  // Wait for Coinbase SDK to auto-reconnect before attempting manual reconnect
   useEffect(() => {
-    if (hasAttemptedReconnect.current || isConnected || status !== "idle") {
+    if (isConnected || address) {
+      hasAttemptedReconnect.current = true;
       return;
     }
 
-    const timeoutId = setTimeout(async () => {
-      // Double check connection status before attempting
-      if (isConnected) {
-        hasAttemptedReconnect.current = true;
-        return;
-      }
-
-      // Try to reconnect to saved connection first
-      if (connections.length > 0) {
-        const savedConnection = connections[0];
-        const connector = connectors.find((c) => c.id === savedConnection.connector.id);
-
-        // Only reconnect to non-Privy connectors (Privy is handled by usePrivySync)
-        if (connector && connector.id !== "privy" && !connector.id.includes("privy")) {
-          hasAttemptedReconnect.current = true;
-          try {
-            await connectAsync({ connector });
-          } catch (error) {
-            // Ignore "already connected" errors
-            if (error instanceof Error && error.message.includes("already connected")) {
-              console.log("useAutoReconnect - Connector already connected, skipping");
-            } else {
-              console.error("useAutoReconnect - Failed to reconnect:", error);
-              hasAttemptedReconnect.current = false;
-            }
-          }
-          return;
-        }
-      }
-
-      // If no saved connection, check for authorized injected wallets
-      if (typeof window !== "undefined" && window.ethereum) {
-        const injectedConnectors = connectors.filter((c) => c.type === "injected" && !c.id.includes("privy"));
-
-        for (const connector of injectedConnectors) {
-          try {
-            const isAuthorized = await connector.isAuthorized();
-
-            if (isAuthorized && !hasAttemptedReconnect.current) {
-              hasAttemptedReconnect.current = true;
-              try {
-                await connectAsync({ connector });
-                return;
-              } catch (error) {
-                // Ignore "already connected" errors
-                if (error instanceof Error && error.message.includes("already connected")) {
-                  console.log(`useAutoReconnect - ${connector.id} already connected, skipping`);
-                  return;
-                }
-                console.error(`useAutoReconnect - Failed to reconnect to ${connector.id}:`, error);
-                hasAttemptedReconnect.current = false;
-              }
-            }
-          } catch (error) {
-            console.error(`useAutoReconnect - Error checking authorization for ${connector.id}:`, error);
-          }
-        }
-      }
-
+    if (!getCoinbaseStoredAccount()) {
       hasAttemptedReconnect.current = true;
-    }, 500);
+      return;
+    }
 
-    return () => clearTimeout(timeoutId);
-  }, [isConnected, status, connectors, connectAsync, connections]);
+    const timer = setTimeout(() => setInitialWaitComplete(true), 1500);
+    return () => clearTimeout(timer);
+  }, [isConnected, address]);
+
+  // Attempt manual reconnect after initial wait
+  useEffect(() => {
+    if (!initialWaitComplete || hasAttemptedReconnect.current) return;
+    if (isConnected || address) {
+      hasAttemptedReconnect.current = true;
+      return;
+    }
+    if (reconnectStatus === "pending" || connectStatus === "pending") return;
+
+    hasAttemptedReconnect.current = true;
+    attemptManualReconnect();
+  }, [initialWaitComplete, isConnected, address, reconnectStatus, connectStatus, attemptManualReconnect]);
+
+  // Try wagmi's built-in reconnect on mount (skip if already connected)
+  useEffect(() => {
+    if (isConnected || address) return;
+
+    const coinbaseConnector = getCoinbaseStoredAccount() ? connectors.find(isCoinbaseWalletConnector) : null;
+
+    if (coinbaseConnector) {
+      reconnect({ connectors: [coinbaseConnector] });
+    } else {
+      reconnect();
+    }
+  }, [reconnect, connectors, isConnected, address]);
 }
