@@ -1,0 +1,49 @@
+query BeanstalkSeasonsTable(
+  $seasonsWhere: String
+  $seasonsOrderBy: String
+  $seasonsOrderDirection: String
+  $fieldWhere: String
+  $fieldOrderBy: String
+  $fieldOrderDirection: String
+  $siloWhere: String
+  $siloOrderBy: String
+  $siloOrderDirection: String
+) {
+  seasons: cache_seasons(
+    where: $seasonsWhere
+    orderBy: $seasonsOrderBy
+    orderDirection: $seasonsOrderDirection
+  ) {
+    id
+    sunriseBlock
+    rewardBeans
+    price
+    deltaBeans
+    season
+  }
+  fieldHourlySnapshots: cache_fieldHourlySnapshots(
+    where: $fieldWhere
+    orderBy: $fieldOrderBy
+    orderDirection: $fieldOrderDirection
+  ) {
+    id
+    caseId
+    issuedSoil
+    deltaSownBeans
+    sownBeans
+    blocksToSoldOutSoil
+    podRate
+    temperature
+    deltaTemperature
+    season
+  }
+  siloHourlySnapshots: cache_siloHourlySnapshots(
+    where: $siloWhere
+    orderBy: $siloOrderBy
+    orderDirection: $siloOrderDirection
+  ) {
+    id
+    beanToMaxLpGpPerBdvRatio
+    season
+  }
+}

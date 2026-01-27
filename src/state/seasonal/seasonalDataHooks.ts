@@ -7,16 +7,23 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useChainConstant } from "@/utils/chain";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { HashString, MayArray } from "@/utils/types.generic";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useAccount } from "wagmi";
+import { useCacheWithSGFallback, useShouldUseSGFallback } from "./queries/useCacheQuery";
 import useSeasonalBasinSummarySG from "./queries/useSeasonalBasinSummarySG";
 import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
+import useSeasonalBeanstalkFieldCache from "./queries/useSeasonalBeanstalkFieldCache";
 import useSeasonalBeanstalkFieldSG from "./queries/useSeasonalBeanstalkFieldSG";
+import useSeasonalBeanstalkSiloCache, {
+  useSeasonalBeanstalkSiloActiveFarmersCache,
+} from "./queries/useSeasonalBeanstalkSiloCache";
 import useSeasonalBeanstalkSiloSG, {
   useSeasonalBeanstalkSiloActiveFarmersSG,
 } from "./queries/useSeasonalBeanstalkSiloSG";
 import useSeasonalBeanstalkWrappedDepositsSG from "./queries/useSeasonalBeanstalkWrappedDepositsSG";
+import useSeasonalFarmerCache from "./queries/useSeasonalFarmerCache";
 import useSeasonalFarmerSG from "./queries/useSeasonalFarmerSG";
+import useSeasonalFarmerSiloAssetTokenCache from "./queries/useSeasonalFarmerSiloAssetTokenCache";
 import useSeasonalFarmerSiloAssetTokenSG from "./queries/useSeasonalFarmerSiloAssetTokenSG";
 import useSeasonalTractorSnapshots, {
   ConvertUpV0Snapshot,
@@ -103,6 +110,22 @@ function calcGrownStalkPerBDV(siloHourly: SiloHourlySnapshot, bdvDecimals: numbe
   return grownStalk.div(depositedBDV);
 }
 
+// Cache version helper - uses the cache query result type
+type CacheSiloSnapshot = { stalk: any; germinatingStalk: any; depositedBDV: any };
+function calcSeasonalGrownStalkCache(siloHourly: CacheSiloSnapshot) {
+  return TV.fromBlockchain(
+    BigInt(siloHourly.stalk) +
+      BigInt(siloHourly.germinatingStalk) -
+      BigInt(siloHourly.depositedBDV) * BigInt(10) ** BigInt(10),
+    STALK.decimals,
+  );
+}
+function calcGrownStalkPerBDVCache(siloHourly: CacheSiloSnapshot, bdvDecimals: number) {
+  const grownStalk = calcSeasonalGrownStalkCache(siloHourly);
+  const depositedBDV = TV.fromBlockchain(siloHourly.depositedBDV, bdvDecimals);
+  return grownStalk.div(depositedBDV);
+}
+
 // ----- Seasonal Hooks -----
 export function useFarmerSeasonalPlantedPinto(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalFarmerSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
@@ -120,6 +143,37 @@ export function useFarmerSeasonalClaimedGrownStalkBalance(fromSeason: number, to
   }));
 }
 
+function useFarmerSeasonalClaimedGrownStalkBalanceCacheInternal(
+  fromSeason: number,
+  toSeason: number,
+): UseSeasonalResult {
+  return useSeasonalFarmerCache(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: calcSeasonalGrownStalkCache(siloHourly).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useFarmerSeasonalClaimedGrownStalkBalanceCache(
+  fromSeason: number,
+  toSeason: number,
+): UseSeasonalResult {
+  const cacheResult = useFarmerSeasonalClaimedGrownStalkBalanceCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalFarmerSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: calcSeasonalGrownStalk(siloHourly).toNumber(),
+      timestamp,
+    }),
+    undefined,
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
+}
+
 export function useFarmerSeasonalGrownStalkPerDepositedBDV(fromSeason: number, toSeason: number, account?: HashString) {
   const token = useChainConstant(MAIN_TOKEN);
 
@@ -133,6 +187,47 @@ export function useFarmerSeasonalGrownStalkPerDepositedBDV(fromSeason: number, t
     }),
     account,
   );
+}
+
+function useFarmerSeasonalGrownStalkPerDepositedBDVCacheInternal(
+  fromSeason: number,
+  toSeason: number,
+  account?: HashString,
+) {
+  const token = useChainConstant(MAIN_TOKEN);
+
+  return useSeasonalFarmerCache(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: calcGrownStalkPerBDVCache(siloHourly, token.decimals).toNumber(),
+      timestamp,
+    }),
+    account,
+  );
+}
+
+export function useFarmerSeasonalGrownStalkPerDepositedBDVCache(
+  fromSeason: number,
+  toSeason: number,
+  account?: HashString,
+) {
+  const token = useChainConstant(MAIN_TOKEN);
+  const cacheResult = useFarmerSeasonalGrownStalkPerDepositedBDVCacheInternal(fromSeason, toSeason, account);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalFarmerSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: calcGrownStalkPerBDV(siloHourly, token.decimals).toNumber(),
+      timestamp,
+    }),
+    account,
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 // This is O(n * m) where m is the total number of seasons in range. Unclear if this will scale appropriately.
@@ -155,6 +250,67 @@ export function useFarmerSeasonalStalkOwnership(fromSeason: number, toSeason: nu
   }
 
   return farmerStalkOwnership;
+}
+
+function useFarmerSeasonalStalkOwnershipCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const beanstalkStalk = useSeasonalStalkCacheInternal(fromSeason, toSeason);
+  const farmerStalkOwnership = useSeasonalFarmerCache(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value:
+      TV.fromBlockchain(siloHourly.stalk, STALK.decimals).toNumber() /
+      (beanstalkStalk.data?.find((item) => item.season === Number(siloHourly.season))?.value ?? Infinity),
+    timestamp,
+  }));
+
+  if (beanstalkStalk.isLoading || farmerStalkOwnership.isLoading) {
+    return { isLoading: true, isError: false, data: undefined };
+  }
+
+  if (beanstalkStalk.isError || farmerStalkOwnership.isError) {
+    return { isLoading: false, isError: true, data: undefined };
+  }
+
+  return farmerStalkOwnership;
+}
+
+export function useFarmerSeasonalStalkOwnershipCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useFarmerSeasonalStalkOwnershipCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+
+  // For SG fallback, we need to get beanstalk stalk data too
+  const beanstalkStalk = useSeasonalBeanstalkSiloSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: TV.fromBlockchain(siloHourly.stalk, STALK.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+
+  const farmerStalkOwnership = useSeasonalFarmerSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value:
+        TV.fromBlockchain(siloHourly.stalk, STALK.decimals).toNumber() /
+        (beanstalkStalk.data?.find((item) => item.season === Number(siloHourly.season))?.value ?? Infinity),
+      timestamp,
+    }),
+    undefined,
+    shouldUseSG,
+  );
+
+  // Combine SG results
+  const sgResult: UseSeasonalResult = {
+    isLoading: beanstalkStalk.isLoading || farmerStalkOwnership.isLoading,
+    isError: beanstalkStalk.isError || farmerStalkOwnership.isError,
+    data: farmerStalkOwnership.data,
+  };
+
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 /**
@@ -182,6 +338,55 @@ export function useFarmerSeasonalSiloAssetDepositedAmount(
       timestamp,
     }),
   );
+}
+
+function useFarmerSeasonalSiloAssetDepositedAmountCacheInternal(
+  fromSeason: number,
+  toSeason: number,
+  token: Token,
+  account?: string,
+) {
+  const { address } = useAccount();
+
+  const siloAccount = account ?? address ?? "";
+
+  return useSeasonalFarmerSiloAssetTokenCache(
+    fromSeason,
+    toSeason,
+    token.address,
+    siloAccount,
+    (siloAssetHourly, timestamp) => ({
+      season: Number(siloAssetHourly.season),
+      value: TV.fromBlockchain(siloAssetHourly.depositedAmount, token.decimals).toNumber(),
+      timestamp,
+    }),
+  );
+}
+
+export function useFarmerSeasonalSiloAssetDepositedAmountCache(
+  fromSeason: number,
+  toSeason: number,
+  token: Token,
+  account?: string,
+) {
+  const { address } = useAccount();
+  const siloAccount = account ?? address ?? "";
+
+  const cacheResult = useFarmerSeasonalSiloAssetDepositedAmountCacheInternal(fromSeason, toSeason, token, account);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalFarmerSiloAssetTokenSG(
+    fromSeason,
+    toSeason,
+    token.address,
+    siloAccount,
+    (siloAssetHourly, timestamp) => ({
+      season: Number(siloAssetHourly.season),
+      value: TV.fromBlockchain(siloAssetHourly.depositedAmount, token.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 export function useFarmerSeasonalSiloAssetPercentageOfTotalDeposited(
@@ -228,12 +433,60 @@ export function useSeasonalStalk(fromSeason: number, toSeason: number): UseSeaso
   }));
 }
 
+function useSeasonalStalkCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkSiloCache(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: TV.fromBlockchain(siloHourly.stalk, STALK.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalStalkCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalStalkCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkSiloSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: TV.fromBlockchain(siloHourly.stalk, STALK.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
+}
+
 export function useSeasonalBDV(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanstalkSiloSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
     season: Number(siloHourly.season),
     value: TV.fromBlockchain(siloHourly.depositedBDV, PINTO.decimals).toNumber(),
     timestamp,
   }));
+}
+
+function useSeasonalBDVCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkSiloCache(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: TV.fromBlockchain(siloHourly.depositedBDV, PINTO.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalBDVCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalBDVCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkSiloSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: TV.fromBlockchain(siloHourly.depositedBDV, PINTO.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 export function useSeasonalAvgSeeds(fromSeason: number, toSeason: number): UseSeasonalResult {
@@ -244,12 +497,60 @@ export function useSeasonalAvgSeeds(fromSeason: number, toSeason: number): UseSe
   }));
 }
 
+function useSeasonalAvgSeedsCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkSiloCache(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: TV.fromBlockchain(siloHourly.grownStalkPerSeason, STALK.decimals - 4).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalAvgSeedsCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalAvgSeedsCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkSiloSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: TV.fromBlockchain(siloHourly.avgGrownStalkPerBdvPerSeason, STALK.decimals - 4).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
+}
+
 export function useSeasonalSiloActiveFarmers(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanstalkSiloActiveFarmersSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
     season: Number(siloHourly.season),
     value: siloHourly.activeFarmers,
     timestamp,
   }));
+}
+
+function useSeasonalSiloActiveFarmersCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkSiloActiveFarmersCache(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: siloHourly.activeFarmers,
+    timestamp,
+  }));
+}
+
+export function useSeasonalSiloActiveFarmersCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalSiloActiveFarmersCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkSiloActiveFarmersSG(
+    fromSeason,
+    toSeason,
+    (siloHourly, timestamp) => ({
+      season: Number(siloHourly.season),
+      value: siloHourly.activeFarmers,
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 /** ==================== Beanstalk FieldHourlySnapshot ==================== **/
@@ -262,12 +563,60 @@ export function useSeasonalPodRate(fromSeason: number, toSeason: number): UseSea
   }));
 }
 
+function useSeasonalPodRateCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: Number(fieldHourly.podRate),
+    timestamp,
+  }));
+}
+
+export function useSeasonalPodRateCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalPodRateCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: Number(fieldHourly.podRate),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
+}
+
 export function useSeasonalTemperature(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanstalkFieldSG(fromSeason, toSeason, (fieldHourly, timestamp) => ({
     season: Number(fieldHourly.season),
     value: Number(fieldHourly.temperature) / 100,
     timestamp,
   }));
+}
+
+function useSeasonalTemperatureCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: Number(fieldHourly.temperature) / 100,
+    timestamp,
+  }));
+}
+
+export function useSeasonalTemperatureCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalTemperatureCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: Number(fieldHourly.temperature) / 100,
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 export function useSeasonalPodIndex(fromSeason: number, toSeason: number): UseSeasonalResult {
@@ -278,12 +627,63 @@ export function useSeasonalPodIndex(fromSeason: number, toSeason: number): UseSe
   }));
 }
 
+function useSeasonalPodIndexCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(fieldHourly.podIndex, PODS.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalPodIndexCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalPodIndexCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: TV.fromBlockchain(fieldHourly.podIndex, PODS.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
+}
+
 export function useSeasonalPodLine(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanstalkFieldSG(fromSeason, toSeason, (fieldHourly, timestamp) => ({
     season: Number(fieldHourly.season),
     value: TV.fromBlockchain(fieldHourly.podIndex - fieldHourly.harvestableIndex, PODS.decimals).toNumber(),
     timestamp,
   }));
+}
+
+function useSeasonalPodLineCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(
+      BigInt(fieldHourly.podIndex) - BigInt(fieldHourly.harvestableIndex),
+      PODS.decimals,
+    ).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalPodLineCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalPodLineCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: TV.fromBlockchain(fieldHourly.podIndex - fieldHourly.harvestableIndex, PODS.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 export function useSeasonalSownPinto(fromSeason: number, toSeason: number): UseSeasonalResult {
@@ -294,12 +694,60 @@ export function useSeasonalSownPinto(fromSeason: number, toSeason: number): UseS
   }));
 }
 
+function useSeasonalSownPintoCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(fieldHourly.sownBeans, PINTO.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalSownPintoCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalSownPintoCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: TV.fromBlockchain(fieldHourly.sownBeans, PINTO.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
+}
+
 export function useSeasonalPodsHarvested(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanstalkFieldSG(fromSeason, toSeason, (fieldHourly, timestamp) => ({
     season: Number(fieldHourly.season),
     value: TV.fromBlockchain(fieldHourly.harvestedPods, PODS.decimals).toNumber(),
     timestamp,
   }));
+}
+
+function useSeasonalPodsHarvestedCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(fieldHourly.harvestedPods, PODS.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalPodsHarvestedCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalPodsHarvestedCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: TV.fromBlockchain(fieldHourly.harvestedPods, PODS.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 export function useSeasonalCultivationFactor(fromSeason: number, toSeason: number): UseSeasonalResult {
@@ -326,12 +774,60 @@ export function useSeasonalSoilSupply(fromSeason: number, toSeason: number): Use
   }));
 }
 
+function useSeasonalSoilSupplyCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(fieldHourly.issuedSoil, PINTO.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalSoilSupplyCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalSoilSupplyCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: TV.fromBlockchain(fieldHourly.issuedSoil, PINTO.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
+}
+
 export function useSeasonalSoilDemand(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalBeanstalkFieldSG(fromSeason, toSeason, (fieldHourly, timestamp) => ({
     season: Number(fieldHourly.season),
     value: TV.fromBlockchain(fieldHourly.deltaSownBeans, PINTO.decimals).toNumber(),
     timestamp,
   }));
+}
+
+function useSeasonalSoilDemandCacheInternal(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldCache(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(fieldHourly.deltaSownBeans, PINTO.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalSoilDemandCache(fromSeason: number, toSeason: number): UseSeasonalResult {
+  const cacheResult = useSeasonalSoilDemandCacheInternal(fromSeason, toSeason);
+  const shouldUseSG = useShouldUseSGFallback(cacheResult);
+  const sgResult = useSeasonalBeanstalkFieldSG(
+    fromSeason,
+    toSeason,
+    (fieldHourly, timestamp) => ({
+      season: Number(fieldHourly.season),
+      value: TV.fromBlockchain(fieldHourly.deltaSownBeans, PINTO.decimals).toNumber(),
+      timestamp,
+    }),
+    shouldUseSG,
+  );
+  return useCacheWithSGFallback(cacheResult, sgResult);
 }
 
 /** ==================== WrappedDepositERC20HourlySnapshot ==================== **/

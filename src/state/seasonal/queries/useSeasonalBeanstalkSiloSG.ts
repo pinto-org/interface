@@ -33,6 +33,7 @@ export default function useSeasonalBeanstalkSiloSG(
   fromSeason: number,
   toSeason: number,
   convertResult: ConvertEntryFn<SiloHourlySnapshot>,
+  enabled: boolean = true,
 ): UseSeasonalResult {
   const chainId = useChainId();
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
@@ -49,6 +50,7 @@ export default function useSeasonalBeanstalkSiloSG(
       return new Date(Number(entry.createdAt) * 1000);
     },
     convertResult,
+    enabled,
   });
 }
 
@@ -56,6 +58,7 @@ export function useSeasonalBeanstalkSiloActiveFarmersSG(
   fromSeason: number,
   toSeason: number,
   convertResult: ConvertEntryFn<SiloHourlySnapshot>,
+  enabled: boolean = true,
 ): UseSeasonalResult {
   const chainId = useChainId();
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
@@ -77,5 +80,6 @@ export function useSeasonalBeanstalkSiloActiveFarmersSG(
       return new Date(Number(entry.createdAt) * 1000);
     },
     convertResult,
+    enabled,
   });
 }
