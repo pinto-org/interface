@@ -6214,6 +6214,238 @@ export const beanstalkAbi = [
     ],
     stateMutability: 'nonpayable',
   },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'params',
+        internalType: 'struct CancelPodListingParams[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
+          { name: 'index', internalType: 'uint256', type: 'uint256' },
+        ],
+      },
+    ],
+    name: 'batchCancelPodListing',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'podOrders',
+        internalType: 'struct Order.PodOrder[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'orderer', internalType: 'address', type: 'address' },
+          { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
+          { name: 'pricePerPod', internalType: 'uint24', type: 'uint24' },
+          { name: 'maxPlaceInLine', internalType: 'uint256', type: 'uint256' },
+          { name: 'minFillAmount', internalType: 'uint256', type: 'uint256' },
+        ],
+      },
+      { name: 'mode', internalType: 'enum LibTransfer.To', type: 'uint8' },
+    ],
+    name: 'batchCancelPodOrder',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'podListings',
+        internalType: 'struct Listing.PodListing[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'lister', internalType: 'address', type: 'address' },
+          { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
+          { name: 'index', internalType: 'uint256', type: 'uint256' },
+          { name: 'start', internalType: 'uint256', type: 'uint256' },
+          { name: 'podAmount', internalType: 'uint256', type: 'uint256' },
+          { name: 'pricePerPod', internalType: 'uint24', type: 'uint24' },
+          {
+            name: 'maxHarvestableIndex',
+            internalType: 'uint256',
+            type: 'uint256',
+          },
+          { name: 'minFillAmount', internalType: 'uint256', type: 'uint256' },
+          { name: 'mode', internalType: 'enum LibTransfer.To', type: 'uint8' },
+        ],
+      },
+    ],
+    name: 'batchCreatePodListing',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'params',
+        internalType: 'struct FillPodListingParams[]',
+        type: 'tuple[]',
+        components: [
+          {
+            name: 'podListing',
+            internalType: 'struct Listing.PodListing',
+            type: 'tuple',
+            components: [
+              { name: 'lister', internalType: 'address', type: 'address' },
+              { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
+              { name: 'index', internalType: 'uint256', type: 'uint256' },
+              { name: 'start', internalType: 'uint256', type: 'uint256' },
+              { name: 'podAmount', internalType: 'uint256', type: 'uint256' },
+              { name: 'pricePerPod', internalType: 'uint24', type: 'uint24' },
+              {
+                name: 'maxHarvestableIndex',
+                internalType: 'uint256',
+                type: 'uint256',
+              },
+              {
+                name: 'minFillAmount',
+                internalType: 'uint256',
+                type: 'uint256',
+              },
+              {
+                name: 'mode',
+                internalType: 'enum LibTransfer.To',
+                type: 'uint8',
+              },
+            ],
+          },
+          { name: 'beanAmount', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'mode',
+            internalType: 'enum LibTransfer.From',
+            type: 'uint8',
+          },
+        ],
+      },
+    ],
+    name: 'batchFillPodListing',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'params',
+        internalType: 'struct CreatePodOrderParams[]',
+        type: 'tuple[]',
+        components: [
+          {
+            name: 'podOrder',
+            internalType: 'struct Order.PodOrder',
+            type: 'tuple',
+            components: [
+              { name: 'orderer', internalType: 'address', type: 'address' },
+              { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
+              { name: 'pricePerPod', internalType: 'uint24', type: 'uint24' },
+              {
+                name: 'maxPlaceInLine',
+                internalType: 'uint256',
+                type: 'uint256',
+              },
+              {
+                name: 'minFillAmount',
+                internalType: 'uint256',
+                type: 'uint256',
+              },
+            ],
+          },
+          { name: 'beanAmount', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'mode',
+            internalType: 'enum LibTransfer.From',
+            type: 'uint8',
+          },
+        ],
+      },
+    ],
+    name: 'batchCreatePodOrder',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'params',
+        internalType: 'struct FillPodOrderParams[]',
+        type: 'tuple[]',
+        components: [
+          {
+            name: 'podOrder',
+            internalType: 'struct Order.PodOrder',
+            type: 'tuple',
+            components: [
+              { name: 'orderer', internalType: 'address', type: 'address' },
+              { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
+              { name: 'pricePerPod', internalType: 'uint24', type: 'uint24' },
+              {
+                name: 'maxPlaceInLine',
+                internalType: 'uint256',
+                type: 'uint256',
+              },
+              {
+                name: 'minFillAmount',
+                internalType: 'uint256',
+                type: 'uint256',
+              },
+            ],
+          },
+          { name: 'index', internalType: 'uint256', type: 'uint256' },
+          { name: 'start', internalType: 'uint256', type: 'uint256' },
+          { name: 'amount', internalType: 'uint256', type: 'uint256' },
+          { name: 'mode', internalType: 'enum LibTransfer.To', type: 'uint8' },
+        ],
+      },
+    ],
+    name: 'batchFillPodOrder',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'converts',
+        internalType: 'struct ConvertBatchFacet.ConvertParams[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'convertData', internalType: 'bytes', type: 'bytes' },
+          { name: 'stems', internalType: 'int96[]', type: 'int96[]' },
+          { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
+          {
+            name: 'grownStalkSlippage',
+            internalType: 'int256',
+            type: 'int256',
+          },
+        ],
+      },
+    ],
+    name: 'batchConvert',
+    outputs: [
+      {
+        name: 'convertOutputs',
+        internalType: 'struct ConvertBatchFacet.ConvertOutput[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'convertKind', internalType: 'uint8', type: 'uint8' },
+          { name: 'toStem', internalType: 'int96', type: 'int96' },
+          { name: 'fromAmount', internalType: 'uint256', type: 'uint256' },
+          { name: 'toAmount', internalType: 'uint256', type: 'uint256' },
+          { name: 'fromBdv', internalType: 'uint256', type: 'uint256' },
+          { name: 'toBdv', internalType: 'uint256', type: 'uint256' },
+        ],
+      },
+    ],
+    stateMutability: 'payable',
+  },
 ] as const
 
 /**
@@ -14638,6 +14870,118 @@ export const useWriteBeanstalk_SowWithReferral =
   })
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCancelPodListing"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_BatchCancelPodListing =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCancelPodListing',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCancelPodOrder"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_BatchCancelPodOrder =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCancelPodOrder',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCreatePodListing"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_BatchCreatePodListing =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCreatePodListing',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchFillPodListing"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_BatchFillPodListing =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchFillPodListing',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCreatePodOrder"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_BatchCreatePodOrder =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCreatePodOrder',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchFillPodOrder"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_BatchFillPodOrder =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchFillPodOrder',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchConvert"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWriteBeanstalk_BatchConvert =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchConvert',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -15891,6 +16235,118 @@ export const useSimulateBeanstalk_SowWithReferral =
     abi: beanstalkAbi,
     address: beanstalkAddress,
     functionName: 'sowWithReferral',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCancelPodListing"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_BatchCancelPodListing =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCancelPodListing',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCancelPodOrder"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_BatchCancelPodOrder =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCancelPodOrder',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCreatePodListing"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_BatchCreatePodListing =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCreatePodListing',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchFillPodListing"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_BatchFillPodListing =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchFillPodListing',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchCreatePodOrder"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_BatchCreatePodOrder =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchCreatePodOrder',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchFillPodOrder"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_BatchFillPodOrder =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchFillPodOrder',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchConvert"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useSimulateBeanstalk_BatchConvert =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'batchConvert',
   })
 
 /**

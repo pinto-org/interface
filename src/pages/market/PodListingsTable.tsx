@@ -3,7 +3,7 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import FrameAnimator from "@/components/LoadingSpinner";
 import { MarketPaginationControls } from "@/components/MarketPaginationControls";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PODS } from "@/constants/internalTokens";
@@ -84,7 +84,6 @@ export function PodListingsTable() {
                     day: "2-digit",
                     hour: "2-digit",
                     minute: "2-digit",
-                    // second: "2-digit",
                     hourCycle: "h24",
                   };
                   const createdAt = new Date(Number(listing.createdAt) * 1000);

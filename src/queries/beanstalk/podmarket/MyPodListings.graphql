@@ -1,0 +1,23 @@
+#import "./PodListing.fragment.graphql"
+
+query MyPodListings(
+  $first: Int = 100
+  $skip: Int = 0
+  $account: String!
+  $maxHarvestableIndex: BigInt!
+) {
+  podListings(
+    first: $first
+    skip: $skip
+    where: {
+      farmer: $account
+      status: ACTIVE
+      maxHarvestableIndex_gt: $maxHarvestableIndex
+      remainingAmount_gt: "100000" # = 0.10 Pods. hides dust pods.
+    }
+    orderBy: createdAt
+    orderDirection: desc
+  ) {
+    ...PodListing
+  }
+}
