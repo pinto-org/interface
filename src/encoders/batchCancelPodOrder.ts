@@ -21,7 +21,7 @@ export default function batchCancelPodOrder(orders: CancelPodOrderParams[], mode
   const args = orders.map((o) => ({
     orderer: o.orderer,
     fieldId: o.fieldId,
-    pricePerPod: Number(o.pricePerPod.toBigInt()), // uint24 expects number, not bigint
+    pricePerPod: o.pricePerPod.toNumber(), // uint24 expects number, not bigint
     maxPlaceInLine: o.maxPlaceInLine.toBigInt(),
     minFillAmount: o.minFillAmount.toBigInt(),
   }));
