@@ -68,7 +68,7 @@ export function MyListingsTable({ address, selectedIds = [], onSelectionChange }
     }
   }, [queryClient, allPodListings, allMarket, farmerMarket, onSelectionChange]);
 
-  const { writeWithEstimateGas, submitting } = useTransaction({
+  const { writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successMessage: "Listing(s) cancelled successfully",
     errorMessage: "Failed to cancel listing(s)",
     successCallback: onCancelSuccess,
@@ -82,6 +82,7 @@ export function MyListingsTable({ address, selectedIds = [], onSelectionChange }
         return;
       }
 
+      setSubmitting(true);
       setCancellingIds((prev) => new Set(prev).add(listing.id));
 
       try {
@@ -97,6 +98,7 @@ export function MyListingsTable({ address, selectedIds = [], onSelectionChange }
           args: [0n, TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt()],
         });
       } finally {
+        setSubmitting(false);
         setCancellingIds((prev) => {
           const next = new Set(prev);
           next.delete(listing.id);
@@ -104,7 +106,7 @@ export function MyListingsTable({ address, selectedIds = [], onSelectionChange }
         });
       }
     },
-    [address, diamondAddress, writeWithEstimateGas],
+    [address, diamondAddress, writeWithEstimateGas, setSubmitting],
   );
 
   // Handle immediate bulk cancel
@@ -121,6 +123,8 @@ export function MyListingsTable({ address, selectedIds = [], onSelectionChange }
       toast.error("No owned listings to cancel");
       return;
     }
+
+    setSubmitting(true);
 
     try {
       trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_LIST_CANCEL, {
@@ -141,8 +145,10 @@ export function MyListingsTable({ address, selectedIds = [], onSelectionChange }
       });
     } catch (error) {
       console.error("Batch cancel failed:", error);
+    } finally {
+      setSubmitting(false);
     }
-  }, [address, listings, selectedIds, diamondAddress, writeWithEstimateGas]);
+  }, [address, listings, selectedIds, diamondAddress, writeWithEstimateGas, setSubmitting]);
 
   // Compute visible listings on current page for select all logic
   const visibleListings = listings?.slice(newestEventOnPage, oldestEventOnPage + 1) || [];
