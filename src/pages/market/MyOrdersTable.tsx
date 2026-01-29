@@ -66,7 +66,7 @@ export function MyOrdersTable({ address, selectedIds = [], onSelectionChange }: 
     }
   }, [queryClient, allPodOrders, allMarket, farmerMarket, onSelectionChange]);
 
-  const { writeWithEstimateGas, submitting } = useTransaction({
+  const { writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successMessage: "Order(s) cancelled successfully",
     errorMessage: "Failed to cancel order(s)",
     successCallback: onCancelSuccess,
@@ -80,6 +80,7 @@ export function MyOrdersTable({ address, selectedIds = [], onSelectionChange }: 
         return;
       }
 
+      setSubmitting(true);
       setCancellingIds((prev) => new Set(prev).add(order.id));
 
       try {
@@ -109,6 +110,7 @@ export function MyOrdersTable({ address, selectedIds = [], onSelectionChange }: 
           ],
         });
       } finally {
+        setSubmitting(false);
         setCancellingIds((prev) => {
           const next = new Set(prev);
           next.delete(order.id);
@@ -116,7 +118,7 @@ export function MyOrdersTable({ address, selectedIds = [], onSelectionChange }: 
         });
       }
     },
-    [address, BEAN.decimals, diamondAddress, writeWithEstimateGas],
+    [address, BEAN.decimals, diamondAddress, writeWithEstimateGas, setSubmitting],
   );
 
   // Handle immediate bulk cancel
@@ -133,6 +135,8 @@ export function MyOrdersTable({ address, selectedIds = [], onSelectionChange }: 
       toast.error("No owned orders to cancel");
       return;
     }
+
+    setSubmitting(true);
 
     try {
       trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_ORDER_CANCEL, {
@@ -157,8 +161,10 @@ export function MyOrdersTable({ address, selectedIds = [], onSelectionChange }: 
       });
     } catch (error) {
       console.error("Batch cancel failed:", error);
+    } finally {
+      setSubmitting(false);
     }
-  }, [address, orders, selectedIds, BEAN.decimals, diamondAddress, writeWithEstimateGas]);
+  }, [address, orders, selectedIds, BEAN.decimals, diamondAddress, writeWithEstimateGas, setSubmitting]);
 
   // Compute visible orders on current page for select all logic
   const visibleOrders = orders?.slice(newestEventOnPage, oldestEventOnPage + 1) || [];
