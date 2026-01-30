@@ -1,4 +1,11 @@
 import advancedPipe from "./advancedPipe";
+import batchCancelPodListing from "./batchCancelPodListing";
+import batchCancelPodOrder from "./batchCancelPodOrder";
+import batchConvert from "./batchConvert";
+import batchCreatePodListing from "./batchCreatePodListing";
+import batchCreatePodOrder from "./batchCreatePodOrder";
+import batchFillPodListing from "./batchFillPodListing";
+import batchFillPodOrder from "./batchFillPodOrder";
 import erc20Approve from "./erc20Approve";
 import erc20BalanceOf from "./erc20BalanceOf";
 import erc20Transfer from "./erc20Transfer";
@@ -34,6 +41,16 @@ import wrapEth from "./wrapEth";
 const encoders = {
   advancedPipe,
 
+  // marketplace batch operations
+  market: {
+    batchCancelPodListing,
+    batchCancelPodOrder,
+    batchCreatePodListing,
+    batchCreatePodOrder,
+    batchFillPodListing,
+    batchFillPodOrder,
+  },
+
   // junction
   junction: {
     check: junctionCheck,
@@ -47,6 +64,7 @@ const encoders = {
   silo: {
     pipelineConvert,
     convert,
+    batchConvert,
     withdraw: siloWithdraw,
     getMaxAmountIn,
     getAmountOut,

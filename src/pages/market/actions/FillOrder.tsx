@@ -27,7 +27,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Address, encodeFunctionData } from "viem";
+import { Address } from "viem";
 import { useAccount } from "wagmi";
 import CancelOrder from "./CancelOrder";
 
@@ -336,7 +336,19 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
       let currentPlot = sortedPlots[0];
       let currentPlotStartOffset = 0;
 
-      const farmData: `0x${string}`[] = [];
+      const batchFillArgs: {
+        podOrder: {
+          orderer: Address;
+          fieldId: bigint;
+          pricePerPod: number;
+          maxPlaceInLine: bigint;
+          minFillAmount: bigint;
+        };
+        index: bigint;
+        start: bigint;
+        amount: bigint;
+        mode: number;
+      }[] = [];
 
       for (const { order: orderToFill, amount: fillAmount } of ordersToFill) {
         let remainingAmount = fillAmount;
@@ -370,28 +382,19 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
           const podAmount = TokenValue.fromHuman(podsToUse, PODS.decimals);
           const startOffset = TokenValue.fromHuman(currentPlotStartOffset, PODS.decimals);
 
-          // Create fillPodOrder call for this order with pod allocation from current plot
-          const fillOrderArgs = {
-            orderer: orderToFill.farmer.id as Address,
-            fieldId: FIELD_ID,
-            maxPlaceInLine: BigInt(orderToFill.maxPlaceInLine),
-            pricePerPod: Number(orderToFill.pricePerPod),
-            minFillAmount: BigInt(orderToFill.minFillAmount),
-          };
-
-          const fillCall = encodeFunctionData({
-            abi: beanstalkAbi,
-            functionName: "fillPodOrder",
-            args: [
-              fillOrderArgs,
-              currentPlot.index.toBigInt(),
-              startOffset.toBigInt(),
-              podAmount.toBigInt(),
-              Number(FarmToMode.INTERNAL),
-            ],
+          batchFillArgs.push({
+            podOrder: {
+              orderer: orderToFill.farmer.id as Address,
+              fieldId: FIELD_ID,
+              pricePerPod: Number(orderToFill.pricePerPod),
+              maxPlaceInLine: BigInt(orderToFill.maxPlaceInLine),
+              minFillAmount: BigInt(orderToFill.minFillAmount),
+            },
+            index: currentPlot.index.toBigInt(),
+            start: startOffset.toBigInt(),
+            amount: podAmount.toBigInt(),
+            mode: Number(FarmToMode.INTERNAL),
           });
-
-          farmData.push(fillCall);
 
           // Update tracking variables
           remainingAmount -= podsToUse;
@@ -407,17 +410,17 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
         }
       }
 
-      if (farmData.length === 0) {
+      if (batchFillArgs.length === 0) {
         throw new Error("No valid fill operations to execute");
       }
 
-      // Use farm to batch all order fills in one transaction
+      // Use batchFillPodOrder for gas-efficient batching
       // Success state will be set in onSuccess callback via ref
       writeWithEstimateGas({
         address: diamondAddress,
         abi: beanstalkAbi,
-        functionName: "farm",
-        args: [farmData],
+        functionName: "batchFillPodOrder",
+        args: [batchFillArgs],
       });
     } catch (e) {
       console.error("Fill order error:", e);
@@ -509,11 +512,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
       {isOwnOrder && selectedOrders.length > 0 && (
         <>
           <Separator />
-          {selectedOrders
-            .filter((order) => order.farmer.id === account.address?.toLowerCase())
-            .map((order) => (
-              <CancelOrder key={order.id} order={order} />
-            ))}
+          <CancelOrder orders={selectedOrders.filter((order) => order.farmer.id === account.address?.toLowerCase())} />
         </>
       )}
 

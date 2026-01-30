@@ -1,0 +1,20 @@
+#import "./PodOrder.fragment.graphql"
+
+query MyPodOrders(
+  $first: Int = 100
+  $skip: Int = 0
+  $account: String!
+) {
+  podOrders(
+    first: $first
+    skip: $skip
+    where: {
+      farmer: $account
+      status: ACTIVE
+    }
+    orderBy: createdAt
+    orderDirection: desc
+  ) {
+    ...PodOrder
+  }
+}

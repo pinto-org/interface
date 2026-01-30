@@ -45,7 +45,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Address, encodeFunctionData } from "viem";
+import { Address } from "viem";
 import { useAccount } from "wagmi";
 
 // Configuration constants
@@ -560,47 +560,37 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
       toast.loading(`Filling ${listingsToFill.length} Listing${listingsToFill.length !== 1 ? "s" : ""}...`);
 
       if (isUsingMain) {
-        // Direct fill - create farm calls for each listing
-        const farmData: `0x${string}`[] = [];
-
-        for (const { listing, beanAmount } of listingsToFill) {
-          // Encode pricePerPod with 6 decimals (like CreateOrder.tsx)
+        // Direct fill - use batchFillPodListing for gas-efficient batching
+        const batchFillArgs = listingsToFill.map(({ listing, beanAmount }) => {
           const pricePerPodNumber = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
           const encodedPricePerPod = Math.floor(pricePerPodNumber * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER);
 
-          const fillCall = encodeFunctionData({
-            abi: beanstalkAbi,
-            functionName: "fillPodListing",
-            args: [
-              {
-                lister: listing.farmer.id as Address,
-                fieldId: 0n,
-                index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(),
-                start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(),
-                podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(),
-                pricePerPod: encodedPricePerPod,
-                maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(),
-                minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(),
-                mode: Number(listing.mode),
-              },
-              beanAmount.toBigInt(),
-              Number(balanceFrom),
-            ],
-          });
+          return {
+            podListing: {
+              lister: listing.farmer.id as Address,
+              fieldId: 0n,
+              index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(),
+              start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(),
+              podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(),
+              pricePerPod: encodedPricePerPod,
+              maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(),
+              minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(),
+              mode: Number(listing.mode),
+            },
+            beanAmount: beanAmount.toBigInt(),
+            mode: Number(balanceFrom),
+          };
+        });
 
-          farmData.push(fillCall);
-        }
-
-        if (farmData.length === 0) {
+        if (batchFillArgs.length === 0) {
           throw new Error("No valid fill operations to execute");
         }
 
-        // Use farm to batch all listing fills in one transaction
         return writeWithEstimateGas({
           address: diamondAddress,
           abi: beanstalkAbi,
-          functionName: "farm",
-          args: [farmData],
+          functionName: "batchFillPodListing",
+          args: [batchFillArgs],
         });
       } else if (swapBuild?.advancedFarm.length) {
         // Swap + fill - use advancedFarm

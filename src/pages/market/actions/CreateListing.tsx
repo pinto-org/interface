@@ -29,7 +29,6 @@ import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 
 interface LocationState {
@@ -543,36 +542,25 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
       setSubmitting(true);
       toast.loading(`Creating ${listingData.length} Listing${listingData.length > 1 ? "s" : ""}...`);
 
-      const farmData: `0x${string}`[] = [];
+      // Build batch listing params array
+      const batchListingArgs = listingData.map((data) => ({
+        lister: account,
+        fieldId: 0n,
+        index: data.index.toBigInt(),
+        start: data.start.toBigInt(),
+        podAmount: data.amount.toBigInt(),
+        pricePerPod: encodedPricePerPod,
+        maxHarvestableIndex: maxHarvestableIndex.toBigInt(),
+        minFillAmount: minFill.toBigInt(),
+        mode: Number(balanceTo),
+      }));
 
-      // Create a listing call for each plot
-      for (const data of listingData) {
-        const listingArgs = {
-          lister: account,
-          fieldId: 0n,
-          index: data.index.toBigInt(),
-          start: data.start.toBigInt(),
-          podAmount: data.amount.toBigInt(),
-          pricePerPod: encodedPricePerPod,
-          maxHarvestableIndex: maxHarvestableIndex.toBigInt(),
-          minFillAmount: minFill.toBigInt(),
-          mode: Number(balanceTo),
-        };
-
-        const listingCall = encodeFunctionData({
-          abi: beanstalkAbi,
-          functionName: "createPodListing",
-          args: [listingArgs],
-        });
-        farmData.push(listingCall);
-      }
-
-      // Use farm to batch all listings in one transaction
+      // Use native batchCreatePodListing for gas-efficient batch creation
       writeWithEstimateGas({
         address: diamondAddress,
         abi: beanstalkAbi,
-        functionName: "farm",
-        args: [farmData],
+        functionName: "batchCreatePodListing",
+        args: [batchListingArgs],
       });
     } catch (e: unknown) {
       console.error(e);

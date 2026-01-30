@@ -22,9 +22,12 @@ import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js"
 import { Chart } from "chart.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAccount } from "wagmi";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
 import MarketModeSelect from "./market/MarketModeSelect";
+import { MyListingsTable } from "./market/MyListingsTable";
+import { MyOrdersTable } from "./market/MyOrdersTable";
 import { PodListingsTable } from "./market/PodListingsTable";
 import { PodOrdersTable } from "./market/PodOrdersTable";
 import CreateListing, { PodListingData } from "./market/actions/CreateListing";
@@ -33,8 +36,8 @@ import FillListing from "./market/actions/FillListing";
 import FillOrder from "./market/actions/FillOrder";
 
 // Constants
-const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
-const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
+const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity", "my-listings", "my-orders"];
+const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity", "My Listings", "My Orders"];
 
 const SELECTED_PLOT_PURPLE_COLOR = "#8B5CF6";
 const SELECTED_PLOT_BORDER_WIDTH = 1.75;
@@ -220,6 +223,9 @@ export function Market() {
   const chartXMax = Math.round((podLineAsNumber / 10) * 10);
   const harvestableIndex = useHarvestableIndex();
   const navHeight = useNavHeight();
+  const account = useAccount();
+  const [selectedListingIds, setSelectedListingIds] = useState<string[]>([]);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
 
   const [mounted, setMounted] = useState(false);
   const [selectedPlotData, setSelectedPlotData] = useState<{
@@ -1040,7 +1046,7 @@ export function Market() {
                 {TABLE_SLUGS.map((s, idx) => (
                   <p
                     key={s}
-                    className={`pinto-h4 cursor-pointer ${s === tab ? "text-pinto-primary" : "text-pinto-light hover:text-pinto-green-3"}`}
+                    className={`pinto-h4 cursor-pointer ${idx === 3 ? "ml-8" : ""} ${s === tab ? "text-pinto-primary" : "text-pinto-light hover:text-pinto-green-3"}`}
                     onClick={handleChangeTabFactory(s)}
                   >
                     {TABLE_LABELS[idx]}
@@ -1053,6 +1059,20 @@ export function Market() {
                 {tab === TABLE_SLUGS[1] && <PodListingsTable />}
                 {tab === TABLE_SLUGS[2] && <PodOrdersTable />}
                 {tab === TABLE_SLUGS[3] && <FarmerActivityTable />}
+                {tab === TABLE_SLUGS[4] && (
+                  <MyListingsTable
+                    address={account.address}
+                    selectedIds={selectedListingIds}
+                    onSelectionChange={setSelectedListingIds}
+                  />
+                )}
+                {tab === TABLE_SLUGS[5] && (
+                  <MyOrdersTable
+                    address={account.address}
+                    selectedIds={selectedOrderIds}
+                    onSelectionChange={setSelectedOrderIds}
+                  />
+                )}
               </div>
             </div>
             <div
