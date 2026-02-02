@@ -1,5 +1,6 @@
 import { beanstalkAddress } from "@/generated/contractHooks";
 import { BeanstalkSeasonalFieldDocument, BeanstalkSeasonalFieldQuery } from "@/generated/gql/pintostalk-cache/graphql";
+import { parseSGResultTimestamp } from "@/utils/time";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";
 import { ConvertEntryFn, buildSeasonRangeWhere, useCacheQuery } from "./useCacheQuery";
@@ -20,7 +21,7 @@ export default function useSeasonalBeanstalkFieldCache(
     document: BeanstalkSeasonalFieldDocument,
     buildWhere: (from, to) => buildSeasonRangeWhere(from, to, { field }),
     resultKey: "fieldHourlySnapshots",
-    resultTimestamp: (entry) => new Date(Number(entry.createdAt) * 1000),
+    resultTimestamp: parseSGResultTimestamp,
     convertResult,
     orderBy: "season",
     orderDirection: "asc",

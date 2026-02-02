@@ -5,6 +5,7 @@ import {
   BeanstalkSeasonalSiloDocument,
   BeanstalkSeasonalSiloQuery,
 } from "@/generated/gql/pintostalk-cache/graphql";
+import { parseSGResultTimestamp } from "@/utils/time";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";
 import { ConvertEntryFn, buildSeasonRangeWhere, useCacheQuery } from "./useCacheQuery";
@@ -26,7 +27,7 @@ export default function useSeasonalBeanstalkSiloCache(
     document: BeanstalkSeasonalSiloDocument,
     buildWhere: (from, to) => buildSeasonRangeWhere(from, to, { silo }),
     resultKey: "siloHourlySnapshots",
-    resultTimestamp: (entry) => new Date(Number(entry.createdAt) * 1000),
+    resultTimestamp: parseSGResultTimestamp,
     convertResult,
     orderBy: "season",
     orderDirection: "asc",

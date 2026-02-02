@@ -3,6 +3,7 @@ import {
   FarmerSeasonalSiloAssetTokenQuery,
 } from "@/generated/gql/pintostalk-cache/graphql";
 import { isValidAddress } from "@/utils/string";
+import { parseSGResultTimestamp } from "@/utils/time";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";
 import { ConvertEntryFn, buildSeasonRangeWhere, useCacheQuery } from "./useCacheQuery";
@@ -29,7 +30,7 @@ export default function useSeasonalFarmerSiloAssetTokenCache(
       document: FarmerSeasonalSiloAssetTokenDocument,
       buildWhere: (from, to) => buildSeasonRangeWhere(from, to, { siloAsset }),
       resultKey: "siloAssetHourlySnapshots",
-      resultTimestamp: (entry) => new Date(Number(entry.createdAt) * 1000),
+      resultTimestamp: parseSGResultTimestamp,
       convertResult,
       orderBy: "season",
       orderDirection: "asc",

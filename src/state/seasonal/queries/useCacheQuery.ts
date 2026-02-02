@@ -5,6 +5,7 @@ import { UseSeasonalResult } from "@/utils/types";
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import request from "graphql-request";
+import { useCallback, useMemo } from "react";
 import { useChainId } from "wagmi";
 
 export type CacheQueryVars = {
@@ -64,50 +65,58 @@ export function useCacheQuery<T, R>(
   const sparseData = config.sparseData ?? false;
 
   const historicalWhere = config.buildWhere(config.fromSeason, config.toSeason, config.extraVars);
-  const historicalVars: CacheQueryVars = {
-    where: historicalWhere,
-    orderBy,
-    orderDirection,
-  };
+  const historicalVars: CacheQueryVars = useMemo(
+    () => ({
+      where: historicalWhere,
+      orderBy,
+      orderDirection,
+    }),
+    [historicalWhere, orderBy, orderDirection],
+  );
 
   const currentWhere =
     orderDirection === "asc"
       ? config.buildWhere(config.toSeason, config.toSeason, config.extraVars)
       : config.buildWhere(config.fromSeason, config.fromSeason, config.extraVars);
-  const currentVars: CacheQueryVars = {
-    where: currentWhere,
-    orderBy,
-    orderDirection,
-  };
+  const currentVars: CacheQueryVars = useMemo(
+    () => ({
+      where: currentWhere,
+      orderBy,
+      orderDirection,
+    }),
+    [currentWhere, orderBy, orderDirection],
+  );
 
-  const historicalQueryKey = [
-    `cache_historical_${keyName}`,
-    { chainId, season: currentSeason, variables: historicalVars },
-  ];
+  const historicalQueryKey = useMemo(
+    () => [`cache_historical_${keyName}`, { chainId, season: currentSeason, variables: historicalVars }],
+    [keyName, chainId, currentSeason, historicalVars],
+  );
+
+  const selectHistorical = useCallback(
+    (data: R[]) => {
+      return data
+        .map((v, idx) => {
+          if (idx < data.length - 1 || (sparseData && idx === data.length - 1)) {
+            const seasonEnd = new Date(config.resultTimestamp(data[idx]));
+            seasonEnd.setHours(seasonEnd.getHours() + 1);
+            return config.convertResult(v, seasonEnd);
+          }
+          return undefined;
+        })
+        .filter((v): v is SeasonalChartData => v !== undefined);
+    },
+    [config.resultTimestamp, config.convertResult, sparseData],
+  );
+
+  const historicalQueryFn = useCallback(async () => {
+    const result = await request<T>(subgraphs[chainId].cache, config.document, historicalVars as any);
+    return (result[config.resultKey] as R[]) || [];
+  }, [chainId, config.document, config.resultKey, historicalVars]);
 
   const historical = useQuery({
     queryKey: historicalQueryKey,
-    queryFn: async () => {
-      const result = await request<T>(subgraphs[chainId].cache, config.document, historicalVars as any);
-      return (result[config.resultKey] as R[]) || [];
-    },
-    select: (data: R[]) => {
-      return data
-        .map((v, idx) => {
-          let seasonEnd: Date;
-          if (idx < data.length - 1) {
-            seasonEnd = config.resultTimestamp(data[idx]);
-            seasonEnd.setHours(seasonEnd.getHours() + 1);
-            return config.convertResult(v, seasonEnd);
-          }
-          if (sparseData && idx === data.length - 1) {
-            seasonEnd = config.resultTimestamp(data[idx]);
-            seasonEnd.setHours(seasonEnd.getHours() + 1);
-            return config.convertResult(v, seasonEnd);
-          }
-        })
-        .filter((v) => v !== undefined);
-    },
+    queryFn: historicalQueryFn,
+    select: selectHistorical,
     enabled: enabled && !!config.toSeason && !disabled && !SG_FETCH_DISABLED,
     staleTime: Infinity,
     gcTime: 24 * 24 * 60 * 60 * 1000,
@@ -115,59 +124,81 @@ export function useCacheQuery<T, R>(
     retryDelay: 2000,
   });
 
-  let historicalData: SeasonalChartData[] | undefined = historical.data;
-
   // Fill sparse data gaps
-  if (sparseData && historical.data) {
-    let lastValue: SeasonalChartData;
-    historicalData = historical.data.flatMap((v, i) => {
-      let returnData: SeasonalChartData[] = [];
+  const historicalData = useMemo(() => {
+    if (!sparseData || !historical.data) {
+      return historical.data;
+    }
+
+    return historical.data.reduce<SeasonalChartData[]>((acc, v, i, arr) => {
+      const lastValue = acc[acc.length - 1];
       const gapSize = i === 0 ? 0 : v.season - lastValue.season;
+
+      // Fill gaps between entries
       if (gapSize > 1) {
-        returnData = Array.from({ length: gapSize - 1 }, (_, i) => ({
+        const gapFill = Array.from({ length: gapSize - 1 }, (_, idx) => ({
           ...lastValue,
-          season: lastValue.season + i + 1,
-          timestamp: new Date(lastValue.timestamp.getTime() + 3600 * 1000 * (i + 1)),
+          season: lastValue.season + idx + 1,
+          timestamp: new Date(lastValue.timestamp.getTime() + 3600 * 1000 * (idx + 1)),
         }));
+        acc.push(...gapFill);
       }
-      returnData = [...returnData, v];
-      if (i === historical.data?.length - 1 && v.season < config.toSeason) {
+
+      acc.push(v);
+
+      // Fill missing entries at the end
+      if (i === arr.length - 1 && v.season < config.toSeason) {
         const missingSize = config.toSeason - v.season;
-        const missingData: SeasonalChartData[] = Array.from({ length: missingSize }, (_, i) => ({
+        const missingData = Array.from({ length: missingSize }, (_, idx) => ({
           ...v,
-          season: v.season + i + 1,
-          timestamp: new Date(v.timestamp.getTime() + 3600 * 1000 * (i + 1)),
+          season: v.season + idx + 1,
+          timestamp: new Date(v.timestamp.getTime() + 3600 * 1000 * (idx + 1)),
         }));
-        returnData = [...returnData, ...missingData];
+        acc.push(...missingData);
       }
-      lastValue = v;
-      return returnData;
-    });
-  }
 
-  const currentQueryKey = [`cache_current_${keyName}`, { chainId, season: currentSeason, variables: currentVars }];
+      return acc;
+    }, []);
+  }, [sparseData, historical.data, config.toSeason]);
 
-  const current = useQuery({
-    queryKey: currentQueryKey,
-    queryFn: async () => {
-      const result = await request<T>(subgraphs[chainId].cache, config.document, currentVars as any);
-      return (result[config.resultKey] as R[]) || [];
-    },
-    select: (data: R[]) => {
+  const currentQueryKey = useMemo(
+    () => [`cache_current_${keyName}`, { chainId, season: currentSeason, variables: currentVars }],
+    [keyName, chainId, currentSeason, currentVars],
+  );
+
+  const selectCurrent = useCallback(
+    (data: R[]) => {
       return data.map((v) => {
         const queryInfo = queryClient.getQueryCache().find({ queryKey: currentQueryKey });
         const lastFetchedTimestamp = queryInfo?.state?.dataUpdatedAt;
         return config.convertResult(v, lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date());
       });
     },
+    [queryClient, currentQueryKey, config.convertResult],
+  );
+
+  const currentQueryFn = useCallback(async () => {
+    const result = await request<T>(subgraphs[chainId].cache, config.document, currentVars as any);
+    return (result[config.resultKey] as R[]) || [];
+  }, [chainId, config.document, config.resultKey, currentVars]);
+
+  const current = useQuery({
+    queryKey: currentQueryKey,
+    queryFn: currentQueryFn,
+    select: selectCurrent,
     enabled: enabled && !!config.toSeason && !disabled && !SG_FETCH_DISABLED,
     gcTime: 60 * 1000,
     retry: 1,
     retryDelay: 2000,
   });
 
+  const combinedData = useMemo(() => {
+    if (!historicalData || !current.data) return undefined;
+    return [...historicalData, ...current.data];
+  }, [historicalData, current.data]);
+
   return {
-    data: historicalData && current.data ? [...historicalData, ...current.data] : undefined,
+    data: combinedData,
     isLoading: historical.isLoading || current.isLoading,
     isError: historical.isError || current.isError,
   };
