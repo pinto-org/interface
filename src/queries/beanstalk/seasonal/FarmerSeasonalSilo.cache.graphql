@@ -1,0 +1,14 @@
+query FarmerSeasonalSilo($where: String, $orderBy: String, $orderDirection: String) {
+  siloHourlySnapshots: cache_siloHourlySnapshots(
+    where: $where
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    id
+    season
+    createdAt
+    stalk
+    germinatingStalk
+    depositedBDV
+  }
+}

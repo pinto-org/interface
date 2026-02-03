@@ -32,6 +32,7 @@ export default function useSeasonalBeanstalkFieldSG(
   fromSeason: number,
   toSeason: number,
   convertResult: ConvertEntryFn<FieldHourlySnapshot>,
+  enabled: boolean = true,
 ): UseSeasonalResult {
   const chainId = useChainId();
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
@@ -48,5 +49,6 @@ export default function useSeasonalBeanstalkFieldSG(
       return new Date(Number(entry.createdAt) * 1000);
     },
     convertResult,
+    enabled,
   });
 }

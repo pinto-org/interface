@@ -2,9 +2,9 @@ import SeasonalChart, { tabToSeasonalLookback } from "@/components/charts/Season
 import { TimeTab } from "@/components/charts/TimeTabs";
 import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
 import {
-  useFarmerSeasonalClaimedGrownStalkBalance,
+  useFarmerSeasonalClaimedGrownStalkBalanceCache,
   useFarmerSeasonalPlantedPinto,
-  useFarmerSeasonalStalkOwnership,
+  useFarmerSeasonalStalkOwnershipCache,
 } from "@/state/seasonal/seasonalDataHooks";
 import { useSunData } from "@/state/useSunData";
 import { chartFormatters as f } from "@/utils/format";
@@ -22,11 +22,11 @@ const FarmerExplorer = () => {
   const { address, isConnecting } = useAccount();
 
   const plantedData = useFarmerSeasonalPlantedPinto(Math.max(0, season - tabToSeasonalLookback(plantedTab)), season);
-  const grownStalkData = useFarmerSeasonalClaimedGrownStalkBalance(
+  const grownStalkData = useFarmerSeasonalClaimedGrownStalkBalanceCache(
     Math.max(0, season - tabToSeasonalLookback(grownStalkTab)),
     season,
   );
-  const stalkOwnershipData = useFarmerSeasonalStalkOwnership(
+  const stalkOwnershipData = useFarmerSeasonalStalkOwnershipCache(
     Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)),
     season,
   );

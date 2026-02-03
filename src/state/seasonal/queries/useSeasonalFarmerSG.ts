@@ -39,6 +39,7 @@ export default function useSeasonalFarmerSG(
   toSeason: number,
   convertResult: ConvertEntryFn<SiloHourlySnapshot>,
   siloAccount?: string,
+  enabled: boolean = true,
 ): UseSeasonalResult {
   const chainId = useChainId();
   const { address } = useAccount();
@@ -52,7 +53,7 @@ export default function useSeasonalFarmerSG(
 
   const account = (siloAccount || address)?.toLowerCase();
 
-  const queryDisabled = !isValidAddress(account);
+  const queryDisabled = !isValidAddress(account) || !enabled;
 
   return useSeasonalQueries(
     "FarmerSeasonalSiloQuery",
