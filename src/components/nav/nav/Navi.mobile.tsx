@@ -175,6 +175,9 @@ function MobileNavContent({ learnOpen, setLearnOpen, unmount, close }: IMobileNa
           >
             Referral
           </MobileNavLink>
+          <MobileNavLink href={navLinks.beanstalk} onClick={unmountAndClose}>
+            Beanstalk
+          </MobileNavLink>
           <MobileNavLink
             href={navLinks.explorer}
             onClick={unmountAndClose}

@@ -111,6 +111,9 @@ const AppNavi = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
+            <Link href={navLinks.beanstalk}>Beanstalk</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
             <Link href={navLinks.sPinto} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_SPINTO_CLICK)}>
               sPinto
             </Link>
