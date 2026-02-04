@@ -11,82 +11,79 @@ import { useAccount, useReadContracts } from "wagmi";
 
 /**
  * ABI snippets for Silo Payback contract functions
- * These are the functions needed to fetch urBDV token data for legacy Beanstalk holders
+ * NOTE: These functions don't exist in the protocol yet - will be indexed from subgraph later
  */
-const siloPaybackAbi = [
-  {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "balanceOfUrBdv",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "earnedUrBdv",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "totalDistributedToAccount",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "totalReceivedByAccount",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+// const siloPaybackAbi = [
+//   {
+//     inputs: [{ internalType: "address", name: "account", type: "address" }],
+//     name: "balanceOfUrBdv",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [{ internalType: "address", name: "account", type: "address" }],
+//     name: "earnedUrBdv",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [{ internalType: "address", name: "account", type: "address" }],
+//     name: "totalDistributedToAccount",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [{ internalType: "address", name: "account", type: "address" }],
+//     name: "totalReceivedByAccount",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+// ] as const;
 
 /**
  * ABI snippets for Barn Payback contract functions
- * These are the functions needed to fetch fertilizer and sprouts data
+ * NOTE: These functions don't exist in the protocol yet - will be indexed from subgraph later
  */
-const barnPaybackAbi = [
-  {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "balanceOfFertilizer",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "balanceOfSprouts",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "balanceOfFertilized",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "humidity",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+// const barnPaybackAbi = [
+//   {
+//     inputs: [{ internalType: "address", name: "account", type: "address" }],
+//     name: "balanceOfFertilizer",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [{ internalType: "address", name: "account", type: "address" }],
+//     name: "balanceOfSprouts",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [{ internalType: "address", name: "account", type: "address" }],
+//     name: "balanceOfFertilized",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [],
+//     name: "humidity",
+//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+// ] as const;
 
 /**
  * Interface for silo payback data
  */
 interface SiloPaybackData {
   balance: TokenValue;
-  earned: TokenValue;
-  totalDistributed: TokenValue;
-  totalReceived: TokenValue;
 }
 
 /**
@@ -102,9 +99,6 @@ interface PodsData {
  */
 interface FertilizerData {
   balance: TokenValue;
-  sprouts: TokenValue;
-  fertilized: TokenValue;
-  humidity: TokenValue;
 }
 
 /**
@@ -123,16 +117,14 @@ export interface FarmerBeanstalkRepaymentData {
 const URBDV_DECIMALS = 6;
 // Token decimals for fertilizer amounts
 const FERTILIZER_DECIMALS = 6;
-// Humidity is typically represented as a percentage with 2 decimal places
-const HUMIDITY_DECIMALS = 2;
 
 /**
  * Hook for fetching farmer-specific Beanstalk repayment data
  *
  * This hook fetches:
- * - Silo payback data (urBDV balance, earned, distributed, received)
- * - Pods data from repayment field (fieldId=1)
- * - Fertilizer data (balance, sprouts, fertilized, humidity)
+ * - Silo payback data (TODO: from subgraph - urBDV balance)
+ * - Pods data from repayment field (fieldId=1) - from on-chain
+ * - Fertilizer data (TODO: from subgraph)
  *
  * @returns FarmerBeanstalkRepaymentData with all farmer obligations data
  */
@@ -141,42 +133,8 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
   const protocolAddress = useProtocolAddress();
   const farmerAddress = account.address ?? ZERO_ADDRESS;
 
-  // Query for silo payback data
-  const siloQuery = useReadContracts({
-    contracts: [
-      {
-        address: protocolAddress,
-        abi: siloPaybackAbi,
-        functionName: "balanceOfUrBdv",
-        args: [farmerAddress],
-      },
-      {
-        address: protocolAddress,
-        abi: siloPaybackAbi,
-        functionName: "earnedUrBdv",
-        args: [farmerAddress],
-      },
-      {
-        address: protocolAddress,
-        abi: siloPaybackAbi,
-        functionName: "totalDistributedToAccount",
-        args: [farmerAddress],
-      },
-      {
-        address: protocolAddress,
-        abi: siloPaybackAbi,
-        functionName: "totalReceivedByAccount",
-        args: [farmerAddress],
-      },
-    ],
-    allowFailure: true,
-    query: {
-      enabled: !!account.address,
-      ...defaultQuerySettings, // 20 minutes staleTime
-    },
-  });
-
   // Query for pods data from repayment field (fieldId=1)
+  // These are the only functions that exist in the protocol
   const podsQuery = useReadContracts({
     contracts: [
       {
@@ -194,62 +152,20 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
     ],
     allowFailure: true,
     query: {
-      enabled: !!account.address,
+      // Always fetch - will use ZERO_ADDRESS if wallet not connected
       ...defaultQuerySettings, // 20 minutes staleTime
     },
   });
 
-  // Query for fertilizer data
-  const fertilizerQuery = useReadContracts({
-    contracts: [
-      {
-        address: protocolAddress,
-        abi: barnPaybackAbi,
-        functionName: "balanceOfFertilizer",
-        args: [farmerAddress],
-      },
-      {
-        address: protocolAddress,
-        abi: barnPaybackAbi,
-        functionName: "balanceOfSprouts",
-        args: [farmerAddress],
-      },
-      {
-        address: protocolAddress,
-        abi: barnPaybackAbi,
-        functionName: "balanceOfFertilized",
-        args: [farmerAddress],
-      },
-      {
-        address: protocolAddress,
-        abi: barnPaybackAbi,
-        functionName: "humidity",
-        args: [],
-      },
-    ],
-    allowFailure: true,
-    query: {
-      enabled: !!account.address,
-      ...defaultQuerySettings, // 20 minutes staleTime
-    },
-  });
-
-  // Process silo data
+  // TODO: Silo payback data will come from subgraph
+  // Functions don't exist in protocol: balanceOfUrBdv, earnedUrBdv, totalDistributedToAccount, totalReceivedByAccount
   const siloData = useMemo((): SiloPaybackData => {
-    const balance = siloQuery.data?.[0]?.result;
-    const earned = siloQuery.data?.[1]?.result;
-    const totalDistributed = siloQuery.data?.[2]?.result;
-    const totalReceived = siloQuery.data?.[3]?.result;
-
     return {
-      balance: TokenValue.fromBlockchain(balance ?? 0n, URBDV_DECIMALS),
-      earned: TokenValue.fromBlockchain(earned ?? 0n, URBDV_DECIMALS),
-      totalDistributed: TokenValue.fromBlockchain(totalDistributed ?? 0n, URBDV_DECIMALS),
-      totalReceived: TokenValue.fromBlockchain(totalReceived ?? 0n, URBDV_DECIMALS),
+      balance: TokenValue.fromBlockchain(0n, URBDV_DECIMALS),
     };
-  }, [siloQuery.data]);
+  }, []);
 
-  // Process pods data
+  // Process pods data - these functions exist in protocol
   const podsData = useMemo((): PodsData => {
     const plotsResult = podsQuery.data?.[0]?.result as readonly { index: bigint; pods: bigint }[] | undefined;
     const totalPodsResult = podsQuery.data?.[1]?.result;
@@ -275,29 +191,23 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
     };
   }, [podsQuery.data]);
 
-  // Process fertilizer data
+  // TODO: Fertilizer data will come from subgraph
+  // Functions don't exist in protocol: balanceOfFertilizer, balanceOfSprouts, balanceOfFertilized
+  // humidity() exists as getCurrentHumidity() but not needed for now
   const fertilizerData = useMemo((): FertilizerData => {
-    const balance = fertilizerQuery.data?.[0]?.result;
-    const sprouts = fertilizerQuery.data?.[1]?.result;
-    const fertilized = fertilizerQuery.data?.[2]?.result;
-    const humidity = fertilizerQuery.data?.[3]?.result;
-
     return {
-      balance: TokenValue.fromBlockchain(balance ?? 0n, FERTILIZER_DECIMALS),
-      sprouts: TokenValue.fromBlockchain(sprouts ?? 0n, FERTILIZER_DECIMALS),
-      fertilized: TokenValue.fromBlockchain(fertilized ?? 0n, FERTILIZER_DECIMALS),
-      humidity: TokenValue.fromBlockchain(humidity ?? 0n, HUMIDITY_DECIMALS),
+      balance: TokenValue.fromBlockchain(0n, FERTILIZER_DECIMALS),
     };
-  }, [fertilizerQuery.data]);
+  }, []);
 
-  // Refetch all queries
+  // Refetch pods query (only one that works)
   const refetch = useCallback(async () => {
-    await Promise.all([siloQuery.refetch(), podsQuery.refetch(), fertilizerQuery.refetch()]);
-  }, [siloQuery.refetch, podsQuery.refetch, fertilizerQuery.refetch]);
+    await podsQuery.refetch();
+  }, [podsQuery.refetch]);
 
-  // Combined loading and error states
-  const isLoading = siloQuery.isLoading || podsQuery.isLoading || fertilizerQuery.isLoading;
-  const isError = siloQuery.isError || podsQuery.isError || fertilizerQuery.isError;
+  // Loading and error states only from pods query
+  const isLoading = podsQuery.isLoading;
+  const isError = podsQuery.isError;
 
   return useMemo(
     () => ({
