@@ -2,6 +2,7 @@ import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import { Card } from "@/components/ui/Card";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
+import { Link } from "react-router-dom";
 import BeanstalkGlobalCard from "./beanstalk/components/BeanstalkGlobalCard";
 import BeanstalkObligationsCard from "./beanstalk/components/BeanstalkObligationsCard";
 
@@ -19,14 +20,14 @@ const Beanstalk = () => {
                 Beanstalk participants at the time of Pinto launch were issued assets based on their holdings. When
                 Pinto exceeds 1 Billion in supply, 3% of mints go towards these between Beanstalk Silo Tokens, Pods, and
                 Fertilizer.{" "}
-                <a
-                  href="https://docs.pinto.money/appendix/old-beanstalk-holders"
+                <Link
+                  to="https://docs.pinto.money/appendix/old-beanstalk-holders"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-pinto-green-4 hover:underline"
                 >
                   Learn more
-                </a>
+                </Link>
               </ReadMoreAccordion>
             </div>
           </div>
