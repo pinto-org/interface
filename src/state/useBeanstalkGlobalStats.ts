@@ -72,6 +72,8 @@ const URBDV_DECIMALS = 6;
 // const PINTO_DECIMALS = 6;
 // Token decimals for sprouts
 const SPROUTS_DECIMALS = 6;
+// Field ID for the Beanstalk repayment field
+const BEANSTALK_REPAYMENT_FIELD_ID = 1n;
 
 /**
  * Hook for fetching global Beanstalk repayment statistics
@@ -96,7 +98,7 @@ export function useBeanstalkGlobalStats(): BeanstalkGlobalStatsData {
         address: protocolAddress,
         abi: fieldGlobalAbi,
         functionName: "totalPods",
-        args: [1n], // fieldId=1 for repayment field
+        args: [BEANSTALK_REPAYMENT_FIELD_ID],
       },
       // TODO: These functions don't exist in the protocol yet
       // Will be indexed from subgraph later:
