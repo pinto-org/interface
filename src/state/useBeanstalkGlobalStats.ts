@@ -1,5 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { PODS } from "@/constants/internalTokens";
+import { PODS, SPROUTS, URBDV } from "@/constants/internalTokens";
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useCallback, useMemo } from "react";
@@ -66,12 +66,6 @@ export interface BeanstalkGlobalStatsData {
   refetch: () => Promise<void>;
 }
 
-// Token decimals for urBDV (same as BEAN - 6 decimals)
-const URBDV_DECIMALS = 6;
-// Token decimals for Pinto (6 decimals)
-// const PINTO_DECIMALS = 6;
-// Token decimals for sprouts
-const SPROUTS_DECIMALS = 6;
 // Field ID for the Beanstalk repayment field
 const BEANSTALK_REPAYMENT_FIELD_ID = 1n;
 
@@ -118,10 +112,10 @@ export function useBeanstalkGlobalStats(): BeanstalkGlobalStatsData {
 
     return {
       // TODO: These will come from subgraph later
-      totalUrBdvDistributed: TokenValue.fromBlockchain(0n, URBDV_DECIMALS),
+      totalUrBdvDistributed: TokenValue.fromBlockchain(0n, URBDV.decimals),
       totalPodsInRepaymentField: TokenValue.fromBlockchain(totalPodsInRepaymentField ?? 0n, PODS.decimals),
-      totalUnfertilizedSprouts: TokenValue.fromBlockchain(0n, SPROUTS_DECIMALS),
-      totalPintoPaidOut: TokenValue.fromBlockchain(0n, URBDV_DECIMALS),
+      totalUnfertilizedSprouts: TokenValue.fromBlockchain(0n, SPROUTS.decimals),
+      totalPintoPaidOut: TokenValue.fromBlockchain(0n, URBDV.decimals),
     };
   }, [globalQuery.data]);
 

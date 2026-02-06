@@ -27,3 +27,19 @@ export const PODS: InternalToken = {
   displayDecimals: 2,
   logoURI: podLogo,
 };
+
+export const URBDV: InternalToken = {
+  name: "Unripe BDV",
+  symbol: "urBDV",
+  decimals: 6,
+  displayDecimals: 2,
+  logoURI: "", // TODO: Add logo if needed
+};
+
+export const SPROUTS: InternalToken = {
+  name: "Sprouts",
+  symbol: "SPROUTS",
+  decimals: 6,
+  displayDecimals: 2,
+  logoURI: "", // TODO: Add logo if needed
+};
