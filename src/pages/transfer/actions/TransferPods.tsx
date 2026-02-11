@@ -39,7 +39,7 @@ export default function TransferPods() {
       case 1:
         return "Select Plots";
       case 2:
-        return "Specify amount and address";
+        return "Enter address";
       default:
         return "Confirm send";
     }
@@ -50,13 +50,7 @@ export default function TransferPods() {
       case 1:
         return transferData.length > 0;
       case 2:
-        if (!!destination && transferNotice) {
-          if (transferData.length === 1) {
-            return transferData[0].end.gt(transferData[0].start);
-          }
-          return true;
-        }
-        return false;
+        return !!destination && transferNotice;
       default:
         return true;
     }
@@ -131,8 +125,6 @@ export default function TransferPods() {
         <StepOne transferData={transferData} setTransferData={setTransferData} />
       ) : step === 2 ? (
         <StepTwo
-          transferData={transferData}
-          setTransferData={setTransferData}
           destination={destination}
           setDestination={setDestination}
           transferNotice={transferNotice}
