@@ -29,44 +29,6 @@ export type Scalars = {
   Timestamp: { input: any; output: any; }
 };
 
-export type Account = {
-  __typename?: 'Account';
-  id: Scalars['Bytes']['output'];
-  trades: Array<Trade>;
-};
-
-
-export type AccountTradesArgs = {
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<TradeOrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  where?: InputMaybe<TradeFilter>;
-};
-
-export type AccountFilter = {
-  /** Filter for the block changed event. */
-  _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<AccountFilter>>>;
-  id?: InputMaybe<Scalars['Bytes']['input']>;
-  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  id_not?: InputMaybe<Scalars['Bytes']['input']>;
-  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  or?: InputMaybe<Array<InputMaybe<AccountFilter>>>;
-  trades_?: InputMaybe<TradeFilter>;
-};
-
-export enum AccountOrderBy {
-  id = 'id',
-  trades = 'trades'
-}
-
 export enum AggregationInterval {
   day = 'day',
   hour = 'hour'
@@ -1284,6 +1246,7 @@ export type ConvertCandidateFilter = {
 
 export enum ConvertCandidateOrderBy {
   addLiquidityTrade = 'addLiquidityTrade',
+  addLiquidityTrade__account = 'addLiquidityTrade__account',
   addLiquidityTrade__blockNumber = 'addLiquidityTrade__blockNumber',
   addLiquidityTrade__hash = 'addLiquidityTrade__hash',
   addLiquidityTrade__id = 'addLiquidityTrade__id',
@@ -1298,6 +1261,7 @@ export enum ConvertCandidateOrderBy {
   addLiquidityTrade__transferVolumeUSD = 'addLiquidityTrade__transferVolumeUSD',
   id = 'id',
   removeLiquidityTrade = 'removeLiquidityTrade',
+  removeLiquidityTrade__account = 'removeLiquidityTrade__account',
   removeLiquidityTrade__blockNumber = 'removeLiquidityTrade__blockNumber',
   removeLiquidityTrade__hash = 'removeLiquidityTrade__hash',
   removeLiquidityTrade__id = 'removeLiquidityTrade__id',
@@ -1402,8 +1366,6 @@ export type Query = {
   __typename?: 'Query';
   /** Access to subgraph metadata */
   _meta?: Maybe<Meta>;
-  account?: Maybe<Account>;
-  accounts: Array<Account>;
   aquifer?: Maybe<Aquifer>;
   aquifers: Array<Aquifer>;
   beanstalk?: Maybe<Beanstalk>;
@@ -1441,24 +1403,6 @@ export type Query = {
 
 export type QueryMetaArgs = {
   block?: InputMaybe<BlockHeight>;
-};
-
-
-export type QueryAccountArgs = {
-  block?: InputMaybe<BlockHeight>;
-  id: Scalars['ID']['input'];
-  subgraphError?: SubgraphErrorPolicy;
-};
-
-
-export type QueryAccountsArgs = {
-  block?: InputMaybe<BlockHeight>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<AccountOrderBy>;
-  orderDirection?: InputMaybe<OrderDirection>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-  subgraphError?: SubgraphErrorPolicy;
-  where?: InputMaybe<AccountFilter>;
 };
 
 
@@ -1953,7 +1897,7 @@ export enum TokenOrderBy {
 export type Trade = {
   __typename?: 'Trade';
   /** Account that sent this transaction */
-  account: Account;
+  account: Scalars['Bytes']['output'];
   /** Well.reserves after this event */
   afterReserves: Array<Scalars['BigInt']['output']>;
   /** Well.tokenRates before this event */
@@ -2015,27 +1959,16 @@ export enum TradeType {
 export type TradeFilter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  account?: InputMaybe<Scalars['String']['input']>;
-  account_?: InputMaybe<AccountFilter>;
-  account_contains?: InputMaybe<Scalars['String']['input']>;
-  account_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_gt?: InputMaybe<Scalars['String']['input']>;
-  account_gte?: InputMaybe<Scalars['String']['input']>;
-  account_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_lt?: InputMaybe<Scalars['String']['input']>;
-  account_lte?: InputMaybe<Scalars['String']['input']>;
-  account_not?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  account?: InputMaybe<Scalars['Bytes']['input']>;
+  account_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   afterReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   afterReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   afterReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
@@ -2255,7 +2188,6 @@ export type TradeFilter = {
 
 export enum TradeOrderBy {
   account = 'account',
-  account__id = 'account__id',
   afterReserves = 'afterReserves',
   afterTokenRates = 'afterTokenRates',
   beforeReserves = 'beforeReserves',

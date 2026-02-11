@@ -10,6 +10,7 @@ import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import ScatterChart, { PointClickPayload, PointHoverPayload, ScatterChartRef } from "@/components/charts/ScatterChart";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
+import { Switch } from "@/components/ui/Switch";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import useNavHeight from "@/hooks/display/useNavHeight";
 import { useAllMarket } from "@/state/market/useAllMarket";
@@ -213,7 +214,9 @@ export function Market() {
   const hoverInfoRef = useRef<HTMLDivElement>(null);
   const lastPositionSideRef = useRef<{ isRight: boolean; isAbove: boolean } | null>(null);
   const navigate = useNavigate();
-  const { data, isLoaded } = useAllMarket();
+  const [isBeanstalkMarketplace, setIsBeanstalkMarketplace] = useState(false);
+  const podMarketplaceId = isBeanstalkMarketplace ? "1" : undefined;
+  const { data, isLoaded } = useAllMarket(podMarketplaceId);
   const podLine = usePodLine();
   const podLineAsNumber = podLine.toNumber() / MILLION;
   // Chart rounds X max to nearest 10 (not ceil), so we need to match that for validation
@@ -1009,7 +1012,11 @@ export function Market() {
           <Separator />
           <div className="flex flex-row mt-4 ">
             <div className="flex flex-col flex-grow ml-4 border-r border-pinto-gray-2 pr-4">
-              <div className="w-full h-[75vh] relative mt-4">
+              <div className="flex items-center justify-end gap-2 mt-4 mb-2 mr-4">
+                <span className="text-sm text-pinto-gray-5">Toggle Beanstalk Marketplace</span>
+                <Switch checked={isBeanstalkMarketplace} onCheckedChange={setIsBeanstalkMarketplace} />
+              </div>
+              <div className="w-full h-[75vh] relative">
                 {!isLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
                     <FrameAnimator className="-mt-5 -mb-12" size={80} />
