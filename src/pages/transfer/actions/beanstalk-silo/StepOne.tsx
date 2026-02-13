@@ -1,10 +1,8 @@
 import AddressInputField from "@/components/AddressInputField";
 import { ComboInputField } from "@/components/ComboInputField";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import PintoAssetTransferNotice from "@/components/PintoAssetTransferNotice";
 import { Label } from "@/components/ui/Label";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
-import { FarmToMode } from "@/utils/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dispatch, SetStateAction } from "react";
 
@@ -13,8 +11,6 @@ interface StepOneProps {
   setAmount: Dispatch<SetStateAction<string>>;
   destination: string | undefined;
   setDestination: Dispatch<SetStateAction<string | undefined>>;
-  balanceTo: FarmToMode | undefined;
-  setBalanceTo: Dispatch<SetStateAction<FarmToMode | undefined>>;
   transferNotice: boolean;
   setTransferNotice: Dispatch<SetStateAction<boolean>>;
 }
@@ -39,8 +35,6 @@ export default function StepOne({
   setAmount,
   destination,
   setDestination,
-  balanceTo,
-  setBalanceTo,
   transferNotice,
   setTransferNotice,
 }: StepOneProps) {
@@ -57,6 +51,8 @@ export default function StepOne({
           customMaxAmount={maxAmount}
           tokenNameOverride="urBDV"
           disableButton
+          showAdditionalInfo={false}
+          hideUsdValue
         />
       </motion.div>
 
@@ -74,16 +70,11 @@ export default function StepOne({
               <PintoAssetTransferNotice
                 transferNotice={transferNotice}
                 setTransferNotice={setTransferNotice}
-                variant={balanceTo === FarmToMode.EXTERNAL ? "walletBalance" : "farmBalance"}
+                variant="walletBalance"
               />
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
-
-      <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-col gap-4 items-start">
-        <Label>I want to send these tokens to the recipient's:</Label>
-        <DestinationBalanceSelect balanceTo={balanceTo} setBalanceTo={setBalanceTo} variant="transferFlow" />
       </motion.div>
     </motion.div>
   );

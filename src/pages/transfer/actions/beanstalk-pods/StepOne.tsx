@@ -1,7 +1,6 @@
 import PodLineGraph from "@/components/PodLineGraph";
 import { MultiSlider } from "@/components/ui/Slider";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
-import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { computeTransferData, offsetToAbsoluteIndex } from "@/utils/podTransferUtils";
 import { Plot } from "@/utils/types";
@@ -18,8 +17,8 @@ function sortPlotsByIndex(plots: Plot[]): Plot[] {
 }
 
 export default function StepOne({ transferData, setTransferData }: StepOneProps) {
-  const { plots } = useFarmerBeanstalkRepayment().pods;
-  const harvestableIndex = useHarvestableIndex();
+  const repaymentPods = useFarmerBeanstalkRepayment().pods;
+  const { plots, harvestableIndex, podIndex } = repaymentPods;
 
   const [selectedPlots, setSelectedPlots] = useState<Plot[]>([]);
   const [podRange, setPodRange] = useState<[number, number]>([0, 0]);
@@ -125,6 +124,9 @@ export default function StepOne({ transferData, setTransferData }: StepOneProps)
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3">
         <PodLineGraph
+          plots={plots}
+          customHarvestableIndex={harvestableIndex}
+          customPodIndex={podIndex}
           selectedPlotIndices={selectedPlotIndices}
           selectedPodRange={selectedPodRange}
           label="My Pods In Line"

@@ -1,14 +1,14 @@
 import podIcon from "@/assets/protocol/Pod.png";
-import seedsIcon from "@/assets/protocol/Seed.png";
-import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
+import { useMemo } from "react";
 import DepositsList from "../../DepositsList";
 import FarmBalancesList from "../../FarmBalancesList";
 
@@ -26,6 +26,7 @@ export default function FinalStep({ destination }: StepTwoProps) {
   const depositsToSend = [...farmerDeposits].map(([token, deposit]) => ({ token, deposit }));
 
   const harvestableIndex = useHarvestableIndex();
+  const repayment = useFarmerBeanstalkRepayment();
 
   const hasBalance = balancesToSend
     .reduce((total, balanceToSend) => total.add(balanceToSend.balance.internal), TokenValue.ZERO)
@@ -33,6 +34,17 @@ export default function FinalStep({ destination }: StepTwoProps) {
   const hasPlots = farmerField.plots.length > 0;
   const hasDeposits =
     depositsToSend.reduce((total, depositToSend) => total + depositToSend.deposit.deposits.length, 0) > 0;
+
+  const hasBeanstalkSilo = repayment.silo.balance.gt(0);
+  const hasBeanstalkPods = repayment.pods.plots.length > 0;
+  const totalBsFert = useMemo(() => {
+    let total = 0n;
+    for (const detail of repayment.fertilizer.perIdData.values()) {
+      total += detail.balance;
+    }
+    return total;
+  }, [repayment.fertilizer.perIdData]);
+  const hasBeanstalkFert = totalBsFert > 0n;
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,6 +81,32 @@ export default function FinalStep({ destination }: StepTwoProps) {
           <div>
             <Label className="font-[340] text-[1rem] sm:text-[1.25rem]">My Deposits:</Label>
             <DepositsList />
+          </div>
+        )}
+        {hasBeanstalkSilo && (
+          <div className="flex flex-col gap-2">
+            <Label className="font-[340] text-[1rem] sm:text-[1.25rem]">Beanstalk Repayment Silo:</Label>
+            <div className="pinto-h4 sm:pinto-h3 text-pinto-secondary sm:text-pinto-secondary place-self-end">
+              {formatter.twoDec(repayment.silo.balance)} urBDV
+            </div>
+          </div>
+        )}
+        {hasBeanstalkPods && (
+          <div className="flex flex-col gap-2">
+            <Label className="font-[340] text-[1rem] sm:text-[1.25rem]">Beanstalk Repayment Pods:</Label>
+            <div className="pinto-h4 sm:pinto-h3 text-pinto-secondary sm:text-pinto-secondary flex flex-row gap-1.5 items-center place-self-end">
+              <span>{formatter.twoDec(repayment.pods.totalPods)}</span>
+              <img src={podIcon} className="h-8 w-8" alt="Plot" />
+              <span>Pods</span>
+            </div>
+          </div>
+        )}
+        {hasBeanstalkFert && (
+          <div className="flex flex-col gap-2">
+            <Label className="font-[340] text-[1rem] sm:text-[1.25rem]">Beanstalk Repayment Fertilizer:</Label>
+            <div className="pinto-h4 sm:pinto-h3 text-pinto-secondary sm:text-pinto-secondary place-self-end">
+              {formatter.number(Number(totalBsFert))} bsFERT
+            </div>
           </div>
         )}
         <div>

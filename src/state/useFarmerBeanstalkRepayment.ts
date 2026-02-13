@@ -27,6 +27,17 @@ interface SiloPaybackData {
 interface PodsData {
   plots: Plot[];
   totalPods: TokenValue;
+  harvestableIndex: TokenValue;
+  podIndex: TokenValue;
+}
+
+/**
+ * Per-ID fertilizer detail
+ */
+export interface FertilizerIdDetail {
+  balance: bigint; // bsFERT balance for this ID
+  sprouts: bigint; // unfertilized beans remaining (amount * max(0, id - currentBpf))
+  humidity: number; // humidity percentage, e.g. 500 means 500%
 }
 
 /**
@@ -37,6 +48,7 @@ interface FertilizerData {
   fertilized: TokenValue; // balanceOfFertilized(account, ids)
   unfertilized: TokenValue; // balanceOfUnfertilized(account, ids)
   fertilizerIds: bigint[]; // Fertilizer IDs owned by the user
+  perIdData: Map<string, FertilizerIdDetail>; // Per-ID balance, sprouts, humidity
 }
 
 /**
@@ -105,6 +117,12 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
         functionName: "getHarvestableIndex",
         args: [1n], // fieldId=1 for repayment field
       },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: "podIndex",
+        args: [1n], // fieldId=1 for repayment field
+      },
     ],
     allowFailure: true,
     query: {
@@ -116,6 +134,7 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
   // --- Phase 1: Get all global fertilizer IDs from linked list ---
   const {
     fertilizerIds: allFertilizerIds,
+    fertData,
     isLoading: fertIdsLoading,
     isError: fertIdsError,
     refetch: refetchFertIds,
@@ -142,13 +161,20 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
     },
   });
 
-  // --- Phase 3: Filter IDs where balance > 0 ---
-  const userOwnedIds = useMemo(() => {
-    if (!balanceChecks.data) return [];
-    return allFertilizerIds.filter((_, i) => {
+  // --- Phase 3: Filter IDs where balance > 0 and build per-ID balance map ---
+  const { userOwnedIds, perIdBalances } = useMemo(() => {
+    if (!balanceChecks.data) return { userOwnedIds: [] as bigint[], perIdBalances: new Map<string, bigint>() };
+    const owned: bigint[] = [];
+    const balances = new Map<string, bigint>();
+    for (let i = 0; i < allFertilizerIds.length; i++) {
       const result = balanceChecks.data?.[i];
-      return result?.status === "success" && (result.result as bigint) > 0n;
-    });
+      if (result?.status === "success" && (result.result as bigint) > 0n) {
+        const id = allFertilizerIds[i];
+        owned.push(id);
+        balances.set(id.toString(), result.result as bigint);
+      }
+    }
+    return { userOwnedIds: owned, perIdBalances: balances };
   }, [balanceChecks.data, allFertilizerIds]);
 
   // --- Phase 4: balanceOfFertilized + balanceOfUnfertilized for userOwnedIds ---
@@ -237,14 +263,18 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
       return {
         plots: [],
         totalPods: TokenValue.ZERO,
+        harvestableIndex: TokenValue.ZERO,
+        podIndex: TokenValue.ZERO,
       };
     }
 
     const plotsResult = podsQuery.data?.[0]?.result as readonly { index: bigint; pods: bigint }[] | undefined;
     const totalPodsResult = podsQuery.data?.[1]?.result;
     const harvestableIndexResult = podsQuery.data?.[2]?.result as bigint | undefined;
+    const podIndexResult = podsQuery.data?.[3]?.result as bigint | undefined;
 
     const harvestableIndex = TokenValue.fromBigInt(harvestableIndexResult ?? 0n, PODS.decimals);
+    let podIndex = TokenValue.fromBigInt(podIndexResult ?? 0n, PODS.decimals);
 
     const plots: Plot[] = (plotsResult ?? []).map((plotData) => {
       const index = TokenValue.fromBigInt(plotData.index, PODS.decimals);
@@ -275,20 +305,46 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
       };
     });
 
+    // If podIndex is 0 (e.g. beanstalk repayment field has no native pod index),
+    // derive it from the last plot's end position
+    if (podIndex.isZero && plots.length > 0) {
+      const lastPlot = plots[plots.length - 1];
+      podIndex = lastPlot.index.add(lastPlot.pods);
+    }
+
     return {
       plots,
       totalPods: TokenValue.fromBlockchain(totalPodsResult ?? 0n, PODS.decimals),
+      harvestableIndex,
+      podIndex,
     };
   }, [podsQuery.data, podsQuery.isError]);
 
   // Process Barn Payback (bsFERT) data — defaults to ZERO on error
   const fertilizerData = useMemo((): FertilizerData => {
+    // Build per-ID detail map with balance, sprouts, humidity
+    const perIdData = new Map<string, FertilizerIdDetail>();
+    const currentBpf = fertData?.bpf ?? 0n;
+
+    for (const id of userOwnedIds) {
+      const idStr = id.toString();
+      const balance = perIdBalances.get(idStr) ?? 0n;
+      // Sprouts (unfertilized beans) = balance * max(0, id - currentBpf)
+      const remainingBpf = id > currentBpf ? id - currentBpf : 0n;
+      const sprouts = balance * remainingBpf;
+      // Humidity: fertId = endBpf = (1 + humidity/100) * 1e6
+      // humidity% = (id / 1e6 - 1) * 100
+      const humidity = (Number(id) / 1e6 - 1) * 100;
+      perIdData.set(idStr, { balance, sprouts, humidity });
+    }
+
     if (fertilizerQuery.isError) {
       return {
         balance: TokenValue.ZERO,
         fertilized: TokenValue.ZERO,
         unfertilized: TokenValue.ZERO,
         fertilizerIds: userOwnedIds,
+        perIdData,
       };
     }
 
@@ -305,8 +361,9 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
       fertilized,
       unfertilized,
       fertilizerIds: userOwnedIds,
+      perIdData,
     };
-  }, [fertilizerQuery.data, fertilizerQuery.isError, userOwnedIds]);
+  }, [fertilizerQuery.data, fertilizerQuery.isError, userOwnedIds, perIdBalances, fertData]);
 
   // Refetch all queries
   const refetch = useCallback(async () => {
@@ -334,7 +391,6 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
     fertIdsError ||
     (balanceChecksEnabled && balanceChecks.isError) ||
     (fertQueryEnabled && fertilizerQuery.isError);
-  (balanceChecksEnabled && balanceChecks.isError) || (fertQueryEnabled && fertilizerQuery.isError);
 
   return useMemo(
     () => ({

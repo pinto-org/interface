@@ -53,13 +53,31 @@ interface PodLineGraphProps {
   label?: string;
   /** Optional: specify label type */
   labelType?: "title" | "label";
+  /** Optional: override harvestable index (for non-default fields like repayment field) */
+  customHarvestableIndex?: TokenValue;
+  /** Optional: override pod index (for non-default fields like repayment field) */
+  customPodIndex?: TokenValue;
 }
 
 /**
  * Groups nearby plots for visual display while keeping each plot individually interactive
  */
-function combinePlots(plots: Plot[], harvestableIndex: TokenValue, selectedIndices: Set<string>): CombinedPlot[] {
+function combinePlots(
+  plots: Plot[],
+  harvestableIndex: TokenValue,
+  selectedIndices: Set<string>,
+  podLine: TokenValue,
+): CombinedPlot[] {
   if (plots.length === 0) return [];
+
+  // Dynamically scale the grouping gap based on pod line size
+  const podLineNum = podLine.toNumber();
+  let maxGap = MAX_GAP_TO_COMBINE;
+  if (podLineNum > 200_000_000) {
+    maxGap = TokenValue.fromHuman("50000000", PODS.decimals); // 50M gap for large pod lines
+  } else if (podLineNum > 50_000_000) {
+    maxGap = TokenValue.fromHuman("10000000", PODS.decimals); // 10M gap for medium pod lines
+  }
 
   // Sort plots by index
   const sortedPlots = [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
@@ -78,7 +96,7 @@ function combinePlots(plots: Plot[], harvestableIndex: TokenValue, selectedIndic
       const gap = nextPlot.index.sub(plot.index.add(plot.pods));
 
       // If gap is small enough, continue grouping
-      if (gap.lt(MAX_GAP_TO_COMBINE)) {
+      if (gap.lt(maxGap)) {
         continue;
       }
     }
@@ -116,9 +134,19 @@ function combinePlots(plots: Plot[], harvestableIndex: TokenValue, selectedIndic
  */
 function generateAxisLabels(min: number, max: number): number[] {
   const labels: number[] = [];
-  const start = Math.floor(min / AXIS_INTERVAL) * AXIS_INTERVAL;
+  const range = max - min;
 
-  for (let value = start; value <= max; value += AXIS_INTERVAL) {
+  // Dynamically choose interval based on range size
+  let interval = AXIS_INTERVAL; // default 10M
+  if (range > 200_000_000) {
+    interval = 100_000_000; // 100M intervals for large ranges
+  } else if (range > 50_000_000) {
+    interval = 50_000_000; // 50M intervals for medium ranges
+  }
+
+  const start = Math.floor(min / interval) * interval;
+
+  for (let value = start; value <= max; value += interval) {
     if (value >= min) {
       labels.push(value);
     }
@@ -191,10 +219,15 @@ export default function PodLineGraph({
   className,
   label = "My Pods In Line",
   labelType = "label",
+  customHarvestableIndex,
+  customPodIndex,
 }: PodLineGraphProps) {
   const farmerField = useFarmerField();
-  const harvestableIndex = useHarvestableIndex();
-  const podIndex = usePodIndex();
+  const defaultHarvestableIndex = useHarvestableIndex();
+  const defaultPodIndex = usePodIndex();
+
+  const harvestableIndex = customHarvestableIndex ?? defaultHarvestableIndex;
+  const podIndex = customPodIndex ?? defaultPodIndex;
 
   const [hoveredPlotIndex, setHoveredPlotIndex] = useState<string | null>(null);
   const [tooltipData, setTooltipData] = useState<{
@@ -253,8 +286,8 @@ export default function PodLineGraph({
 
   // Combine plots for visualization
   const combinedPlots = useMemo(
-    () => combinePlots(plots, harvestableIndex, selectedSet),
-    [plots, harvestableIndex, selectedSet],
+    () => combinePlots(plots, harvestableIndex, selectedSet, podLine),
+    [plots, harvestableIndex, selectedSet, podLine],
   );
 
   // Separate harvested and unharvested plots

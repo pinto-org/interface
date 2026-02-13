@@ -1,11 +1,7 @@
-import fertilizerIcon from "@/assets/protocol/Fertilizer.svg";
 import AddressInputField from "@/components/AddressInputField";
-import CheckmarkCircle from "@/components/CheckmarkCircle";
 import FertilizerCard from "@/components/FertilizerCard";
 import PintoAssetTransferNotice from "@/components/PintoAssetTransferNotice";
 import { Button } from "@/components/ui/Button";
-import IconImage from "@/components/ui/IconImage";
-import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { formatter } from "@/utils/format";
@@ -47,13 +43,15 @@ export default function StepOne({
 }: StepOneProps) {
   const repayment = useFarmerBeanstalkRepayment();
   const fertilizerIds = repayment.fertilizer.fertilizerIds;
+  const perIdData = repayment.fertilizer.perIdData;
 
-  // TODO: Get actual balance per fertilizer ID from contract
-  // For now, mock balance of 1 bsFERT per ID
-  const getFertilizerBalance = useCallback((fertId: bigint): bigint => {
-    // Mock: Each fertilizer ID has 1 bsFERT
-    return 1n;
-  }, []);
+  // Get actual balance per fertilizer ID from on-chain data
+  const getFertilizerBalance = useCallback(
+    (fertId: bigint): bigint => {
+      return perIdData.get(fertId.toString())?.balance ?? 0n;
+    },
+    [perIdData],
+  );
 
   // Local state for amount inputs per fertilizer ID
   const [amounts, setAmounts] = useState<Record<string, string>>(() => {
@@ -78,6 +76,7 @@ export default function StepOne({
   const toggleSelection = useCallback(
     (fertId: bigint) => {
       const idStr = fertId.toString();
+      const balance = getFertilizerBalance(fertId);
       setSelected((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(idStr)) {
@@ -87,14 +86,15 @@ export default function StepOne({
           setSelectedIds((prev) => prev.filter((item) => item.id !== fertId));
         } else {
           newSet.add(idStr);
-          // Set default amount of 1 when selecting
-          setAmounts((prevAmounts) => ({ ...prevAmounts, [idStr]: "1" }));
-          setSelectedIds((prev) => [...prev, { id: fertId, value: 1n }]);
+          // Set default amount to full balance when selecting
+          const defaultAmount = balance > 0n ? balance : 1n;
+          setAmounts((prevAmounts) => ({ ...prevAmounts, [idStr]: defaultAmount.toString() }));
+          setSelectedIds((prev) => [...prev, { id: fertId, value: defaultAmount }]);
         }
         return newSet;
       });
     },
-    [setSelectedIds],
+    [setSelectedIds, getFertilizerBalance],
   );
 
   const handleAmountChange = useCallback(
@@ -102,7 +102,7 @@ export default function StepOne({
       const idStr = fertId.toString();
 
       // Validate against max balance
-      let numValue = value === "" ? 0n : BigInt(value);
+      let numValue = value === "" ? 0n : BigInt(Math.max(0, Math.floor(Number(value))));
       if (numValue > maxBalance) {
         numValue = maxBalance;
       }
@@ -142,17 +142,17 @@ export default function StepOne({
 
     for (const fertId of fertilizerIds) {
       const idStr = fertId.toString();
-      // For now, default to 1 bsFERT per ID when selecting all
-      // TODO: Use actual balance per ID from on-chain data
-      newAmounts[idStr] = "1";
-      newSelectedIds.push({ id: fertId, value: 1n });
+      const balance = getFertilizerBalance(fertId);
+      const amount = balance > 0n ? balance : 1n;
+      newAmounts[idStr] = amount.toString();
+      newSelectedIds.push({ id: fertId, value: amount });
       newSelected.add(idStr);
     }
 
     setAmounts(newAmounts);
     setSelectedIds(newSelectedIds);
     setSelected(newSelected);
-  }, [fertilizerIds, setSelectedIds]);
+  }, [fertilizerIds, setSelectedIds, getFertilizerBalance]);
 
   if (fertilizerIds.length === 0) {
     return (
@@ -180,10 +180,12 @@ export default function StepOne({
             const idStr = fertId.toString();
             const amount = amounts[idStr] || "";
             const isSelected = selected.has(idStr);
-            const maxBalance = getFertilizerBalance(fertId);
-            // TODO: Replace with actual sprouts and humidity data from on-chain
-            const sprouts = "407,287";
-            const humidity = "500%";
+            const detail = perIdData.get(idStr);
+            const maxBalance = detail?.balance ?? 0n;
+            // Format sprouts: raw value is balance * remainingBpf (no decimals on balance, 6 decimals on bpf)
+            const sproutsRaw = detail?.sprouts ?? 0n;
+            const sprouts = formatter.number(Number(sproutsRaw) / 1e6);
+            const humidity = detail?.humidity !== undefined ? `${formatter.number(detail.humidity)}%` : "—";
 
             return (
               <FertilizerCard

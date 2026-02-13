@@ -1,7 +1,7 @@
 import podIcon from "@/assets/protocol/Pod.png";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
-import { useHarvestableIndex } from "@/state/useFieldData";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { formatter } from "@/utils/format";
 import { computeSummaryRange } from "@/utils/podTransferUtils";
 import { useMemo } from "react";
@@ -13,7 +13,7 @@ interface FinalStepProps {
 }
 
 export default function FinalStep({ destination, transferData }: FinalStepProps) {
-  const harvestableIndex = useHarvestableIndex();
+  const harvestableIndex = useFarmerBeanstalkRepayment().pods.harvestableIndex;
 
   const summary = useMemo(() => {
     if (transferData.length === 0) return null;

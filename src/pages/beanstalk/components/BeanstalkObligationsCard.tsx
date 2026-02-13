@@ -1,12 +1,10 @@
 import { Button } from "@/components/ui/Button";
 import { abiSnippets } from "@/constants/abiSnippets";
-import { SILO_PAYBACK_ADDRESS } from "@/constants/address";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { BARN_PAYBACK_ADDRESS, SILO_PAYBACK_ADDRESS } from "@/constants/address";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import BeanstalkFertilizerSection from "./BeanstalkFertilizerSection";
 import BeanstalkPodsSection from "./BeanstalkPodsSection";
@@ -34,32 +32,26 @@ const BeanstalkObligationsCard: React.FC = () => {
     errorMessage: "Claim failed",
   });
 
-  // Silo Claim — Claim earned urBDV from SiloPayback
+  // Silo Claim — Claim earned urBDV from SiloPayback contract directly
   const handleClaimSilo = useCallback(async () => {
     if (!account.address || silo.earned.isZero) return;
 
     try {
       setSubmitting(true);
 
-      // Encode claim(address recipient, enum LibTransfer.To toMode) call for SiloPayback contract
-      // toMode: 0 = INTERNAL (to internal balance), 1 = EXTERNAL (to wallet), 2 = INTERNAL_TOLERANT
-      const claimData = encodeFunctionData({
+      // Call claim(address recipient, enum LibTransfer.To toMode) directly on SiloPayback contract
+      // toMode: 0 = INTERNAL, 1 = EXTERNAL (to wallet), 2 = INTERNAL_TOLERANT
+      await writeWithEstimateGas({
+        address: SILO_PAYBACK_ADDRESS,
         abi: abiSnippets.siloPayback,
         functionName: "claim",
         args: [account.address, 1], // Claim to wallet (EXTERNAL)
-      });
-
-      await writeWithEstimateGas({
-        address: beanstalkAddress[account.chainId ?? 8453],
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [[claimData]],
       });
     } catch (error) {
       console.error("Silo claim error:", error);
       setSubmitting(false);
     }
-  }, [account.address, account.chainId, silo.earned, writeWithEstimateGas, setSubmitting]);
+  }, [account.address, silo.earned, writeWithEstimateGas, setSubmitting]);
 
   // Pods Harvest — Navigate to field harvest page
   const handleHarvestPods = useCallback(() => {
@@ -67,47 +59,31 @@ const BeanstalkObligationsCard: React.FC = () => {
     navigate("/field?action=harvest&fieldId=1");
   }, [navigate]);
 
-  // Fertilizer Rinse — Rinse fertilized sprouts
+  // Fertilizer Rinse — Rinse fertilized sprouts from BarnPayback contract directly
   const handleRinseFert = useCallback(async () => {
     if (!account.address || fertilizer.fertilized.isZero) return;
 
-    // Check if we have fertilizer IDs
     if (!fertilizer.fertilizerIds || fertilizer.fertilizerIds.length === 0) {
-      console.warn(
-        "Cannot rinse fertilizer: No fertilizer IDs available. Fertilizer ID enumeration not yet implemented.",
-      );
+      console.warn("Cannot rinse fertilizer: No fertilizer IDs available.");
       return;
     }
 
     try {
       setSubmitting(true);
 
-      // Encode claimFertilized(uint256[] ids, enum LibTransfer.To mode) call for BarnPayback contract
-      // mode: 0 = INTERNAL (to internal balance), 1 = EXTERNAL (to wallet), 2 = INTERNAL_TOLERANT
-      const claimFertilizedData = encodeFunctionData({
+      // Call claimFertilized(uint256[] ids, uint8 mode) directly on BarnPayback contract
+      // mode: 0 = INTERNAL, 1 = EXTERNAL (to wallet), 2 = INTERNAL_TOLERANT
+      await writeWithEstimateGas({
+        address: BARN_PAYBACK_ADDRESS,
         abi: abiSnippets.barnPayback,
         functionName: "claimFertilized",
         args: [fertilizer.fertilizerIds, 1], // Claim to wallet (EXTERNAL)
-      });
-
-      await writeWithEstimateGas({
-        address: beanstalkAddress[account.chainId ?? 8453],
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [[claimFertilizedData]],
       });
     } catch (error) {
       console.error("Fertilizer rinse error:", error);
       setSubmitting(false);
     }
-  }, [
-    account.address,
-    account.chainId,
-    fertilizer.fertilized,
-    fertilizer.fertilizerIds,
-    writeWithEstimateGas,
-    setSubmitting,
-  ]);
+  }, [account.address, fertilizer.fertilized, fertilizer.fertilizerIds, writeWithEstimateGas, setSubmitting]);
 
   const handleSendSilo = () => {
     navigate("/transfer/beanstalk-silo");
@@ -133,6 +109,7 @@ const BeanstalkObligationsCard: React.FC = () => {
       <div className="flex flex-col gap-8">
         <BeanstalkSiloSection
           balance={silo.balance}
+          earned={silo.earned}
           isLoading={isConnected && isLoading}
           disabled={showDisabled}
           onClaim={handleClaimSilo}
@@ -141,6 +118,8 @@ const BeanstalkObligationsCard: React.FC = () => {
         <BeanstalkPodsSection
           plots={pods.plots}
           totalPods={pods.totalPods}
+          harvestableIndex={pods.harvestableIndex}
+          podIndex={pods.podIndex}
           isLoading={isConnected && isLoading}
           disabled={showDisabled}
           onHarvest={handleHarvestPods}

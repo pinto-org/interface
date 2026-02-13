@@ -7,6 +7,8 @@ import { Plot } from "@/utils/types";
 interface BeanstalkPodsSectionProps {
   plots: Plot[];
   totalPods: TokenValue;
+  harvestableIndex: TokenValue;
+  podIndex: TokenValue;
   isLoading: boolean;
   disabled?: boolean;
   onHarvest?: () => void;
@@ -20,6 +22,8 @@ interface BeanstalkPodsSectionProps {
 const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
   plots,
   totalPods,
+  harvestableIndex,
+  podIndex,
   isLoading,
   disabled = false,
   onHarvest,
@@ -43,7 +47,13 @@ const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
         <TextSkeleton loading={true} height="body" className="w-full h-12" />
       ) : (
         <div className={showDisabledGraph ? "opacity-50 pointer-events-none" : ""}>
-          <PodLineGraph plots={plots} disableInteractions={true} label="" />
+          <PodLineGraph
+            plots={plots}
+            disableInteractions={true}
+            label=""
+            customHarvestableIndex={harvestableIndex}
+            customPodIndex={podIndex}
+          />
         </div>
       )}
     </BeanstalkStatField>

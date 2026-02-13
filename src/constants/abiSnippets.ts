@@ -418,6 +418,16 @@ const siloPayback = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "value", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
 
 const barnPayback = [
@@ -437,7 +447,7 @@ const barnPayback = [
       { internalType: "uint256[]", name: "ids", type: "uint256[]" },
     ],
     name: "balanceOfFertilized",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    outputs: [{ internalType: "uint256", name: "beans", type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
@@ -447,7 +457,7 @@ const barnPayback = [
       { internalType: "uint256[]", name: "ids", type: "uint256[]" },
     ],
     name: "balanceOfUnfertilized",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    outputs: [{ internalType: "uint256", name: "beans", type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
@@ -461,18 +471,54 @@ const barnPayback = [
   {
     inputs: [],
     name: "fert",
-    outputs: [{ internalType: "address", name: "", type: "address" }],
+    outputs: [
+      { internalType: "uint128", name: "fertilizedIndex", type: "uint128" },
+      { internalType: "uint128", name: "unfertilizedIndex", type: "uint128" },
+      { internalType: "uint128", name: "fertilizedPaidIndex", type: "uint128" },
+      { internalType: "uint128", name: "leftoverBeans", type: "uint128" },
+      { internalType: "uint128", name: "activeFertilizer", type: "uint128" },
+      { internalType: "uint128", name: "fertFirst", type: "uint128" },
+      { internalType: "uint128", name: "fertLast", type: "uint128" },
+      { internalType: "uint128", name: "bpf", type: "uint128" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+      { internalType: "uint256", name: "id", type: "uint256" },
+    ],
+    name: "lastBalanceOf",
+    outputs: [
+      {
+        components: [
+          { internalType: "uint128", name: "amount", type: "uint128" },
+          { internalType: "uint128", name: "lastBpf", type: "uint128" },
+        ],
+        internalType: "struct BeanstalkFertilizer.Balance",
+        name: "",
+        type: "tuple",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
       { internalType: "uint256[]", name: "ids", type: "uint256[]" },
-      { internalType: "enum LibTransfer.To", name: "mode", type: "uint8" },
+      { internalType: "uint8", name: "mode", type: "uint8" },
     ],
     name: "claimFertilized",
     outputs: [],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalUnfertilizedBeans",
+    outputs: [{ internalType: "uint256", name: "beans", type: "uint256" }],
+    stateMutability: "view",
     type: "function",
   },
 ] as const;
@@ -489,30 +535,6 @@ const contractPayback = [
     inputs: [],
     name: "totalReceived",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
-
-const fertilizerLinkedList = [
-  {
-    inputs: [],
-    name: "getFirst",
-    outputs: [{ internalType: "uint128", name: "", type: "uint128" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getLast",
-    outputs: [{ internalType: "uint128", name: "", type: "uint128" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "uint128", name: "id", type: "uint128" }],
-    name: "getNext",
-    outputs: [{ internalType: "uint128", name: "", type: "uint128" }],
     stateMutability: "view",
     type: "function",
   },
@@ -548,5 +570,4 @@ export const abiSnippets = {
   siloPayback,
   barnPayback,
   contractPayback,
-  fertilizerLinkedList,
 } as const;
