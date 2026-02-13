@@ -25,7 +25,7 @@ const BeanstalkObligationsCard: React.FC = () => {
 
   // Transaction hook for claim operations
   const { writeWithEstimateGas, setSubmitting } = useTransaction({
-    onSuccess: () => {
+    successCallback: () => {
       refetch();
     },
     successMessage: "Claim successful",
@@ -61,7 +61,7 @@ const BeanstalkObligationsCard: React.FC = () => {
 
   // Fertilizer Rinse — Rinse fertilized sprouts from BarnPayback contract directly
   const handleRinseFert = useCallback(async () => {
-    if (!account.address || fertilizer.fertilized.isZero) return;
+    if (!account.address) return;
 
     if (!fertilizer.fertilizerIds || fertilizer.fertilizerIds.length === 0) {
       console.warn("Cannot rinse fertilizer: No fertilizer IDs available.");
@@ -71,19 +71,17 @@ const BeanstalkObligationsCard: React.FC = () => {
     try {
       setSubmitting(true);
 
-      // Call claimFertilized(uint256[] ids, uint8 mode) directly on BarnPayback contract
-      // mode: 0 = INTERNAL, 1 = EXTERNAL (to wallet), 2 = INTERNAL_TOLERANT
       await writeWithEstimateGas({
         address: BARN_PAYBACK_ADDRESS,
         abi: abiSnippets.barnPayback,
         functionName: "claimFertilized",
-        args: [fertilizer.fertilizerIds, 1], // Claim to wallet (EXTERNAL)
+        args: [fertilizer.fertilizerIds, 1],
       });
     } catch (error) {
       console.error("Fertilizer rinse error:", error);
       setSubmitting(false);
     }
-  }, [account.address, fertilizer.fertilized, fertilizer.fertilizerIds, writeWithEstimateGas, setSubmitting]);
+  }, [account.address, fertilizer.fertilizerIds, writeWithEstimateGas, setSubmitting]);
 
   const handleSendSilo = () => {
     navigate("/transfer/beanstalk-silo");
