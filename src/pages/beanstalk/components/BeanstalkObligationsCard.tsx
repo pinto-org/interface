@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/Button";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { BARN_PAYBACK_ADDRESS, SILO_PAYBACK_ADDRESS } from "@/constants/address";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import BeanstalkFertilizerSection from "./BeanstalkFertilizerSection";
 import BeanstalkPodsSection from "./BeanstalkPodsSection";
 import BeanstalkSiloSection from "./BeanstalkSiloSection";
@@ -17,6 +18,7 @@ import BeanstalkSiloSection from "./BeanstalkSiloSection";
  */
 const BeanstalkObligationsCard: React.FC = () => {
   const account = useAccount();
+  const chainId = useChainId();
   const navigate = useNavigate();
   const { silo, pods, fertilizer, isLoading, isError, refetch } = useFarmerBeanstalkRepayment();
 
@@ -53,11 +55,28 @@ const BeanstalkObligationsCard: React.FC = () => {
     }
   }, [account.address, silo.earned, writeWithEstimateGas, setSubmitting]);
 
-  // Pods Harvest — Navigate to field harvest page
-  const handleHarvestPods = useCallback(() => {
-    // Navigate to field page with harvest action for fieldId=1
-    navigate("/field?action=harvest&fieldId=1");
-  }, [navigate]);
+  // Pods Harvest — Harvest harvestable pods from repayment field (fieldId=1)
+  const handleHarvestPods = useCallback(async () => {
+    if (!account.address) return;
+
+    const harvestablePlotIndices = pods.plots.filter((p) => p.harvestablePods?.gt(0)).map((p) => p.index.toBigInt());
+
+    if (harvestablePlotIndices.length === 0) return;
+
+    try {
+      setSubmitting(true);
+
+      await writeWithEstimateGas({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "harvest",
+        args: [1n, harvestablePlotIndices, 1], // fieldId=1, plot indices, EXTERNAL
+      });
+    } catch (error) {
+      console.error("Pods harvest error:", error);
+      setSubmitting(false);
+    }
+  }, [account.address, pods.plots, writeWithEstimateGas, setSubmitting, chainId]);
 
   // Fertilizer Rinse — Rinse fertilized sprouts from BarnPayback contract directly
   const handleRinseFert = useCallback(async () => {

@@ -31,6 +31,7 @@ const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
 }) => {
   const hasPlots = plots.length > 0;
   const hasPods = !totalPods.isZero;
+  const hasHarvestablePods = plots.some((p) => p.harvestablePods?.gt(0));
   const showDisabledGraph = disabled || !hasPlots;
 
   return (
@@ -39,7 +40,7 @@ const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
       value={null}
       disabled={disabled}
       actions={[
-        { label: "Harvest", onClick: onHarvest, disabled: !hasPods },
+        { label: "Harvest", onClick: onHarvest, disabled: !hasHarvestablePods },
         { label: "Send", onClick: onSend, disabled: !hasPods },
       ]}
     >
