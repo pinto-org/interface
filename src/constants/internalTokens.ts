@@ -36,6 +36,14 @@ export const URBDV: InternalToken = {
   logoURI: "", // TODO: Add logo if needed
 };
 
+export const BSFERT: InternalToken = {
+  name: "Beanstalk Payback Fertilizer",
+  symbol: "bsFERT",
+  decimals: 0,
+  displayDecimals: 0,
+  logoURI: "", // TODO: Add bsFERT icon
+};
+
 export const SPROUTS: InternalToken = {
   name: "Sprouts",
   symbol: "SPROUTS",

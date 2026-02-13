@@ -3,6 +3,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
@@ -15,6 +16,7 @@ export default function TransferActions() {
   const farmerBalance = useFarmerBalances();
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
+  const repayment = useFarmerBeanstalkRepayment();
 
   const totalInternalBalance = Array.from(farmerBalance.balances).reduce(
     (total: TokenValue, tokenBalance) =>
@@ -72,6 +74,39 @@ export default function TransferActions() {
           <div className="flex flex-row gap-1 items-center">
             <IconImage src={podIcon} size={6} mobileSize={5} />
             <span>{`${formatter.twoDec(farmerField.totalPods)} Pods`}</span>
+          </div>
+        </Link>
+      </Button>
+      <Button
+        variant="outline"
+        asChild
+        className={`font-[400] text-[1rem] sm:text-[1.25rem] p-6 md:py-10 md:px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${repayment.silo.balance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
+      >
+        <Link to="/transfer/beanstalk-silo">
+          <span>Beanstalk Repayment Silo Tokens</span>
+          <span>{formatter.usd(repayment.silo.balance)}</span>
+        </Link>
+      </Button>
+      <Button
+        variant="outline"
+        asChild
+        className={`font-[400] text-[1rem] sm:text-[1.25rem] p-6 md:py-10 md:px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${repayment.fertilizer.balance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
+      >
+        <Link to="/transfer/beanstalk-fertilizer">
+          <span>Beanstalk Repayment Fertilizer</span>
+          <span>{`${formatter.twoDec(repayment.fertilizer.balance)} bsFERT`}</span>
+        </Link>
+      </Button>
+      <Button
+        variant="outline"
+        asChild
+        className={`font-[400] text-[1rem] sm:text-[1.25rem] items-center p-6 md:py-10 md:px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${repayment.pods.totalPods.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
+      >
+        <Link to="/transfer/beanstalk-pods">
+          <span>Beanstalk Repayment Pods</span>
+          <div className="flex flex-row gap-1 items-center">
+            <IconImage src={podIcon} size={6} mobileSize={5} />
+            <span>{`${formatter.twoDec(repayment.pods.totalPods)} Pods`}</span>
           </div>
         </Link>
       </Button>

@@ -1,30 +1,11 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { abiSnippets } from "@/constants/abiSnippets";
+import { BARN_PAYBACK_ADDRESS, SILO_PAYBACK_ADDRESS } from "@/constants/address";
 import { PODS, SPROUTS, URBDV } from "@/constants/internalTokens";
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useCallback, useMemo } from "react";
 import { useReadContracts } from "wagmi";
-
-/**
- * ABI snippets for Silo Payback contract global functions
- * NOTE: These functions don't exist in the protocol yet - will be indexed from subgraph later
- */
-// const siloPaybackGlobalAbi = [
-//   {
-//     inputs: [],
-//     name: "totalUrBdvDistributed",
-//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-//     stateMutability: "view",
-//     type: "function",
-//   },
-//   {
-//     inputs: [],
-//     name: "totalPintoPaidOut",
-//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-//     stateMutability: "view",
-//     type: "function",
-//   },
-// ] as const;
 
 /**
  * ABI snippets for Field contract global functions
@@ -40,20 +21,6 @@ const fieldGlobalAbi = [
 ] as const;
 
 /**
- * ABI snippets for Barn Payback contract global functions
- * NOTE: This function doesn't exist in the protocol yet - will be indexed from subgraph later
- */
-// const barnPaybackGlobalAbi = [
-//   {
-//     inputs: [],
-//     name: "totalUnfertilizedSprouts",
-//     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-//     stateMutability: "view",
-//     type: "function",
-//   },
-// ] as const;
-
-/**
  * Interface for the global Beanstalk statistics data
  */
 export interface BeanstalkGlobalStatsData {
@@ -61,6 +28,8 @@ export interface BeanstalkGlobalStatsData {
   totalPodsInRepaymentField: TokenValue;
   totalUnfertilizedSprouts: TokenValue;
   totalPintoPaidOut: TokenValue;
+  siloRemaining: TokenValue;
+  barnRemaining: TokenValue;
   isLoading: boolean;
   isError: boolean;
   refetch: () => Promise<void>;
@@ -73,10 +42,10 @@ const BEANSTALK_REPAYMENT_FIELD_ID = 1n;
  * Hook for fetching global Beanstalk repayment statistics
  *
  * This hook fetches protocol-wide statistics:
- * - Total urBDV distributed across all holders (TODO: from subgraph)
+ * - Silo Payback: siloRemaining() and totalDistributed() from Silo_Payback contract
  * - Total pods in the repayment field (fieldId=1)
- * - Total unfertilized sprouts (TODO: from subgraph)
- * - Total Pinto paid out to holders (TODO: from subgraph)
+ * - Barn Payback: barnRemaining() from Barn_Payback contract
+ * - Total Pinto paid out to holders (TODO: calculated total)
  *
  * Uses a 5-minute stale time for more frequent updates of global stats
  *
@@ -94,11 +63,23 @@ export function useBeanstalkGlobalStats(): BeanstalkGlobalStatsData {
         functionName: "totalPods",
         args: [BEANSTALK_REPAYMENT_FIELD_ID],
       },
-      // TODO: These functions don't exist in the protocol yet
-      // Will be indexed from subgraph later:
-      // - totalUrBdvDistributed
-      // - totalUnfertilizedSprouts
-      // - totalPintoPaidOut
+      // Silo Payback global stats
+      {
+        address: SILO_PAYBACK_ADDRESS,
+        abi: abiSnippets.siloPayback,
+        functionName: "siloRemaining",
+      },
+      {
+        address: SILO_PAYBACK_ADDRESS,
+        abi: abiSnippets.siloPayback,
+        functionName: "totalDistributed",
+      },
+      // Barn Payback global stats
+      {
+        address: BARN_PAYBACK_ADDRESS,
+        abi: abiSnippets.barnPayback,
+        functionName: "barnRemaining",
+      },
     ],
     allowFailure: true,
     query: {
@@ -106,18 +87,33 @@ export function useBeanstalkGlobalStats(): BeanstalkGlobalStatsData {
     },
   });
 
-  // Process global data
+  // Process global data — defaults to ZERO on error
   const globalData = useMemo(() => {
+    if (globalQuery.isError) {
+      return {
+        totalUrBdvDistributed: TokenValue.ZERO,
+        totalPodsInRepaymentField: TokenValue.ZERO,
+        totalUnfertilizedSprouts: TokenValue.ZERO,
+        totalPintoPaidOut: TokenValue.ZERO,
+        siloRemaining: TokenValue.ZERO,
+        barnRemaining: TokenValue.ZERO,
+      };
+    }
+
     const totalPodsInRepaymentField = globalQuery.data?.[0]?.result;
+    const siloRemainingResult = globalQuery.data?.[1]?.result;
+    const totalDistributedResult = globalQuery.data?.[2]?.result;
+    const barnRemainingResult = globalQuery.data?.[3]?.result;
 
     return {
-      // TODO: These will come from subgraph later
-      totalUrBdvDistributed: TokenValue.fromBlockchain(0n, URBDV.decimals),
+      totalUrBdvDistributed: TokenValue.fromBlockchain(totalDistributedResult ?? 0n, URBDV.decimals),
       totalPodsInRepaymentField: TokenValue.fromBlockchain(totalPodsInRepaymentField ?? 0n, PODS.decimals),
-      totalUnfertilizedSprouts: TokenValue.fromBlockchain(0n, SPROUTS.decimals),
+      totalUnfertilizedSprouts: TokenValue.fromBlockchain(barnRemainingResult ?? 0n, SPROUTS.decimals),
       totalPintoPaidOut: TokenValue.fromBlockchain(0n, URBDV.decimals),
+      siloRemaining: TokenValue.fromBlockchain(siloRemainingResult ?? 0n, URBDV.decimals),
+      barnRemaining: TokenValue.fromBlockchain(barnRemainingResult ?? 0n, SPROUTS.decimals),
     };
-  }, [globalQuery.data]);
+  }, [globalQuery.data, globalQuery.isError]);
 
   // Refetch function
   const refetch = useCallback(async () => {
