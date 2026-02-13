@@ -7,10 +7,16 @@ query AllMarketActivity(
   $listings_createdAt_gt: BigInt
   $orders_createdAt_gt: BigInt
   $fill_createdAt_gt: BigInt
+  $listings_podMarketplace: String
+  $orders_podMarketplace: String
 ) {
   podListings(
     first: $first
-    where: { createdAt_gt: $listings_createdAt_gt, status_not: FILLED_PARTIAL }
+    where: {
+      createdAt_gt: $listings_createdAt_gt
+      status_not: FILLED_PARTIAL
+      podMarketplace: $listings_podMarketplace
+    }
   ) {
     ...PodListing
   }
@@ -19,7 +25,10 @@ query AllMarketActivity(
     first: $first
     orderBy: createdAt
     orderDirection: desc
-    where: { createdAt_gt: $orders_createdAt_gt }
+    where: {
+      createdAt_gt: $orders_createdAt_gt
+      podMarketplace: $orders_podMarketplace
+    }
   ) {
     ...PodOrder
   }
