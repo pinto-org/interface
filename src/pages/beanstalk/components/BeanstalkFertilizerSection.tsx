@@ -30,7 +30,7 @@ const BeanstalkFertilizerSection: React.FC<BeanstalkFertilizerSectionProps> = ({
       disabled={disabled}
       actions={[
         { label: "Rinse", onClick: onRinse, disabled: !hasBalance },
-        { label: "Send", onClick: onSend },
+        { label: "Send", onClick: onSend, disabled: !hasBalance },
       ]}
     />
   );

@@ -41,6 +41,7 @@ export const WELL_FUNCTION_ADDRESSES: ChainLookup<{
 
 export const NFT_COLLECTION_1_CONTRACT: HashString = "0xBea5e200a087529AA3B62c460040aE94E3651b76";
 
-// TODO: Replace with actual deployed contract addresses
-export const SILO_PAYBACK_ADDRESS: HashString = "0x0000000000000000000000000000000000000000"; // urBDV contract address
-export const BARN_PAYBACK_ADDRESS: HashString = "0x0000000000000000000000000000000000000000"; // bsFERT contract address
+// Deployed contract addresses for Beanstalk Shipments
+export const SILO_PAYBACK_ADDRESS: HashString = "0x525C94754C51946a7a3B72580Ce0DF36922E1E64";
+export const BARN_PAYBACK_ADDRESS: HashString = "0x68bDbb0402a3Ca89C7C4af8e41C021635102d158";
+export const CONTRACT_PAYBACK_ADDRESS: HashString = "0xbA941Af3292c49b585f4EC5C8164c1dfc893EEdC";

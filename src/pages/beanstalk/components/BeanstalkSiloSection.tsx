@@ -30,7 +30,7 @@ const BeanstalkSiloSection: React.FC<BeanstalkSiloSectionProps> = ({
       disabled={disabled}
       actions={[
         { label: "Claim", onClick: onClaim, disabled: !hasBalance },
-        { label: "Send", onClick: onSend },
+        { label: "Send", onClick: onSend, disabled: !hasBalance },
       ]}
     />
   );

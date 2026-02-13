@@ -36,7 +36,7 @@ const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
       disabled={disabled}
       actions={[
         { label: "Harvest", onClick: onHarvest, disabled: !hasPods },
-        { label: "Send", onClick: onSend },
+        { label: "Send", onClick: onSend, disabled: !hasPods },
       ]}
     >
       {isLoading ? (

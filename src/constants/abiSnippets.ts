@@ -408,6 +408,16 @@ const siloPayback = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [
+      { internalType: "address", name: "recipient", type: "address" },
+      { internalType: "enum LibTransfer.To", name: "toMode", type: "uint8" },
+    ],
+    name: "claim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
 
 const barnPayback = [
@@ -455,6 +465,57 @@ const barnPayback = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [
+      { internalType: "uint256[]", name: "ids", type: "uint256[]" },
+      { internalType: "enum LibTransfer.To", name: "mode", type: "uint8" },
+    ],
+    name: "claimFertilized",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+] as const;
+
+const contractPayback = [
+  {
+    inputs: [],
+    name: "totalDistributed",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalReceived",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
+const fertilizerLinkedList = [
+  {
+    inputs: [],
+    name: "getFirst",
+    outputs: [{ internalType: "uint128", name: "", type: "uint128" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getLast",
+    outputs: [{ internalType: "uint128", name: "", type: "uint128" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "uint128", name: "id", type: "uint128" }],
+    name: "getNext",
+    outputs: [{ internalType: "uint128", name: "", type: "uint128" }],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
 
 export const abiSnippets = {
@@ -486,4 +547,6 @@ export const abiSnippets = {
   erc721Enum,
   siloPayback,
   barnPayback,
+  contractPayback,
+  fertilizerLinkedList,
 } as const;

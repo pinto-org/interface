@@ -17,8 +17,8 @@ const Beanstalk = () => {
             <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
               Beanstalk Debt issued by Pinto.
               <ReadMoreAccordion inline>
-                Beanstalk participants at the time of Pinto launch were issued assets based on their holdings. When
-                Pinto exceeds 1 Billion in supply, 3% of mints go towards these between Beanstalk Silo Tokens, Pods, and
+                Beanstalk participants at the time of Pinto launch were issued assets based on their holdings. A portion
+                of new Pinto mints go towards repaying these obligations across Beanstalk Silo Tokens, Pods, and
                 Fertilizer.{" "}
                 <Link
                   to="https://docs.pinto.money/appendix/old-beanstalk-holders"

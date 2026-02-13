@@ -5,6 +5,7 @@ import { BSFERT, PODS } from "@/constants/internalTokens";
 import { defaultQuerySettings } from "@/constants/query";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useAllFertilizerIds } from "@/hooks/useAllFertilizerIds";
 import { Plot } from "@/utils/types";
 import { useCallback, useMemo } from "react";
 import { toHex } from "viem";
@@ -61,6 +62,12 @@ const URBDV_DECIMALS = 6;
  * - Pods data from repayment field (fieldId=1) - from on-chain
  * - Fertilizer data from Barn_Payback contract (fertilized, unfertilized balances)
  *
+ * Fertilizer flow (4 phases):
+ * 1. useAllFertilizerIds() — get all global fertilizer IDs from linked list
+ * 2. multicall balanceOf(user, id) for each global ID
+ * 3. filter IDs where balance > 0 (userOwnedIds)
+ * 4. balanceOfFertilized + balanceOfUnfertilized for userOwnedIds
+ *
  * @returns FarmerBeanstalkRepaymentData with all farmer obligations data
  */
 export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
@@ -84,6 +91,20 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
         functionName: "balanceOfPods",
         args: [farmerAddress, 1n], // fieldId=1 for repayment field
       },
+      {
+        address: protocolAddress,
+        abi: [
+          {
+            inputs: [{ name: "fieldId", type: "uint256" }],
+            name: "getHarvestableIndex",
+            outputs: [{ name: "", type: "uint256" }],
+            stateMutability: "view",
+            type: "function",
+          },
+        ] as const,
+        functionName: "getHarvestableIndex",
+        args: [1n], // fieldId=1 for repayment field
+      },
     ],
     allowFailure: true,
     query: {
@@ -92,29 +113,65 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
     },
   });
 
-  // Query for Barn Payback (bsFERT) data from Barn_Payback contract
-  // balanceOfFertilized and balanceOfUnfertilized require fertilizer IDs.
-  // TODO: Fetch actual fertilizer IDs owned by the user from the contract
-  const fertilizerIds: bigint[] = [];
+  // --- Phase 1: Get all global fertilizer IDs from linked list ---
+  const {
+    fertilizerIds: allFertilizerIds,
+    isLoading: fertIdsLoading,
+    isError: fertIdsError,
+    refetch: refetchFertIds,
+  } = useAllFertilizerIds();
 
+  // --- Phase 2: Multicall balanceOf(user, id) for each global ID ---
+  const balanceChecksEnabled = allFertilizerIds.length > 0 && farmerAddress !== ZERO_ADDRESS;
+  const balanceCheckContracts = useMemo(
+    () =>
+      allFertilizerIds.map((id) => ({
+        address: BARN_PAYBACK_ADDRESS,
+        abi: abiSnippets.barnPayback,
+        functionName: "balanceOf" as const,
+        args: [farmerAddress, id] as const,
+      })),
+    [allFertilizerIds, farmerAddress],
+  );
+  const balanceChecks = useReadContracts({
+    contracts: balanceChecksEnabled ? balanceCheckContracts : [],
+    allowFailure: true,
+    query: {
+      ...defaultQuerySettings,
+      enabled: balanceChecksEnabled,
+    },
+  });
+
+  // --- Phase 3: Filter IDs where balance > 0 ---
+  const userOwnedIds = useMemo(() => {
+    if (!balanceChecks.data) return [];
+    return allFertilizerIds.filter((_, i) => {
+      const result = balanceChecks.data?.[i];
+      return result?.status === "success" && (result.result as bigint) > 0n;
+    });
+  }, [balanceChecks.data, allFertilizerIds]);
+
+  // --- Phase 4: balanceOfFertilized + balanceOfUnfertilized for userOwnedIds ---
+  const fertQueryEnabled = userOwnedIds.length > 0;
   const fertilizerQuery = useReadContracts({
     contracts: [
       {
         address: BARN_PAYBACK_ADDRESS,
         abi: abiSnippets.barnPayback,
         functionName: "balanceOfFertilized",
-        args: [farmerAddress, fertilizerIds],
+        args: [farmerAddress, userOwnedIds],
       },
       {
         address: BARN_PAYBACK_ADDRESS,
         abi: abiSnippets.barnPayback,
         functionName: "balanceOfUnfertilized",
-        args: [farmerAddress, fertilizerIds],
+        args: [farmerAddress, userOwnedIds],
       },
     ],
     allowFailure: true,
     query: {
       ...defaultQuerySettings,
+      enabled: fertQueryEnabled,
     },
   });
 
@@ -185,10 +242,27 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
 
     const plotsResult = podsQuery.data?.[0]?.result as readonly { index: bigint; pods: bigint }[] | undefined;
     const totalPodsResult = podsQuery.data?.[1]?.result;
+    const harvestableIndexResult = podsQuery.data?.[2]?.result as bigint | undefined;
+
+    const harvestableIndex = TokenValue.fromBigInt(harvestableIndexResult ?? 0n, PODS.decimals);
 
     const plots: Plot[] = (plotsResult ?? []).map((plotData) => {
       const index = TokenValue.fromBigInt(plotData.index, PODS.decimals);
       const pods = TokenValue.fromBigInt(plotData.pods, PODS.decimals);
+      const endIndex = index.add(pods);
+
+      let harvestablePods = TokenValue.ZERO;
+      let unharvestablePods = pods;
+
+      if (harvestableIndex.gt(index)) {
+        if (harvestableIndex.gte(endIndex)) {
+          harvestablePods = pods;
+          unharvestablePods = TokenValue.ZERO;
+        } else {
+          harvestablePods = harvestableIndex.sub(index);
+          unharvestablePods = pods.sub(harvestablePods);
+        }
+      }
 
       return {
         id: index.toHuman(),
@@ -196,8 +270,8 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
         index,
         pods,
         harvestedPods: TokenValue.ZERO,
-        harvestablePods: TokenValue.ZERO,
-        unharvestablePods: pods,
+        harvestablePods,
+        unharvestablePods,
       };
     });
 
@@ -214,7 +288,7 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
         balance: TokenValue.ZERO,
         fertilized: TokenValue.ZERO,
         unfertilized: TokenValue.ZERO,
-        fertilizerIds,
+        fertilizerIds: userOwnedIds,
       };
     }
 
@@ -230,18 +304,37 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
       balance,
       fertilized,
       unfertilized,
-      fertilizerIds,
+      fertilizerIds: userOwnedIds,
     };
-  }, [fertilizerQuery.data, fertilizerQuery.isError, fertilizerIds]);
+  }, [fertilizerQuery.data, fertilizerQuery.isError, userOwnedIds]);
 
   // Refetch all queries
   const refetch = useCallback(async () => {
-    await Promise.all([siloQuery.refetch(), podsQuery.refetch(), fertilizerQuery.refetch()]);
-  }, [siloQuery.refetch, podsQuery.refetch, fertilizerQuery.refetch]);
+    await Promise.all([
+      siloQuery.refetch(),
+      podsQuery.refetch(),
+      refetchFertIds(),
+      balanceChecks.refetch(),
+      fertilizerQuery.refetch(),
+    ]);
+  }, [siloQuery.refetch, podsQuery.refetch, refetchFertIds, balanceChecks.refetch, fertilizerQuery.refetch]);
 
   // Loading and error states from all queries
-  const isLoading = siloQuery.isLoading || podsQuery.isLoading || fertilizerQuery.isLoading;
-  const isError = siloQuery.isError || podsQuery.isError || fertilizerQuery.isError;
+  // Only count isError from queries that are actually enabled,
+  // disabled queries can report isError spuriously
+  const isLoading =
+    siloQuery.isLoading ||
+    podsQuery.isLoading ||
+    fertIdsLoading ||
+    (balanceChecksEnabled && balanceChecks.isLoading) ||
+    (fertQueryEnabled && fertilizerQuery.isLoading);
+  const isError =
+    siloQuery.isError ||
+    podsQuery.isError ||
+    fertIdsError ||
+    (balanceChecksEnabled && balanceChecks.isError) ||
+    (fertQueryEnabled && fertilizerQuery.isError);
+  (balanceChecksEnabled && balanceChecks.isError) || (fertQueryEnabled && fertilizerQuery.isError);
 
   return useMemo(
     () => ({

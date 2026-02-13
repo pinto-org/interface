@@ -80,6 +80,12 @@ export function useBeanstalkGlobalStats(): BeanstalkGlobalStatsData {
         abi: abiSnippets.barnPayback,
         functionName: "barnRemaining",
       },
+      // Total Pinto received by Silo Payback contract
+      {
+        address: SILO_PAYBACK_ADDRESS,
+        abi: abiSnippets.siloPayback,
+        functionName: "totalReceived",
+      },
     ],
     allowFailure: true,
     query: {
@@ -104,12 +110,15 @@ export function useBeanstalkGlobalStats(): BeanstalkGlobalStatsData {
     const siloRemainingResult = globalQuery.data?.[1]?.result;
     const totalDistributedResult = globalQuery.data?.[2]?.result;
     const barnRemainingResult = globalQuery.data?.[3]?.result;
+    const totalReceivedResult = globalQuery.data?.[4]?.result;
 
     return {
       totalUrBdvDistributed: TokenValue.fromBlockchain(totalDistributedResult ?? 0n, URBDV.decimals),
       totalPodsInRepaymentField: TokenValue.fromBlockchain(totalPodsInRepaymentField ?? 0n, PODS.decimals),
       totalUnfertilizedSprouts: TokenValue.fromBlockchain(barnRemainingResult ?? 0n, SPROUTS.decimals),
-      totalPintoPaidOut: TokenValue.fromBlockchain(0n, URBDV.decimals),
+      // totalPintoPaidOut: Use totalReceived for now (will be > 0 once shipments start)
+      // Alternative: Could sum totalDistributed as a proxy for "issued" amount
+      totalPintoPaidOut: TokenValue.fromBlockchain(totalReceivedResult ?? 0n, URBDV.decimals),
       siloRemaining: TokenValue.fromBlockchain(siloRemainingResult ?? 0n, URBDV.decimals),
       barnRemaining: TokenValue.fromBlockchain(barnRemainingResult ?? 0n, SPROUTS.decimals),
     };
