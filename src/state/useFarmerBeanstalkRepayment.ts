@@ -94,7 +94,7 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
 
   // Query for Barn Payback (bsFERT) data from Barn_Payback contract
   // balanceOfFertilized and balanceOfUnfertilized require fertilizer IDs.
-  // We pass empty arrays initially; these will return 0 until IDs are populated.
+  // TODO: Fetch actual fertilizer IDs owned by the user from the contract
   const fertilizerIds: bigint[] = [];
 
   const fertilizerQuery = useReadContracts({

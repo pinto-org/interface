@@ -1,14 +1,16 @@
+import fertilizerIcon from "@/assets/protocol/Fertilizer.svg";
 import AddressInputField from "@/components/AddressInputField";
 import CheckmarkCircle from "@/components/CheckmarkCircle";
+import FertilizerCard from "@/components/FertilizerCard";
 import PintoAssetTransferNotice from "@/components/PintoAssetTransferNotice";
 import { Button } from "@/components/ui/Button";
+import IconImage from "@/components/ui/IconImage";
+import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/Table";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/ToggleGroup";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { formatter } from "@/utils/format";
 import { AnimatePresence, motion } from "framer-motion";
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { type FertilizerTransferItem } from "../TransferBeanstalkFertilizer";
 
 interface StepOneProps {
@@ -46,40 +48,111 @@ export default function StepOne({
   const repayment = useFarmerBeanstalkRepayment();
   const fertilizerIds = repayment.fertilizer.fertilizerIds;
 
-  const [selected, setSelected] = useState<string[]>(() => selectedIds.map((item) => item.id.toString()));
-
-  useEffect(() => {
-    const restored: string[] = [];
-    for (const item of selectedIds) {
-      if (fertilizerIds.includes(item.id)) {
-        restored.push(item.id.toString());
-      }
-    }
-    setSelected(restored);
+  // TODO: Get actual balance per fertilizer ID from contract
+  // For now, mock balance of 1 bsFERT per ID
+  const getFertilizerBalance = useCallback((fertId: bigint): bigint => {
+    // Mock: Each fertilizer ID has 1 bsFERT
+    return 1n;
   }, []);
 
-  const handleSelection = useCallback(
-    (value: string[]) => {
-      setSelected(value);
+  // Local state for amount inputs per fertilizer ID
+  const [amounts, setAmounts] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const item of selectedIds) {
+      initial[item.id.toString()] = item.value.toString();
+    }
+    return initial;
+  });
 
-      const items: FertilizerTransferItem[] = value
-        .map((idStr) => {
-          const id = BigInt(idStr);
-          // For now, transfer the full balance (value=1 per ERC-1155 token unit)
-          // The actual balance per ID would come from on-chain data
-          return { id, value: 1n };
-        })
-        .filter((item) => fertilizerIds.includes(item.id));
+  // Track which fertilizers are selected (have amount > 0)
+  const [selected, setSelected] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    for (const item of selectedIds) {
+      if (item.value > 0n) {
+        initial.add(item.id.toString());
+      }
+    }
+    return initial;
+  });
 
-      setSelectedIds(items);
+  const toggleSelection = useCallback(
+    (fertId: bigint) => {
+      const idStr = fertId.toString();
+      setSelected((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(idStr)) {
+          newSet.delete(idStr);
+          // Clear amount when deselecting
+          setAmounts((prevAmounts) => ({ ...prevAmounts, [idStr]: "" }));
+          setSelectedIds((prev) => prev.filter((item) => item.id !== fertId));
+        } else {
+          newSet.add(idStr);
+          // Set default amount of 1 when selecting
+          setAmounts((prevAmounts) => ({ ...prevAmounts, [idStr]: "1" }));
+          setSelectedIds((prev) => [...prev, { id: fertId, value: 1n }]);
+        }
+        return newSet;
+      });
     },
-    [fertilizerIds, setSelectedIds],
+    [setSelectedIds],
+  );
+
+  const handleAmountChange = useCallback(
+    (fertId: bigint, value: string, maxBalance: bigint) => {
+      const idStr = fertId.toString();
+
+      // Validate against max balance
+      let numValue = value === "" ? 0n : BigInt(value);
+      if (numValue > maxBalance) {
+        numValue = maxBalance;
+      }
+
+      const displayValue = numValue === 0n ? "" : numValue.toString();
+      setAmounts((prev) => ({ ...prev, [idStr]: displayValue }));
+
+      // Update selectedIds with the new amount
+      setSelectedIds((prev) => {
+        const existing = prev.find((item) => item.id === fertId);
+        if (numValue === 0n) {
+          // Remove if amount is 0
+          setSelected((prevSelected) => {
+            const newSet = new Set(prevSelected);
+            newSet.delete(idStr);
+            return newSet;
+          });
+          return prev.filter((item) => item.id !== fertId);
+        }
+        // Auto-select if amount is entered
+        setSelected((prevSelected) => new Set(prevSelected).add(idStr));
+        if (existing) {
+          // Update existing
+          return prev.map((item) => (item.id === fertId ? { ...item, value: numValue } : item));
+        }
+        // Add new
+        return [...prev, { id: fertId, value: numValue }];
+      });
+    },
+    [setSelectedIds],
   );
 
   const selectAll = useCallback(() => {
-    const allIds = fertilizerIds.map((id) => id.toString());
-    handleSelection(allIds);
-  }, [fertilizerIds, handleSelection]);
+    const newAmounts: Record<string, string> = {};
+    const newSelectedIds: FertilizerTransferItem[] = [];
+    const newSelected = new Set<string>();
+
+    for (const fertId of fertilizerIds) {
+      const idStr = fertId.toString();
+      // For now, default to 1 bsFERT per ID when selecting all
+      // TODO: Use actual balance per ID from on-chain data
+      newAmounts[idStr] = "1";
+      newSelectedIds.push({ id: fertId, value: 1n });
+      newSelected.add(idStr);
+    }
+
+    setAmounts(newAmounts);
+    setSelectedIds(newSelectedIds);
+    setSelected(newSelected);
+  }, [fertilizerIds, setSelectedIds]);
 
   if (fertilizerIds.length === 0) {
     return (
@@ -96,44 +169,37 @@ export default function StepOne({
           className="font-[340] sm:pr-0 text-[1rem] sm:text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent"
           onClick={selectAll}
         >
-          Select all Fertilizer
+          Select all
         </Button>
       </div>
 
       <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-col gap-4">
-        <Label>Which Fertilizer IDs do you want to send?</Label>
-        <ToggleGroup
-          type="multiple"
-          value={selected}
-          onValueChange={handleSelection}
-          className="flex flex-col w-auto h-auto justify-between gap-2"
-        >
-          <Table>
-            <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
-              {fertilizerIds.map((fertId) => (
-                <ToggleGroupItem
-                  value={fertId.toString()}
-                  aria-label={`Select Fertilizer ID ${fertId.toString()}`}
-                  key={`toggle_fert_${fertId.toString()}`}
-                  asChild
-                >
-                  <TableRow className="h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer">
-                    <TableCell className="text-black font-[400] pr-0">
-                      <div className="flex gap-1">
-                        <CheckmarkCircle isSelected={selected.includes(fertId.toString())} />
-                        <div className="flex items-center gap-1.5">
-                          <div className="pinto-sm sm:pinto-body-light">
-                            Fertilizer ID {formatter.number(Number(fertId))} — 1 bsFERT
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                </ToggleGroupItem>
-              ))}
-            </TableBody>
-          </Table>
-        </ToggleGroup>
+        <Label>Select Fertilizer to send:</Label>
+        <div className="flex flex-col gap-3">
+          {fertilizerIds.map((fertId) => {
+            const idStr = fertId.toString();
+            const amount = amounts[idStr] || "";
+            const isSelected = selected.has(idStr);
+            const maxBalance = getFertilizerBalance(fertId);
+            // TODO: Replace with actual sprouts and humidity data from on-chain
+            const sprouts = "407,287";
+            const humidity = "500%";
+
+            return (
+              <FertilizerCard
+                key={`fert_${idStr}`}
+                fertId={fertId}
+                amount={amount}
+                isSelected={isSelected}
+                maxBalance={maxBalance}
+                sprouts={sprouts}
+                humidity={humidity}
+                onToggleSelection={toggleSelection}
+                onAmountChange={handleAmountChange}
+              />
+            );
+          })}
+        </div>
       </motion.div>
 
       <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-col gap-2">

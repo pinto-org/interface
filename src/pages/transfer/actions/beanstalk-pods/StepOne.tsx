@@ -1,14 +1,11 @@
-import podIcon from "@/assets/protocol/Pod.png";
-import { TokenValue } from "@/classes/TokenValue";
-import CheckmarkCircle from "@/components/CheckmarkCircle";
-import { Button } from "@/components/ui/Button";
-import { Label } from "@/components/ui/Label";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/Table";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/ToggleGroup";
+import PodLineGraph from "@/components/PodLineGraph";
+import { MultiSlider } from "@/components/ui/Slider";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
+import { computeTransferData, offsetToAbsoluteIndex } from "@/utils/podTransferUtils";
 import { Plot } from "@/utils/types";
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PodTransferData } from "../TransferBeanstalkPods";
 
 interface StepOneProps {
@@ -16,111 +13,164 @@ interface StepOneProps {
   setTransferData: Dispatch<SetStateAction<PodTransferData[]>>;
 }
 
-export default function StepOne({ transferData, setTransferData }: StepOneProps) {
-  const [selected, setSelected] = useState<string[]>();
-  const { plots } = useFarmerBeanstalkRepayment().pods;
+function sortPlotsByIndex(plots: Plot[]): Plot[] {
+  return [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
+}
 
+export default function StepOne({ transferData, setTransferData }: StepOneProps) {
+  const { plots } = useFarmerBeanstalkRepayment().pods;
+  const harvestableIndex = useHarvestableIndex();
+
+  const [selectedPlots, setSelectedPlots] = useState<Plot[]>([]);
+  const [podRange, setPodRange] = useState<[number, number]>([0, 0]);
+
+  const mountedRef = useRef(false);
+
+  // Restore selection from existing transferData on mount
   useEffect(() => {
-    const _newPlots: string[] = [];
-    for (const data of transferData) {
-      const _plot = plots.find((plot) => plot.index.eq(data.id));
-      if (_plot) {
-        _newPlots.push(_plot.index.toHuman());
-      }
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+    if (transferData.length === 0) return;
+    const restoredPlots = transferData
+      .map((data) => plots.find((p) => p.index.eq(data.id)))
+      .filter((p): p is Plot => p !== undefined);
+    if (restoredPlots.length > 0) {
+      const sorted = sortPlotsByIndex(restoredPlots);
+      setSelectedPlots(sorted);
+      const total = sorted.reduce((sum, p) => sum + p.pods.toNumber(), 0);
+      setPodRange([0, total]);
     }
-    setSelected(_newPlots);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Total pods across selected plots
+  const totalPods = useMemo(() => {
+    return selectedPlots.reduce((sum, p) => sum + p.pods.toNumber(), 0);
+  }, [selectedPlots]);
+
+  const amount = podRange[1] - podRange[0];
+
+  const selectedPlotIndices = useMemo(() => selectedPlots.map((p) => p.index.toHuman()), [selectedPlots]);
+
+  const positionInfo = useMemo(() => {
+    if (selectedPlots.length === 0) return null;
+    const first = selectedPlots[0];
+    const last = selectedPlots[selectedPlots.length - 1];
+    return {
+      start: first.index.sub(harvestableIndex),
+      end: last.index.add(last.pods).sub(harvestableIndex),
+    };
+  }, [selectedPlots, harvestableIndex]);
+
+  const selectedPodRange = useMemo(() => {
+    if (selectedPlots.length === 0) return undefined;
+    return {
+      start: offsetToAbsoluteIndex(podRange[0], selectedPlots),
+      end: offsetToAbsoluteIndex(podRange[1], selectedPlots),
+    };
+  }, [selectedPlots, podRange]);
+
   const handlePlotSelection = useCallback(
-    (value: string[]) => {
-      // Update selected plots
-      setSelected(value);
+    (newPlots: Plot[]) => {
+      const sorted = sortPlotsByIndex(newPlots);
+      setSelectedPlots(sorted);
 
-      // Get selected plots data
-      const selectedPlots = value
-        .map((plotIndex) => {
-          const plot = plots.find((p) => p.index.toHuman() === plotIndex);
-          return plot;
-        })
-        .filter((plot): plot is Plot => plot !== undefined && !plot.fullyHarvested);
-
-      // If no valid plots selected, clear transfer data
-      if (selectedPlots.length === 0) {
+      if (sorted.length > 0) {
+        const newTotal = sorted.reduce((sum, p) => sum + p.pods.toNumber(), 0);
+        setPodRange([0, newTotal]);
+        setTransferData(computeTransferData(sorted, [0, newTotal]));
+      } else {
+        setPodRange([0, 0]);
         setTransferData([]);
+      }
+    },
+    [setTransferData],
+  );
+
+  const handlePlotGroupSelect = useCallback(
+    (plotIndices: string[]) => {
+      const groupSet = new Set(plotIndices);
+      const plotsInGroup = plots.filter((p) => groupSet.has(p.index.toHuman()));
+      if (plotsInGroup.length === 0) return;
+
+      const selectedSet = new Set(selectedPlots.map((p) => p.index.toHuman()));
+      const allSelected = plotIndices.every((idx) => selectedSet.has(idx));
+
+      if (allSelected) {
+        handlePlotSelection(selectedPlots.filter((p) => !groupSet.has(p.index.toHuman())));
         return;
       }
 
-      // Create plot transfer data
-      const transferData = selectedPlots.map((plot) => {
-        return {
-          id: plot.index,
-          start: TokenValue.ZERO,
-          end: plot.pods,
-        };
-      });
-
-      // Update transfer data
-      setTransferData(transferData);
+      const newPlots = [...selectedPlots];
+      for (const plotToAdd of plotsInGroup) {
+        if (!selectedSet.has(plotToAdd.index.toHuman())) {
+          newPlots.push(plotToAdd);
+        }
+      }
+      handlePlotSelection(newPlots);
     },
-    [plots, setTransferData],
+    [plots, selectedPlots, handlePlotSelection],
   );
 
-  const selectAllPlots = useCallback(() => {
-    const plotIndexes = plots.map((plot) => plot.index.toHuman());
-    handlePlotSelection(plotIndexes);
-  }, [plots, handlePlotSelection]);
+  const handlePodRangeChange = useCallback(
+    (value: number[]) => {
+      const newRange: [number, number] = [value[0], value[1]];
+      setPodRange(newRange);
+      setTransferData(computeTransferData(selectedPlots, newRange));
+    },
+    [selectedPlots, setTransferData],
+  );
 
   return (
-    <>
-      <div className="flex flex-row justify-end -mt-[3.5rem] sm:-mt-[5rem]">
-        <Button
-          className={`font-[340] sm:pr-0 text-[1rem] sm:text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
-          onClick={() => selectAllPlots()}
-        >
-          Select all Plots
-        </Button>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
+        <PodLineGraph
+          selectedPlotIndices={selectedPlotIndices}
+          selectedPodRange={selectedPodRange}
+          label="My Pods In Line"
+          onPlotGroupSelect={handlePlotGroupSelect}
+          className="h-24"
+        />
+
+        {positionInfo && (
+          <div className="flex justify-center">
+            <p className="pinto-body text-pinto-light">
+              {positionInfo.start.toHuman("short")} - {positionInfo.end.toHuman("short")}
+            </p>
+          </div>
+        )}
       </div>
-      <div className="flex flex-col gap-4">
-        <Label>Which Plots do you want to send?</Label>
-        <ToggleGroup
-          type="multiple"
-          value={selected}
-          onValueChange={handlePlotSelection}
-          className="flex flex-col w-auto h-auto justify-between gap-2"
-        >
-          <Table>
-            <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
-              {plots
-                .filter((plot) => plot.unharvestablePods?.gt(0))
-                .map((plot) => (
-                  <ToggleGroupItem
-                    value={plot.index.toHuman()}
-                    aria-label={`Select Plot ${plot.index.toHuman()}`}
-                    key={`toggle_${plot.index.toHuman()}`}
-                    asChild
-                  >
-                    <TableRow className="h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer">
-                      <TableCell className="text-black font-[400] pr-0">
-                        <div className="flex gap-1">
-                          <CheckmarkCircle isSelected={selected?.includes(plot.index.toHuman())} />
-                          <div className="flex items-center gap-1.5">
-                            <img src={podIcon} className="h-6 w-6" alt="Pods" />
-                            <div className="pinto-sm sm:pinto-body-light">
-                              {formatter.number(plot.unharvestablePods ?? plot.pods, {
-                                minValue: 0.01,
-                              })}{" "}
-                              Pods
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  </ToggleGroupItem>
-                ))}
-            </TableBody>
-          </Table>
-        </ToggleGroup>
-      </div>
-    </>
+
+      {totalPods > 0 && (
+        <div className="flex justify-between items-center p-4 bg-pinto-gray-1 rounded-lg">
+          <p className="pinto-body text-pinto-light">Total Pods to send:</p>
+          <p className="pinto-body font-semibold">{formatter.noDec(amount)} Pods</p>
+        </div>
+      )}
+
+      {selectedPlots.length > 0 && (
+        <div className="flex flex-col gap-3 animate-fade-in">
+          <div className="flex items-center gap-4 w-full">
+            <p className="pinto-body text-pinto-light whitespace-nowrap">Select Pods</p>
+            <div className="flex items-center gap-3 flex-1 p-4">
+              <p className="pinto-body text-pinto-light w-[60px] text-right">{formatter.noDec(podRange[0])}</p>
+              <div className="flex-1">
+                {totalPods > 0 && (
+                  <MultiSlider
+                    value={podRange}
+                    onValueChange={handlePodRangeChange}
+                    step={1}
+                    min={0}
+                    max={totalPods}
+                    className="w-full"
+                  />
+                )}
+              </div>
+              <p className="pinto-body text-pinto-light w-[60px] text-right">{formatter.noDec(podRange[1])}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

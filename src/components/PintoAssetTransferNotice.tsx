@@ -76,9 +76,26 @@ export default function PintoAssetTransferNotice({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="text-2xl"
+            className="flex flex-col gap-8"
           >
-            Note: be sure recipient address is intended.
+            <p className="text-2xl">Note: be sure recipient address is intended.</p>
+            <div className="flex flex-row gap-3 items-center">
+              <Checkbox
+                id="wallet-balance-notice"
+                className="bg-white text-pinto-green-4"
+                checked={transferNotice}
+                onCheckedChange={(checked) => {
+                  if (checked !== "indeterminate") {
+                    setTransferNotice(checked);
+                  } else {
+                    setTransferNotice(false);
+                  }
+                }}
+              />
+              <Label htmlFor="wallet-balance-notice" className="text-sm font-medium cursor-pointer text-yellow-900">
+                I acknowledge the recipient address is correct
+              </Label>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
