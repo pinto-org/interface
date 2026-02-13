@@ -4,7 +4,7 @@ import { BARN_PAYBACK_ADDRESS, SILO_PAYBACK_ADDRESS } from "@/constants/address"
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAccount, useChainId } from "wagmi";
 import BeanstalkFertilizerSection from "./BeanstalkFertilizerSection";
@@ -24,6 +24,15 @@ const BeanstalkObligationsCard: React.FC = () => {
 
   const isConnected = !!account.address;
   const showDisabled = !isConnected || isError;
+
+  // Total bsFERT token count from per-ID ERC1155 balances
+  const totalBsFert = useMemo(() => {
+    let total = 0n;
+    for (const detail of fertilizer.perIdData.values()) {
+      total += detail.balance;
+    }
+    return total;
+  }, [fertilizer.perIdData]);
 
   // Transaction hook for claim operations
   const { writeWithEstimateGas, setSubmitting } = useTransaction({
@@ -143,7 +152,7 @@ const BeanstalkObligationsCard: React.FC = () => {
           onSend={handleSendPods}
         />
         <BeanstalkFertilizerSection
-          balance={fertilizer.balance}
+          tokenCount={totalBsFert}
           isLoading={isConnected && isLoading}
           disabled={showDisabled}
           onRinse={handleRinseFert}

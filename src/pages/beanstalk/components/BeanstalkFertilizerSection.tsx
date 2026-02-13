@@ -1,9 +1,8 @@
-import { TokenValue } from "@/classes/TokenValue";
 import BeanstalkStatField from "@/components/BeanstalkStatField";
 import { formatter } from "@/utils/format";
 
 interface BeanstalkFertilizerSectionProps {
-  balance: TokenValue;
+  tokenCount: bigint;
   isLoading: boolean;
   disabled?: boolean;
   onRinse?: () => void;
@@ -11,21 +10,21 @@ interface BeanstalkFertilizerSectionProps {
 }
 
 /**
- * Section component displaying fertilizer balance
+ * Section component displaying fertilizer token count (bsFERT ERC1155 balance)
  */
 const BeanstalkFertilizerSection: React.FC<BeanstalkFertilizerSectionProps> = ({
-  balance,
+  tokenCount,
   isLoading,
   disabled = false,
   onRinse,
   onSend,
 }) => {
-  const hasBalance = !balance.isZero;
+  const hasBalance = tokenCount > 0n;
 
   return (
     <BeanstalkStatField
       title="My Beanstalk Fertilizer"
-      value={formatter.number(balance, { minDecimals: 2, maxDecimals: 2 })}
+      value={`${formatter.number(Number(tokenCount))} bsFERT`}
       isLoading={isLoading}
       disabled={disabled}
       actions={[
