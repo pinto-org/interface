@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { type Address, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWalletClient } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import FinalStep from "./all/FinalStep";
 import StepOne from "./all/StepOne";
 
@@ -48,8 +48,6 @@ export default function TransferAll() {
     return false;
   }, [repayment.fertilizer.perIdData]);
 
-  const { data: walletClient } = useWalletClient();
-
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -58,15 +56,6 @@ export default function TransferAll() {
   }, [destination]);
 
   const { writeWithEstimateGas, setSubmitting } = useTransaction({
-    successCallback: () => {
-      for (const queryKey of farmerSilo.queryKeys) {
-        queryClient.invalidateQueries({ queryKey });
-      }
-      farmerBalances.refetch();
-      farmerField.refetch();
-      repayment.refetch();
-      navigate("/transfer");
-    },
     successMessage: "Transfer success",
     errorMessage: "Transfer failed",
   });
@@ -160,7 +149,7 @@ export default function TransferAll() {
       // Beanstalk Repayment Fertilizer — direct ERC1155 transfer (not via farm)
       // BarnPayback is a separate contract; calling via farm() makes diamond the msg.sender
       // which requires the user to have approved diamond. Direct call avoids this.
-      if (hasBeanstalkFert && walletClient) {
+      if (hasBeanstalkFert) {
         const fertIds: bigint[] = [];
         const fertValues: bigint[] = [];
         for (const [idStr, detail] of repayment.fertilizer.perIdData) {
@@ -171,23 +160,9 @@ export default function TransferAll() {
         }
         if (fertIds.length > 0) {
           toast.loading("Transferring bsFERT...");
-          await walletClient.writeContract({
+          await writeWithEstimateGas({
             address: BARN_PAYBACK_ADDRESS as Address,
-            abi: [
-              {
-                inputs: [
-                  { name: "from", type: "address" },
-                  { name: "to", type: "address" },
-                  { name: "ids", type: "uint256[]" },
-                  { name: "amounts", type: "uint256[]" },
-                  { name: "data", type: "bytes" },
-                ],
-                name: "safeBatchTransferFrom",
-                outputs: [],
-                stateMutability: "nonpayable",
-                type: "function",
-              },
-            ] as const,
+            abi: abiSnippets.barnPayback,
             functionName: "safeBatchTransferFrom",
             args: [account.address, destination as Address, fertIds, fertValues, "0x"],
           });
@@ -195,15 +170,24 @@ export default function TransferAll() {
       }
 
       // urBDV transfer is a separate contract call (not via farm())
-      if (hasBeanstalkSilo && walletClient) {
+      if (hasBeanstalkSilo) {
         toast.loading("Transferring urBDV...");
-        await walletClient.writeContract({
+        await writeWithEstimateGas({
           address: SILO_PAYBACK_ADDRESS as Address,
           abi: abiSnippets.siloPayback,
           functionName: "transfer",
           args: [destination as Address, repayment.silo.balance.toBigInt()],
         });
       }
+
+      // All transfers complete — invalidate caches and navigate
+      for (const queryKey of farmerSilo.queryKeys) {
+        queryClient.invalidateQueries({ queryKey });
+      }
+      farmerBalances.refetch();
+      farmerField.refetch();
+      repayment.refetch();
+      navigate("/transfer");
     } catch (e) {
       console.error(e);
       toast.dismiss();

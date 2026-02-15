@@ -521,6 +521,19 @@ const barnPayback = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [
+      { internalType: "address", name: "from", type: "address" },
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256[]", name: "ids", type: "uint256[]" },
+      { internalType: "uint256[]", name: "amounts", type: "uint256[]" },
+      { internalType: "bytes", name: "data", type: "bytes" },
+    ],
+    name: "safeBatchTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
 
 const contractPayback = [

@@ -6,18 +6,15 @@ import { PublicClient, parseAbiItem } from "viem";
 import { usePublicClient, useReadContract } from "wagmi";
 
 /**
- * BarnPayback kontratından tüm aktif fertilizer ID'lerini çeken hook.
+ * Hook that fetches all active fertilizer IDs from the BarnPayback contract.
  *
- * Strateji:
- *   1. fert() çağır → fertFirst, fertLast, activeFertilizer al
- *   2. activeFertilizer == 0 && fertFirst == 0 ise → hiç fertilizer yok, çık
- *   3. BarnPayback kontratının TransferSingle/TransferBatch eventlerinden benzersiz ID'leri topla
- *
- * NOT: Diamond'da getFirst()/getNext() yok.
- *      Linked list BarnPayback'in kendi içinde ama getNext() public getter olarak expose edilmemiş.
- *      Bu yüzden event scan kullanıyoruz.
+ * Strategy:
+ *   1. Call fert() → get fertFirst, fertLast, activeFertilizer
+ *   2. If activeFertilizer == 0 && fertFirst == 0 → no fertilizers exist, bail out
+ *   3. Collect unique IDs from TransferSingle/TransferBatch events on the BarnPayback contract
  */
 
+const DEPLOYMENT_BLOCK = 42040733n;
 const BARN_PAYBACK = BARN_PAYBACK_ADDRESS as `0x${string}`;
 
 const transferSingleEvent = parseAbiItem(
@@ -47,7 +44,7 @@ async function fetchFertilizerIds(publicClient: PublicClient): Promise<bigint[]>
   const singleLogs = await publicClient.getLogs({
     address: BARN_PAYBACK,
     event: transferSingleEvent,
-    fromBlock: "earliest",
+    fromBlock: DEPLOYMENT_BLOCK,
     toBlock: "latest",
   });
 
@@ -61,7 +58,7 @@ async function fetchFertilizerIds(publicClient: PublicClient): Promise<bigint[]>
   const batchLogs = await publicClient.getLogs({
     address: BARN_PAYBACK,
     event: transferBatchEvent,
-    fromBlock: "earliest",
+    fromBlock: DEPLOYMENT_BLOCK,
     toBlock: "latest",
   });
 
