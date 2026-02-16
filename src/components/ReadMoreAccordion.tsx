@@ -1,5 +1,5 @@
 import { cn } from "@/utils/utils";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Col } from "./Container";
 
@@ -26,20 +26,21 @@ export default function ReadMoreAccordion({
   if (inline) {
     return (
       <span>
-        <motion.span
-          initial={{ height: defaultOpen ? "auto" : 0, opacity: defaultOpen ? 1 : 0 }}
-          animate={{
-            height: open ? "auto" : 0,
-            opacity: open ? 1 : 0,
-          }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-          className={cn(
-            "inline-block overflow-hidden text-pinto-light sm:text-pinto-light pinto-sm-light sm:pinto-body-light leading-[140%] sm:leading-[140%]",
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.span
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className={cn(
+                "inline-block overflow-hidden align-top text-pinto-light sm:text-pinto-light pinto-sm-light sm:pinto-body-light leading-[140%] sm:leading-[140%]",
+              )}
+            >
+              <span> {children}</span>
+            </motion.span>
           )}
-        >
-          {open && <span> {children}</span>}
-        </motion.span>
+        </AnimatePresence>
         <span onClick={handleToggle} className="cursor-pointer pinto-body-light text-pinto-green">
           {open ? " Read less" : " Read more"}
         </span>

@@ -16,7 +16,9 @@ const Beanstalk = () => {
             <div className="pinto-h2 sm:pinto-h1">Beanstalk Obligations</div>
             <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
               Beanstalk Debt issued by Pinto.
-              <ReadMoreAccordion inline>
+            </div>
+            <ReadMoreAccordion>
+              <span>
                 Beanstalk participants at the time of Pinto launch were issued assets based on their holdings. A portion
                 of new Pinto mints go towards repaying these obligations across Beanstalk Silo Tokens, Pods, and
                 Fertilizer.{" "}
@@ -28,13 +30,13 @@ const Beanstalk = () => {
                 >
                   Learn more
                 </Link>
-              </ReadMoreAccordion>
-            </div>
+              </span>
+            </ReadMoreAccordion>
           </div>
           <Separator />
 
           {/* Main Cards - Two Column Layout */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 sm:items-stretch">
+          <div className="grid grid-cols-1 sm:grid-cols-[7fr_3fr] gap-4 sm:gap-6 sm:items-stretch justify-center">
             {/* Left Panel - Obligations Card */}
             <Card className="p-4 sm:p-6 h-full">
               <BeanstalkObligationsCard />

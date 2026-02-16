@@ -6,6 +6,7 @@ import { formatter } from "@/utils/format";
 interface BeanstalkSiloSectionProps {
   balance: TokenValue;
   earned: TokenValue;
+  totalDistributed: TokenValue;
   isLoading: boolean;
   disabled?: boolean;
   onClaim?: () => void;
@@ -14,11 +15,12 @@ interface BeanstalkSiloSectionProps {
 
 /**
  * Section component displaying urBDV token balance for Silo Payback
- * Shows earned (claimable) as primary value, total urBDV balance as secondary
+ * Shows total balance as primary value, earned (claimable) as secondary
  */
 const BeanstalkSiloSection: React.FC<BeanstalkSiloSectionProps> = ({
   balance,
   earned,
+  totalDistributed,
   isLoading,
   disabled = false,
   onClaim,
@@ -26,6 +28,10 @@ const BeanstalkSiloSection: React.FC<BeanstalkSiloSectionProps> = ({
 }) => {
   const hasBalance = !balance.isZero;
   const hasEarned = !earned.isZero;
+
+  const sharePercent = totalDistributed.gt(0)
+    ? ((balance.toNumber() / totalDistributed.toNumber()) * 100).toFixed(2)
+    : "0.00";
 
   return (
     <BeanstalkStatField
@@ -40,15 +46,17 @@ const BeanstalkSiloSection: React.FC<BeanstalkSiloSectionProps> = ({
     >
       <TextSkeleton loading={isLoading} height="body" className="w-24">
         {disabled ? (
-          <span className="text-pinto-light pinto-body-light">N/A</span>
+          <span className="text-pinto-light pinto-sm sm:pinto-body-light">N/A</span>
         ) : (
           <div className="flex flex-col gap-0.5">
-            <div className="pinto-body-light">
-              {formatter.number(earned, { minDecimals: 2, maxDecimals: 2 })}
-              <span className="text-pinto-light pinto-sm ml-1">earned</span>
+            <div className="pinto-sm sm:pinto-body-light">
+              {formatter.number(balance, { minDecimals: 2, maxDecimals: 2 })}
+              <span className="text-pinto-light pinto-sm sm:pinto-body-light ml-1">
+                Beanstalk Silo Tokens ({sharePercent}%)
+              </span>
             </div>
-            <div className="pinto-sm text-pinto-light">
-              {formatter.number(balance, { minDecimals: 2, maxDecimals: 2 })} urBDV total
+            <div className="pinto-sm sm:pinto-body-light text-pinto-light">
+              {formatter.number(earned, { minDecimals: 2, maxDecimals: 2 })} Earned
             </div>
           </div>
         )}

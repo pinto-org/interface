@@ -10,7 +10,6 @@ import { type Address, encodeFunctionData } from "viem";
 import { useAccount, useChainId } from "wagmi";
 import FinalStep from "./pods/FinalStep";
 import StepOne from "./pods/StepOne";
-import StepTwo from "./pods/StepTwo";
 
 export interface PodTransferData {
   id: TokenValue;
@@ -37,9 +36,7 @@ export default function TransferPods() {
   const stepDescription = () => {
     switch (step) {
       case 1:
-        return "Select Plots";
-      case 2:
-        return "Enter address";
+        return "Select Pinto Plots";
       default:
         return "Confirm send";
     }
@@ -48,9 +45,7 @@ export default function TransferPods() {
   const enableNextStep = () => {
     switch (step) {
       case 1:
-        return transferData.length > 0;
-      case 2:
-        return !!destination && transferNotice;
+        return transferData.length > 0 && !!destination && transferNotice;
       default:
         return true;
     }
@@ -115,16 +110,16 @@ export default function TransferPods() {
     <FlowForm
       stepNumber={step}
       setStep={setStep}
-      totalSteps={3}
+      totalSteps={2}
       enableNextStep={enableNextStep()}
       onSubmit={onSubmit}
       stepDescription={stepDescription()}
       disableTopSeparator={step === 1}
     >
       {step === 1 ? (
-        <StepOne transferData={transferData} setTransferData={setTransferData} />
-      ) : step === 2 ? (
-        <StepTwo
+        <StepOne
+          transferData={transferData}
+          setTransferData={setTransferData}
           destination={destination}
           setDestination={setDestination}
           transferNotice={transferNotice}

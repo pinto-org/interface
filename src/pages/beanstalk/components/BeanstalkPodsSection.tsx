@@ -13,6 +13,7 @@ interface BeanstalkPodsSectionProps {
   disabled?: boolean;
   onHarvest?: () => void;
   onSend?: () => void;
+  onMarket?: () => void;
 }
 
 /**
@@ -28,6 +29,7 @@ const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
   disabled = false,
   onHarvest,
   onSend,
+  onMarket,
 }) => {
   const hasPlots = plots.length > 0;
   const hasPods = !totalPods.isZero;
@@ -41,6 +43,7 @@ const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
       disabled={disabled}
       actions={[
         { label: "Harvest", onClick: onHarvest, disabled: !hasHarvestablePods },
+        { label: "Buy/Sell", onClick: onMarket },
         { label: "Send", onClick: onSend, disabled: !hasPods },
       ]}
     >
@@ -50,7 +53,7 @@ const BeanstalkPodsSection: React.FC<BeanstalkPodsSectionProps> = ({
         <div className={showDisabledGraph ? "opacity-50 pointer-events-none" : ""}>
           <PodLineGraph
             plots={plots}
-            disableInteractions={true}
+            disableInteractions={false}
             label=""
             customHarvestableIndex={harvestableIndex}
             customPodIndex={podIndex}

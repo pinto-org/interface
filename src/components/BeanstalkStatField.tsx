@@ -32,7 +32,7 @@ const BeanstalkStatField: React.FC<BeanstalkStatFieldProps> = ({
   return (
     <div className={`flex flex-col gap-1 ${disabled ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between">
-        <div className="pinto-sm text-pinto-light">{title}</div>
+        <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">{title}</div>
         {actions && actions.length > 0 && (
           <div className="flex items-center gap-3">
             {actions.map((action) => (
@@ -43,6 +43,7 @@ const BeanstalkStatField: React.FC<BeanstalkStatFieldProps> = ({
                 noPadding
                 onClick={action.onClick}
                 disabled={disabled || action.disabled}
+                className="pinto-sm sm:pinto-body-light"
               >
                 {action.label}
               </Button>
@@ -54,7 +55,9 @@ const BeanstalkStatField: React.FC<BeanstalkStatFieldProps> = ({
         children
       ) : (
         <TextSkeleton loading={isLoading} height="body" className="w-24">
-          <div className="pinto-body-light">{disabled ? <span className="text-pinto-light">N/A</span> : value}</div>
+          <div className="pinto-sm sm:pinto-body-light">
+            {disabled ? <span className="text-pinto-light">N/A</span> : value}
+          </div>
         </TextSkeleton>
       )}
     </div>

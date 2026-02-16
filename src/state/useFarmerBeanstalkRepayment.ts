@@ -3,6 +3,7 @@ import { abiSnippets } from "@/constants/abiSnippets";
 import { BARN_PAYBACK_ADDRESS, SILO_PAYBACK_ADDRESS, ZERO_ADDRESS } from "@/constants/address";
 import { BSFERT, PODS } from "@/constants/internalTokens";
 import { defaultQuerySettings } from "@/constants/query";
+import { PINTO } from "@/constants/tokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useAllFertilizerIds } from "@/hooks/useAllFertilizerIds";
@@ -351,8 +352,8 @@ export function useFarmerBeanstalkRepayment(): FarmerBeanstalkRepaymentData {
     const fertilizedResult = fertilizerQuery.data?.[0]?.result;
     const unfertilizedResult = fertilizerQuery.data?.[1]?.result;
 
-    const fertilized = TokenValue.fromBlockchain(fertilizedResult ?? 0n, BSFERT.decimals);
-    const unfertilized = TokenValue.fromBlockchain(unfertilizedResult ?? 0n, BSFERT.decimals);
+    const fertilized = TokenValue.fromBlockchain(fertilizedResult ?? 0n, PINTO.decimals);
+    const unfertilized = TokenValue.fromBlockchain(unfertilizedResult ?? 0n, PINTO.decimals);
     // Total balance is the sum of fertilized + unfertilized
     const balance = fertilized.add(unfertilized);
 

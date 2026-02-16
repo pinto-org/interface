@@ -1,22 +1,37 @@
+import AddressInputField from "@/components/AddressInputField";
+import PintoAssetTransferNotice from "@/components/PintoAssetTransferNotice";
 import PodLineGraph from "@/components/PodLineGraph";
+import { Label } from "@/components/ui/Label";
 import { MultiSlider } from "@/components/ui/Slider";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { formatter } from "@/utils/format";
 import { computeTransferData, offsetToAbsoluteIndex } from "@/utils/podTransferUtils";
 import { Plot } from "@/utils/types";
+import { AnimatePresence, motion } from "framer-motion";
 import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PodTransferData } from "../TransferBeanstalkPods";
 
 interface StepOneProps {
   transferData: PodTransferData[];
   setTransferData: Dispatch<SetStateAction<PodTransferData[]>>;
+  destination: string | undefined;
+  setDestination: Dispatch<SetStateAction<string | undefined>>;
+  transferNotice: boolean;
+  setTransferNotice: Dispatch<SetStateAction<boolean>>;
 }
 
 function sortPlotsByIndex(plots: Plot[]): Plot[] {
   return [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
 }
 
-export default function StepOne({ transferData, setTransferData }: StepOneProps) {
+export default function StepOne({
+  transferData,
+  setTransferData,
+  destination,
+  setDestination,
+  transferNotice,
+  setTransferNotice,
+}: StepOneProps) {
   const repaymentPods = useFarmerBeanstalkRepayment().pods;
   const { plots, harvestableIndex, podIndex } = repaymentPods;
 
@@ -121,15 +136,16 @@ export default function StepOne({ transferData, setTransferData }: StepOneProps)
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
+        <Label>My Pods In Line</Label>
         <PodLineGraph
           plots={plots}
           customHarvestableIndex={harvestableIndex}
           customPodIndex={podIndex}
           selectedPlotIndices={selectedPlotIndices}
           selectedPodRange={selectedPodRange}
-          label="My Pods In Line"
+          label=""
           onPlotGroupSelect={handlePlotGroupSelect}
           className="h-24"
         />
@@ -173,6 +189,32 @@ export default function StepOne({ transferData, setTransferData }: StepOneProps)
           </div>
         </div>
       )}
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        className="flex flex-col gap-2"
+      >
+        <Label>Send to</Label>
+        <AddressInputField value={destination} setValue={setDestination} />
+        <AnimatePresence>
+          {destination && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PintoAssetTransferNotice
+                transferNotice={transferNotice}
+                setTransferNotice={setTransferNotice}
+                customDestinationText="Pods"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

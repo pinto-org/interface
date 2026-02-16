@@ -998,15 +998,17 @@ export function Market() {
                 Buy and sell Pods on the open market.
               </div>
             </div>
-            <ReadMoreAccordion defaultOpen={false} inline>
-              The Pod Market is a decentralized marketplace where users can trade Pods, which are protocol-native debt
-              instruments that represent future Pinto tokens. When you buy Pods, you're essentially purchasing the right
-              to redeem them for Pinto tokens at a fixed rate when they become harvestable. The market operates on a
-              first-in-first-out (FIFO) basis, meaning the oldest Pods become harvestable first. You can place buy
-              orders to acquire Pods at a specific price, or create listings to sell your existing Pods to other users.
-              The scatter chart above visualizes all active orders and listings, showing their place in line and price
-              per Pod. This allows you to see market depth and make informed trading decisions based on current market
-              conditions and your investment strategy.
+            <ReadMoreAccordion defaultOpen={false}>
+              <span>
+                The Pod Market is a decentralized marketplace where users can trade Pods, which are protocol-native debt
+                instruments that represent future Pinto tokens. When you buy Pods, you're essentially purchasing the
+                right to redeem them for Pinto tokens at a fixed rate when they become harvestable. The market operates
+                on a first-in-first-out (FIFO) basis, meaning the oldest Pods become harvestable first. You can place
+                buy orders to acquire Pods at a specific price, or create listings to sell your existing Pods to other
+                users. The scatter chart above visualizes all active orders and listings, showing their place in line
+                and price per Pod. This allows you to see market depth and make informed trading decisions based on
+                current market conditions and your investment strategy.
+              </span>
             </ReadMoreAccordion>
           </Col>
           <Separator />

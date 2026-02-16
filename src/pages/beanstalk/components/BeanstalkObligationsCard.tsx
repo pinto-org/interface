@@ -3,6 +3,7 @@ import { abiSnippets } from "@/constants/abiSnippets";
 import { BARN_PAYBACK_ADDRESS, SILO_PAYBACK_ADDRESS } from "@/constants/address";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
+import { useBeanstalkGlobalStats } from "@/state/useBeanstalkGlobalStats";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +22,7 @@ const BeanstalkObligationsCard: React.FC = () => {
   const chainId = useChainId();
   const navigate = useNavigate();
   const { silo, pods, fertilizer, isLoading, isError, refetch } = useFarmerBeanstalkRepayment();
+  const globalStats = useBeanstalkGlobalStats();
 
   const isConnected = !!account.address;
   const showDisabled = !isConnected || isError;
@@ -119,6 +121,10 @@ const BeanstalkObligationsCard: React.FC = () => {
     navigate("/transfer/beanstalk-pods");
   };
 
+  const handleMarketPods = () => {
+    navigate("/market/pods/buy/fill");
+  };
+
   const handleSendFertilizer = () => {
     navigate("/transfer/beanstalk-fertilizer");
   };
@@ -136,6 +142,7 @@ const BeanstalkObligationsCard: React.FC = () => {
         <BeanstalkSiloSection
           balance={silo.balance}
           earned={silo.earned}
+          totalDistributed={silo.totalDistributed}
           isLoading={isConnected && isLoading}
           disabled={showDisabled}
           onClaim={handleClaimSilo}
@@ -150,9 +157,13 @@ const BeanstalkObligationsCard: React.FC = () => {
           disabled={showDisabled}
           onHarvest={handleHarvestPods}
           onSend={handleSendPods}
+          onMarket={handleMarketPods}
         />
         <BeanstalkFertilizerSection
           tokenCount={totalBsFert}
+          fertilized={fertilizer.fertilized}
+          unfertilized={fertilizer.unfertilized}
+          totalUnfertilizedSprouts={globalStats.totalUnfertilizedSprouts}
           isLoading={isConnected && isLoading}
           disabled={showDisabled}
           onRinse={handleRinseFert}
