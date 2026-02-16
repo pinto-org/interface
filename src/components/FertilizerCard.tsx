@@ -40,11 +40,11 @@ export default function FertilizerCard({
       {/* Fertilizer info */}
       <div className="flex-1 flex flex-col gap-1">
         <div className="pinto-body font-[500] text-black">
-          {formatter.number(Number(maxBalance))} bsFERT
-          <span className="pinto-sm text-pinto-gray-3 ml-1.5">ID {formatter.number(Number(fertId))}</span>
+          {sprouts} Sprouts
+          <span className="pinto-sm text-pinto-gray-3 ml-1.5">Humidity: {humidity}</span>
         </div>
         <div className="pinto-sm text-pinto-gray-4">
-          Sprouts: {sprouts} · Humidity: {humidity}
+          {formatter.number(Number(maxBalance))} bsFERT - ID {formatter.number(Number(fertId))}
         </div>
       </div>
 
