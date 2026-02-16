@@ -4,6 +4,7 @@ import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { AllPodOrdersQuery } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -29,6 +30,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
   const diamondAddress = useProtocolAddress();
   const { queryKeys: balanceQKs } = useFarmerBalances();
   const account = useAccount();
+  const { fieldId } = useBeanstalkMarket();
   const navigate = useNavigate();
 
   const [mode, toFarm, setMode] = useFarmTogglePreference();
@@ -71,7 +73,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
         args: [
           {
             orderer: account.address, // account
-            fieldId: 0n, // fieldId
+            fieldId: fieldId, // fieldId
             pricePerPod, // pricePerPod
             maxPlaceInLine, // maxPlaceInLine
             minFillAmount, // minFillAmount
@@ -87,7 +89,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [order, diamondAddress, account, toFarm, mainToken, setSubmitting, writeWithEstimateGas]);
+  }, [order, diamondAddress, account, fieldId, toFarm, mainToken, setSubmitting, writeWithEstimateGas]);
 
   return (
     <>

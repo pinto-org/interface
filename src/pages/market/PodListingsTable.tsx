@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import usePodListings from "@/state/market/usePodListings";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
@@ -17,8 +18,9 @@ import { useNavigate, useParams } from "react-router-dom";
 export function PodListingsTable() {
   const { id: selectedListing } = useParams();
   const BEAN = useTokenData().mainToken;
+  const { podMarketplaceId } = useBeanstalkMarket();
 
-  const podListingsQuery = usePodListings();
+  const podListingsQuery = usePodListings(podMarketplaceId);
   const podListings = podListingsQuery.data?.podListings;
   const harvestableIndex = useHarvestableIndex();
 

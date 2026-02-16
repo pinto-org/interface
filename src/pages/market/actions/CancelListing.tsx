@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { AllPodListingsQuery } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -21,6 +22,7 @@ export default function CancelListing({ listing }: CancelListingProps) {
   const diamondAddress = useProtocolAddress();
   const account = useAccount();
   const harvestableIndex = useHarvestableIndex();
+  const { fieldId } = useBeanstalkMarket();
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
@@ -50,7 +52,7 @@ export default function CancelListing({ listing }: CancelListingProps) {
         abi: beanstalkAbi,
         functionName: "cancelPodListing",
         args: [
-          0n, // fieldId
+          fieldId, // fieldId
           TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(), // index
         ],
       });
@@ -62,7 +64,7 @@ export default function CancelListing({ listing }: CancelListingProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [listing, diamondAddress, setSubmitting, writeWithEstimateGas]);
+  }, [listing, diamondAddress, fieldId, setSubmitting, writeWithEstimateGas]);
 
   return (
     <>

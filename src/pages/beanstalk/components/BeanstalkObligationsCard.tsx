@@ -122,7 +122,7 @@ const BeanstalkObligationsCard: React.FC = () => {
   };
 
   const handleMarketPods = () => {
-    navigate("/market/pods/buy/fill");
+    navigate("/market/pods/buy/fill?beanstalk=true");
   };
 
   const handleSendFertilizer = () => {

@@ -10,19 +10,22 @@ import { useChainId } from "wagmi";
 import { useHarvestableIndex } from "../useFieldData";
 import { useQueryKeys } from "../useQueryKeys";
 
-export default function usePodListings() {
+export default function usePodListings(podMarketplaceId?: string) {
   const chainId = useChainId();
   const harvestableIndex = useHarvestableIndex();
 
   const { allPodListings: queryKey } = useQueryKeys({ chainId, harvestableIndex });
 
   const podListings = useQuery({
-    queryKey: queryKey,
-    queryFn: async () =>
-      request(subgraphs[chainId].beanstalk, AllPodListingsDocument, {
+    queryKey: [...queryKey, { podMarketplaceId }],
+    queryFn: async () => {
+      const variables: { maxHarvestableIndex: string; skip: number; podMarketplace?: string } = {
         maxHarvestableIndex: harvestableIndex.toBigInt().toString(),
         skip: 0,
-      }),
+      };
+      if (podMarketplaceId) variables.podMarketplace = podMarketplaceId;
+      return request(subgraphs[chainId].beanstalk, AllPodListingsDocument, variables);
+    },
     enabled: harvestableIndex.gt(0),
   });
 

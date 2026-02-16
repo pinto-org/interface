@@ -1,6 +1,7 @@
 import AddressInputField from "@/components/AddressInputField";
 import PintoAssetTransferNotice from "@/components/PintoAssetTransferNotice";
 import PodLineGraph from "@/components/PodLineGraph";
+import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { MultiSlider } from "@/components/ui/Slider";
 import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
@@ -9,6 +10,7 @@ import { computeTransferData, offsetToAbsoluteIndex } from "@/utils/podTransferU
 import { Plot } from "@/utils/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { PodTransferData } from "../TransferBeanstalkPods";
 
 interface StepOneProps {
@@ -137,6 +139,14 @@ export default function StepOne({
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex gap-2">
+        <Button asChild variant="outline">
+          <Link to="/market/pods/buy/fill?beanstalk=true">Buy on Market</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/market/pods/sell/create?beanstalk=true">Sell on Market</Link>
+        </Button>
+      </div>
       <div className="flex flex-col gap-3">
         <Label>My Pods In Line</Label>
         <PodLineGraph

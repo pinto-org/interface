@@ -5,6 +5,7 @@ query AllPodListings(
   $status: MarketStatus = ACTIVE
   $maxHarvestableIndex: BigInt!
   $skip: Int = 0
+  $podMarketplace: String
 ) {
   podListings(
     first: $first
@@ -13,6 +14,7 @@ query AllPodListings(
       status: $status
       maxHarvestableIndex_gt: $maxHarvestableIndex
       remainingAmount_gt: "100000" # = 0.10 Pods. hides dust pods.
+      podMarketplace: $podMarketplace
     }
     orderBy: index # index of the listed plot
     orderDirection: asc # start from earliest listings
