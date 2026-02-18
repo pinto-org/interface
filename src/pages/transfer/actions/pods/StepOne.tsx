@@ -148,7 +148,7 @@ export default function StepOne({
     <div className="flex flex-col gap-6">
       {/* Pod Line Graph Visualization */}
       <div className="flex flex-col gap-3">
-        <Label>My Pods In Line</Label>
+        <Label className="text-pinto-off-black">My Pods In Line</Label>
         <PodLineGraph
           selectedPlotIndices={selectedPlotIndices}
           selectedPodRange={selectedPodRange}

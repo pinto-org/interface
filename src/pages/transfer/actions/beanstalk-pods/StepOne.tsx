@@ -138,7 +138,7 @@ export default function StepOne({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <Label>My Pods In Line</Label>
+        <Label className="text-pinto-off-black">My Pods In Line</Label>
         <PodLineGraph
           plots={plots}
           customHarvestableIndex={harvestableIndex}
