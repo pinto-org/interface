@@ -637,7 +637,7 @@ export default function PodLineGraph({
                 return (
                   <div
                     key={`harvested-label-${value}`}
-                    className="absolute text-pinto-gray-4 text-[0.75rem]"
+                    className="absolute text-pinto-gray-2 text-[0.75rem]"
                     style={{
                       left: `${position}%`,
                       transform: "translateX(-50%)",
@@ -660,7 +660,7 @@ export default function PodLineGraph({
               return (
                 <div
                   key={`podline-label-${value}`}
-                  className="absolute text-pinto-gray-4 text-[0.75rem]"
+                  className="absolute text-pinto-gray-2 text-[0.75rem]"
                   style={{
                     left: `${position}%`,
                     transform: "translateX(-50%)",

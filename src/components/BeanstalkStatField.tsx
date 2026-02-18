@@ -32,7 +32,7 @@ const BeanstalkStatField: React.FC<BeanstalkStatFieldProps> = ({
   return (
     <div className={`flex flex-col gap-1 ${disabled ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between">
-        <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">{title}</div>
+        <div className="pinto-sm sm:pinto-body-light text-pinto-gray-6 sm:text-pinto-gray-6">{title}</div>
         {actions && actions.length > 0 && (
           <div className="flex items-center gap-3">
             {actions.map((action) => (
