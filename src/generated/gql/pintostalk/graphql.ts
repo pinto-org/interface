@@ -3413,6 +3413,8 @@ export type Plot = {
   __typename?: 'Plot';
   /** Number of beans spent for each pod, whether through sowing or on the marketplace */
   beansPerPod: Scalars['BigInt']['output'];
+  /** Block number of the most recent plot combination, null if never combined */
+  combinedAtBlock?: Maybe<Scalars['BigInt']['output']>;
   /** Timestamp of entity creation (not sown) */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash of when this plot entity was created (not sown) */
@@ -3496,6 +3498,14 @@ export type PlotFilter = {
   beansPerPod_lte?: InputMaybe<Scalars['BigInt']['input']>;
   beansPerPod_not?: InputMaybe<Scalars['BigInt']['input']>;
   beansPerPod_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  combinedAtBlock?: InputMaybe<Scalars['BigInt']['input']>;
+  combinedAtBlock_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  combinedAtBlock_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  combinedAtBlock_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  combinedAtBlock_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  combinedAtBlock_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  combinedAtBlock_not?: InputMaybe<Scalars['BigInt']['input']>;
+  combinedAtBlock_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   createdAt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3811,6 +3821,7 @@ export type PlotFilter = {
 
 export enum PlotOrderBy {
   beansPerPod = 'beansPerPod',
+  combinedAtBlock = 'combinedAtBlock',
   createdAt = 'createdAt',
   creationHash = 'creationHash',
   farmer = 'farmer',
@@ -5140,6 +5151,7 @@ export enum PodListingOrderBy {
   originalPlaceInLine = 'originalPlaceInLine',
   plot = 'plot',
   plot__beansPerPod = 'plot__beansPerPod',
+  plot__combinedAtBlock = 'plot__combinedAtBlock',
   plot__createdAt = 'plot__createdAt',
   plot__creationHash = 'plot__creationHash',
   plot__fieldId = 'plot__fieldId',
