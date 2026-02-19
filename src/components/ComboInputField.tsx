@@ -313,7 +313,8 @@ function ComboInputField({
       setAmount("0");
       lastInternalAmountRef.current = "0";
     }
-  }, [selectedToken, setAmount]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Only reset on token change, not callback reference change
+  }, [selectedToken]);
 
   /**
    * Clamp the internal amount to the max amount
