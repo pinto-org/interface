@@ -23,11 +23,15 @@ export const SOW_BLUEPRINT_REFERRAL_V0_ADDRESS: HashString = "0xD9DF9C4C01604017
 
 export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = "0x5167Ae1fF37bE08D9cc9188C7e64DB228B6F06ca";
 
+export const AUTOMATE_CLAIM_BLUEPRINT_ADDRESS: HashString = "0x0000000000000000000000000000000000000000"; // Placeholder - update after deployment
+
 export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
 
 export const SOW_BLUEPRINT_REFERRAL_V0_SELECTOR = "0xd3936ead" as const; // Placeholder - update after deployment
 
 export const CONVERT_UP_BLUEPRINT_V0_SELECTOR = "0x0fd2f3ed" as const;
+
+export const AUTOMATE_CLAIM_BLUEPRINT_SELECTOR = "0xf2a6fd1a" as const;
 
 export const WELL_FUNCTION_ADDRESSES: ChainLookup<{
   stable2: HashString;

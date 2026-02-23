@@ -10,6 +10,7 @@ import useTransaction from "@/hooks/useTransaction";
 import { PublisherTractorExecution } from "@/lib/Tractor";
 import type { Blueprint } from "@/lib/Tractor";
 import { queryKeys } from "@/state/queryKeys";
+import { useTractorAutomateClaimOrderbook } from "@/state/tractor/useTractorAutomateClaimOrders";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
@@ -24,12 +25,14 @@ import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import ModifyConvertUpOrderDialog from "../ModifyConvertUpOrderDialog";
 import ModifyTractorOrderDialog from "../ModifySowOrderDialog";
+import FarmerTractorAutomateClaimOrderCard from "./FarmerTractorAutomateClaimOrderCard";
 import FarmerTractorConvertUpOrderCard from "./FarmerTractorConvertUpOrderCard";
 import FarmerTractorSowOrderCard from "./FarmerTractorSowOrderCard";
 import {
   MixedOrderFilters,
   MixedOrderSortBy,
   UnifiedTractorOrder,
+  isAutomateClaimOrder,
   isConvertUpOrder,
   isSowOrder,
 } from "./TractorFarmerMixedOrders.types";
@@ -37,6 +40,7 @@ import {
   filterUnifiedOrders,
   getOrderTypeBadge,
   sortUnifiedOrders,
+  transformAutomateClaimOrderToUnified,
   transformConvertUpOrderToUnified,
   transformSowOrderToUnified,
 } from "./TractorFarmerMixedOrders.utils";
@@ -50,7 +54,7 @@ interface TractorOrdersPanelProps {
   initialFilters?: Partial<MixedOrderFilters>;
 }
 
-const ORDER_TYPES: OrderType[] = ["sow", "convertUp"];
+const ORDER_TYPES: OrderType[] = ["sow", "convertUp", "automateClaim"];
 
 function TractorOrdersPanelGeneric({
   orderTypes: _orderTypes = ORDER_TYPES,
@@ -94,6 +98,12 @@ function TractorOrdersPanelGeneric({
     address,
     filterOutCompleted: false,
     enabled: !!address && filters.orderTypes.includes("convertUp"),
+  });
+
+  const { data: automateClaimOrders, ...automateClaimOrdersQuery } = useTractorAutomateClaimOrderbook({
+    address,
+    filterOutCompleted: false,
+    enabled: !!address && filters.orderTypes.includes("automateClaim"),
   });
 
   const executionsByHash = useMemo(() => {
@@ -152,10 +162,27 @@ function TractorOrdersPanelGeneric({
         });
     }
 
+    // Process AutomateClaim orders
+    if (filters.orderTypes.includes("automateClaim") && automateClaimOrders) {
+      automateClaimOrders
+        .filter((req) => stringEq(req.requisition.blueprint.publisher, address))
+        .forEach((req) => {
+          const decodedData =
+            req.decodedData ?? ORDER_TYPE_REGISTRY.automateClaim.decodeData(req.requisition.blueprint.data);
+          if (!decodedData) {
+            return;
+          }
+          const reqWithDecodedData = { ...req, decodedData };
+          const orderExecutions = executionsByHash?.[req.requisition.blueprintHash] || [];
+
+          unified.push(transformAutomateClaimOrderToUnified(reqWithDecodedData, orderExecutions));
+        });
+    }
+
     // Apply filters and sorting
     const filtered = filterUnifiedOrders(unified, filters);
     return sortUnifiedOrders(filtered, currentSortBy);
-  }, [sowOrders, convertUpOrders, executions, address, filters, currentSortBy, executionsByHash]);
+  }, [sowOrders, convertUpOrders, automateClaimOrders, executions, address, filters, currentSortBy, executionsByHash]);
 
   // Loading and error states
   const dataHasLoaded = address ? Boolean(executions !== undefined) : true;
@@ -163,9 +190,11 @@ function TractorOrdersPanelGeneric({
     executionsQuery.isLoading ||
     (filters.orderTypes.includes("sow") && sowOrdersQuery.isLoading) ||
     (filters.orderTypes.includes("convertUp") && convertUpOrdersQuery.isLoading) ||
+    (filters.orderTypes.includes("automateClaim") && automateClaimOrdersQuery.isLoading) ||
     !dataHasLoaded;
 
-  const error = executionsQuery.error || sowOrdersQuery.error || convertUpOrdersQuery.error;
+  const error =
+    executionsQuery.error || sowOrdersQuery.error || convertUpOrdersQuery.error || automateClaimOrdersQuery.error;
 
   const [lastRefetchedCounter, setLastRefetchedCounter] = useState<number>(0);
 
@@ -179,6 +208,9 @@ function TractorOrdersPanelGeneric({
       }
       if (filters.orderTypes.includes("convertUp")) {
         convertUpOrdersQuery.refetch();
+      }
+      if (filters.orderTypes.includes("automateClaim")) {
+        automateClaimOrdersQuery.refetch();
       }
     }
   }, [refreshData, dataHasLoaded, filters.orderTypes]);
@@ -311,6 +343,17 @@ function TractorOrdersPanelGeneric({
                   getStrategyProps={getStrategyProps}
                   onOrderClick={() => handleOrderClick(order)}
                   onModifyClick={() => handleModifyClick(order)}
+                  onCancelClick={(_, e) => handleCancelOrder(order, e)}
+                  isSubmitting={submitting}
+                  isConfirming={isConfirming}
+                />
+              )}
+
+              {isAutomateClaimOrder(order) && (
+                <FarmerTractorAutomateClaimOrderCard
+                  req={order.requisition}
+                  executions={order.executions}
+                  onOrderClick={() => handleOrderClick(order)}
                   onCancelClick={(_, e) => handleCancelOrder(order, e)}
                   isSubmitting={submitting}
                   isConfirming={isConfirming}

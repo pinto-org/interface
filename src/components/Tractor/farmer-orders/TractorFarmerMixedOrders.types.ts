@@ -1,4 +1,5 @@
 import { PublisherTractorExecution, SowBlueprintData, TractorRequisitionEvent } from "@/lib/Tractor";
+import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
 import { OrderType } from "./TractorFarmerOrderTypeRegistry";
 
@@ -14,13 +15,16 @@ export interface UnifiedTractorOrder {
   isComplete?: boolean;
 
   // Order-specific data (discriminated union)
-  orderData: SowOrderData | ConvertUpOrderData;
+  orderData: SowOrderData | ConvertUpOrderData | AutomateClaimOrderData;
 
   // Executions
   executions?: PublisherTractorExecution[];
 
   // Raw data for dialogs
-  requisition: ConvertUpOrderbookEntry | TractorRequisitionEvent<SowBlueprintData>;
+  requisition:
+    | ConvertUpOrderbookEntry
+    | TractorRequisitionEvent<SowBlueprintData>
+    | TractorRequisitionEvent<AutomateClaimBlueprintStruct>;
 }
 
 // Sow-specific order data
@@ -50,6 +54,16 @@ export interface ConvertUpOrderData {
   strategy: string;
 }
 
+// AutomateClaim-specific order data
+export interface AutomateClaimOrderData {
+  type: "automateClaim";
+  mowEnabled: boolean;
+  plantEnabled: boolean;
+  harvestEnabled: boolean;
+  operatorTip: string;
+  percentComplete: number;
+}
+
 // Type guards
 export function isSowOrder(order: UnifiedTractorOrder): order is UnifiedTractorOrder & {
   orderData: SowOrderData;
@@ -62,6 +76,13 @@ export function isConvertUpOrder(
   order: UnifiedTractorOrder,
 ): order is UnifiedTractorOrder & { orderData: ConvertUpOrderData; requisition: ConvertUpOrderbookEntry } {
   return order.orderData.type === "convertUp" && order.requisition.requisitionType === "convertUpBlueprint";
+}
+
+export function isAutomateClaimOrder(order: UnifiedTractorOrder): order is UnifiedTractorOrder & {
+  orderData: AutomateClaimOrderData;
+  requisition: TractorRequisitionEvent<AutomateClaimBlueprintStruct>;
+} {
+  return order.orderData.type === "automateClaim" && order.requisition.requisitionType === "automateClaimBlueprint";
 }
 
 // Sorting options for mixed orders

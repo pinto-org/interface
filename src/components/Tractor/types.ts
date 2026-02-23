@@ -6,7 +6,7 @@ import { TimeScaleSelect } from "./form/fields/sharedFields";
 // Base interfaces for all tractor orders
 export interface BaseTractorOrderData {
   operatorTip: string;
-  type: "sow" | "convertUp";
+  type: "sow" | "convertUp" | "automateClaim";
 }
 
 // Sow-specific order data
@@ -42,8 +42,16 @@ export interface ConvertUpOrderData extends BaseTractorOrderData {
   tokenStrategy: TractorTokenStrategyUnion;
 }
 
+// AutomateClaim-specific order data
+export interface AutomateClaimOrderData extends BaseTractorOrderData {
+  type: "automateClaim";
+  mowEnabled: boolean;
+  plantEnabled: boolean;
+  harvestEnabled: boolean;
+}
+
 // Union type for all order data
-export type TractorOrderData = SowOrderData | ConvertUpOrderData;
+export type TractorOrderData = SowOrderData | ConvertUpOrderData | AutomateClaimOrderData;
 
 // Generic execution event interface
 export interface BaseExecutionEvent {

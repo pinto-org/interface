@@ -1,9 +1,11 @@
 import {
+  AUTOMATE_CLAIM_BLUEPRINT_SELECTOR,
   CONVERT_UP_BLUEPRINT_V0_SELECTOR,
   SOW_BLUEPRINT_REFERRAL_V0_SELECTOR,
   SOW_BLUEPRINT_V0_SELECTOR,
 } from "@/constants/address";
 import { extractTractorBlueprintCall } from "../requisitions/tractor-requisition";
+import { automateClaimBlueprintDecoder } from "./automate-claim-decoder";
 import { convertUpBlueprintDecoder } from "./convert-up-decoder";
 import { genericBlueprintDecoder } from "./generic-decoder";
 import { sowBlueprintDecoder } from "./sow-decoder";
@@ -17,7 +19,7 @@ export interface BlueprintDecoder {
 }
 
 export interface DecodedBlueprintResult {
-  type: "sow" | "convertUp" | "generic";
+  type: "sow" | "convertUp" | "automateClaim" | "generic";
   functionName: string;
   params: any;
 }
@@ -26,6 +28,7 @@ export const BLUEPRINT_REGISTRY: Record<string, BlueprintDecoder> = {
   [SOW_BLUEPRINT_V0_SELECTOR]: sowBlueprintDecoder,
   [SOW_BLUEPRINT_REFERRAL_V0_SELECTOR]: sowBlueprintReferralDecoder,
   [CONVERT_UP_BLUEPRINT_V0_SELECTOR]: convertUpBlueprintDecoder,
+  [AUTOMATE_CLAIM_BLUEPRINT_SELECTOR]: automateClaimBlueprintDecoder,
 } as const;
 
 export function getBlueprintDecoder(selector: string): BlueprintDecoder | null {
@@ -71,4 +74,4 @@ export function decodeBlueprintCallData(callData: string): DecodedBlueprintResul
   return genericResult;
 }
 
-export type BlueprintType = "sow" | "convertUp" | "auto";
+export type BlueprintType = "sow" | "convertUp" | "automateClaim" | "auto";

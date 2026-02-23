@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { SpecifyConditionsDialog } from "@/components/Tractor/AutomateClaim";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
@@ -8,6 +9,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
@@ -17,6 +19,7 @@ function RewardsClaim() {
   const chainId = useChainId();
   const account = useAccount();
   const data = useFarmerSilo();
+  const [showAutomateClaimDialog, setShowAutomateClaimDialog] = useState(false);
   const siloData = useSiloData();
   const { mainToken: BEAN, whitelistedTokens: SILO_WHITELIST } = useTokenData();
   const stalkRewards = siloData.tokenData.get(BEAN)?.rewards.stalk;
@@ -68,35 +71,45 @@ function RewardsClaim() {
   }
 
   return (
-    <Card className="h-fit w-[300px]">
-      <CardHeader>
-        <CardTitle>Rewards</CardTitle>
-        <CardDescription>Claim your Silo Rewards</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-row justify-between">
-          <Label>Earned Beans</Label>
-          <div>{data.earnedBeansBalance.toHuman("short")}</div>
-        </div>
-        <div className="flex flex-row justify-between">
-          <Label>Earned Stalk</Label>
-          <div>{data.earnedBeansBalance.mul(stalkRewards ?? TokenValue.ZERO).toHuman("short")}</div>
-        </div>
-        <div className="flex flex-row justify-between">
-          <Label>Plantable Seeds</Label>
-          <div>{data.earnedBeansBalance.mul(seedsRewards ?? TokenValue.ZERO).toHuman("short")}</div>
-        </div>
-        <div className="flex flex-row justify-between">
-          <Label>Grown Stalk</Label>
-          <div>{grownStalk.toHuman("short")}</div>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button className="flex grow" onClick={onSubmit} disabled={submitting || isConfirming}>
-          {"Claim Rewards"}
-        </Button>
-      </CardFooter>
-    </Card>
+    <>
+      <Card className="h-fit w-[300px]">
+        <CardHeader>
+          <CardTitle>Rewards</CardTitle>
+          <CardDescription>Claim your Silo Rewards</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-row justify-between">
+            <Label>Earned Beans</Label>
+            <div>{data.earnedBeansBalance.toHuman("short")}</div>
+          </div>
+          <div className="flex flex-row justify-between">
+            <Label>Earned Stalk</Label>
+            <div>{data.earnedBeansBalance.mul(stalkRewards ?? TokenValue.ZERO).toHuman("short")}</div>
+          </div>
+          <div className="flex flex-row justify-between">
+            <Label>Plantable Seeds</Label>
+            <div>{data.earnedBeansBalance.mul(seedsRewards ?? TokenValue.ZERO).toHuman("short")}</div>
+          </div>
+          <div className="flex flex-row justify-between">
+            <Label>Grown Stalk</Label>
+            <div>{grownStalk.toHuman("short")}</div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2">
+          <Button className="flex grow w-full" onClick={onSubmit} disabled={submitting || isConfirming}>
+            {"Claim Rewards"}
+          </Button>
+          <span
+            className="pinto-sm text-pinto-green-4 cursor-pointer hover:underline"
+            onClick={() => setShowAutomateClaimDialog(true)}
+          >
+            Automate with Tractor
+          </span>
+        </CardFooter>
+      </Card>
+
+      <SpecifyConditionsDialog open={showAutomateClaimDialog} onOpenChange={setShowAutomateClaimDialog} />
+    </>
   );
 }
 
