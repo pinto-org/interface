@@ -16,11 +16,14 @@ import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import { useAutomateClaimOrder } from "@/hooks/tractor/useAutomateClaimOrder";
 import { estimatedTotalTipRange } from "@/lib/Tractor/claimOrder";
+import { isValidCustomValue } from "@/lib/Tractor/claimOrder/automate-claim-helpers";
 import type { ClaimFrequencyPreset } from "@/lib/Tractor/claimOrder/tractor-claim-types";
+import { queryKeys } from "@/state/queryKeys";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -53,6 +56,7 @@ export const SpecifyConditionsDialog = ({ open, onOpenChange }: SpecifyCondition
   const mainToken = useMainToken();
   const farmerSilo = useFarmerSilo();
   const { data: averageTipPaid = 0.15 } = useTractorOperatorAverageTipPaid();
+  const queryClient = useQueryClient();
 
   // Form state
   const { form } = useAutomateClaimForm();
@@ -179,14 +183,6 @@ export const SpecifyConditionsDialog = ({ open, onOpenChange }: SpecifyCondition
   // Check if submit should be disabled
   const hasAnyEnabled = mowEnabled || plantEnabled || harvestEnabled;
 
-  // Custom presets require a valid positive numeric value
-  const isValidCustomValue = (v: string) => {
-    const normalized = v.trim().replace(",", ".");
-    if (!normalized) return false;
-    const num = Number(normalized);
-    return !Number.isNaN(num) && num > 0;
-  };
-
   const hasInvalidCustom =
     (mowPreset === "custom" && !isValidCustomValue(mowCustomValue)) ||
     (plantPreset === "custom" && !isValidCustomValue(plantCustomValue)) ||
@@ -200,7 +196,7 @@ export const SpecifyConditionsDialog = ({ open, onOpenChange }: SpecifyCondition
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogPortal>
           <DialogOverlay className="fixed inset-0 backdrop-blur-[2px] bg-white/50" />
-          <DialogContent className="max-w-[35rem] p-6 h-[80vh] flex flex-col">
+          <DialogContent className="max-w-[35rem] p-6">
             <DialogHeader>
               <DialogTitle className="font-normal text-[1.25rem] tracking-normal">Specify conditions</DialogTitle>
               <DialogDescription className="pinto-sm-light text-pinto-light">
@@ -215,7 +211,7 @@ export const SpecifyConditionsDialog = ({ open, onOpenChange }: SpecifyCondition
                   <Separator className="h-[1px] w-full bg-pinto-gray-2" />
 
                   {/* Condition Sections */}
-                  <Col className="gap-3">
+                  <Col className="gap-3 h-[28rem]">
                     <ConditionSection
                       title="Mow my Silo"
                       enabled={mowEnabled}
@@ -282,6 +278,7 @@ export const SpecifyConditionsDialog = ({ open, onOpenChange }: SpecifyCondition
           open={showReviewDialog}
           onOpenChange={setShowReviewDialog}
           onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: [queryKeys.base.tractor] });
             form.reset({ ...defaultAutomateClaimValues });
             setShowReviewDialog(false);
             onOpenChange(false);

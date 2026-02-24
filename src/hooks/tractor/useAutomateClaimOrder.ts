@@ -65,7 +65,6 @@ export const useAutomateClaimOrder = () => {
 
       try {
         const formData = form.getValues();
-        console.debug("[useAutomateClaimOrder] Creating blueprint with form data:", formData);
 
         // Resolve operator tip amount from preset
         const tipTV = getTractorOperatorTipAmountFromPreset(
@@ -80,7 +79,6 @@ export const useAutomateClaimOrder = () => {
         }
 
         const tipPerExecution = tipTV.toBigInt();
-        console.debug("[useAutomateClaimOrder] Tip per execution:", tipPerExecution.toString());
 
         // Create tractor data and fetch latest block in parallel
         const [tractorData, block] = await Promise.all([
@@ -99,9 +97,7 @@ export const useAutomateClaimOrder = () => {
           client.getBlock({ blockTag: "latest" }),
         ]);
 
-        console.debug("[useAutomateClaimOrder] Tractor data created:", tractorData);
-
-        // Create the blueprint (Req 5.2)
+        // Create the blueprint
         const blueprint = createBlueprintFromBlock({
           block,
           publisher: address,
@@ -109,8 +105,6 @@ export const useAutomateClaimOrder = () => {
           operatorPasteInstrs: tractorData.operatorPasteInstrs,
           maxNonce: TV.MAX_UINT256.toBigInt(),
         });
-
-        console.debug("[useAutomateClaimOrder] Blueprint created:", blueprint);
 
         // Set order data for display in ReviewTractorOrderDialog
         setOrderData({

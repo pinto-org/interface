@@ -7,7 +7,11 @@ import {
   SowBlueprintData,
   decodeSowTractorData,
 } from "@/lib/Tractor";
-import { decodeAutomateClaimBlueprint, transformAutomateClaimRequisitionEvent } from "@/lib/Tractor/claimOrder";
+import {
+  decodeAutomateClaimBlueprint,
+  getEnabledClaimOps,
+  transformAutomateClaimRequisitionEvent,
+} from "@/lib/Tractor/claimOrder";
 import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { decodeConvertUpTractorOrder } from "@/lib/Tractor/convertUp/tractor-convert-up";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
@@ -156,13 +160,9 @@ const transformAutomateClaimOrderData = (req: RequisitionEvent<AutomateClaimBlue
   const transformed = transformAutomateClaimRequisitionEvent(req.decodedData);
   if (!transformed) throw new Error("Failed to transform AutomateClaim data");
 
-  const MAX_UINT256 = 2n ** 256n - 1n;
-
   return {
     type: "automateClaim",
-    mowEnabled: transformed.claimParams.minMowAmount !== MAX_UINT256,
-    plantEnabled: transformed.claimParams.minPlantAmount !== MAX_UINT256,
-    harvestEnabled: transformed.claimParams.fieldHarvestConfigs.length > 0,
+    ...getEnabledClaimOps(transformed),
     operatorTip: transformed.operatorParams.operatorTipAmountAsString,
   };
 };

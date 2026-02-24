@@ -7,7 +7,12 @@ import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { TractorRequisitionEvent as RequisitionEvent } from "@/lib/Tractor";
 import { PublisherTractorExecution } from "@/lib/Tractor";
-import { transformAutomateClaimRequisitionEvent } from "@/lib/Tractor/claimOrder";
+import {
+  getClaimOpConditionLabel,
+  getEnabledClaimOpLabels,
+  getEnabledClaimOps,
+  transformAutomateClaimRequisitionEvent,
+} from "@/lib/Tractor/claimOrder";
 import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { formatter } from "@/utils/format";
 import { CalendarIcon, ClockIcon, Cross1Icon } from "@radix-ui/react-icons";
@@ -35,14 +40,23 @@ const FarmerTractorAutomateClaimOrderCard = ({
   const transformed = transformAutomateClaimRequisitionEvent(req.decodedData);
   if (!transformed) return null;
 
-  const MAX_UINT256 = 2n ** 256n - 1n;
-  const mowEnabled = transformed.claimParams.minMowAmount !== MAX_UINT256;
-  const plantEnabled = transformed.claimParams.minPlantAmount !== MAX_UINT256;
-  const harvestEnabled = transformed.claimParams.fieldHarvestConfigs.length > 0;
-
-  const enabledOps = [mowEnabled && "Mow", plantEnabled && "Plant", harvestEnabled && "Harvest"].filter(Boolean);
+  const { mowEnabled, plantEnabled, harvestEnabled } = getEnabledClaimOps(transformed);
+  const enabledOps = getEnabledClaimOpLabels({ mowEnabled, plantEnabled, harvestEnabled });
 
   const operatorTip = TokenValue.fromBlockchain(transformed.operatorParams.operatorTipAmount, 6);
+
+  // Build condition labels with threshold details
+  const conditions: { text: string }[] = [];
+  if (mowEnabled) {
+    conditions.push({ text: getClaimOpConditionLabel("mow", true, transformed.claimParams.minMowAmount) });
+  }
+  if (plantEnabled) {
+    conditions.push({ text: getClaimOpConditionLabel("plant", true, transformed.claimParams.minPlantAmount) });
+  }
+  if (harvestEnabled) {
+    const harvestThreshold = transformed.claimParams.fieldHarvestConfigs[0]?.minHarvestAmount ?? 0n;
+    conditions.push({ text: getClaimOpConditionLabel("harvest", true, harvestThreshold) });
+  }
 
   const blueprintExecutions = executions || [];
   const executionCount = blueprintExecutions.length;
@@ -72,11 +86,7 @@ const FarmerTractorAutomateClaimOrderCard = ({
             <OrderVisualization.TipDisplay amount={formatter.number(operatorTip)} token="PINTO" icon={pintoIcon} />
           </div>
 
-          <OrderVisualization.ConditionsList
-            conditions={enabledOps.map((op) => ({
-              text: `${op} enabled`,
-            }))}
-          />
+          <OrderVisualization.ConditionsList conditions={conditions} />
         </div>
       </Card>
 

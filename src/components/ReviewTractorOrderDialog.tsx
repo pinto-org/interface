@@ -4,13 +4,15 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useTransaction from "@/hooks/useTransaction";
 import { Blueprint, PublisherTractorExecution, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
+import { queryKeys } from "@/state/queryKeys";
 import { cn } from "@/utils/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import { useAccount } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { Col, Row } from "./Container";
 import LoadingSpinner from "./LoadingSpinner";
 import { HighlightedCallData } from "./Tractor/HighlightedCallData";
@@ -64,6 +66,8 @@ export default function ReviewTractorOrderDialog({
   const [decodeAbi, setDecodeAbi] = useState(false);
   const protocolAddress = useProtocolAddress();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const publicClient = usePublicClient();
 
   // Get order type configuration from registry
   // Memoize the order config to avoid re-rendering the component on every render
@@ -114,6 +118,8 @@ export default function ReviewTractorOrderDialog({
 
     try {
       setSubmitting(true);
+      let txHash: `0x${string}` | undefined;
+
       // Check if we need to include deposit optimization calls
       if (depositOptimizationCalls && depositOptimizationCalls.length > 0) {
         console.debug(`Publishing requisition with ${depositOptimizationCalls.length} deposit optimization calls`);
@@ -130,7 +136,7 @@ export default function ReviewTractorOrderDialog({
         const farmCalls = [...depositOptimizationCalls, publishRequisitionCall];
 
         // Execute as farm call
-        await writeWithEstimateGas({
+        txHash = await writeWithEstimateGas({
           address: protocolAddress,
           abi: diamondABI,
           functionName: "farm",
@@ -140,7 +146,7 @@ export default function ReviewTractorOrderDialog({
         console.debug("Publishing requisition without deposit optimization");
 
         // Call publish requisition directly (like before)
-        await writeWithEstimateGas({
+        txHash = await writeWithEstimateGas({
           address: protocolAddress,
           abi: diamondABI,
           functionName: "publishRequisition",
@@ -148,11 +154,13 @@ export default function ReviewTractorOrderDialog({
         });
       }
 
-      // Success handling
-      toast.success("Order published successfully");
+      // Wait for tx confirmation before refreshing data
+      if (txHash && publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: txHash, confirmations: 1 });
+      }
 
-      // Close the dialog
-      onOpenChange(false);
+      // Invalidate all tractor queries to refresh order lists
+      queryClient.invalidateQueries({ queryKey: [queryKeys.base.tractor] });
 
       // Navigate to the Field page with tractor tab active
       if (orderData.type === "sow") {
@@ -160,14 +168,10 @@ export default function ReviewTractorOrderDialog({
       }
 
       // Call the parent success callback to refresh data
-      if (onSuccess) {
-        onSuccess();
-      }
+      onSuccess?.();
 
       // Call the onOrderPublished callback if provided
-      if (onOrderPublished) {
-        onOrderPublished();
-      }
+      onOrderPublished?.();
     } catch (error) {
       console.error("Error publishing requisition:", error);
     } finally {

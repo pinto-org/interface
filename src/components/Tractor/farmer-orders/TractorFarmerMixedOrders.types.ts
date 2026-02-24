@@ -1,3 +1,4 @@
+import { AutomateClaimOrderData as BaseAutomateClaimOrderData } from "@/components/Tractor/types";
 import { PublisherTractorExecution, SowBlueprintData, TractorRequisitionEvent } from "@/lib/Tractor";
 import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
@@ -54,13 +55,8 @@ export interface ConvertUpOrderData {
   strategy: string;
 }
 
-// AutomateClaim-specific order data
-export interface AutomateClaimOrderData {
-  type: "automateClaim";
-  mowEnabled: boolean;
-  plantEnabled: boolean;
-  harvestEnabled: boolean;
-  operatorTip: string;
+// AutomateClaim-specific order data (extends base with percentComplete for unified order tracking)
+export interface AutomateClaimOrderData extends BaseAutomateClaimOrderData {
   percentComplete: number;
 }
 

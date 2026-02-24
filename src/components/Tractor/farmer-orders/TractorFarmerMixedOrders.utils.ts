@@ -1,6 +1,10 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { PublisherTractorExecution, SowBlueprintData, TractorRequisitionEvent } from "@/lib/Tractor";
-import { transformAutomateClaimRequisitionEvent } from "@/lib/Tractor/claimOrder";
+import {
+  getEnabledClaimOpLabels,
+  getEnabledClaimOps,
+  transformAutomateClaimRequisitionEvent,
+} from "@/lib/Tractor/claimOrder";
 import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
 import { getTokenNameByIndex } from "@/utils/token";
@@ -161,11 +165,7 @@ export function transformAutomateClaimOrderToUnified(
     throw new Error("Failed to transform AutomateClaim data");
   }
 
-  const MAX_UINT256 = 2n ** 256n - 1n;
-  const mowEnabled = transformed.claimParams.minMowAmount !== MAX_UINT256;
-  const plantEnabled = transformed.claimParams.minPlantAmount !== MAX_UINT256;
-  const harvestEnabled = transformed.claimParams.fieldHarvestConfigs.length > 0;
-
+  const { mowEnabled, plantEnabled, harvestEnabled } = getEnabledClaimOps(transformed);
   const operatorTip = TokenValue.fromBlockchain(transformed.operatorParams.operatorTipAmount, 6).toHuman();
 
   const automateClaimOrderData: AutomateClaimOrderData = {
@@ -262,9 +262,7 @@ export function filterUnifiedOrders(orders: UnifiedTractorOrder[], filters: Mixe
 export function getOrderSummary(order: UnifiedTractorOrder): string {
   if (order.type === "automateClaim") {
     const data = order.orderData as AutomateClaimOrderData;
-    const ops = [data.mowEnabled && "Mow", data.plantEnabled && "Plant", data.harvestEnabled && "Harvest"].filter(
-      Boolean,
-    );
+    const ops = getEnabledClaimOpLabels(data);
     return `Automate Claim • ${ops.join(", ")} • Active`;
   }
   const typeLabel = order.type === "sow" ? "Sow" : "Convert Up";
@@ -294,7 +292,7 @@ export function getOrderTypeBadge(orderType: "sow" | "convertUp" | "automateClai
     case "automateClaim":
       return {
         label: "Automate Claim",
-        className: "bg-purple-100 text-purple-800 border-purple-200",
+        className: "bg-green-100 text-green-800 border-green-200",
         icon: "🔄",
       };
   }

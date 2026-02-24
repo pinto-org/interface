@@ -102,7 +102,6 @@ function TractorOrdersPanelGeneric({
 
   const { data: automateClaimOrders, ...automateClaimOrdersQuery } = useTractorAutomateClaimOrderbook({
     address,
-    filterOutCompleted: false,
     enabled: !!address && filters.orderTypes.includes("automateClaim"),
   });
 
@@ -221,7 +220,7 @@ function TractorOrdersPanelGeneric({
     errorMessage: "Failed to cancel order",
     successCallback: useCallback(() => {
       // Invalidate tractor-related queries to refresh order data
-      queryClient.invalidateQueries({ queryKey: queryKeys.base.tractor });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.base.tractor] });
     }, [queryClient]),
   });
 

@@ -1,5 +1,6 @@
 import { Col, Row } from "@/components/Container";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
+import { isValidCustomValue } from "@/lib/Tractor/claimOrder/automate-claim-helpers";
 import type { ClaimFrequencyPreset } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { cn } from "@/utils/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
@@ -75,9 +76,7 @@ export const ConditionSection = ({
 
                 // When "custom" is selected, show inline input instead of button
                 if (btn.key === "custom" && isSelected) {
-                  const normalized = customValue.trim().replace(",", ".");
-                  const num = Number(normalized);
-                  const isValid = normalized !== "" && !Number.isNaN(num) && num > 0;
+                  const isValid = isValidCustomValue(customValue);
 
                   return (
                     <div

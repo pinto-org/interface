@@ -23,7 +23,7 @@ export const SOW_BLUEPRINT_REFERRAL_V0_ADDRESS: HashString = "0xD9DF9C4C01604017
 
 export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = "0x5167Ae1fF37bE08D9cc9188C7e64DB228B6F06ca";
 
-export const AUTOMATE_CLAIM_BLUEPRINT_ADDRESS: HashString = "0x0000000000000000000000000000000000000000"; // Placeholder - update after deployment
+export const AUTOMATE_CLAIM_BLUEPRINT_ADDRESS: HashString = "0xe02919865F7ea6F342F09538BE801ee4a14884CD"; // Placeholder - update after deployment
 
 export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
 

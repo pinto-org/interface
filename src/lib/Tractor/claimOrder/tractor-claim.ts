@@ -267,17 +267,12 @@ export async function createAutomateClaimTractorData({
 export function decodeAutomateClaimBlueprintFromAdvancedPipe(
   calls: readonly AdvancedPipeCall[] | undefined,
 ): AutomateClaimBlueprintStruct | null {
-  if (!calls?.length) {
-    console.debug("[Tractor/decodeAutomateClaimBlueprintFromAdvancedPipe] No calls provided. Returning null.");
-    return null;
-  }
-
-  const callData = calls[0].callData;
+  if (!calls?.length) return null;
 
   try {
     const decoded = decodeFunctionData({
       abi: automateClaimBlueprintABI,
-      data: callData,
+      data: calls[0].callData,
     });
 
     const params = decoded.args?.[0];
@@ -296,14 +291,10 @@ export function decodeAutomateClaimBlueprintFromAdvancedPipe(
  */
 export function decodeAutomateClaimBlueprint(encodedData: `0x${string}`): AutomateClaimBlueprintStruct | null {
   try {
-    console.debug("[Tractor/decodeAutomateClaimBlueprint] Attempting to decode, data length:", encodedData.length);
     const pipeCalls = decodeEncodedTractorDataToAdvancedPipeCalls(encodedData, "automateClaim");
-    console.debug("[Tractor/decodeAutomateClaimBlueprint] Pipe calls result:", pipeCalls?.length ?? "undefined");
 
     if (pipeCalls?.length) {
-      const result = decodeAutomateClaimBlueprintFromAdvancedPipe(pipeCalls);
-      console.debug("[Tractor/decodeAutomateClaimBlueprint] Decode result:", result ? "success" : "null");
-      return result;
+      return decodeAutomateClaimBlueprintFromAdvancedPipe(pipeCalls);
     }
   } catch (e) {
     console.error("[Tractor/decodeAutomateClaimBlueprint] Failed to decode:", e);
@@ -326,14 +317,12 @@ export function transformAutomateClaimRequisitionEvent(
 ): AutomateClaimBlueprintData | null {
   try {
     if (!params || typeof params !== "object") {
-      console.debug("[Tractor/transformAutomateClaimRequisitionEvent] Invalid params.");
       return null;
     }
 
     const struct = params as AutomateClaimBlueprintStruct;
 
     if (!struct.claimParams || !struct.opParams) {
-      console.debug("[Tractor/transformAutomateClaimRequisitionEvent] Missing claimParams or opParams.");
       return null;
     }
 
