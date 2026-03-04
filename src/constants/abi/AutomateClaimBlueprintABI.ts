@@ -13,7 +13,7 @@ export const automateClaimBlueprintABI = [
               {
                 internalType: "int256",
                 name: "minTwaDeltaB",
-                type: "int256",
+                type: "uint256",
               },
               {
                 internalType: "uint256",
@@ -48,9 +48,9 @@ export const automateClaimBlueprintABI = [
                 type: "uint256",
               },
               {
-                internalType: "uint256[]",
+                internalType: "uint8[]",
                 name: "sourceTokenIndices",
-                type: "uint256[]",
+                type: "uint8[]",
               },
               {
                 internalType: "uint256",
@@ -84,7 +84,7 @@ export const automateClaimBlueprintABI = [
                   {
                     internalType: "uint256",
                     name: "operatorTipAmount",
-                    type: "uint256",
+                    type: "int256",
                   },
                 ],
                 internalType: "struct AutomateClaimBlueprint.OperatorParams",
@@ -94,27 +94,27 @@ export const automateClaimBlueprintABI = [
               {
                 internalType: "uint256",
                 name: "mowTipAmount",
-                type: "uint256",
+                type: "int256",
               },
               {
                 internalType: "uint256",
                 name: "plantTipAmount",
-                type: "uint256",
+                type: "int256",
               },
               {
                 internalType: "uint256",
                 name: "harvestTipAmount",
-                type: "uint256",
+                type: "int256",
               },
               {
                 internalType: "uint256",
                 name: "rinseTipAmount",
-                type: "uint256",
+                type: "int256",
               },
               {
                 internalType: "uint256",
                 name: "unripeClaimTipAmount",
-                type: "uint256",
+                type: "int256",
               },
             ],
             internalType: "struct AutomateClaimBlueprint.OperatorParamsExtended",
