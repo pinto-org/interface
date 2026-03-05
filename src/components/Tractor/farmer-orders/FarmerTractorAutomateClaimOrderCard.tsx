@@ -18,6 +18,24 @@ import { formatter } from "@/utils/format";
 import { CalendarIcon, ClockIcon, Cross1Icon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 
+function buildConditions(
+  transformed: NonNullable<ReturnType<typeof transformAutomateClaimRequisitionEvent>>,
+  ops: { mowEnabled: boolean; plantEnabled: boolean; harvestEnabled: boolean },
+) {
+  const result: { text: string }[] = [];
+  if (ops.mowEnabled) {
+    result.push({ text: getClaimOpConditionLabel("mow", true, transformed.claimParams.minMowAmount) });
+  }
+  if (ops.plantEnabled) {
+    result.push({ text: getClaimOpConditionLabel("plant", true, transformed.claimParams.minPlantAmount) });
+  }
+  if (ops.harvestEnabled) {
+    const harvestThreshold = transformed.claimParams.fieldHarvestConfigs[0]?.minHarvestAmount ?? 0n;
+    result.push({ text: getClaimOpConditionLabel("harvest", true, harvestThreshold) });
+  }
+  return result;
+}
+
 interface FarmerTractorAutomateClaimOrderCardProps {
   req: RequisitionEvent<AutomateClaimBlueprintStruct>;
   executions?: PublisherTractorExecution[];
@@ -45,18 +63,7 @@ const FarmerTractorAutomateClaimOrderCard = ({
 
   const operatorTip = TokenValue.fromBlockchain(transformed.operatorParams.operatorTipAmount, 6);
 
-  // Build condition labels with threshold details
-  const conditions: { text: string }[] = [];
-  if (mowEnabled) {
-    conditions.push({ text: getClaimOpConditionLabel("mow", true, transformed.claimParams.minMowAmount) });
-  }
-  if (plantEnabled) {
-    conditions.push({ text: getClaimOpConditionLabel("plant", true, transformed.claimParams.minPlantAmount) });
-  }
-  if (harvestEnabled) {
-    const harvestThreshold = transformed.claimParams.fieldHarvestConfigs[0]?.minHarvestAmount ?? 0n;
-    conditions.push({ text: getClaimOpConditionLabel("harvest", true, harvestThreshold) });
-  }
+  const conditions = buildConditions(transformed, { mowEnabled, plantEnabled, harvestEnabled });
 
   const blueprintExecutions = executions || [];
   const executionCount = blueprintExecutions.length;

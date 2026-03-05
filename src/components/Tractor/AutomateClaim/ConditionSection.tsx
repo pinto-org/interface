@@ -2,6 +2,7 @@ import { Col, Row } from "@/components/Container";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
 import { isValidCustomValue } from "@/lib/Tractor/claimOrder/automate-claim-helpers";
 import type { ClaimFrequencyPreset } from "@/lib/Tractor/claimOrder/tractor-claim-types";
+import { sanitizeNumericInputValue } from "@/utils/string";
 import { cn } from "@/utils/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
 
@@ -91,7 +92,10 @@ export const ConditionSection = ({
                         inputMode="decimal"
                         placeholder={unit ?? "0"}
                         value={customValue}
-                        onChange={(e) => onCustomValueChange(e.target.value)}
+                        onChange={(e) => {
+                          const sanitized = sanitizeNumericInputValue(e.target.value, 18);
+                          onCustomValueChange(sanitized.str);
+                        }}
                         className={cn(
                           "w-full text-center pinto-xs bg-transparent outline-none",
                           isValid

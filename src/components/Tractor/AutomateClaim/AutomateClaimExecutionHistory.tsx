@@ -1,19 +1,8 @@
 import { TV } from "@/classes/TokenValue";
 import { formatter } from "@/utils/format";
-import { format } from "date-fns";
+import { truncateAddress } from "@/utils/string";
 import { useMemo } from "react";
 import { AutomateClaimOrderData, ExecutionHistoryProps } from "../types";
-
-// Helper function to shorten addresses
-function shortenAddress(address: string): string {
-  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-}
-
-// Helper function to format dates with time
-const formatDate = (timestamp?: number) => {
-  if (!timestamp) return "Unknown";
-  return format(new Date(timestamp), "MM/dd/yyyy h:mm a");
-};
 
 export function AutomateClaimExecutionHistory({ executionHistory, orderData }: ExecutionHistoryProps) {
   if (orderData.type !== "automateClaim") {
@@ -83,9 +72,11 @@ export function AutomateClaimExecutionHistory({ executionHistory, orderData }: E
             {sortedExecutions.map((execution, index) => (
               <tr key={index} className="hover:bg-gray-50 border-b">
                 <td className="px-4 py-3 font-medium">#{executionHistory.length - index}</td>
-                <td className="px-4 py-3 text-right text-gray-500">{shortenAddress(execution.operator)}</td>
                 <td className="px-4 py-3 text-right text-gray-500">
-                  {execution.timestamp ? formatDate(execution.timestamp) : `Block ${execution.blockNumber}`}
+                  {truncateAddress(execution.operator, { suffix: true })}
+                </td>
+                <td className="px-4 py-3 text-right text-gray-500">
+                  {execution.timestamp ? formatter.dateFromTS(execution.timestamp) : `Block ${execution.blockNumber}`}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <a
