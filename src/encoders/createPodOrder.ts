@@ -12,6 +12,7 @@ export default function createPodOrder(
   minFill?: TokenValue,
   balanceFrom?: FarmFromMode,
   clipboard?: `0x${string}`,
+  fieldId: bigint = 0n,
 ) {
   if (!amount || !pricePerPod || !maxPlaceInLine || !minFill || !balanceFrom) {
     return {
@@ -26,7 +27,7 @@ export default function createPodOrder(
     args: [
       {
         orderer: account,
-        fieldId: 0n,
+        fieldId: fieldId,
         pricePerPod,
         maxPlaceInLine: maxPlaceInLine.toBigInt(),
         minFillAmount: minFill.toBigInt(),

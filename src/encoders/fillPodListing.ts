@@ -16,6 +16,7 @@ export default function fillPodListing(
   amountIn?: TokenValue, // amountIn
   balanceFrom?: FarmFromMode, // fromMode
   clipboard?: `0x${string}`,
+  fieldId: bigint = 0n, // fieldId
 ) {
   if (
     account === undefined ||
@@ -41,7 +42,7 @@ export default function fillPodListing(
     args: [
       {
         lister: account, // account
-        fieldId: 0n,
+        fieldId: fieldId,
         index: index.toBigInt(), // index
         start: start.toBigInt(), // start
         podAmount: amount.toBigInt(), // amount

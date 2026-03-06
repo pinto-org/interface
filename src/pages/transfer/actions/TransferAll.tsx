@@ -1,12 +1,15 @@
 import FlowForm from "@/components/FormFlow";
+import { abiSnippets } from "@/constants/abiSnippets";
+import { BARN_PAYBACK_ADDRESS, SILO_PAYBACK_ADDRESS } from "@/constants/address";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { type Address, encodeFunctionData } from "viem";
@@ -35,6 +38,16 @@ export default function TransferAll() {
 
   const hasPlots = farmerField.plots.length > 0;
 
+  const repayment = useFarmerBeanstalkRepayment();
+  const hasBeanstalkSilo = repayment.silo.balance.gt(0);
+  const hasBeanstalkPods = repayment.pods.plots.length > 0;
+  const hasBeanstalkFert = useMemo(() => {
+    for (const detail of repayment.fertilizer.perIdData.values()) {
+      if (detail.balance > 0n) return true;
+    }
+    return false;
+  }, [repayment.fertilizer.perIdData]);
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -43,19 +56,11 @@ export default function TransferAll() {
   }, [destination]);
 
   const { writeWithEstimateGas, setSubmitting } = useTransaction({
-    successCallback: () => {
-      for (const queryKey of farmerSilo.queryKeys) {
-        queryClient.invalidateQueries({ queryKey });
-      }
-      farmerBalances.refetch();
-      farmerField.refetch();
-      navigate("/transfer");
-    },
     successMessage: "Transfer success",
     errorMessage: "Transfer failed",
   });
 
-  function onSubmit() {
+  async function onSubmit() {
     try {
       setSubmitting(true);
       toast.loading("Transferring...");
@@ -93,9 +98,8 @@ export default function TransferAll() {
         farmData.push(depositTransferCall);
       }
 
-      // Plot Transfers
+      // Plot Transfers (fieldId=0)
       if (hasPlots) {
-        // todo: add support for more than one plot line
         const fieldId = BigInt(0);
         const ids: bigint[] = [];
         const starts: bigint[] = [];
@@ -108,24 +112,82 @@ export default function TransferAll() {
         const plotTransferCall = encodeFunctionData({
           abi: beanstalkAbi,
           functionName: "transferPlots",
-          args: [
-            account.address,
-            destination as Address,
-            fieldId,
-            ids, //plot ids
-            starts, // starts
-            ends, // ends
-          ],
+          args: [account.address, destination as Address, fieldId, ids, starts, ends],
         });
         farmData.push(plotTransferCall);
       }
 
-      return writeWithEstimateGas({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [farmData],
-      });
+      // Beanstalk Repayment Pods (fieldId=1)
+      if (hasBeanstalkPods) {
+        const fieldId = BigInt(1);
+        const ids: bigint[] = [];
+        const starts: bigint[] = [];
+        const ends: bigint[] = [];
+        for (const plotData of repayment.pods.plots) {
+          ids.push(plotData.index.toBigInt());
+          starts.push(BigInt(0));
+          ends.push(plotData.pods.toBigInt());
+        }
+        const plotTransferCall = encodeFunctionData({
+          abi: beanstalkAbi,
+          functionName: "transferPlots",
+          args: [account.address, destination as Address, fieldId, ids, starts, ends],
+        });
+        farmData.push(plotTransferCall);
+      }
+
+      // Execute farm() with all batched calls (skip if nothing to batch)
+      if (farmData.length > 0) {
+        await writeWithEstimateGas({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "farm",
+          args: [farmData],
+        });
+      }
+
+      // Beanstalk Repayment Fertilizer — direct ERC1155 transfer (not via farm)
+      // BarnPayback is a separate contract; calling via farm() makes diamond the msg.sender
+      // which requires the user to have approved diamond. Direct call avoids this.
+      if (hasBeanstalkFert) {
+        const fertIds: bigint[] = [];
+        const fertValues: bigint[] = [];
+        for (const [idStr, detail] of repayment.fertilizer.perIdData) {
+          if (detail.balance > 0n) {
+            fertIds.push(BigInt(idStr));
+            fertValues.push(detail.balance);
+          }
+        }
+        if (fertIds.length > 0) {
+          toast.loading("Transferring bsFERT...");
+          await writeWithEstimateGas({
+            address: BARN_PAYBACK_ADDRESS as Address,
+            abi: abiSnippets.barnPayback,
+            functionName: "safeBatchTransferFrom",
+            args: [account.address, destination as Address, fertIds, fertValues, "0x"],
+          });
+        }
+      }
+
+      // urBDV transfer is a separate contract call (not via farm())
+      if (hasBeanstalkSilo) {
+        toast.loading("Transferring urBDV...");
+        await writeWithEstimateGas({
+          address: SILO_PAYBACK_ADDRESS as Address,
+          abi: abiSnippets.siloPayback,
+          functionName: "transfer",
+          args: [destination as Address, repayment.silo.balance.toBigInt()],
+        });
+      }
+
+      // All transfers complete — invalidate caches and navigate
+      for (const queryKey of farmerSilo.queryKeys) {
+        queryClient.invalidateQueries({ queryKey });
+      }
+      farmerBalances.refetch();
+      farmerField.refetch();
+      repayment.refetch();
+      navigate("/transfer");
     } catch (e) {
       console.error(e);
       toast.dismiss();

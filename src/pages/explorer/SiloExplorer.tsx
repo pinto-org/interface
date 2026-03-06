@@ -5,10 +5,10 @@ import { TimeTab } from "@/components/charts/TimeTabs";
 import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
 import useSeasonalGaugeInfo from "@/state/seasonal/queries/useSeasonalGaugeInfo";
 import {
-  useSeasonalAvgSeeds,
-  useSeasonalBDV,
+  useSeasonalAvgSeedsCache,
+  useSeasonalBDVCache,
   useSeasonalL2SR,
-  useSeasonalStalk,
+  useSeasonalStalkCache,
   useSeasonalTotalLiquidity,
 } from "@/state/seasonal/seasonalDataHooks";
 import { useSunData } from "@/state/useSunData";
@@ -119,7 +119,7 @@ const L2SRChart = React.memo(({ season }: ISeason) => {
 const StalkSupplyChart = React.memo(({ season }: ISeason) => {
   const [stalkTab, setStalkTab] = useTimeTabs("stalkSupply");
 
-  const stalkData = useSeasonalStalk(Math.max(0, season - tabToSeasonalLookback(stalkTab)), season);
+  const stalkData = useSeasonalStalkCache(Math.max(0, season - tabToSeasonalLookback(stalkTab)), season);
 
   return (
     <SeasonalChart
@@ -144,7 +144,7 @@ const StalkSupplyChart = React.memo(({ season }: ISeason) => {
 const TotalDepositedPDVChart = React.memo(({ season }: ISeason) => {
   const [bdvTab, setBdvTab] = useTimeTabs("totalDepositedPDV");
 
-  const bdvData = useSeasonalBDV(Math.max(0, season - tabToSeasonalLookback(bdvTab)), season);
+  const bdvData = useSeasonalBDVCache(Math.max(0, season - tabToSeasonalLookback(bdvTab)), season);
 
   return (
     <SeasonalChart
@@ -169,7 +169,7 @@ const TotalDepositedPDVChart = React.memo(({ season }: ISeason) => {
 const AvgSeedsChart = React.memo(({ season }: ISeason) => {
   const [avgSeedsTab, setAvgSeedsTab] = useTimeTabs("avgSeeds");
 
-  const avgSeedsData = useSeasonalAvgSeeds(Math.max(0, season - tabToSeasonalLookback(avgSeedsTab)), season);
+  const avgSeedsData = useSeasonalAvgSeedsCache(Math.max(0, season - tabToSeasonalLookback(avgSeedsTab)), season);
 
   return (
     <SeasonalChart

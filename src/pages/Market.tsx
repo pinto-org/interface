@@ -10,9 +10,12 @@ import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import ScatterChart, { PointClickPayload, PointHoverPayload, ScatterChartRef } from "@/components/charts/ScatterChart";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
+import { Switch } from "@/components/ui/Switch";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import { BeanstalkMarketContext } from "@/context/BeanstalkMarketContext";
 import useNavHeight from "@/hooks/display/useNavHeight";
 import { useAllMarket } from "@/state/market/useAllMarket";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { calculatePodScore } from "@/utils/podScore";
@@ -21,7 +24,7 @@ import { exists } from "@/utils/utils";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
 import MarketModeSelect from "./market/MarketModeSelect";
@@ -213,12 +216,50 @@ export function Market() {
   const hoverInfoRef = useRef<HTMLDivElement>(null);
   const lastPositionSideRef = useRef<{ isRight: boolean; isAbove: boolean } | null>(null);
   const navigate = useNavigate();
-  const { data, isLoaded } = useAllMarket();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isBeanstalkMarketplace = searchParams.get("beanstalk") === "true";
+  const fieldId = isBeanstalkMarketplace ? 1n : 0n;
+  const podMarketplaceId = isBeanstalkMarketplace ? "1" : undefined;
+
+  const handleToggleBeanstalk = useCallback(
+    (checked: boolean) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (checked) {
+            next.set("beanstalk", "true");
+          } else {
+            next.delete("beanstalk");
+          }
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+  const buildMarketPath = useCallback(
+    (path: string) => {
+      if (isBeanstalkMarketplace) {
+        return `${path}?beanstalk=true`;
+      }
+      return path;
+    },
+    [isBeanstalkMarketplace],
+  );
+
+  const { data, isLoaded } = useAllMarket(podMarketplaceId);
   const podLine = usePodLine();
-  const podLineAsNumber = podLine.toNumber() / MILLION;
+  const harvestableIndex = useHarvestableIndex();
+  const repayment = useFarmerBeanstalkRepayment();
+
+  // Toggle durumuna göre pod line ve harvestable index seçimi
+  const activePodLine = isBeanstalkMarketplace ? repayment.pods.podIndex.sub(repayment.pods.harvestableIndex) : podLine;
+  const activeHarvestableIndex = isBeanstalkMarketplace ? repayment.pods.harvestableIndex : harvestableIndex;
+
+  const podLineAsNumber = activePodLine.toNumber() / MILLION;
   // Chart rounds X max to nearest 10 (not ceil), so we need to match that for validation
   const chartXMax = Math.round((podLineAsNumber / 10) * 10);
-  const harvestableIndex = useHarvestableIndex();
   const navHeight = useNavHeight();
 
   const [mounted, setMounted] = useState(false);
@@ -257,7 +298,7 @@ export function Market() {
       if (!selectedPlotData) return [];
 
       return selectedPlotData.listingData.map((data) => {
-        const placeInLine = data.index.sub(harvestableIndex).toNumber();
+        const placeInLine = data.index.sub(activeHarvestableIndex).toNumber();
         const placeInLineMillions = placeInLine / MILLION;
         const podScore = calculatePodScore(selectedPlotData.pricePerPod, placeInLineMillions);
 
@@ -273,11 +314,11 @@ export function Market() {
         };
       });
     },
-    [harvestableIndex],
+    [activeHarvestableIndex],
   );
 
   const scatterChartData: MarketScatterChartData[] = useMemo(() => {
-    const baseData = shapeScatterChartData(data || [], harvestableIndex);
+    const baseData = shapeScatterChartData(data || [], activeHarvestableIndex);
 
     // Add selected plots dataset if available
     if (!selectedPlotData || selectedPlotData.listingData.length === 0 || selectedPlotData.pricePerPod <= 0) {
@@ -317,7 +358,7 @@ export function Market() {
     };
 
     return [...baseData, selectedPlotsDataset];
-  }, [data, harvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
+  }, [data, activeHarvestableIndex, selectedPlotData, transformSelectedPlotsToChartPoints]);
 
   // Calculate highlighted event IDs (filtered by FillListing parameters)
   const highlightedEventIds = useMemo(() => {
@@ -519,13 +560,13 @@ export function Market() {
   useEffect(() => {
     if (!mode) {
       // No mode specified (e.g. /market/pods), redirect to buy/fill
-      navigate("/market/pods/buy/fill", { replace: true });
+      navigate(buildMarketPath("/market/pods/buy/fill"), { replace: true });
     } else if (mode === "buy" && !id) {
-      navigate("/market/pods/buy/fill", { replace: true });
+      navigate(buildMarketPath("/market/pods/buy/fill"), { replace: true });
     } else if (mode === "sell" && !id) {
-      navigate("/market/pods/sell/create", { replace: true });
+      navigate(buildMarketPath("/market/pods/sell/create"), { replace: true });
     }
-  }, [id, mode, navigate]);
+  }, [id, mode, navigate, buildMarketPath]);
 
   // Clear preview plots and unfreeze chart when route changes away from create listing
   // Also unfreeze when switching between listing/selling pages
@@ -599,14 +640,14 @@ export function Market() {
 
       if (selection === TABLE_SLUGS[1]) {
         setIsNavigating(true);
-        navigate(`/market/pods/buy/fill`);
+        navigate(buildMarketPath(`/market/pods/buy/fill`));
       } else if (selection === TABLE_SLUGS[2]) {
         setIsNavigating(true);
-        navigate(`/market/pods/sell/fill`);
+        navigate(buildMarketPath(`/market/pods/sell/fill`));
       }
       handleChangeTab(selection);
     },
-    [navigate, tab],
+    [navigate, tab, buildMarketPath],
   );
 
   const handleSecondaryTabClick = useCallback(
@@ -779,7 +820,7 @@ export function Market() {
         setIsCrosshairFrozen(false);
         setContextMenu(null);
         setIsContextMenuClosing(false);
-        navigate(path, { state });
+        navigate(buildMarketPath(path), { state });
 
         // Reset flag after navigation
         setTimeout(() => {
@@ -787,7 +828,7 @@ export function Market() {
         }, 100);
       }, 200); // Match fade-out animation duration
     },
-    [navigate],
+    [navigate, buildMarketPath],
   );
 
   const contextMenuOptions = useMemo(() => {
@@ -860,7 +901,7 @@ export function Market() {
           // Switch to buy mode and fill action
           if (mode !== "buy" || id !== "fill") {
             setIsNavigating(true);
-            navigate("/market/pods/buy/fill");
+            navigate(buildMarketPath("/market/pods/buy/fill"));
           }
           handleChangeTab(TABLE_SLUGS[1]); // Switch to listings tab
         } else {
@@ -871,7 +912,7 @@ export function Market() {
           // Switch to sell mode and fill action
           if (mode !== "sell" || id !== "fill") {
             setIsNavigating(true);
-            navigate("/market/pods/sell/fill");
+            navigate(buildMarketPath("/market/pods/sell/fill"));
           }
           handleChangeTab(TABLE_SLUGS[2]); // Switch to orders tab
         }
@@ -905,7 +946,7 @@ export function Market() {
         // Switch to buy mode and fill action
         if (mode !== "buy" || id !== "fill") {
           setIsNavigating(true);
-          navigate("/market/pods/buy/fill");
+          navigate(buildMarketPath("/market/pods/buy/fill"));
         }
         handleChangeTab(TABLE_SLUGS[1]); // Switch to listings tab
       } else {
@@ -916,7 +957,7 @@ export function Market() {
         // Switch to sell mode and fill action
         if (mode !== "sell" || id !== "fill") {
           setIsNavigating(true);
-          navigate("/market/pods/sell/fill");
+          navigate(buildMarketPath("/market/pods/sell/fill"));
         }
         handleChangeTab(TABLE_SLUGS[2]); // Switch to orders tab
       }
@@ -967,166 +1008,200 @@ export function Market() {
       });
 
       // Navigate to CreateListing with plot indices (not full Plot objects to avoid serialization issues)
-      navigate("/market/pods/sell/create", {
+      navigate(buildMarketPath("/market/pods/sell/create"), {
         state: { selectedPlotIndices: plotIndices },
       });
     },
-    [navigate],
+    [navigate, buildMarketPath],
   );
 
   // Default to buy/fill when no mode is selected
   const viewMode = mode || "buy";
   const viewAction = id || (viewMode === "buy" ? "fill" : "create");
 
-  return (
-    <>
-      <div className="sm:hidden mt-[100px] flex flex-col gap-4 items-center justify-center">
-        <p className="text-center text-gray-500">Your screen size is too small to access the Pod Market.</p>
-        <p className="hidden sm:block text-center text-gray-500">
-          If you're on Desktop, zoom out on your browser to access the Pod Market.
-        </p>
-      </div>
-      <div className="hidden sm:block">
-        <div className={`flex flex-col`}>
-          <Col className="gap-4 mx-4 mb-8">
-            <div className="flex flex-col gap-4">
-              <div className="pinto-h2 sm:pinto-h1">Market</div>
-              <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-                Buy and sell Pods on the open market.
-              </div>
-            </div>
-            <ReadMoreAccordion defaultOpen={false} inline>
-              The Pod Market is a decentralized marketplace where users can trade Pods, which are protocol-native debt
-              instruments that represent future Pinto tokens. When you buy Pods, you're essentially purchasing the right
-              to redeem them for Pinto tokens at a fixed rate when they become harvestable. The market operates on a
-              first-in-first-out (FIFO) basis, meaning the oldest Pods become harvestable first. You can place buy
-              orders to acquire Pods at a specific price, or create listings to sell your existing Pods to other users.
-              The scatter chart above visualizes all active orders and listings, showing their place in line and price
-              per Pod. This allows you to see market depth and make informed trading decisions based on current market
-              conditions and your investment strategy.
-            </ReadMoreAccordion>
-          </Col>
-          <Separator />
-          <div className="flex flex-row mt-4 ">
-            <div className="flex flex-col flex-grow ml-4 border-r border-pinto-gray-2 pr-4">
-              <div className="w-full h-[75vh] relative mt-4">
-                {!isLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
-                    <FrameAnimator className="-mt-5 -mb-12" size={80} />
-                  </div>
-                )}
-                <ScatterChart
-                  key={chartDataKey}
-                  ref={chartRef}
-                  data={scatterChartData}
-                  xOptions={{ label: "Place in line", min: 0, max: chartXMax }}
-                  yOptions={{ label: "Price per pod", min: 0, max: 1 }}
-                  onPointClick={onPointClick}
-                  onHover={onHover}
-                  onFreezeChange={setIsCrosshairFrozen}
-                  toolTipOptions={toolTipOptions as TooltipOptions}
-                  highlightedEventIds={highlightedEventIds}
-                />
+  const contextValue = useMemo(
+    () => ({
+      isBeanstalkMarketplace,
+      fieldId,
+      podMarketplaceId,
+    }),
+    [isBeanstalkMarketplace, fieldId, podMarketplaceId],
+  );
 
-                {/* Gradient Legend - positioned in top-right corner */}
-                <div className="absolute top-5 right-6 z-50">
-                  <PodScoreGradientLegend />
+  return (
+    <BeanstalkMarketContext.Provider value={contextValue}>
+      <>
+        <div className="sm:hidden mt-[100px] flex flex-col gap-4 items-center justify-center">
+          <p className="text-center text-gray-500">Your screen size is too small to access the Pod Market.</p>
+          <p className="hidden sm:block text-center text-gray-500">
+            If you're on Desktop, zoom out on your browser to access the Pod Market.
+          </p>
+        </div>
+        <div className="hidden sm:block">
+          <div className={`flex flex-col`}>
+            <Col className="gap-4 mx-4 mb-8">
+              <div className="flex flex-col gap-4">
+                <div className="pinto-h2 sm:pinto-h1">Market</div>
+                <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
+                  Buy and sell Pods on the open market.
                 </div>
               </div>
-              <div className="mb-4 pr-[12px]">
-                <PodLineGraph className="h-24" onPlotGroupSelect={handleMarketPodLineGraphSelect} labelType="title" />
-              </div>
-              <div className="flex gap-10 ml-2.5 mt-4 mb-[1.625rem]">
-                {TABLE_SLUGS.map((s, idx) => (
-                  <p
-                    key={s}
-                    className={`pinto-h4 cursor-pointer ${s === tab ? "text-pinto-primary" : "text-pinto-light hover:text-pinto-green-3"}`}
-                    onClick={handleChangeTabFactory(s)}
-                  >
-                    {TABLE_LABELS[idx]}
-                  </p>
-                ))}
-              </div>
-              <Separator />
-              <div className="flex-grow overflow-auto scrollbar-none -ml-4 -mr-4 max-h-[40rem] overscroll-auto">
-                {tab === TABLE_SLUGS[0] && <AllActivityTable />}
-                {tab === TABLE_SLUGS[1] && <PodListingsTable />}
-                {tab === TABLE_SLUGS[2] && <PodOrdersTable />}
-                {tab === TABLE_SLUGS[3] && <FarmerActivityTable />}
-              </div>
-            </div>
-            <div
-              className="flex flex-col self-start px-4 py-4 sticky w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none"
-              style={{ top: `${navHeight - 8}px` }}
-            >
-              <Card className="w-full h-full">
-                <div className="flex flex-col gap-4 p-4">
-                  <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
-                  <div className="flex flex-col gap-4">
-                    {viewMode === "buy" && viewAction === "create" && <CreateOrder />}
-                    {viewMode === "buy" && viewAction === "fill" && (
-                      <FillListing
-                        selectedListingId={selectedListingData?.listingId}
-                        selectedPlaceInLine={selectedListingData?.placeInLine}
-                        onFilterChange={setFillListingFilters}
-                      />
-                    )}
-                    {viewMode === "sell" && viewAction === "create" && (
-                      <CreateListing onSelectionChange={setSelectedPlotData} />
-                    )}
-                    {viewMode === "sell" && viewAction === "fill" && (
-                      <FillOrder selectedOrderId={selectedOrderData?.orderId} />
-                    )}
+              <ReadMoreAccordion defaultOpen={false}>
+                <span>
+                  The Pod Market is a decentralized marketplace where users can trade Pods, which are protocol-native
+                  debt instruments that represent future Pinto tokens. When you buy Pods, you're essentially purchasing
+                  the right to redeem them for Pinto tokens at a fixed rate when they become harvestable. The market
+                  operates on a first-in-first-out (FIFO) basis, meaning the oldest Pods become harvestable first. You
+                  can place buy orders to acquire Pods at a specific price, or create listings to sell your existing
+                  Pods to other users. The scatter chart above visualizes all active orders and listings, showing their
+                  place in line and price per Pod. This allows you to see market depth and make informed trading
+                  decisions based on current market conditions and your investment strategy.
+                </span>
+              </ReadMoreAccordion>
+            </Col>
+            <Separator />
+            <div className="flex flex-row mt-4 ">
+              <div className="flex flex-col flex-grow ml-4 border-r border-pinto-gray-2 pr-4">
+                <div className="flex items-center justify-end gap-2 mt-4 mb-2 mr-4">
+                  <span className="text-sm text-pinto-gray-5">Toggle Beanstalk Marketplace</span>
+                  <Switch checked={isBeanstalkMarketplace} onCheckedChange={handleToggleBeanstalk} />
+                </div>
+                <div className="w-full h-[75vh] relative">
+                  {!isLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+                      <FrameAnimator className="-mt-5 -mb-12" size={80} />
+                    </div>
+                  )}
+                  <ScatterChart
+                    key={chartDataKey}
+                    ref={chartRef}
+                    data={scatterChartData}
+                    xOptions={{ label: "Place in line", min: 0, max: chartXMax }}
+                    yOptions={{ label: "Price per pod", min: 0, max: 1 }}
+                    onPointClick={onPointClick}
+                    onHover={onHover}
+                    onFreezeChange={setIsCrosshairFrozen}
+                    toolTipOptions={toolTipOptions as TooltipOptions}
+                    highlightedEventIds={highlightedEventIds}
+                  />
+
+                  {/* Gradient Legend - positioned in top-right corner */}
+                  <div className="absolute top-5 right-6 z-50">
+                    <PodScoreGradientLegend />
                   </div>
                 </div>
-              </Card>
+                <div className="mb-4 pr-[12px]">
+                  <PodLineGraph
+                    className="h-24"
+                    onPlotGroupSelect={handleMarketPodLineGraphSelect}
+                    labelType="title"
+                    label={isBeanstalkMarketplace ? "My Beanstalk Pods In Line" : "My Pinto Pods In Line"}
+                    plots={isBeanstalkMarketplace ? repayment.pods.plots : undefined}
+                    customHarvestableIndex={isBeanstalkMarketplace ? repayment.pods.harvestableIndex : undefined}
+                    customPodIndex={isBeanstalkMarketplace ? repayment.pods.podIndex : undefined}
+                  />
+                </div>
+                <div className="flex gap-10 ml-2.5 mt-4 mb-[1.625rem]">
+                  {TABLE_SLUGS.map((s, idx) => (
+                    <p
+                      key={s}
+                      className={`pinto-h4 cursor-pointer ${s === tab ? "text-pinto-primary" : "text-pinto-light hover:text-pinto-green-3"}`}
+                      onClick={handleChangeTabFactory(s)}
+                    >
+                      {TABLE_LABELS[idx]}
+                    </p>
+                  ))}
+                </div>
+                <Separator />
+                <div className="flex-grow overflow-auto scrollbar-none -ml-4 -mr-4 max-h-[40rem] overscroll-auto">
+                  {tab === TABLE_SLUGS[0] && <AllActivityTable />}
+                  {tab === TABLE_SLUGS[1] && <PodListingsTable />}
+                  {tab === TABLE_SLUGS[2] && <PodOrdersTable />}
+                  {tab === TABLE_SLUGS[3] && <FarmerActivityTable />}
+                </div>
+              </div>
+              <div
+                className="flex flex-col self-start px-4 py-4 sticky w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none"
+                style={{ top: `${navHeight - 8}px` }}
+              >
+                <Card className="w-full h-full">
+                  <div className="flex flex-col gap-4 p-4">
+                    <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
+                    <div className="flex flex-col gap-4">
+                      {viewMode === "buy" && viewAction === "create" && (
+                        <CreateOrder key={`create-order-${isBeanstalkMarketplace}`} />
+                      )}
+                      {viewMode === "buy" && viewAction === "fill" && (
+                        <FillListing
+                          key={`fill-listing-${isBeanstalkMarketplace}`}
+                          selectedListingId={selectedListingData?.listingId}
+                          selectedPlaceInLine={selectedListingData?.placeInLine}
+                          onFilterChange={setFillListingFilters}
+                        />
+                      )}
+                      {viewMode === "sell" && viewAction === "create" && (
+                        <CreateListing
+                          key={`create-listing-${isBeanstalkMarketplace}`}
+                          onSelectionChange={setSelectedPlotData}
+                        />
+                      )}
+                      {viewMode === "sell" && viewAction === "fill" && (
+                        <FillOrder
+                          key={`fill-order-${isBeanstalkMarketplace}`}
+                          selectedOrderId={selectedOrderData?.orderId}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Hover info - rendered once, updated via direct DOM manipulation for performance */}
-      <div
-        ref={hoverInfoRef}
-        className="fixed z-40 text-xs px-3 py-2 flex-col gap-1 text-pinto-pod-bronze pointer-events-none"
-        style={{ display: "none" }}
-      >
-        <div>
-          <span>Price per Pod:</span> <span data-price>0.000</span>
+        {/* Hover info - rendered once, updated via direct DOM manipulation for performance */}
+        <div
+          ref={hoverInfoRef}
+          className="fixed z-40 text-xs px-3 py-2 flex-col gap-1 text-pinto-pod-bronze pointer-events-none"
+          style={{ display: "none" }}
+        >
+          <div>
+            <span>Price per Pod:</span> <span data-price>0.000</span>
+          </div>
+          <div>
+            <span>Place in line:</span> <span data-place>0.0M</span>
+          </div>
         </div>
-        <div>
-          <span>Place in line:</span> <span data-place>0.0M</span>
-        </div>
-      </div>
 
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          clickedCoords={contextMenu.clickedCoords}
-          chartBounds={contextMenu.chartBounds}
-          options={contextMenuOptions}
-          isClosing={isContextMenuClosing}
-          onClose={() => {
-            // Only unfreeze if NOT navigating (closed via Escape/click outside/scroll)
-            // If navigating, handleUnfreezeAndNavigate already handles unfreeze
-            if (!isNavigatingRef.current) {
-              // Trigger closing animation
-              setIsContextMenuClosing(true);
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            clickedCoords={contextMenu.clickedCoords}
+            chartBounds={contextMenu.chartBounds}
+            options={contextMenuOptions}
+            isClosing={isContextMenuClosing}
+            onClose={() => {
+              // Only unfreeze if NOT navigating (closed via Escape/click outside/scroll)
+              // If navigating, handleUnfreezeAndNavigate already handles unfreeze
+              if (!isNavigatingRef.current) {
+                // Trigger closing animation
+                setIsContextMenuClosing(true);
 
-              // Wait for animation to complete before unfreezing
-              setTimeout(() => {
-                if (isCrosshairFrozen) {
-                  chartRef.current?.unfreeze();
-                  setIsCrosshairFrozen(false);
-                }
-                setContextMenu(null);
-                setIsContextMenuClosing(false);
-              }, 200); // Match fade-out animation duration
-            }
-          }}
-        />
-      )}
-    </>
+                // Wait for animation to complete before unfreezing
+                setTimeout(() => {
+                  if (isCrosshairFrozen) {
+                    chartRef.current?.unfreeze();
+                    setIsCrosshairFrozen(false);
+                  }
+                  setContextMenu(null);
+                  setIsContextMenuClosing(false);
+                }, 200); // Match fade-out animation duration
+              }
+            }}
+          />
+        )}
+      </>
+    </BeanstalkMarketContext.Provider>
   );
 }

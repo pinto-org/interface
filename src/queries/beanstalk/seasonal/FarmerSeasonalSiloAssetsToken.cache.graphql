@@ -1,0 +1,15 @@
+query FarmerSeasonalSiloAssetToken($where: String, $orderBy: String, $orderDirection: String) {
+  siloAssetHourlySnapshots: cache_siloAssetHourlySnapshots(
+    where: $where
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    id
+    season
+    depositedAmount
+    depositedBDV
+    deltaDepositedBDV
+    deltaDepositedAmount
+    createdAt
+  }
+}

@@ -11,9 +11,11 @@ import { MultiSlider, Slider } from "@/components/ui/Slider";
 import { Switch } from "@/components/ui/Switch";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
@@ -89,12 +91,24 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
   const navigate = useNavigate();
   const location = useLocation();
   const farmerField = useFarmerField();
+  const { isBeanstalkMarketplace, fieldId } = useBeanstalkMarket();
+  const repayment = useFarmerBeanstalkRepayment();
 
   const queryClient = useQueryClient();
   const { allPodListings, allMarket, farmerMarket } = useQueryKeys({ account, harvestableIndex });
   const allQK = useMemo(() => [allPodListings, allMarket, farmerMarket], [allPodListings, allMarket, farmerMarket]);
 
-  const userPlots = useMemo(() => farmerField?.plots || [], [farmerField?.plots]);
+  const userPlots = useMemo(() => {
+    if (isBeanstalkMarketplace) {
+      return repayment.pods.plots;
+    }
+    return farmerField?.plots || [];
+  }, [isBeanstalkMarketplace, farmerField?.plots, repayment.pods.plots]);
+
+  const activeHarvestableIndex = useMemo(
+    () => (isBeanstalkMarketplace ? repayment.pods.harvestableIndex : harvestableIndex),
+    [isBeanstalkMarketplace, repayment.pods.harvestableIndex, harvestableIndex],
+  );
 
   const [plot, setPlot] = useState<Plot[]>([]);
   const [amount, setAmount] = useState(0);
@@ -107,13 +121,18 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
   const [successAmount, setSuccessAmount] = useState<number | null>(null);
   const [successPrice, setSuccessPrice] = useState<number | null>(null);
   const podIndex = usePodIndex();
-  const maxExpiration = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
+  const activePodIndex = useMemo(
+    () => (isBeanstalkMarketplace ? repayment.pods.podIndex : podIndex),
+    [isBeanstalkMarketplace, repayment.pods.podIndex, podIndex],
+  );
+  const maxExpiration =
+    Number.parseInt(activePodIndex.toHuman()) - Number.parseInt(activeHarvestableIndex.toHuman()) || 0;
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
   const selectedExpiresIn = expiresIn ?? maxExpiration;
   const minFill = TokenValue.fromHuman(0.1, PODS.decimals);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
-  const plotPosition = plot.length > 0 ? plot[0].index.sub(harvestableIndex) : TV.ZERO;
+  const plotPosition = plot.length > 0 ? plot[0].index.sub(activeHarvestableIndex) : TV.ZERO;
 
   // Helper: Find nearest plot within 10% tolerance (for context menu prefill)
   const findNearestPlot = useCallback(
@@ -125,7 +144,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
       let minDistance = Infinity;
 
       for (const p of userPlots) {
-        const plotPos = Number(p.index.sub(harvestableIndex).toBigInt());
+        const plotPos = Number(p.index.sub(activeHarvestableIndex).toBigInt());
         const distance = Math.abs(plotPos - targetPosition);
         const tolerance = targetPosition * 0.1; // 10% tolerance
 
@@ -137,19 +156,19 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
 
       return nearestPlot;
     },
-    [userPlots, harvestableIndex],
+    [userPlots, activeHarvestableIndex],
   );
 
   // Calculate max pods based on selected plots OR all farmer plots
   const maxPodAmount = useMemo(() => {
-    const plotsToUse = plot.length > 0 ? plot : farmerField.plots;
+    const plotsToUse = plot.length > 0 ? plot : userPlots;
     if (plotsToUse.length === 0) return 0;
     return plotsToUse.reduce((sum, p) => sum + p.pods.toNumber(), 0);
-  }, [plot, farmerField.plots]);
+  }, [plot, userPlots]);
 
   // Calculate position range in line
   const positionInfo = useMemo(() => {
-    const plotsToUse = plot.length > 0 ? plot : farmerField.plots;
+    const plotsToUse = plot.length > 0 ? plot : userPlots;
     if (plotsToUse.length === 0) return null;
 
     const minIndex = plotsToUse.reduce((min, p) => (p.index.lt(min) ? p.index : min), plotsToUse[0].index);
@@ -159,10 +178,10 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
     }, plotsToUse[0].index);
 
     return {
-      start: minIndex.sub(harvestableIndex),
-      end: maxIndex.sub(harvestableIndex),
+      start: minIndex.sub(activeHarvestableIndex),
+      end: maxIndex.sub(activeHarvestableIndex),
     };
-  }, [plot, farmerField.plots, harvestableIndex]);
+  }, [plot, userPlots, activeHarvestableIndex]);
 
   // Calculate selected pod range for PodLineGraph partial selection
   const selectedPodRange = useMemo(() => {
@@ -243,7 +262,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
 
     const scores = listingData
       .map((data) => {
-        const placeInLine = data.index.sub(harvestableIndex).toNumber();
+        const placeInLine = data.index.sub(activeHarvestableIndex).toNumber();
         // Use placeInLine in millions for consistent scaling
         return calculatePodScore(pricePerPod, placeInLine / MILLION);
       })
@@ -255,7 +274,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
     const max = Math.max(...scores);
 
     return { min, max, isSingle: scores.length === 1 || min === max };
-  }, [listingData, pricePerPod, harvestableIndex]);
+  }, [listingData, pricePerPod, activeHarvestableIndex]);
 
   // Notify parent component of selection changes
   useEffect(() => {
@@ -324,7 +343,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
     }
 
     // Find matching plots from farmer's field using string comparison
-    const validPlots = farmerField.plots.filter((p) => selectedPlotIndices.includes(p.index.toHuman()));
+    const validPlots = userPlots.filter((p) => selectedPlotIndices.includes(p.index.toHuman()));
 
     if (validPlots.length > 0) {
       // Mark this selection as processed
@@ -348,7 +367,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
       // Clean up location state to prevent re-selection on re-mount
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, farmerField.plots, sortPlotsByIndex]);
+  }, [location.state, userPlots, sortPlotsByIndex]);
 
   // Prefill from context menu click - always update when new values arrive
   useEffect(() => {
@@ -402,7 +421,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
     prefillExpiresIn,
     maxExpiration,
     findNearestPlot,
-    harvestableIndex,
+    activeHarvestableIndex,
     navigate,
     location.pathname,
     sortPlotsByIndex,
@@ -468,7 +487,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
 
   const handlePlotGroupSelect = useCallback(
     (plotIndices: string[]) => {
-      const plotsInGroup = farmerField.plots.filter((p) => plotIndices.includes(p.index.toHuman()));
+      const plotsInGroup = userPlots.filter((p) => plotIndices.includes(p.index.toHuman()));
       if (plotsInGroup.length === 0) return;
 
       const allSelected = plotIndices.every((index) => plot.some((p) => p.index.toHuman() === index));
@@ -491,7 +510,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
         handlePlotSelection(newPlots);
       }
     },
-    [farmerField.plots, plot, handlePlotSelection],
+    [userPlots, plot, handlePlotSelection],
   );
 
   // reset form and invalidate pod listing query
@@ -538,7 +557,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
     // pricePerPod should be encoded as uint24 with 6 decimals (0.5 * 1_000_000 = 500000)
     const encodedPricePerPod = pricePerPod ? Math.floor(pricePerPod * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER) : 0;
     const _expiresIn = TokenValue.fromHuman(selectedExpiresIn, PODS.decimals);
-    const maxHarvestableIndex = _expiresIn.add(harvestableIndex);
+    const maxHarvestableIndex = _expiresIn.add(activeHarvestableIndex);
     try {
       setSubmitting(true);
       toast.loading(`Creating ${listingData.length} Listing${listingData.length > 1 ? "s" : ""}...`);
@@ -549,7 +568,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
       for (const data of listingData) {
         const listingArgs = {
           lister: account,
-          fieldId: 0n,
+          fieldId: fieldId,
           index: data.index.toBigInt(),
           start: data.start.toBigInt(),
           podAmount: data.amount.toBigInt(),
@@ -588,7 +607,8 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
     pricePerPod,
     selectedExpiresIn,
     balanceTo,
-    harvestableIndex,
+    activeHarvestableIndex,
+    fieldId,
     minFill,
     plot,
     listingData,
@@ -615,6 +635,9 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
           selectedPodRange={selectedPodRange}
           label="My Pods In Line"
           onPlotGroupSelect={handlePlotGroupSelect}
+          plots={userPlots}
+          customHarvestableIndex={activeHarvestableIndex}
+          customPodIndex={activePodIndex}
         />
 
         {/* Position in Line Display (below graph) */}
@@ -757,7 +780,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
             podAmount={amount}
             listingData={listingData}
             pricePerPod={pricePerPod}
-            harvestableIndex={harvestableIndex}
+            harvestableIndex={activeHarvestableIndex}
           />
         )}
         <SmartSubmitButton

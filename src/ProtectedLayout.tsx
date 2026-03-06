@@ -2,6 +2,7 @@ import { isDev } from "@/utils/utils";
 import { Navigate, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
 import PageMetaWrapper from "./components/PageMetaWrapper";
+import Beanstalk from "./pages/Beanstalk";
 import Collection from "./pages/Collection";
 import Error404 from "./pages/Error404";
 import Explorer from "./pages/Explorer";
@@ -66,6 +67,14 @@ export default function ProtectedLayout() {
         element={
           <PageMetaWrapper metaKey="referral">
             <Referral />
+          </PageMetaWrapper>
+        }
+      />
+      <Route
+        path="/beanstalk"
+        element={
+          <PageMetaWrapper metaKey="beanstalk">
+            <Beanstalk />
           </PageMetaWrapper>
         }
       />

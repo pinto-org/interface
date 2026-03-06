@@ -1,5 +1,21 @@
 export type TimeScale = "SECONDS" | "MINUTES" | "HOURS" | "DAYS" | "WEEKS" | "MONTHS" | "YEARS";
 
+/**
+ * Parse a subgraph result timestamp (Unix seconds as string) into a Date object.
+ * Subgraph returns timestamps as strings representing seconds since epoch.
+ * This is a stable reference that can be used directly in hooks without causing re-renders.
+ *
+ * @example
+ * // Direct usage
+ * const date = parseSGResultTimestamp(entry);
+ *
+ * // As a stable reference in hooks
+ * resultTimestamp: parseSGResultTimestamp
+ */
+export function parseSGResultTimestamp<T extends { createdAt: string }>({ createdAt }: T): Date {
+  return new Date(Number(createdAt) * 1000);
+}
+
 export type TimeScalesUntilDays = Exclude<TimeScale, "WEEKS" | "MONTHS" | "YEARS">;
 
 interface TimeScaleConfig {

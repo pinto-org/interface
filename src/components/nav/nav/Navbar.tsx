@@ -332,6 +332,7 @@ export const navLinks = {
   field: "/field",
   swap: "/swap",
   referral: "/referral",
+  beanstalk: "/beanstalk",
   sPinto: "/sPinto",
   collection: "/collection",
   podmarket: "/market/pods",

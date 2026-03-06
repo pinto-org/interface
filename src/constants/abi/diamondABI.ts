@@ -10933,4 +10933,408 @@ export const diamondABI = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "fieldId",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "index",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct CancelPodListingParams[]",
+        name: "params",
+        type: "tuple[]",
+      },
+    ],
+    name: "batchCancelPodListing",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "orderer",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "fieldId",
+            type: "uint256",
+          },
+          {
+            internalType: "uint24",
+            name: "pricePerPod",
+            type: "uint24",
+          },
+          {
+            internalType: "uint256",
+            name: "maxPlaceInLine",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "minFillAmount",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct Order.PodOrder[]",
+        name: "podOrders",
+        type: "tuple[]",
+      },
+      {
+        internalType: "enum LibTransfer.To",
+        name: "mode",
+        type: "uint8",
+      },
+    ],
+    name: "batchCancelPodOrder",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "lister",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "fieldId",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "index",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "start",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "podAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint24",
+            name: "pricePerPod",
+            type: "uint24",
+          },
+          {
+            internalType: "uint256",
+            name: "maxHarvestableIndex",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "minFillAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "enum LibTransfer.To",
+            name: "mode",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct Listing.PodListing[]",
+        name: "podListings",
+        type: "tuple[]",
+      },
+    ],
+    name: "batchCreatePodListing",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "lister",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "fieldId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "index",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "start",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "podAmount",
+                type: "uint256",
+              },
+              {
+                internalType: "uint24",
+                name: "pricePerPod",
+                type: "uint24",
+              },
+              {
+                internalType: "uint256",
+                name: "maxHarvestableIndex",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "minFillAmount",
+                type: "uint256",
+              },
+              {
+                internalType: "enum LibTransfer.To",
+                name: "mode",
+                type: "uint8",
+              },
+            ],
+            internalType: "struct Listing.PodListing",
+            name: "podListing",
+            type: "tuple",
+          },
+          {
+            internalType: "uint256",
+            name: "beanAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "enum LibTransfer.From",
+            name: "mode",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct FillPodListingParams[]",
+        name: "params",
+        type: "tuple[]",
+      },
+    ],
+    name: "batchFillPodListing",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "orderer",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "fieldId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint24",
+                name: "pricePerPod",
+                type: "uint24",
+              },
+              {
+                internalType: "uint256",
+                name: "maxPlaceInLine",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "minFillAmount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct Order.PodOrder",
+            name: "podOrder",
+            type: "tuple",
+          },
+          {
+            internalType: "uint256",
+            name: "beanAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "enum LibTransfer.From",
+            name: "mode",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct CreatePodOrderParams[]",
+        name: "params",
+        type: "tuple[]",
+      },
+    ],
+    name: "batchCreatePodOrder",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "orderer",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "fieldId",
+                type: "uint256",
+              },
+              {
+                internalType: "uint24",
+                name: "pricePerPod",
+                type: "uint24",
+              },
+              {
+                internalType: "uint256",
+                name: "maxPlaceInLine",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "minFillAmount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct Order.PodOrder",
+            name: "podOrder",
+            type: "tuple",
+          },
+          {
+            internalType: "uint256",
+            name: "index",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "start",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "enum LibTransfer.To",
+            name: "mode",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct FillPodOrderParams[]",
+        name: "params",
+        type: "tuple[]",
+      },
+    ],
+    name: "batchFillPodOrder",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "bytes",
+            name: "convertData",
+            type: "bytes",
+          },
+          {
+            internalType: "int96[]",
+            name: "stems",
+            type: "int96[]",
+          },
+          {
+            internalType: "uint256[]",
+            name: "amounts",
+            type: "uint256[]",
+          },
+          {
+            internalType: "int256",
+            name: "grownStalkSlippage",
+            type: "int256",
+          },
+        ],
+        internalType: "struct ConvertBatchFacet.ConvertParams[]",
+        name: "converts",
+        type: "tuple[]",
+      },
+    ],
+    name: "batchConvert",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint8",
+            name: "convertKind",
+            type: "uint8",
+          },
+          {
+            internalType: "int96",
+            name: "toStem",
+            type: "int96",
+          },
+          {
+            internalType: "uint256",
+            name: "fromAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "toAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "fromBdv",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "toBdv",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct ConvertBatchFacet.ConvertOutput[]",
+        name: "convertOutputs",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
 ] as const;

@@ -12,6 +12,97 @@ covering protocol, interface, and supporting infrastructure.
 
 ---
 
+## [PI-15] - 2026-03-07
+
+### Added
+
+- **Beanstalk obligations dashboard**
+  - New /beanstalk page for legacy Beanstalk holders to view and manage obligations
+    - Global statistics card showing protocol-wide Beanstalk repayment data
+    - Silo, Pods, and Fertilizer breakdown sections with detailed stats
+    - Obligations card with direct pod harvesting and claim/repayment actions
+    - useFarmerBeanstalkRepayment hook for fetching and calculating farmer-level repayment data
+    - useBeanstalkGlobalStats hook for protocol-wide Beanstalk statistics
+    - BeanstalkStatField reusable stat display component
+    - FertilizerCard component for fertilizer asset display
+    - Navigation links to Beanstalk page in desktop and mobile nav
+  - Beanstalk asset transfer flows
+    - Dedicated Silo deposit transfer flow (TransferBeanstalkSilo) with step-by-step wizard
+    - Dedicated Pod transfer flow (TransferBeanstalkPods) with range selection and summary view
+    - Dedicated Fertilizer transfer flow (TransferBeanstalkFertilizer) with multi-select support
+    - useAllFertilizerIds hook for fetching all fertilizer token IDs
+    - podTransferUtils helper functions for pod transfer calculations
+  - Batch marketplace operations
+    - Batch create pod listings (batchCreatePodListing encoder)
+    - Batch create pod orders (batchCreatePodOrder encoder)
+    - Batch fill pod listings (batchFillPodListing encoder)
+    - Batch fill pod orders (batchFillPodOrder encoder)
+    - Batch cancel pod listings (batchCancelPodListing encoder)
+    - Batch cancel pod orders (batchCancelPodOrder encoder)
+    - Batch deposit conversion (batchConvert encoder)
+    - Unit tests for batchCreatePodListing and batchFillPodListing
+  - My Listings and My Orders tables
+    - MyListingsTable component for viewing and managing user's own pod listings
+    - MyOrdersTable component for viewing and managing user's own pod orders
+    - useMyPodListings and useMyPodOrders state hooks
+    - MyPodListings and MyPodOrders GraphQL queries
+  - Cache subgraph integration
+    - Pintostalk cache subgraph with automatic fallback to primary subgraph
+    - useCacheQuery hook for cache-first data fetching with fallback mechanism
+    - Cache-backed seasonal data hooks: useSeasonalBeanstalkFieldCache, useSeasonalBeanstalkSiloCache, useSeasonalFarmerCache, useSeasonalFarmerSiloAssetTokenCache
+    - New cache GraphQL queries for AdvancedChart, SeasonsTable, and seasonal field/silo/farmer data
+    - Generated types for pintostalk-cache subgraph
+
+- **Contract integration**
+  - Extended Diamond ABI with new Beanstalk-related contract calls
+  - Generated contract hooks for new ABI functions
+  - Internal token definitions for urBDV and Sprouts
+  - Beanstalk contract address constant
+  - Fertilizer SVG asset
+
+- **SEO improvements**
+  - Meta tags for Beanstalk page in src/constants/meta.ts
+
+### Changed
+
+- **Marketplace filtering and display**
+  - Beanstalk marketplace toggle for field-specific listing/order filtering
+  - Updated MarketModeSelect to support Beanstalk context
+  - Enhanced plot metadata display in pod listings and orders
+  - Improved CreateListing, FillListing, CreateOrder, and FillOrder actions to support Beanstalk field
+
+- **Pod transfer flow**
+  - Consolidated pod range selection into a single-step picker
+  - Improved StepOne with better range selection UX and validation
+  - Simplified StepTwo by removing redundant logic
+  - Enhanced FinalStep with batch transfer support
+  - Optimized log scanning for transfer receipts
+
+- **Seasonal data handling**
+  - Optimized query stability across seasonal data hooks
+  - Unified timestamp parsing logic
+  - Extended seasonal data hooks with cache support
+
+- **Explorer pages**
+  - Updated FarmerExplorer, FieldExplorer, and SiloExplorer to use new seasonal cache hooks
+  - Updated Temperature component with improved field data display
+
+- **Deposit utilities**
+  - Enhanced depositUtils with additional claim and repayment helper functions
+
+### Fixed
+
+- **Marketplace submit handling**
+  - Fixed setSubmitting calls in MyListingsTable and MyOrdersTable to properly reset form state on success/failure
+
+- **Transfer UI**
+  - Fixed "My Pods In Line" label color to black in pod transfer steps
+  - Removed unnecessary action buttons from Beanstalk pods send page
+
+- **Beanstalk dashboard**
+  - Fixed text color hierarchy for consistent visual weight
+  - Fixed transaction hook callback and rinse logic for claim operations
+
 ## [PI-14] - 2026-01-18
 
 ### Added

@@ -10,12 +10,14 @@ import { Separator } from "@/components/ui/Separator";
 import { MultiSlider } from "@/components/ui/Slider";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useTransaction from "@/hooks/useTransaction";
 import usePodOrders from "@/state/market/usePodOrders";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useFarmerField, useFarmerPlotsQuery } from "@/state/useFarmerField";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
@@ -32,7 +34,6 @@ import { useAccount } from "wagmi";
 import CancelOrder from "./CancelOrder";
 
 // Constants
-const FIELD_ID = 0n;
 const MIN_PODS_THRESHOLD = 1; // Minimum pods required for order eligibility
 
 // Helper Functions
@@ -84,6 +85,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
   const podLine = podIndex.sub(harvestableIndex);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { isBeanstalkMarketplace, fieldId, podMarketplaceId } = useBeanstalkMarket();
   // Use prop if provided, otherwise fall back to URL param
   const orderId = selectedOrderId || searchParams.get("orderId");
 
@@ -118,9 +120,22 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
     prevTotalCapacityRef.current = -1; // Reset to allow re-triggering range update
   }, [selectedOrderIds]);
 
-  const podOrders = usePodOrders();
+  const podOrders = usePodOrders(podMarketplaceId);
   const allOrders = podOrders.data;
   const farmerField = useFarmerField();
+  const repayment = useFarmerBeanstalkRepayment();
+
+  const userPlots = useMemo(() => {
+    if (isBeanstalkMarketplace) {
+      return repayment.pods.plots;
+    }
+    return farmerField?.plots || [];
+  }, [isBeanstalkMarketplace, farmerField?.plots, repayment.pods.plots]);
+
+  const activeHarvestableIndex = useMemo(
+    () => (isBeanstalkMarketplace ? repayment.pods.harvestableIndex : harvestableIndex),
+    [isBeanstalkMarketplace, repayment.pods.harvestableIndex, harvestableIndex],
+  );
 
   const { selectedOrders, orderPositions, totalCapacity } = useMemo(() => {
     if (!allOrders?.podOrders) return { selectedOrders: [], orderPositions: [], totalCapacity: 0 };
@@ -195,7 +210,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
     if (!allOrders?.podOrders) return [];
 
     // Get farmer's frontmost pod position (lowest index)
-    const farmerPlots = farmerField.plots;
+    const farmerPlots = userPlots;
     const farmerFrontmostPodIndex =
       farmerPlots.length > 0
         ? farmerPlots.reduce((min, plot) => (plot.index.lt(min) ? plot.index : min), farmerPlots[0].index)
@@ -208,17 +223,19 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
       }
 
       // Check if farmer has pods that can fill this order
-      // Order's maxPlaceInLine + harvestableIndex must be >= farmer's frontmost pod index
+      // Order's maxPlaceInLine + activeHarvestableIndex must be >= farmer's frontmost pod index
       if (!farmerFrontmostPodIndex) {
         return false; // No pods available
       }
 
-      const orderMaxPlaceIndex = harvestableIndex.add(TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals));
+      const orderMaxPlaceIndex = activeHarvestableIndex.add(
+        TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals),
+      );
 
       // Farmer's pod must be at or before the order's maxPlaceInLine position
       return farmerFrontmostPodIndex.lte(orderMaxPlaceIndex);
     });
-  }, [allOrders?.podOrders, mainToken.decimals, podLine, farmerField.plots, harvestableIndex]);
+  }, [allOrders?.podOrders, mainToken.decimals, podLine, userPlots, activeHarvestableIndex]);
 
   useEffect(() => {
     if (totalCapacity !== prevTotalCapacityRef.current) {
@@ -246,7 +263,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
 
     return eligibleOrders.map((order) => {
       const orderMaxPlace = TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals);
-      const markerIndex = harvestableIndex.add(orderMaxPlace);
+      const markerIndex = activeHarvestableIndex.add(orderMaxPlace);
 
       return {
         index: markerIndex,
@@ -255,7 +272,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
         id: order.id,
       } as Plot;
     });
-  }, [eligibleOrders, harvestableIndex]);
+  }, [eligibleOrders, activeHarvestableIndex]);
 
   const plotsForGraph = useMemo(() => {
     return orderMarkers;
@@ -294,7 +311,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
   });
 
   const onSubmit = useCallback(async () => {
-    if (ordersToFill.length === 0 || !account || farmerField.plots.length === 0) {
+    if (ordersToFill.length === 0 || !account || userPlots.length === 0) {
       return;
     }
 
@@ -324,7 +341,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
       toast.loading(`Filling ${ordersToFill.length} Order${ordersToFill.length !== 1 ? "s" : ""}...`);
 
       // Sort farmer plots by index to use them in order (only sort once)
-      const sortedPlots = [...farmerField.plots].sort((a, b) => a.index.sub(b.index).toNumber());
+      const sortedPlots = [...userPlots].sort((a, b) => a.index.sub(b.index).toNumber());
 
       if (sortedPlots.length === 0) {
         throw new Error("No pods available to fill orders");
@@ -340,7 +357,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
 
       for (const { order: orderToFill, amount: fillAmount } of ordersToFill) {
         let remainingAmount = fillAmount;
-        const orderMaxPlaceIndex = harvestableIndex.add(
+        const orderMaxPlaceIndex = activeHarvestableIndex.add(
           TokenValue.fromBlockchain(orderToFill.maxPlaceInLine, PODS.decimals),
         );
 
@@ -373,7 +390,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
           // Create fillPodOrder call for this order with pod allocation from current plot
           const fillOrderArgs = {
             orderer: orderToFill.farmer.id as Address,
-            fieldId: FIELD_ID,
+            fieldId: fieldId,
             maxPlaceInLine: BigInt(orderToFill.maxPlaceInLine),
             pricePerPod: Number(orderToFill.pricePerPod),
             minFillAmount: BigInt(orderToFill.minFillAmount),
@@ -430,13 +447,14 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
   }, [
     ordersToFill,
     account,
-    farmerField.plots,
+    userPlots,
     writeWithEstimateGas,
     setSubmitting,
     diamondAddress,
     amount,
     weightedAvgPricePerPod,
-    harvestableIndex,
+    activeHarvestableIndex,
+    fieldId,
   ]);
 
   const isOwnOrder = useMemo(() => {

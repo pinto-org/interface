@@ -105,6 +105,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
   // Additional info display
   showAdditionalInfo?: boolean;
+  hideUsdValue?: boolean;
 }
 
 function ComboInputField({
@@ -146,6 +147,7 @@ function ComboInputField({
   enableSlider,
   sliderMarkers,
   showAdditionalInfo = true,
+  hideUsdValue = false,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
@@ -230,8 +232,9 @@ function ComboInputField({
     }
 
     // If customMaxAmount is provided and greater than 0, use the minimum of base balance and customMaxAmount
+    // If base balance is 0 (no token selected or no farmer balance), use customMaxAmount directly
     if (customMaxAmount?.gt(0)) {
-      return TokenValue.min(baseBalance, customMaxAmount);
+      return baseBalance.gt(0) ? TokenValue.min(baseBalance, customMaxAmount) : customMaxAmount;
     }
 
     // Otherwise use base balance
@@ -256,7 +259,12 @@ function ComboInputField({
       return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
     }
     // Always use farmerTokenBalance for display, not maxAmount (which may be limited by customMaxAmount)
-    return getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);
+    const farmerBalance = getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);
+    // If farmer balance is 0 and customMaxAmount is provided, show customMaxAmount as the balance
+    if (farmerBalance.eq(0) && customMaxAmount?.gt(0)) {
+      return customMaxAmount;
+    }
+    return farmerBalance;
   }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, farmerTokenBalance, balanceFrom, getFarmerBalanceByMode]);
 
   /**
@@ -631,7 +639,7 @@ function ComboInputField({
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">
               <div className="font-[340] text-[1rem] text-pinto-gray-4 flex flex-row gap-2 items-center">
-                {shouldShowAdditionalInfo() && mode !== "plots" ? (
+                {shouldShowAdditionalInfo() && mode !== "plots" && !hideUsdValue ? (
                   <TextSkeleton loading={isLoading} className="flex w-8 h-4 rounded-lg">
                     {formatter.usd(inputValue)}
                   </TextSkeleton>

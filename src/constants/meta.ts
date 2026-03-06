@@ -26,6 +26,7 @@ const slugs = [
   "sPinto",
   "tractor",
   "referral",
+  "beanstalk",
 ] as const;
 
 const nestedSlugs = ["PINTOUSDC", "PINTOcbBTC", "PINTOWSOL", "PINTOWETH", "PINTOcbETH", "PINTO"] as const;
@@ -138,6 +139,11 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
     title: "Referral | Pinto",
     description: "Share Pinto and earn rewards through referrals.",
     url: "https://pinto.money/referral",
+  },
+  beanstalk: {
+    title: "Beanstalk Obligations | Pinto",
+    description: "View your legacy Beanstalk holder obligations including Silo Payback, Pods, and Fertilizer.",
+    url: "https://pinto.money/beanstalk",
   },
 };
 

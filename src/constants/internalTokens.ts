@@ -27,3 +27,27 @@ export const PODS: InternalToken = {
   displayDecimals: 2,
   logoURI: podLogo,
 };
+
+export const URBDV: InternalToken = {
+  name: "Unripe BDV",
+  symbol: "urBDV",
+  decimals: 6,
+  displayDecimals: 2,
+  logoURI: "", // TODO: Add logo if needed
+};
+
+export const BSFERT: InternalToken = {
+  name: "Beanstalk Payback Fertilizer",
+  symbol: "bsFERT",
+  decimals: 0,
+  displayDecimals: 0,
+  logoURI: "", // TODO: Add bsFERT icon
+};
+
+export const SPROUTS: InternalToken = {
+  name: "Sprouts",
+  symbol: "SPROUTS",
+  decimals: 6,
+  displayDecimals: 2,
+  logoURI: "", // TODO: Add logo if needed
+};

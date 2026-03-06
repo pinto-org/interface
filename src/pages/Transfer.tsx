@@ -4,6 +4,9 @@ import { useParams } from "react-router-dom";
 import { useChainId, useConfig } from "wagmi";
 import TransferActions from "./transfer/TransferActions";
 import TransferAll from "./transfer/actions/TransferAll";
+import TransferBeanstalkFertilizer from "./transfer/actions/TransferBeanstalkFertilizer";
+import TransferBeanstalkPods from "./transfer/actions/TransferBeanstalkPods";
+import TransferBeanstalkSilo from "./transfer/actions/TransferBeanstalkSilo";
 import TransferDeposits from "./transfer/actions/TransferDeposits";
 import TransferFarmBalance from "./transfer/actions/TransferFarmBalance";
 import TransferPods from "./transfer/actions/TransferPods";
@@ -23,7 +26,13 @@ function Transfer() {
             <div className="pinto-sm sm:pinto-body text-pinto-light">{`Move tokens to a different address${currentChain ? ` on ${currentChain.name}.` : "."}`}</div>
           </div>
           <Separator />
-          {mode === "all" ? (
+          {mode === "beanstalk-silo" ? (
+            <TransferBeanstalkSilo />
+          ) : mode === "beanstalk-pods" ? (
+            <TransferBeanstalkPods />
+          ) : mode === "beanstalk-fertilizer" ? (
+            <TransferBeanstalkFertilizer />
+          ) : mode === "all" ? (
             <TransferAll />
           ) : mode === "farmbalance" ? (
             <TransferFarmBalance />
