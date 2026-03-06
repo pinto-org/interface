@@ -160,7 +160,13 @@ export default function ReviewTractorOrderDialog({
       }
 
       // Invalidate all tractor queries to refresh order lists
-      queryClient.invalidateQueries({ queryKey: [queryKeys.base.tractor] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.base.tractor });
+
+      // Close the dialog
+      onOpenChange(false);
+
+      // Show success toast
+      toast.success("Order published successfully");
 
       // Navigate to the Field page with tractor tab active
       if (orderData.type === "sow") {

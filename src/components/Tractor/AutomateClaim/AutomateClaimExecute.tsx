@@ -14,11 +14,10 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { useCallback, useMemo } from "react";
+import { useChainId, useConfig } from "wagmi";
 import { ColumnConfig, ExecuteOrdersTab } from "../ExecuteOrdersTab";
 
 type AutomateClaimOrder = TractorRequisitionEvent<AutomateClaimBlueprintStruct>;
-
-const BASESCAN_URL = "https://basescan.org/address/";
 
 const formatDate = formatter.dateFromTS;
 
@@ -92,6 +91,11 @@ function getEnabledOpsLabel(order: AutomateClaimOrder): string {
 }
 
 export function AutomateClaimExecute() {
+  const config = useConfig();
+  const chainId = useChainId();
+  const blockExplorerUrl =
+    config.chains.find((chain) => chain.id === chainId)?.blockExplorers?.default.url ?? "https://basescan.org";
+
   const { tokenPrices } = usePriceData();
   const { mainToken, nativeToken } = useTokenData();
 
@@ -133,7 +137,7 @@ export function AutomateClaimExecute() {
         className: "w-32 max-w-32",
         accessor: (order) => (
           <a
-            href={`${BASESCAN_URL}${order.requisition.blueprint.publisher}`}
+            href={`${blockExplorerUrl}/address/${order.requisition.blueprint.publisher}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-pinto-green-4 hover:text-pinto-green-5 hover:underline text-sm"
@@ -172,7 +176,7 @@ export function AutomateClaimExecute() {
         ),
       },
     ],
-    [mainToken, tokenPrices],
+    [mainToken, tokenPrices, blockExplorerUrl],
   );
 
   return (

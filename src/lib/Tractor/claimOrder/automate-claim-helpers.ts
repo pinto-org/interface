@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { PINTO } from "@/constants/tokens";
 import { maxUint256 } from "viem";
-import { CLAIM_PRESETS } from "./tractor-claim";
+import { CLAIM_PRESETS, MOW_DECIMALS } from "./tractor-claim";
 import type { AutomateClaimBlueprintData } from "./tractor-claim-types";
 
 /**
@@ -53,8 +54,7 @@ export function getClaimOpConditionLabel(
     return `${opLabel}: Conservative (≥ ${presets.low.value} ${unit})`;
   }
 
-  // Custom value
-  const decimals = op === "mow" ? 10 : 6;
+  const decimals = op === "mow" ? MOW_DECIMALS : PINTO.decimals;
   const humanValue = TokenValue.fromBlockchain(thresholdBigInt, decimals).toHuman();
   return `${opLabel}: Custom (≥ ${humanValue} ${unit})`;
 }

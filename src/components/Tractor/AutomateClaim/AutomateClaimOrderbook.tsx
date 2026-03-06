@@ -17,15 +17,19 @@ import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-c
 import { useTractorAutomateClaimOrderbook } from "@/state/tractor/useTractorAutomateClaimOrders";
 import { formatter } from "@/utils/format";
 import { useCallback, useState } from "react";
+import { useChainId, useConfig } from "wagmi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/Tabs";
 import { AutomateClaimExecute } from "./AutomateClaimExecute";
 
 type AutomateClaimOrder = TractorRequisitionEvent<AutomateClaimBlueprintStruct>;
-
-const BASESCAN_URL = "https://basescan.org/address/";
 const formatDate = formatter.dateFromTS;
 
 function AutomateClaimOrderbookContent() {
+  const config = useConfig();
+  const chainId = useChainId();
+  const blockExplorerUrl =
+    config.chains.find((chain) => chain.id === chainId)?.blockExplorers?.default.url ?? "https://basescan.org";
+
   const [selectedOrder, setSelectedOrder] = useState<AutomateClaimOrder | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
@@ -101,7 +105,7 @@ function AutomateClaimOrderbookContent() {
         </TableCell>
         <TableCell className="py-2 text-right">
           <a
-            href={`${BASESCAN_URL}${order.requisition.blueprint.publisher}`}
+            href={`${blockExplorerUrl}/address/${order.requisition.blueprint.publisher}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-pinto-dark underline hover:opacity-80"

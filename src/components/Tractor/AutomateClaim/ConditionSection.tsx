@@ -93,6 +93,7 @@ export const ConditionSection = ({
                         placeholder={unit ?? "0"}
                         value={customValue}
                         onChange={(e) => {
+                          // 18 = max decimal precision to accommodate all token types (Stalk=10, PINTO=6)
                           const sanitized = sanitizeNumericInputValue(e.target.value, 18);
                           onCustomValueChange(sanitized.str);
                         }}

@@ -174,7 +174,11 @@ function TractorOrdersPanelGeneric({
           const reqWithDecodedData = { ...req, decodedData };
           const orderExecutions = executionsByHash?.[req.requisition.blueprintHash] || [];
 
-          unified.push(transformAutomateClaimOrderToUnified(reqWithDecodedData, orderExecutions));
+          try {
+            unified.push(transformAutomateClaimOrderToUnified(reqWithDecodedData, orderExecutions));
+          } catch (error) {
+            console.error("Failed to transform AutomateClaim order:", error);
+          }
         });
     }
 

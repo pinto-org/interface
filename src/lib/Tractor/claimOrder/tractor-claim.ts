@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { automateClaimBlueprintABI } from "@/constants/abi/AutomateClaimBlueprintABI";
 import { AUTOMATE_CLAIM_BLUEPRINT_ADDRESS } from "@/constants/address";
+import { PINTO } from "@/constants/tokens";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { AdvancedPipeCall } from "@/utils/types";
 import { type PublicClient, decodeFunctionData, encodeFunctionData, maxUint256 } from "viem";
@@ -16,6 +17,13 @@ import {
   ClaimFrequencyPreset,
   FieldHarvestConfig,
 } from "./tractor-claim-types";
+
+// ────────────────────────────────────────────────────────────────────────────────
+// DECIMALS
+// ────────────────────────────────────────────────────────────────────────────────
+
+/** Mow thresholds are stored on-chain with 10 decimal places (Stalk precision) */
+export const MOW_DECIMALS = 10;
 
 // ────────────────────────────────────────────────────────────────────────────────
 // PRESET VALUES
@@ -48,8 +56,8 @@ const DEFAULT_MIN_TWA_DELTA_B = 10_000_000n;
 
 /**
  * Resolve a preset or custom value to a scaled bigint for a given operation.
- * - Mow: value × 1e10 (stalk decimals)
- * - Plant/Harvest: value × 1e6 (PINTO decimals)
+ * - Mow: scaled by MOW_DECIMALS (stalk precision)
+ * - Plant/Harvest: scaled by PINTO.decimals
  */
 export function resolvePresetValue(
   operation: "mow" | "plant" | "harvest",
@@ -67,11 +75,9 @@ export function resolvePresetValue(
   }
 
   if (operation === "mow") {
-    // Stalk: value × 1e10
-    return TokenValue.fromHuman(customValue, 10).toBigInt();
+    return TokenValue.fromHuman(customValue, MOW_DECIMALS).toBigInt();
   }
-  // PINTO: value × 1e6
-  return TokenValue.fromHuman(customValue, 6).toBigInt();
+  return TokenValue.fromHuman(customValue, PINTO.decimals).toBigInt();
 }
 
 /**
@@ -336,23 +342,23 @@ export function transformAutomateClaimRequisitionEvent(
     return {
       claimParams: {
         minMowAmount: cp.minMowAmount,
-        minMowAmountAsString: humanOrDisabled(cp.minMowAmount, 10),
+        minMowAmountAsString: humanOrDisabled(cp.minMowAmount, MOW_DECIMALS),
         minTwaDeltaB: cp.minTwaDeltaB,
-        minTwaDeltaBAsString: TokenValue.fromBlockchain(cp.minTwaDeltaB, 6).toHuman(),
+        minTwaDeltaBAsString: TokenValue.fromBlockchain(cp.minTwaDeltaB, PINTO.decimals).toHuman(),
         minPlantAmount: cp.minPlantAmount,
-        minPlantAmountAsString: humanOrDisabled(cp.minPlantAmount, 6),
+        minPlantAmountAsString: humanOrDisabled(cp.minPlantAmount, PINTO.decimals),
         fieldHarvestConfigs: cp.fieldHarvestConfigs.map((config) => ({
           fieldId: config.fieldId,
           minHarvestAmount: config.minHarvestAmount,
-          minHarvestAmountAsString: humanOrDisabled(config.minHarvestAmount, 6),
+          minHarvestAmountAsString: humanOrDisabled(config.minHarvestAmount, PINTO.decimals),
         })),
         minRinseAmount: cp.minRinseAmount,
-        minRinseAmountAsString: humanOrDisabled(cp.minRinseAmount, 6),
+        minRinseAmountAsString: humanOrDisabled(cp.minRinseAmount, PINTO.decimals),
         minUnripeClaimAmount: cp.minUnripeClaimAmount,
-        minUnripeClaimAmountAsString: humanOrDisabled(cp.minUnripeClaimAmount, 6),
+        minUnripeClaimAmountAsString: humanOrDisabled(cp.minUnripeClaimAmount, PINTO.decimals),
         sourceTokenIndices: cp.sourceTokenIndices,
         maxGrownStalkPerBdv: cp.maxGrownStalkPerBdv,
-        maxGrownStalkPerBdvAsString: TokenValue.fromBlockchain(cp.maxGrownStalkPerBdv, 6).toHuman(),
+        maxGrownStalkPerBdvAsString: TokenValue.fromBlockchain(cp.maxGrownStalkPerBdv, PINTO.decimals).toHuman(),
         slippageRatio: cp.slippageRatio,
         slippageRatioAsString: TokenValue.fromBlockchain(cp.slippageRatio, 18).toHuman(),
       },
@@ -360,17 +366,20 @@ export function transformAutomateClaimRequisitionEvent(
         whitelistedOperators: op.baseOpParams.whitelistedOperators,
         tipAddress: op.baseOpParams.tipAddress,
         operatorTipAmount: op.baseOpParams.operatorTipAmount,
-        operatorTipAmountAsString: TokenValue.fromBlockchain(op.baseOpParams.operatorTipAmount, 6).toHuman(),
+        operatorTipAmountAsString: TokenValue.fromBlockchain(
+          op.baseOpParams.operatorTipAmount,
+          PINTO.decimals,
+        ).toHuman(),
         mowTipAmount: op.mowTipAmount,
-        mowTipAmountAsString: TokenValue.fromBlockchain(op.mowTipAmount, 6).toHuman(),
+        mowTipAmountAsString: TokenValue.fromBlockchain(op.mowTipAmount, PINTO.decimals).toHuman(),
         plantTipAmount: op.plantTipAmount,
-        plantTipAmountAsString: TokenValue.fromBlockchain(op.plantTipAmount, 6).toHuman(),
+        plantTipAmountAsString: TokenValue.fromBlockchain(op.plantTipAmount, PINTO.decimals).toHuman(),
         harvestTipAmount: op.harvestTipAmount,
-        harvestTipAmountAsString: TokenValue.fromBlockchain(op.harvestTipAmount, 6).toHuman(),
+        harvestTipAmountAsString: TokenValue.fromBlockchain(op.harvestTipAmount, PINTO.decimals).toHuman(),
         rinseTipAmount: op.rinseTipAmount,
-        rinseTipAmountAsString: TokenValue.fromBlockchain(op.rinseTipAmount, 6).toHuman(),
+        rinseTipAmountAsString: TokenValue.fromBlockchain(op.rinseTipAmount, PINTO.decimals).toHuman(),
         unripeClaimTipAmount: op.unripeClaimTipAmount,
-        unripeClaimTipAmountAsString: TokenValue.fromBlockchain(op.unripeClaimTipAmount, 6).toHuman(),
+        unripeClaimTipAmountAsString: TokenValue.fromBlockchain(op.unripeClaimTipAmount, PINTO.decimals).toHuman(),
       },
     };
   } catch (e) {
