@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/Separator";
 import { Slider } from "@/components/ui/Slider";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import fillPodListing from "@/encoders/fillPodListing";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -30,6 +31,7 @@ import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
 import usePodListings from "@/state/market/usePodListings";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 import { useFarmerPlotsQuery } from "@/state/useFarmerField";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
@@ -45,7 +47,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Address } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 
 // Configuration constants
@@ -96,6 +98,8 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
   const account = useAccount();
   const farmerBalances = useFarmerBalances();
   const harvestableIndex = useHarvestableIndex();
+  const { podMarketplaceId, fieldId, isBeanstalkMarketplace } = useBeanstalkMarket();
+  const repayment = useFarmerBeanstalkRepayment();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // Use prop if provided, otherwise fall back to URL param
@@ -119,7 +123,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
     filterLP: true,
   });
 
-  const podListings = usePodListings();
+  const podListings = usePodListings(podMarketplaceId);
   const allListings = podListings.data;
 
   const [didSetPreferred, setDidSetPreferred] = useState(false);
@@ -139,7 +143,9 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
 
   // Place in line state
   const podIndex = usePodIndex();
-  const maxPlace = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
+  const activeHarvestableIndex = isBeanstalkMarketplace ? repayment.pods.harvestableIndex : harvestableIndex;
+  const activePodIndex = isBeanstalkMarketplace ? repayment.pods.podIndex : podIndex;
+  const maxPlace = Number.parseInt(activePodIndex.toHuman()) - Number.parseInt(activeHarvestableIndex.toHuman()) || 0;
   const [maxPlaceInLine, setMaxPlaceInLine] = useState<number | undefined>(undefined);
   const [hasInitializedPlace, setHasInitializedPlace] = useState(false);
 
@@ -213,12 +219,12 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
       if (Number.isNaN(placeInLine) || placeInLine <= 0) {
         // Fallback to calculating from listing index if URL value is invalid
         const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
-        placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+        placeInLine = listingIndex.sub(activeHarvestableIndex).toNumber();
       }
     } else {
       // Calculate listing's place in line from index (fallback for direct URL access)
       const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
-      placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+      placeInLine = listingIndex.sub(activeHarvestableIndex).toNumber();
     }
 
     // Set max place in line to the place in line plus one (to include the current plot)
@@ -226,7 +232,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
     const maxPlaceValue = Math.min(maxPlace, Math.max(0, placeInLine + 1));
     setMaxPlaceInLine(maxPlaceValue);
     setHasInitializedPlace(true); // Mark as initialized to prevent default value override
-  }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex, placeInLineFromUrl]);
+  }, [listingId, allListings, maxPlace, mainToken.decimals, activeHarvestableIndex, placeInLineFromUrl]);
 
   // Token selection handler with tracking
   const handleTokenSelection = useCallback(
@@ -325,7 +331,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
 
     // Calculate place in line boundary for filtering
     const maxPlaceIndex = maxPlaceInLine
-      ? harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals))
+      ? activeHarvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals))
       : undefined;
 
     // Determine eligible listings (shown as green on graph)
@@ -349,13 +355,13 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
     // Calculate range overlay for visual feedback on graph
     const overlay = maxPlaceInLine
       ? {
-          start: harvestableIndex,
-          end: harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals)),
+          start: activeHarvestableIndex,
+          end: activeHarvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals)),
         }
       : undefined;
 
     return { listingPlots: plots, eligibleListingIds: eligible, rangeOverlay: overlay };
-  }, [allListings, maxPricePerPod, maxPlaceInLine, mainToken.decimals, harvestableIndex]);
+  }, [allListings, maxPricePerPod, maxPlaceInLine, mainToken.decimals, activeHarvestableIndex]);
 
   // Notify parent component when filter values change for chart highlighting
   useEffect(() => {
@@ -468,7 +474,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
       const { listing, beanAmount } = listingsToFill[0];
       const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
       const podsFromListing = beanAmount.div(listingPrice);
-      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex);
+      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(activeHarvestableIndex);
 
       return {
         avgPricePerPod: listingPrice,
@@ -485,7 +491,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
     for (const { listing, beanAmount } of listingsToFill) {
       const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
       const podsFromListing = beanAmount.div(listingPrice);
-      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex);
+      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(activeHarvestableIndex);
 
       const pods = podsFromListing.toNumber();
       totalValue += listingPrice.toNumber() * pods;
@@ -501,7 +507,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
       avgPlaceInLine: TokenValue.fromHuman(avgPlaceInLine, PODS.decimals),
       totalPods,
     };
-  }, [listingsToFill, mainToken.decimals, harvestableIndex]);
+  }, [listingsToFill, mainToken.decimals, activeHarvestableIndex]);
 
   // Calculate total tokens needed to fill eligible listings
   const totalMainTokensToFill = useMemo(() => {
@@ -560,37 +566,47 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
       toast.loading(`Filling ${listingsToFill.length} Listing${listingsToFill.length !== 1 ? "s" : ""}...`);
 
       if (isUsingMain) {
-        // Direct fill - use batchFillPodListing for gas-efficient batching
-        const batchFillArgs = listingsToFill.map(({ listing, beanAmount }) => {
+        // Direct fill - create farm calls for each listing
+        const farmData: `0x${string}`[] = [];
+
+        for (const { listing, beanAmount } of listingsToFill) {
+          // Encode pricePerPod with 6 decimals (like CreateOrder.tsx)
           const pricePerPodNumber = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
           const encodedPricePerPod = Math.floor(pricePerPodNumber * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER);
 
-          return {
-            podListing: {
-              lister: listing.farmer.id as Address,
-              fieldId: 0n,
-              index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(),
-              start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(),
-              podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(),
-              pricePerPod: encodedPricePerPod,
-              maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(),
-              minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(),
-              mode: Number(listing.mode),
-            },
-            beanAmount: beanAmount.toBigInt(),
-            mode: Number(balanceFrom),
-          };
-        });
+          const fillCall = encodeFunctionData({
+            abi: beanstalkAbi,
+            functionName: "fillPodListing",
+            args: [
+              {
+                lister: listing.farmer.id as Address,
+                fieldId: fieldId,
+                index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(),
+                start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(),
+                podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(),
+                pricePerPod: encodedPricePerPod,
+                maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(),
+                minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(),
+                mode: Number(listing.mode),
+              },
+              beanAmount.toBigInt(),
+              Number(balanceFrom),
+            ],
+          });
 
-        if (batchFillArgs.length === 0) {
+          farmData.push(fillCall);
+        }
+
+        if (farmData.length === 0) {
           throw new Error("No valid fill operations to execute");
         }
 
+        // Use farm to batch all listing fills in one transaction
         return writeWithEstimateGas({
           address: diamondAddress,
           abi: beanstalkAbi,
-          functionName: "batchFillPodListing",
-          args: [batchFillArgs],
+          functionName: "farm",
+          args: [farmData],
         });
       } else if (swapBuild?.advancedFarm.length) {
         // Swap + fill - use advancedFarm
@@ -618,6 +634,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
             beanAmount,
             FarmFromMode.INTERNAL,
             clipboard,
+            fieldId,
           );
 
           advFarm.push(fillCall);

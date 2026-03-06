@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import usePodOrders from "@/state/market/usePodOrders";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -16,7 +17,8 @@ import { useNavigate, useParams } from "react-router-dom";
 export function PodOrdersTable() {
   const { id: selectedOrder } = useParams();
   const BEAN = useTokenData().mainToken;
-  const podOrdersQuery = usePodOrders();
+  const { podMarketplaceId } = useBeanstalkMarket();
+  const podOrdersQuery = usePodOrders(podMarketplaceId);
   const podOrders = podOrdersQuery.data?.podOrders;
 
   const filteredOrders: NonNullable<ReturnType<typeof usePodOrders>["data"]>["podOrders"] = [];

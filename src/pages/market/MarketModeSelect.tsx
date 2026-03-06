@@ -3,7 +3,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { useCallback, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 type MarketMode = "buy" | "sell";
 type MarketAction = "create" | "fill";
@@ -34,6 +34,16 @@ const ACTION_LABELS: Record<MarketMode, Record<MarketAction, string>> = {
 export default function MarketModeSelect({ onMainSelectionChange, onSecondarySelectionChange }: MarketModeSelectProps) {
   const { mode, id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Helper to preserve current search params (e.g. ?beanstalk=true) during navigation
+  const buildPath = useCallback(
+    (path: string) => {
+      const params = searchParams.toString();
+      return params ? `${path}?${params}` : path;
+    },
+    [searchParams],
+  );
 
   // Derive current state from URL params
   const { mainTab, secondaryTab, secondaryTabValue } = useMemo(() => {
@@ -62,10 +72,10 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
         secondary_tab: secondaryTab,
       });
 
-      navigate(`/market/pods/${newMode}/${defaultAction}`);
+      navigate(buildPath(`/market/pods/${newMode}/${defaultAction}`));
       onMainSelectionChange?.(v);
     },
-    [navigate, onMainSelectionChange, mainTab, secondaryTab],
+    [navigate, onMainSelectionChange, mainTab, secondaryTab, buildPath],
   );
 
   const handleSecondaryChange = useCallback(
@@ -79,13 +89,13 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
       });
 
       if (v === "create") {
-        navigate(`/market/pods/${currentMode}/create`);
+        navigate(buildPath(`/market/pods/${currentMode}/create`));
       } else if (v === "fill") {
-        navigate(`/market/pods/${currentMode}/fill`);
+        navigate(buildPath(`/market/pods/${currentMode}/fill`));
       }
       onSecondarySelectionChange?.(v);
     },
-    [mainTab, navigate, onSecondarySelectionChange, secondaryTab],
+    [mainTab, navigate, onSecondarySelectionChange, secondaryTab, buildPath],
   );
 
   return (

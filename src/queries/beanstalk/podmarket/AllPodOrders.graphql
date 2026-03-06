@@ -4,13 +4,14 @@ query AllPodOrders(
   $first: Int = 1000
   $status: MarketStatus = ACTIVE
   $skip: Int = 0
+  $podMarketplace: String
 ) {
   podOrders(
     first: $first
     skip: $skip
     orderBy: createdAt
     orderDirection: desc
-    where: { status: $status }
+    where: { status: $status, podMarketplace: $podMarketplace }
   ) {
     ...PodOrder
   }

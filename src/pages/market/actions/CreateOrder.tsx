@@ -42,6 +42,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
+import { useFarmerBeanstalkRepayment } from "@/state/useFarmerBeanstalkRepayment";
 interface LocationState {
   prefillPrice?: number;
   prefillPlaceInLine?: number;
@@ -99,6 +101,8 @@ export default function CreateOrder() {
   const mainToken = useTokenData().mainToken;
   const { queryKeys: balanceQKs } = useFarmerBalances();
   const { address: account } = useAccount();
+  const { fieldId, isBeanstalkMarketplace } = useBeanstalkMarket();
+  const repayment = useFarmerBeanstalkRepayment();
   const [inputError, setInputError] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -163,7 +167,9 @@ export default function CreateOrder() {
   // Pod constants
   const podIndex = usePodIndex();
   const harvestableIndex = useHarvestableIndex();
-  const maxPlace = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
+  const activeHarvestableIndex = isBeanstalkMarketplace ? repayment.pods.harvestableIndex : harvestableIndex;
+  const activePodIndex = isBeanstalkMarketplace ? repayment.pods.podIndex : podIndex;
+  const maxPlace = Number.parseInt(activePodIndex.toHuman()) - Number.parseInt(activeHarvestableIndex.toHuman()) || 0;
   const initialPrice = removeTrailingZeros(PRICE_PER_POD_CONFIG.MIN.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
   const [maxPlaceInLine, setMaxPlaceInLine] = useState<number | undefined>(undefined);
   const [pricePerPod, setPricePerPod] = useState<number>(PRICE_PER_POD_CONFIG.MIN);
@@ -388,6 +394,7 @@ export default function CreateOrder() {
       minFill,
       fromMode,
       orderClipboard?.clipboard,
+      fieldId,
     );
 
     advFarm.push(orderCallStruct);
@@ -427,6 +434,7 @@ export default function CreateOrder() {
     tokenIn.symbol,
     podsOut,
     amountIn,
+    fieldId,
   ]);
 
   const swapDataNotReady = (shouldSwap && (!swapData || !swapBuild)) || !!swapQuery.error;
@@ -438,8 +446,8 @@ export default function CreateOrder() {
   // Calculate orderRangeEnd for PodLineGraph overlay
   const orderRangeEnd = useMemo(() => {
     if (!maxPlaceInLine) return undefined;
-    return harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals));
-  }, [maxPlaceInLine, harvestableIndex]);
+    return activeHarvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals));
+  }, [maxPlaceInLine, activeHarvestableIndex]);
 
   return (
     <div className="flex flex-col gap-4">

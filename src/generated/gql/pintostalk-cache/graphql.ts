@@ -19,8 +19,8 @@ export type Scalars = {
   Bytes: { input: any; output: any; }
 };
 
-export type BeanHourlySnapshot = {
-  __typename?: 'BeanHourlySnapshot';
+export type CachedBeanHourlySnapshot = {
+  __typename?: 'CachedBeanHourlySnapshot';
   blockNumber: Scalars['BigInt']['output'];
   crosses: Scalars['Int']['output'];
   deltaCrosses: Scalars['Int']['output'];
@@ -43,8 +43,8 @@ export type BeanHourlySnapshot = {
   volumeUSD: Scalars['BigDecimal']['output'];
 };
 
-export type FieldHourlySnapshot = {
-  __typename?: 'FieldHourlySnapshot';
+export type CachedFieldHourlySnapshot = {
+  __typename?: 'CachedFieldHourlySnapshot';
   blocksToSoldOutSoil?: Maybe<Scalars['BigInt']['output']>;
   caseId?: Maybe<Scalars['BigInt']['output']>;
   createdAt: Scalars['BigInt']['output'];
@@ -81,8 +81,8 @@ export type FieldHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type PodMarketplaceHourlySnapshot = {
-  __typename?: 'PodMarketplaceHourlySnapshot';
+export type CachedPodMarketplaceHourlySnapshot = {
+  __typename?: 'CachedPodMarketplaceHourlySnapshot';
   availableListedPods: Scalars['BigInt']['output'];
   availableOrderBeans: Scalars['BigInt']['output'];
   beanVolume: Scalars['BigInt']['output'];
@@ -113,8 +113,8 @@ export type PodMarketplaceHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type PoolHourlySnapshot = {
-  __typename?: 'PoolHourlySnapshot';
+export type CachedPoolHourlySnapshot = {
+  __typename?: 'CachedPoolHourlySnapshot';
   createdAt: Scalars['BigInt']['output'];
   crosses: Scalars['Int']['output'];
   deltaBeans: Scalars['BigInt']['output'];
@@ -137,17 +137,138 @@ export type PoolHourlySnapshot = {
   volumeUSD: Scalars['BigDecimal']['output'];
 };
 
+export type CachedSeason = {
+  __typename?: 'CachedSeason';
+  beans: Scalars['BigInt']['output'];
+  createdAt: Scalars['BigInt']['output'];
+  deltaB: Scalars['BigInt']['output'];
+  deltaBeans: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  incentiveBeans: Scalars['BigInt']['output'];
+  marketCap: Scalars['BigDecimal']['output'];
+  price: Scalars['BigDecimal']['output'];
+  rewardBeans: Scalars['BigInt']['output'];
+  season: Scalars['Int']['output'];
+  sunriseBlock: Scalars['BigInt']['output'];
+  unmigratedL1Beans?: Maybe<Scalars['BigInt']['output']>;
+};
+
+export type CachedSiloAssetHourlySnapshot = {
+  __typename?: 'CachedSiloAssetHourlySnapshot';
+  createdAt: Scalars['BigInt']['output'];
+  deltaDepositedAmount: Scalars['BigInt']['output'];
+  deltaDepositedBDV: Scalars['BigInt']['output'];
+  deltaFarmAmount: Scalars['BigInt']['output'];
+  deltaWithdrawnAmount: Scalars['BigInt']['output'];
+  depositedAmount: Scalars['BigInt']['output'];
+  depositedBDV: Scalars['BigInt']['output'];
+  farmAmount: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  season: Scalars['Int']['output'];
+  updatedAt: Scalars['BigInt']['output'];
+  withdrawnAmount: Scalars['BigInt']['output'];
+};
+
+export type CachedSiloHourlySnapshot = {
+  __typename?: 'CachedSiloHourlySnapshot';
+  activeFarmers: Scalars['Int']['output'];
+  beanMints: Scalars['BigInt']['output'];
+  beanToMaxLpGpPerBdvRatio?: Maybe<Scalars['BigInt']['output']>;
+  caseId?: Maybe<Scalars['BigInt']['output']>;
+  createdAt: Scalars['BigInt']['output'];
+  deltaActiveFarmers: Scalars['Int']['output'];
+  deltaBeanMints: Scalars['BigInt']['output'];
+  deltaDepositedBDV: Scalars['BigInt']['output'];
+  deltaGerminatingStalk: Scalars['BigInt']['output'];
+  deltaGrownStalkPerSeason: Scalars['BigInt']['output'];
+  deltaPlantableStalk: Scalars['BigInt']['output'];
+  deltaRoots: Scalars['BigInt']['output'];
+  deltaStalk: Scalars['BigInt']['output'];
+  depositedBDV: Scalars['BigInt']['output'];
+  germinatingStalk: Scalars['BigInt']['output'];
+  grownStalkPerSeason: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  plantableStalk: Scalars['BigInt']['output'];
+  roots: Scalars['BigInt']['output'];
+  season: Scalars['Int']['output'];
+  stalk: Scalars['BigInt']['output'];
+  updatedAt: Scalars['BigInt']['output'];
+};
+
+export type CachedTokenYield = {
+  __typename?: 'CachedTokenYield';
+  beanAPY: Scalars['BigDecimal']['output'];
+  createdAt: Scalars['BigInt']['output'];
+  id: Scalars['Bytes']['output'];
+  season: Scalars['Int']['output'];
+  stalkAPY: Scalars['BigDecimal']['output'];
+  token: Scalars['Bytes']['output'];
+};
+
+export type CachedUnripeTokenHourlySnapshot = {
+  __typename?: 'CachedUnripeTokenHourlySnapshot';
+  amountUnderlyingOne: Scalars['BigInt']['output'];
+  bdvUnderlyingOne: Scalars['BigInt']['output'];
+  chopRate: Scalars['BigDecimal']['output'];
+  choppableAmountOne: Scalars['BigInt']['output'];
+  choppableBdvOne: Scalars['BigInt']['output'];
+  createdAt: Scalars['BigInt']['output'];
+  deltaAmountUnderlyingOne: Scalars['BigInt']['output'];
+  deltaBdvUnderlyingOne: Scalars['BigInt']['output'];
+  deltaChopRate: Scalars['BigDecimal']['output'];
+  deltaChoppableAmountOne: Scalars['BigInt']['output'];
+  deltaChoppableBdvOne: Scalars['BigInt']['output'];
+  deltaRecapPercent: Scalars['BigDecimal']['output'];
+  deltaTotalChoppedAmount: Scalars['BigInt']['output'];
+  deltaTotalChoppedBdv: Scalars['BigInt']['output'];
+  deltaTotalChoppedBdvReceived: Scalars['BigInt']['output'];
+  deltaTotalUnderlying: Scalars['BigInt']['output'];
+  deltaUnderlyingToken: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  recapPercent: Scalars['BigDecimal']['output'];
+  season: Scalars['Int']['output'];
+  totalChoppedAmount: Scalars['BigInt']['output'];
+  totalChoppedBdv: Scalars['BigInt']['output'];
+  totalChoppedBdvReceived: Scalars['BigInt']['output'];
+  totalUnderlying: Scalars['BigInt']['output'];
+  updatedAt: Scalars['BigInt']['output'];
+};
+
+export type CachedWhitelistTokenHourlySnapshot = {
+  __typename?: 'CachedWhitelistTokenHourlySnapshot';
+  bdv?: Maybe<Scalars['BigInt']['output']>;
+  createdAt: Scalars['BigInt']['output'];
+  deltaBdv?: Maybe<Scalars['BigInt']['output']>;
+  deltaGaugePoints?: Maybe<Scalars['BigInt']['output']>;
+  deltaIsGaugeEnabled: Scalars['Boolean']['output'];
+  deltaMilestoneSeason: Scalars['Int']['output'];
+  deltaOptimalPercentDepositedBdv?: Maybe<Scalars['BigInt']['output']>;
+  deltaStalkEarnedPerSeason: Scalars['BigInt']['output'];
+  deltaStalkIssuedPerBdv: Scalars['BigInt']['output'];
+  gaugePoints?: Maybe<Scalars['BigInt']['output']>;
+  id: Scalars['ID']['output'];
+  isGaugeEnabled: Scalars['Boolean']['output'];
+  milestoneSeason: Scalars['Int']['output'];
+  optimalPercentDepositedBdv?: Maybe<Scalars['BigInt']['output']>;
+  season: Scalars['Int']['output'];
+  selector: Scalars['Bytes']['output'];
+  stalkEarnedPerSeason: Scalars['BigInt']['output'];
+  stalkIssuedPerBdv: Scalars['BigInt']['output'];
+  updatedAt: Scalars['BigInt']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
-  cache_beanHourlySnapshots: Array<BeanHourlySnapshot>;
-  cache_fieldHourlySnapshots: Array<FieldHourlySnapshot>;
-  cache_podMarketplaceHourlySnapshots: Array<PodMarketplaceHourlySnapshot>;
-  cache_poolHourlySnapshots: Array<PoolHourlySnapshot>;
-  cache_seasons: Array<Season>;
-  cache_siloAssetHourlySnapshots: Array<SiloAssetHourlySnapshot>;
-  cache_siloHourlySnapshots: Array<SiloHourlySnapshot>;
-  cache_unripeTokenHourlySnapshots: Array<UnripeTokenHourlySnapshot>;
-  cache_whitelistTokenHourlySnapshots: Array<WhitelistTokenHourlySnapshot>;
+  cache_beanHourlySnapshots: Array<CachedBeanHourlySnapshot>;
+  cache_fieldHourlySnapshots: Array<CachedFieldHourlySnapshot>;
+  cache_podMarketplaceHourlySnapshots: Array<CachedPodMarketplaceHourlySnapshot>;
+  cache_poolHourlySnapshots: Array<CachedPoolHourlySnapshot>;
+  cache_seasons: Array<CachedSeason>;
+  cache_siloAssetHourlySnapshots: Array<CachedSiloAssetHourlySnapshot>;
+  cache_siloHourlySnapshots: Array<CachedSiloHourlySnapshot>;
+  cache_tokenYields: Array<CachedTokenYield>;
+  cache_unripeTokenHourlySnapshots: Array<CachedUnripeTokenHourlySnapshot>;
+  cache_whitelistTokenHourlySnapshots: Array<CachedWhitelistTokenHourlySnapshot>;
 };
 
 
@@ -214,6 +335,15 @@ export type QueryCacheSiloHourlySnapshotsArgs = {
 };
 
 
+export type QueryCacheTokenYieldsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryCacheUnripeTokenHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
@@ -231,116 +361,6 @@ export type QueryCacheWhitelistTokenHourlySnapshotsArgs = {
   where?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type Season = {
-  __typename?: 'Season';
-  beans: Scalars['BigInt']['output'];
-  createdAt: Scalars['BigInt']['output'];
-  deltaB: Scalars['BigInt']['output'];
-  deltaBeans: Scalars['BigInt']['output'];
-  id: Scalars['ID']['output'];
-  incentiveBeans: Scalars['BigInt']['output'];
-  marketCap: Scalars['BigDecimal']['output'];
-  price: Scalars['BigDecimal']['output'];
-  rewardBeans: Scalars['BigInt']['output'];
-  season: Scalars['Int']['output'];
-  sunriseBlock: Scalars['BigInt']['output'];
-  unmigratedL1Beans?: Maybe<Scalars['BigInt']['output']>;
-};
-
-export type SiloAssetHourlySnapshot = {
-  __typename?: 'SiloAssetHourlySnapshot';
-  createdAt: Scalars['BigInt']['output'];
-  deltaDepositedAmount: Scalars['BigInt']['output'];
-  deltaDepositedBDV: Scalars['BigInt']['output'];
-  deltaFarmAmount: Scalars['BigInt']['output'];
-  deltaWithdrawnAmount: Scalars['BigInt']['output'];
-  depositedAmount: Scalars['BigInt']['output'];
-  depositedBDV: Scalars['BigInt']['output'];
-  farmAmount: Scalars['BigInt']['output'];
-  id: Scalars['ID']['output'];
-  season: Scalars['Int']['output'];
-  updatedAt: Scalars['BigInt']['output'];
-  withdrawnAmount: Scalars['BigInt']['output'];
-};
-
-export type SiloHourlySnapshot = {
-  __typename?: 'SiloHourlySnapshot';
-  activeFarmers: Scalars['Int']['output'];
-  beanMints: Scalars['BigInt']['output'];
-  beanToMaxLpGpPerBdvRatio?: Maybe<Scalars['BigInt']['output']>;
-  caseId?: Maybe<Scalars['BigInt']['output']>;
-  createdAt: Scalars['BigInt']['output'];
-  deltaActiveFarmers: Scalars['Int']['output'];
-  deltaBeanMints: Scalars['BigInt']['output'];
-  deltaDepositedBDV: Scalars['BigInt']['output'];
-  deltaGerminatingStalk: Scalars['BigInt']['output'];
-  deltaGrownStalkPerSeason: Scalars['BigInt']['output'];
-  deltaPlantableStalk: Scalars['BigInt']['output'];
-  deltaRoots: Scalars['BigInt']['output'];
-  deltaStalk: Scalars['BigInt']['output'];
-  depositedBDV: Scalars['BigInt']['output'];
-  germinatingStalk: Scalars['BigInt']['output'];
-  grownStalkPerSeason: Scalars['BigInt']['output'];
-  id: Scalars['ID']['output'];
-  plantableStalk: Scalars['BigInt']['output'];
-  roots: Scalars['BigInt']['output'];
-  season: Scalars['Int']['output'];
-  stalk: Scalars['BigInt']['output'];
-  updatedAt: Scalars['BigInt']['output'];
-};
-
-export type UnripeTokenHourlySnapshot = {
-  __typename?: 'UnripeTokenHourlySnapshot';
-  amountUnderlyingOne: Scalars['BigInt']['output'];
-  bdvUnderlyingOne: Scalars['BigInt']['output'];
-  chopRate: Scalars['BigDecimal']['output'];
-  choppableAmountOne: Scalars['BigInt']['output'];
-  choppableBdvOne: Scalars['BigInt']['output'];
-  createdAt: Scalars['BigInt']['output'];
-  deltaAmountUnderlyingOne: Scalars['BigInt']['output'];
-  deltaBdvUnderlyingOne: Scalars['BigInt']['output'];
-  deltaChopRate: Scalars['BigDecimal']['output'];
-  deltaChoppableAmountOne: Scalars['BigInt']['output'];
-  deltaChoppableBdvOne: Scalars['BigInt']['output'];
-  deltaRecapPercent: Scalars['BigDecimal']['output'];
-  deltaTotalChoppedAmount: Scalars['BigInt']['output'];
-  deltaTotalChoppedBdv: Scalars['BigInt']['output'];
-  deltaTotalChoppedBdvReceived: Scalars['BigInt']['output'];
-  deltaTotalUnderlying: Scalars['BigInt']['output'];
-  deltaUnderlyingToken: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
-  recapPercent: Scalars['BigDecimal']['output'];
-  season: Scalars['Int']['output'];
-  totalChoppedAmount: Scalars['BigInt']['output'];
-  totalChoppedBdv: Scalars['BigInt']['output'];
-  totalChoppedBdvReceived: Scalars['BigInt']['output'];
-  totalUnderlying: Scalars['BigInt']['output'];
-  updatedAt: Scalars['BigInt']['output'];
-};
-
-export type WhitelistTokenHourlySnapshot = {
-  __typename?: 'WhitelistTokenHourlySnapshot';
-  bdv?: Maybe<Scalars['BigInt']['output']>;
-  createdAt: Scalars['BigInt']['output'];
-  deltaBdv?: Maybe<Scalars['BigInt']['output']>;
-  deltaGaugePoints?: Maybe<Scalars['BigInt']['output']>;
-  deltaIsGaugeEnabled: Scalars['Boolean']['output'];
-  deltaMilestoneSeason: Scalars['Int']['output'];
-  deltaOptimalPercentDepositedBdv?: Maybe<Scalars['BigInt']['output']>;
-  deltaStalkEarnedPerSeason: Scalars['BigInt']['output'];
-  deltaStalkIssuedPerBdv: Scalars['BigInt']['output'];
-  gaugePoints?: Maybe<Scalars['BigInt']['output']>;
-  id: Scalars['ID']['output'];
-  isGaugeEnabled: Scalars['Boolean']['output'];
-  milestoneSeason: Scalars['Int']['output'];
-  optimalPercentDepositedBdv?: Maybe<Scalars['BigInt']['output']>;
-  season: Scalars['Int']['output'];
-  selector: Scalars['Bytes']['output'];
-  stalkEarnedPerSeason: Scalars['BigInt']['output'];
-  stalkIssuedPerBdv: Scalars['BigInt']['output'];
-  updatedAt: Scalars['BigInt']['output'];
-};
-
 export type BeanstalkAdvancedChartQueryVariables = Exact<{
   seasonsWhere?: InputMaybe<Scalars['String']['input']>;
   seasonsOrderBy?: InputMaybe<Scalars['String']['input']>;
@@ -354,7 +374,7 @@ export type BeanstalkAdvancedChartQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkAdvancedChartQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'Season', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number, createdAt: any }>, fieldHourlySnapshots: Array<{ __typename?: 'FieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: number, deltaTemperature: number, season: number, harvestableIndex: any, harvestablePods: any, harvestedPods: any, numberOfSowers: number, numberOfSows: number, podIndex: any, realRateOfReturn: any, seasonBlock: any, soil: any, soilSoldOut: boolean, unharvestablePods: any }>, siloHourlySnapshots: Array<{ __typename?: 'SiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio?: any | null, season: number, stalk: any, caseId?: any | null }> };
+export type BeanstalkAdvancedChartQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'CachedSeason', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number, createdAt: any }>, fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: number, deltaTemperature: number, season: number, harvestableIndex: any, harvestablePods: any, harvestedPods: any, numberOfSowers: number, numberOfSows: number, podIndex: any, realRateOfReturn: any, seasonBlock: any, soil: any, soilSoldOut: boolean, unharvestablePods: any }>, siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio?: any | null, season: number, stalk: any, caseId?: any | null }> };
 
 export type BeanstalkSeasonsTableQueryVariables = Exact<{
   seasonsWhere?: InputMaybe<Scalars['String']['input']>;
@@ -369,7 +389,7 @@ export type BeanstalkSeasonsTableQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkSeasonsTableQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'Season', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number }>, fieldHourlySnapshots: Array<{ __typename?: 'FieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: number, deltaTemperature: number, season: number }>, siloHourlySnapshots: Array<{ __typename?: 'SiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio?: any | null, season: number }> };
+export type BeanstalkSeasonsTableQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'CachedSeason', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number }>, fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: number, deltaTemperature: number, season: number }>, siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio?: any | null, season: number }> };
 
 export type FarmerSeasonalSiloQueryVariables = Exact<{
   where?: InputMaybe<Scalars['String']['input']>;
@@ -378,7 +398,7 @@ export type FarmerSeasonalSiloQueryVariables = Exact<{
 }>;
 
 
-export type FarmerSeasonalSiloQuery = { __typename?: 'Query', siloHourlySnapshots: Array<{ __typename?: 'SiloHourlySnapshot', id: string, season: number, createdAt: any, stalk: any, germinatingStalk: any, depositedBDV: any }> };
+export type FarmerSeasonalSiloQuery = { __typename?: 'Query', siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, season: number, createdAt: any, stalk: any, germinatingStalk: any, depositedBDV: any }> };
 
 export type FarmerSeasonalSiloAssetTokenQueryVariables = Exact<{
   where?: InputMaybe<Scalars['String']['input']>;
@@ -387,7 +407,7 @@ export type FarmerSeasonalSiloAssetTokenQueryVariables = Exact<{
 }>;
 
 
-export type FarmerSeasonalSiloAssetTokenQuery = { __typename?: 'Query', siloAssetHourlySnapshots: Array<{ __typename?: 'SiloAssetHourlySnapshot', id: string, season: number, depositedAmount: any, depositedBDV: any, deltaDepositedBDV: any, deltaDepositedAmount: any, createdAt: any }> };
+export type FarmerSeasonalSiloAssetTokenQuery = { __typename?: 'Query', siloAssetHourlySnapshots: Array<{ __typename?: 'CachedSiloAssetHourlySnapshot', id: string, season: number, depositedAmount: any, depositedBDV: any, deltaDepositedBDV: any, deltaDepositedAmount: any, createdAt: any }> };
 
 export type BeanstalkSeasonalSiloActiveFarmersQueryVariables = Exact<{
   where?: InputMaybe<Scalars['String']['input']>;
@@ -396,7 +416,7 @@ export type BeanstalkSeasonalSiloActiveFarmersQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkSeasonalSiloActiveFarmersQuery = { __typename?: 'Query', siloHourlySnapshots: Array<{ __typename?: 'SiloHourlySnapshot', id: string, season: number, activeFarmers: number }> };
+export type BeanstalkSeasonalSiloActiveFarmersQuery = { __typename?: 'Query', siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, season: number, activeFarmers: number }> };
 
 export type BeanstalkSeasonalFieldQueryVariables = Exact<{
   where?: InputMaybe<Scalars['String']['input']>;
@@ -405,7 +425,7 @@ export type BeanstalkSeasonalFieldQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkSeasonalFieldQuery = { __typename?: 'Query', fieldHourlySnapshots: Array<{ __typename?: 'FieldHourlySnapshot', id: string, season: number, podRate: any, temperature: number, podIndex: any, harvestableIndex: any, sownBeans: any, harvestedPods: any, issuedSoil: any, deltaSownBeans: any, createdAt: any }> };
+export type BeanstalkSeasonalFieldQuery = { __typename?: 'Query', fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, season: number, podRate: any, temperature: number, podIndex: any, harvestableIndex: any, sownBeans: any, harvestedPods: any, issuedSoil: any, deltaSownBeans: any, createdAt: any }> };
 
 export type BeanstalkSeasonalSiloQueryVariables = Exact<{
   where?: InputMaybe<Scalars['String']['input']>;
@@ -414,7 +434,7 @@ export type BeanstalkSeasonalSiloQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkSeasonalSiloQuery = { __typename?: 'Query', siloHourlySnapshots: Array<{ __typename?: 'SiloHourlySnapshot', id: string, season: number, stalk: any, grownStalkPerSeason: any, depositedBDV: any, createdAt: any }> };
+export type BeanstalkSeasonalSiloQuery = { __typename?: 'Query', siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, season: number, stalk: any, grownStalkPerSeason: any, depositedBDV: any, createdAt: any }> };
 
 
 export const BeanstalkAdvancedChartDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BeanstalkAdvancedChart"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"seasonsWhere"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"seasonsOrderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"seasonsOrderDirection"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fieldWhere"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fieldOrderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fieldOrderDirection"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"siloWhere"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"siloOrderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"siloOrderDirection"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"seasons"},"name":{"kind":"Name","value":"cache_seasons"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"seasonsWhere"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"seasonsOrderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"Variable","name":{"kind":"Name","value":"seasonsOrderDirection"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sunriseBlock"}},{"kind":"Field","name":{"kind":"Name","value":"rewardBeans"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"deltaBeans"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"fieldHourlySnapshots"},"name":{"kind":"Name","value":"cache_fieldHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fieldWhere"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fieldOrderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fieldOrderDirection"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"caseId"}},{"kind":"Field","name":{"kind":"Name","value":"issuedSoil"}},{"kind":"Field","name":{"kind":"Name","value":"deltaSownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"sownBeans"}},{"kind":"Field","name":{"kind":"Name","value":"blocksToSoldOutSoil"}},{"kind":"Field","name":{"kind":"Name","value":"podRate"}},{"kind":"Field","name":{"kind":"Name","value":"temperature"}},{"kind":"Field","name":{"kind":"Name","value":"deltaTemperature"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"harvestableIndex"}},{"kind":"Field","name":{"kind":"Name","value":"harvestablePods"}},{"kind":"Field","name":{"kind":"Name","value":"harvestedPods"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSowers"}},{"kind":"Field","name":{"kind":"Name","value":"numberOfSows"}},{"kind":"Field","name":{"kind":"Name","value":"podIndex"}},{"kind":"Field","name":{"kind":"Name","value":"realRateOfReturn"}},{"kind":"Field","name":{"kind":"Name","value":"seasonBlock"}},{"kind":"Field","name":{"kind":"Name","value":"soil"}},{"kind":"Field","name":{"kind":"Name","value":"soilSoldOut"}},{"kind":"Field","name":{"kind":"Name","value":"unharvestablePods"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"siloHourlySnapshots"},"name":{"kind":"Name","value":"cache_siloHourlySnapshots"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"siloWhere"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"siloOrderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderDirection"},"value":{"kind":"Variable","name":{"kind":"Name","value":"siloOrderDirection"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"beanToMaxLpGpPerBdvRatio"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"stalk"}},{"kind":"Field","name":{"kind":"Name","value":"caseId"}}]}}]}}]} as unknown as DocumentNode<BeanstalkAdvancedChartQuery, BeanstalkAdvancedChartQueryVariables>;

@@ -372,6 +372,187 @@ const erc721Enum = [
   },
 ] as const;
 
+const siloPayback = [
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "earned",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "getBalanceCombined",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "siloRemaining",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalDistributed",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalReceived",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "recipient", type: "address" },
+      { internalType: "enum LibTransfer.To", name: "toMode", type: "uint8" },
+    ],
+    name: "claim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "value", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
+
+const barnPayback = [
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+      { internalType: "uint256", name: "id", type: "uint256" },
+    ],
+    name: "balanceOf",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+      { internalType: "uint256[]", name: "ids", type: "uint256[]" },
+    ],
+    name: "balanceOfFertilized",
+    outputs: [{ internalType: "uint256", name: "beans", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+      { internalType: "uint256[]", name: "ids", type: "uint256[]" },
+    ],
+    name: "balanceOfUnfertilized",
+    outputs: [{ internalType: "uint256", name: "beans", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "barnRemaining",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "fert",
+    outputs: [
+      { internalType: "uint128", name: "fertilizedIndex", type: "uint128" },
+      { internalType: "uint128", name: "unfertilizedIndex", type: "uint128" },
+      { internalType: "uint128", name: "fertilizedPaidIndex", type: "uint128" },
+      { internalType: "uint128", name: "leftoverBeans", type: "uint128" },
+      { internalType: "uint128", name: "activeFertilizer", type: "uint128" },
+      { internalType: "uint128", name: "fertFirst", type: "uint128" },
+      { internalType: "uint128", name: "fertLast", type: "uint128" },
+      { internalType: "uint128", name: "bpf", type: "uint128" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+      { internalType: "uint256", name: "id", type: "uint256" },
+    ],
+    name: "lastBalanceOf",
+    outputs: [
+      {
+        components: [
+          { internalType: "uint128", name: "amount", type: "uint128" },
+          { internalType: "uint128", name: "lastBpf", type: "uint128" },
+        ],
+        internalType: "struct BeanstalkFertilizer.Balance",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "uint256[]", name: "ids", type: "uint256[]" },
+      { internalType: "uint8", name: "mode", type: "uint8" },
+    ],
+    name: "claimFertilized",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalUnfertilizedBeans",
+    outputs: [{ internalType: "uint256", name: "beans", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "from", type: "address" },
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256[]", name: "ids", type: "uint256[]" },
+      { internalType: "uint256[]", name: "amounts", type: "uint256[]" },
+      { internalType: "bytes", name: "data", type: "bytes" },
+    ],
+    name: "safeBatchTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
+
+const contractPayback = [
+  {
+    inputs: [],
+    name: "totalDistributed",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalReceived",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
 export const abiSnippets = {
   advancedPipe,
   advancedFarm,
@@ -399,4 +580,7 @@ export const abiSnippets = {
     convert,
   },
   erc721Enum,
+  siloPayback,
+  barnPayback,
+  contractPayback,
 } as const;
