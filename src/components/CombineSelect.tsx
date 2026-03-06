@@ -63,13 +63,19 @@ export default function CombineSelect({ setTransferData, token, disabled }: Comb
       setSubmitting(true);
       toast.loading("Combining deposits...");
 
-      const encodedCalls = encodeGroupCombineCalls(validGroups, token, farmerDeposits.deposits);
+      const encodedCall = encodeGroupCombineCalls(validGroups, token, farmerDeposits.deposits);
+
+      if (!encodedCall) {
+        toast.error("No deposits to combine");
+        setSubmitting(false);
+        return;
+      }
 
       await writeWithEstimateGas({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "farm",
-        args: [encodedCalls],
+        args: [[encodedCall]],
       });
 
       setOpen(false);

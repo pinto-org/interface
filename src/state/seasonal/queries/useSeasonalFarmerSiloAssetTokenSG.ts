@@ -39,6 +39,7 @@ export default function useSeasonalFarmerSiloAssetTokenSG(
   token: string,
   account: string,
   convertResult: ConvertEntryFn<SiloAssetHourlySnapshot>,
+  enabled: boolean = true,
 ): UseSeasonalResult {
   const chainId = useChainId();
 
@@ -51,7 +52,7 @@ export default function useSeasonalFarmerSiloAssetTokenSG(
 
   const siloAsset = `${account}-${token}`.toLowerCase();
 
-  const queryDisabled = !isValidAddress(account) || !isValidAddress(token);
+  const queryDisabled = !isValidAddress(account) || !isValidAddress(token) || !enabled;
 
   return useSeasonalQueries(
     "FarmerSeasonalSiloAssetTokenQuery",

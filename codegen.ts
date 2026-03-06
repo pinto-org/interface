@@ -11,7 +11,15 @@ const config: CodegenConfig = {
   generates: {
     "src/generated/gql/pintostalk/": {
       schema: "https://graph.pinto.money/pintostalk",
-      documents: ["src/queries/beanstalk/**/*.graphql"],
+      documents: ["src/queries/beanstalk/**/*.graphql", "!src/queries/beanstalk/**/*.cache.graphql"],
+      preset: "client",
+      presetConfig: {
+        fragmentMasking: false,
+      },
+    },
+    "src/generated/gql/pintostalk-cache/": {
+      schema: "https://graph.bean.money/cache",
+      documents: ["src/queries/beanstalk/**/*.cache.graphql"],
       preset: "client",
       presetConfig: {
         fragmentMasking: false,

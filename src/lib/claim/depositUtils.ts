@@ -3,7 +3,7 @@ import { DepositGroup } from "@/components/CombineSelect";
 import { siloHelpersABI } from "@/constants/abi/SiloHelpersABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { SILO_HELPERS_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
-import convert from "@/encoders/silo/convert";
+import batchConvert, { type BatchConvertParams } from "@/encoders/batchConvert";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { calculateConvertData } from "@/utils/convert";
 import { Token, TokenDepositData } from "@/utils/types";
@@ -133,7 +133,8 @@ export function generateCombineAndL2LCallData(farmerDeposits: Map<Token, TokenDe
 
   return tokenEntries
     .filter(([token]) => token.isWhitelisted)
-    .flatMap(([token, depositData]) => encodeClaimRewardCombineCalls(depositData.deposits, token));
+    .map(([token, depositData]) => encodeClaimRewardCombineCalls(depositData.deposits, token))
+    .filter((call): call is `0x${string}` => call !== undefined);
 }
 
 /**
@@ -547,44 +548,63 @@ export function createSmartGroups(deposits: DepositData[], targetGroups: number 
   return newGroups;
 }
 
+/**
+ * Encodes deposit combine operations for manual combining using batchConvert.
+ * Groups deposits and encodes all groups as a single batchConvert call.
+ *
+ * @param validGroups Array of deposit groups to combine
+ * @param token The token to combine deposits for
+ * @param deposits Array of all farmer deposits for the token
+ * @returns Single encoded batchConvert calldata, or undefined if no groups need combining
+ *
+ * @see encodeClaimRewardCombineCalls for automatic claim-time combining
+ */
 export function encodeGroupCombineCalls(
   validGroups: DepositGroup[],
   token: Token,
   deposits: DepositData[],
-): `0x${string}`[] {
+): `0x${string}` | undefined {
   // Exclude groups with only one deposit, since they don't need combining
   const groupsToEncode = validGroups.filter((group) => group.deposits.length > 1);
 
-  return groupsToEncode.map((group) => {
-    // Get selected deposits for this group
+  if (groupsToEncode.length === 0) return undefined;
+
+  // Build BatchConvertParams for ALL groups
+  const batchParams: BatchConvertParams[] = groupsToEncode.map((group) => {
     const selectedDepositData = group.deposits
       .map((stem) => deposits.find((d) => d.stem.toHuman() === stem))
-      .filter(Boolean);
+      .filter((d): d is DepositData => d !== undefined);
 
     const totalAmount = selectedDepositData.reduce((sum, deposit) => {
-      if (!deposit) return sum;
       return deposit.amount.add(sum);
     }, TokenValue.ZERO);
 
     const convertData = calculateConvertData(token, token, totalAmount, totalAmount);
     if (!convertData) throw new Error("Failed to prepare combine data");
 
-    const stems = selectedDepositData.filter((d): d is DepositData => d !== undefined).map((d) => d.stem.toBigInt());
-    const amounts = selectedDepositData
-      .filter((d): d is DepositData => d !== undefined)
-      .map((d) => d.amount.toBigInt());
+    const stems = selectedDepositData.map((d) => d.stem.toBigInt());
+    const amounts = selectedDepositData.map((d) => d.amount.toBigInt());
 
-    // Use the imported convert function instead
-    return convert(convertData, stems, amounts).callData;
+    return { convertData, stems, amounts, grownStalkSlippage: 0n };
   });
+
+  // Return SINGLE batchConvert call with all groups
+  return batchConvert(batchParams);
 }
 
-// Add a new function to handle claim reward grouping and encoding
+/**
+ * Encodes deposit combine operations for a single token using batchConvert.
+ * Groups deposits by stalk/BDV ratio and encodes all groups as a single batchConvert call.
+ * @param deposits Array of deposit data for the token
+ * @param token The token to combine deposits for
+ * @param targetGroups Number of groups to create (default 20)
+ * @returns Single encoded batchConvert calldata, or undefined if no groups need combining
+ */
 export function encodeClaimRewardCombineCalls(
   deposits: DepositData[],
   token: Token,
   targetGroups: number = 20,
-): `0x${string}`[] {
+): `0x${string}` | undefined {
   // Use our existing smart grouping logic
   const groups = createSmartGroups(deposits, targetGroups);
 
@@ -598,7 +618,6 @@ export function encodeClaimRewardCombineCalls(
 
     const totalBdv = groupDeposits.reduce((sum, deposit) => sum.add(deposit.depositBdv), TokenValue.ZERO);
 
-    // Calculate the stalk-to-BDV ratio for the entire group
     const stalkPerBdv = totalBdv.gt(0) ? totalStalk.div(totalBdv) : TokenValue.ZERO;
 
     return {
@@ -610,14 +629,30 @@ export function encodeClaimRewardCombineCalls(
   // Sort by Stalk/BDV ratio (highest to lowest)
   const sortedGroups = groupsWithRatio
     .sort((a, b) => b.stalkPerBdv.sub(a.stalkPerBdv).toNumber())
-    .map(({ id, deposits, stalkPerBdv }) => ({ id, deposits, stalkPerBdv }));
+    .map(({ id, deposits }) => ({ id, deposits }));
 
-  // Use our existing encode function with sorted groups - strip stalkPerBdv before passing
-  const result = encodeGroupCombineCalls(
-    sortedGroups.map(({ id, deposits }) => ({ id, deposits })),
-    token,
-    deposits,
-  );
+  // Build BatchConvertParams for each group with >1 deposit
+  const batchParams: BatchConvertParams[] = sortedGroups
+    .filter((group) => group.deposits.length > 1)
+    .map((group) => {
+      const selectedDepositData = group.deposits
+        .map((stem) => deposits.find((d) => d.stem.toHuman() === stem))
+        .filter((d): d is DepositData => d !== undefined);
 
-  return result;
+      const totalAmount = selectedDepositData.reduce((sum, deposit) => {
+        return deposit.amount.add(sum);
+      }, TokenValue.ZERO);
+
+      const convertData = calculateConvertData(token, token, totalAmount, totalAmount);
+      if (!convertData) throw new Error("Failed to prepare combine data");
+
+      const stems = selectedDepositData.map((d) => d.stem.toBigInt());
+      const amounts = selectedDepositData.map((d) => d.amount.toBigInt());
+
+      return { convertData, stems, amounts, grownStalkSlippage: 0n };
+    });
+
+  if (batchParams.length === 0) return undefined;
+
+  return batchConvert(batchParams);
 }

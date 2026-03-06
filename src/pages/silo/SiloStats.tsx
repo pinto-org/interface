@@ -8,7 +8,7 @@ import { TimeTab } from "@/components/charts/TimeTabs";
 import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { useSeasonalSiloActiveFarmers } from "@/state/seasonal/seasonalDataHooks";
+import { useSeasonalSiloActiveFarmersCache } from "@/state/seasonal/seasonalDataHooks";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
 import { useSiloData } from "@/state/useSiloData";
@@ -310,7 +310,7 @@ const DepositedByTokenDoughnutChart = memo(
 
 const useUniqueDepositors = () => {
   const season = useSeason();
-  const query = useSeasonalSiloActiveFarmers(Math.max(0, season - tabToSeasonalLookback(TimeTab.Week)), season);
+  const query = useSeasonalSiloActiveFarmersCache(Math.max(0, season - tabToSeasonalLookback(TimeTab.Week)), season);
 
   return {
     ...query,
