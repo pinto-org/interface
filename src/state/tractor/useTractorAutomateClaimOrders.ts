@@ -4,7 +4,7 @@ import { TractorRequisitionData, TractorRequisitionEvent } from "@/lib/Tractor";
 import { decodeBlueprintCallData } from "@/lib/Tractor/blueprint-decoders";
 import { decodeAutomateClaimBlueprint } from "@/lib/Tractor/claimOrder";
 import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
-import { TRACTOR_DEPLOYMENT_BLOCK } from "@/lib/Tractor/core";
+import { TRACTOR_DEPLOYMENT_BLOCK_AUTOMATE_CLAIM } from "@/lib/Tractor/core";
 import { fetchTractorEvents } from "@/lib/Tractor/events/tractor-events";
 import { queryKeys } from "@/state/queryKeys";
 import { stringEq } from "@/utils/string";
@@ -30,7 +30,11 @@ export function useTractorAutomateClaimOrderbook({
     queryFn: async (): Promise<TractorRequisitionEvent<AutomateClaimBlueprintStruct>[]> => {
       if (!client || !diamond) return [];
 
-      const { publishEvents, cancelledHashes } = await fetchTractorEvents(client, diamond, TRACTOR_DEPLOYMENT_BLOCK);
+      const { publishEvents, cancelledHashes } = await fetchTractorEvents(
+        client,
+        diamond,
+        TRACTOR_DEPLOYMENT_BLOCK_AUTOMATE_CLAIM,
+      );
 
       // Get latest block for timestamp approximation
       const latestBlock = await client.getBlock({ blockTag: "latest" });
@@ -87,7 +91,7 @@ export function useTractorAutomateClaimOrderbook({
 
   const refetch = useCallback(async () => {
     return query.refetch();
-  }, [query]);
+  }, [query.refetch]);
 
   return { ...query, refetch } as const;
 }

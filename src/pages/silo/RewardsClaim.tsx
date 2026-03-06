@@ -100,8 +100,16 @@ function RewardsClaim() {
             {"Claim Rewards"}
           </Button>
           <span
+            role="button"
+            tabIndex={0}
             className="pinto-sm text-pinto-green-4 cursor-pointer hover:underline"
             onClick={() => setShowAutomateClaimDialog(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setShowAutomateClaimDialog(true);
+              }
+            }}
           >
             Automate with Tractor
           </span>

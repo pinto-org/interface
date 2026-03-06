@@ -8,12 +8,13 @@ import { AutomateClaimOrderData, TractorOrderVisualizationProps } from "../types
  * Displays enabled operations (Mow, Plant, Harvest) and operator tip configuration.
  */
 export function AutomateClaimVisualization({ orderData, className }: TractorOrderVisualizationProps) {
+  const mainToken = useMainToken();
+
   if (orderData.type !== "automateClaim") {
-    throw new Error("AutomateClaimVisualization requires automateClaim order data");
+    return null;
   }
 
   const claimData = orderData as AutomateClaimOrderData;
-  const mainToken = useMainToken();
 
   const operations = [
     { label: "Mow", enabled: claimData.mowEnabled },
@@ -24,7 +25,7 @@ export function AutomateClaimVisualization({ orderData, className }: TractorOrde
   const enabledOps = operations.filter((op) => op.enabled);
 
   return (
-    <div className={`bg-gray-50 p-6 relative ${className || ""}`}>
+    <div className={`bg-pinto-gray-1 p-6 relative ${className || ""}`}>
       <div className="absolute inset-0 opacity-50">
         <div className="w-full h-full bg-dot-grid bg-[size:24px_24px] bg-[position:center]" />
       </div>

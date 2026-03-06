@@ -1,3 +1,4 @@
+import { TokenValue } from "@/classes/TokenValue";
 import { maxUint256 } from "viem";
 import { CLAIM_PRESETS } from "./tractor-claim";
 import type { AutomateClaimBlueprintData } from "./tractor-claim-types";
@@ -54,7 +55,7 @@ export function getClaimOpConditionLabel(
 
   // Custom value
   const decimals = op === "mow" ? 10 : 6;
-  const humanValue = Number(thresholdBigInt) / 10 ** decimals;
+  const humanValue = TokenValue.fromBlockchain(thresholdBigInt, decimals).toHuman();
   return `${opLabel}: Custom (≥ ${humanValue} ${unit})`;
 }
 

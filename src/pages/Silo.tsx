@@ -3,7 +3,7 @@ import GerminationNotice from "@/components/GerminationNotice";
 import HelperLink from "@/components/HelperLink";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import StatPanel from "@/components/StatPanel";
-import { SpecifyConditionsDialog } from "@/components/Tractor/AutomateClaim";
+import { AutomateClaimOrderbookDialog, SpecifyConditionsDialog } from "@/components/Tractor/AutomateClaim";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import { PINTO_WETH_TOKEN, PINTO_WSOL_TOKEN } from "@/constants/tokens";
@@ -42,6 +42,7 @@ function Silo() {
 
   const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
   const [showAutomateClaimDialog, setShowAutomateClaimDialog] = useState(false);
+  const [showAutomateClaimOrderbook, setShowAutomateClaimOrderbook] = useState(false);
   const [hoveredButton, setHoveredButton] = useState("claim");
   const enableStatPanels =
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
@@ -158,12 +159,36 @@ function Silo() {
               <div className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light">
                 These are Deposits which are currently incentivized by Pinto.
               </div>
-              <span
-                className="pinto-sm text-pinto-green-4 cursor-pointer hover:underline whitespace-nowrap"
-                onClick={() => setShowAutomateClaimDialog(true)}
-              >
-                Automate your Silo with Tractor 🚜
-              </span>
+              <div className="flex items-center gap-4">
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className="pinto-sm text-pinto-green-4 cursor-pointer hover:underline whitespace-nowrap"
+                  onClick={() => setShowAutomateClaimOrderbook(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setShowAutomateClaimOrderbook(true);
+                    }
+                  }}
+                >
+                  View Claim Orders
+                </span>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  className="pinto-sm text-pinto-green-4 cursor-pointer hover:underline whitespace-nowrap"
+                  onClick={() => setShowAutomateClaimDialog(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setShowAutomateClaimDialog(true);
+                    }
+                  }}
+                >
+                  Automate your Silo with Tractor 🚜
+                </span>
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-start gap-4 w-full max-w-full overflow-hidden">
               <div className="flex flex-col gap-4 sm:gap-12 w-full">
@@ -192,6 +217,7 @@ function Silo() {
       <ActionsMenu showOnTablet />
 
       <SpecifyConditionsDialog open={showAutomateClaimDialog} onOpenChange={setShowAutomateClaimDialog} />
+      <AutomateClaimOrderbookDialog open={showAutomateClaimOrderbook} onOpenChange={setShowAutomateClaimOrderbook} />
     </PageContainer>
   );
 }

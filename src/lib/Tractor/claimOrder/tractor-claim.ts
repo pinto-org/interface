@@ -3,7 +3,7 @@ import { automateClaimBlueprintABI } from "@/constants/abi/AutomateClaimBlueprin
 import { AUTOMATE_CLAIM_BLUEPRINT_ADDRESS } from "@/constants/address";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { AdvancedPipeCall } from "@/utils/types";
-import { PublicClient, decodeFunctionData, encodeFunctionData, maxUint256 } from "viem";
+import { type PublicClient, decodeFunctionData, encodeFunctionData, maxUint256 } from "viem";
 import { base } from "viem/chains";
 import {
   CreateTractorDataReturnType,
@@ -68,10 +68,10 @@ export function resolvePresetValue(
 
   if (operation === "mow") {
     // Stalk: value × 1e10
-    return BigInt(Math.round(numericValue * 1e10));
+    return TokenValue.fromHuman(customValue, 10).toBigInt();
   }
   // PINTO: value × 1e6
-  return BigInt(Math.round(numericValue * 1e6));
+  return TokenValue.fromHuman(customValue, 6).toBigInt();
 }
 
 /**
@@ -161,11 +161,11 @@ export function buildAutomateClaimStruct(
 
   const sourceTokenIndices = formValues.sourceTokenIndices ?? [255];
   const maxGrownStalkPerBdv = formValues.maxGrownStalkPerBdv
-    ? BigInt(Math.round(parseFloat(formValues.maxGrownStalkPerBdv) * 1e6))
-    : BigInt(1e18);
+    ? TokenValue.fromHuman(formValues.maxGrownStalkPerBdv, 6).toBigInt()
+    : TokenValue.fromHuman("1", 18).toBigInt();
   const slippageRatio = formValues.slippageRatio
-    ? BigInt(Math.round(parseFloat(formValues.slippageRatio) * 1e18))
-    : BigInt(1e18);
+    ? TokenValue.fromHuman(formValues.slippageRatio, 18).toBigInt()
+    : TokenValue.fromHuman("1", 18).toBigInt();
 
   return {
     claimParams: {
@@ -250,6 +250,7 @@ export async function createAutomateClaimTractorData({
 
   return {
     data,
+    // AutomateClaim uses transient storage (getTractorData) for operator-provided data, not paste instructions
     operatorPasteInstrs: [],
     rawCall: blueprintCall,
     depositOptimizationCalls,
@@ -329,23 +330,26 @@ export function transformAutomateClaimRequisitionEvent(
     const cp = struct.claimParams;
     const op = struct.opParams;
 
+    const humanOrDisabled = (value: bigint, decimals: number): string =>
+      value === maxUint256 ? "Disabled" : TokenValue.fromBlockchain(value, decimals).toHuman();
+
     return {
       claimParams: {
         minMowAmount: cp.minMowAmount,
-        minMowAmountAsString: TokenValue.fromBlockchain(cp.minMowAmount, 10).toHuman(),
+        minMowAmountAsString: humanOrDisabled(cp.minMowAmount, 10),
         minTwaDeltaB: cp.minTwaDeltaB,
         minTwaDeltaBAsString: TokenValue.fromBlockchain(cp.minTwaDeltaB, 6).toHuman(),
         minPlantAmount: cp.minPlantAmount,
-        minPlantAmountAsString: TokenValue.fromBlockchain(cp.minPlantAmount, 6).toHuman(),
+        minPlantAmountAsString: humanOrDisabled(cp.minPlantAmount, 6),
         fieldHarvestConfigs: cp.fieldHarvestConfigs.map((config) => ({
           fieldId: config.fieldId,
           minHarvestAmount: config.minHarvestAmount,
-          minHarvestAmountAsString: TokenValue.fromBlockchain(config.minHarvestAmount, 6).toHuman(),
+          minHarvestAmountAsString: humanOrDisabled(config.minHarvestAmount, 6),
         })),
         minRinseAmount: cp.minRinseAmount,
-        minRinseAmountAsString: TokenValue.fromBlockchain(cp.minRinseAmount, 6).toHuman(),
+        minRinseAmountAsString: humanOrDisabled(cp.minRinseAmount, 6),
         minUnripeClaimAmount: cp.minUnripeClaimAmount,
-        minUnripeClaimAmountAsString: TokenValue.fromBlockchain(cp.minUnripeClaimAmount, 6).toHuman(),
+        minUnripeClaimAmountAsString: humanOrDisabled(cp.minUnripeClaimAmount, 6),
         sourceTokenIndices: cp.sourceTokenIndices,
         maxGrownStalkPerBdv: cp.maxGrownStalkPerBdv,
         maxGrownStalkPerBdvAsString: TokenValue.fromBlockchain(cp.maxGrownStalkPerBdv, 6).toHuman(),

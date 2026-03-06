@@ -85,6 +85,7 @@ export const useAutomateClaimOrder = () => {
           createAutomateClaimTractorData({
             formValues: formData,
             tipPerExecution,
+            // Empty array = all operators allowed (no whitelist restriction)
             whitelistedOperators: [],
             publicClient: client,
             farmerDeposits: deposits,
@@ -123,7 +124,8 @@ export const useAutomateClaimOrder = () => {
         });
 
         options?.onSuccess?.();
-      } catch (_) {
+      } catch (error) {
+        console.error("[useAutomateClaimOrder] Error creating blueprint:", error);
         options?.onFailure?.();
       } finally {
         setIsLoading(false);

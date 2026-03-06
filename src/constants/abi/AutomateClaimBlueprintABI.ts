@@ -11,7 +11,7 @@ export const automateClaimBlueprintABI = [
                 type: "uint256",
               },
               {
-                internalType: "int256",
+                internalType: "uint256",
                 name: "minTwaDeltaB",
                 type: "uint256",
               },
@@ -82,7 +82,7 @@ export const automateClaimBlueprintABI = [
                     type: "address",
                   },
                   {
-                    internalType: "uint256",
+                    internalType: "int256",
                     name: "operatorTipAmount",
                     type: "int256",
                   },
@@ -92,27 +92,27 @@ export const automateClaimBlueprintABI = [
                 type: "tuple",
               },
               {
-                internalType: "uint256",
+                internalType: "int256",
                 name: "mowTipAmount",
                 type: "int256",
               },
               {
-                internalType: "uint256",
+                internalType: "int256",
                 name: "plantTipAmount",
                 type: "int256",
               },
               {
-                internalType: "uint256",
+                internalType: "int256",
                 name: "harvestTipAmount",
                 type: "int256",
               },
               {
-                internalType: "uint256",
+                internalType: "int256",
                 name: "rinseTipAmount",
                 type: "int256",
               },
               {
-                internalType: "uint256",
+                internalType: "int256",
                 name: "unripeClaimTipAmount",
                 type: "int256",
               },

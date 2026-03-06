@@ -1,3 +1,4 @@
+import { TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import { Form } from "@/components/Form";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
@@ -18,12 +19,10 @@ import { useAutomateClaimOrder } from "@/hooks/tractor/useAutomateClaimOrder";
 import { estimatedTotalTipRange } from "@/lib/Tractor/claimOrder";
 import { isValidCustomValue } from "@/lib/Tractor/claimOrder/automate-claim-helpers";
 import type { ClaimFrequencyPreset } from "@/lib/Tractor/claimOrder/tractor-claim-types";
-import { queryKeys } from "@/state/queryKeys";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -56,7 +55,6 @@ export const SpecifyConditionsDialog = ({ open, onOpenChange }: SpecifyCondition
   const mainToken = useMainToken();
   const farmerSilo = useFarmerSilo();
   const { data: averageTipPaid = 0.15 } = useTractorOperatorAverageTipPaid();
-  const queryClient = useQueryClient();
 
   // Form state
   const { form } = useAutomateClaimForm();
@@ -278,7 +276,6 @@ export const SpecifyConditionsDialog = ({ open, onOpenChange }: SpecifyCondition
           open={showReviewDialog}
           onOpenChange={setShowReviewDialog}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: [queryKeys.base.tractor] });
             form.reset({ ...defaultAutomateClaimValues });
             setShowReviewDialog(false);
             onOpenChange(false);
@@ -309,8 +306,8 @@ const EstimatedTotalTipRange = ({
   mainToken: ReturnType<typeof useMainToken>;
 }) => {
   const formatTip = (value: bigint) => {
-    const human = Number(value) / 10 ** mainToken.decimals;
-    return formatter.number(human.toString(), { minDecimals: 2, maxDecimals: 3 });
+    const tv = TokenValue.fromBlockchain(value, mainToken.decimals);
+    return formatter.number(tv.toHuman(), { minDecimals: 2, maxDecimals: 3 });
   };
 
   return (
