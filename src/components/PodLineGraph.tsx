@@ -349,12 +349,12 @@ export default function PodLineGraph({
         </div>
       ) : (
         <div className="mb-1">
-          <p className="text-pinto-gray-4 text-[0.75rem]">{label}</p>
+          <p className="text-pinto-gray-5 text-[0.75rem]">{label}</p>
         </div>
       )}
 
       {/* Plot container with border */}
-      <div className={cn("relative w-full h-12 border border-pinto-gray-2 rounded-lg overflow-hidden", className)}>
+      <div className={cn("relative w-full h-12 border border-pinto-gray-5 rounded-lg overflow-hidden", className)}>
         <div className="relative w-full h-full flex">
           {/* Harvested Section (Log Scale) - Left 20% (only shown if there are harvested plots) */}
           {hasHarvestedPlots && (
@@ -370,7 +370,7 @@ export default function PodLineGraph({
                   return (
                     <div
                       key={`harvested-grid-${value}`}
-                      className="absolute top-0 bottom-0 w-px bg-pinto-gray-2"
+                      className="absolute top-0 bottom-0 w-px bg-pinto-gray-5"
                       style={{ left: `${position}%` }}
                     />
                   );
@@ -416,7 +416,7 @@ export default function PodLineGraph({
                 return (
                   <div
                     key={`grid-${value}`}
-                    className="absolute top-0 bottom-0 w-px bg-pinto-gray-2"
+                    className="absolute top-0 bottom-0 w-px bg-pinto-gray-5"
                     style={{ left: `${position}%` }}
                   />
                 );
@@ -637,7 +637,7 @@ export default function PodLineGraph({
                 return (
                   <div
                     key={`harvested-label-${value}`}
-                    className="absolute text-pinto-gray-2 text-[0.75rem]"
+                    className="absolute text-pinto-gray-5 text-[0.75rem]"
                     style={{
                       left: `${position}%`,
                       transform: "translateX(-50%)",
@@ -660,7 +660,7 @@ export default function PodLineGraph({
               return (
                 <div
                   key={`podline-label-${value}`}
-                  className="absolute text-pinto-gray-2 text-[0.75rem]"
+                  className="absolute text-pinto-gray-5 text-[0.75rem]"
                   style={{
                     left: `${position}%`,
                     transform: "translateX(-50%)",
