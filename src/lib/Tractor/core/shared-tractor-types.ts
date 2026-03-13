@@ -1,9 +1,9 @@
 import { TV } from "@/classes/TokenValue";
 import { Address } from "viem";
 
-export type RequisitionType = "sowBlueprintv0" | "convertUpBlueprint" | "unknown";
+export type RequisitionType = "sowBlueprintv0" | "convertUpBlueprint" | "automateClaimBlueprint" | "unknown";
 
-export type TractorBlueprintType = "sow" | "convertUp";
+export type TractorBlueprintType = "sow" | "convertUp" | "automateClaim";
 
 export interface CreateTractorDataReturnType {
   data: `0x${string}`;

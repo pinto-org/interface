@@ -1,4 +1,5 @@
 import { TV, TokenValue } from "@/classes/TokenValue";
+import { automateClaimBlueprintABI } from "@/constants/abi/AutomateClaimBlueprintABI";
 import { sowBlueprintReferralV0ABI } from "@/constants/abi/SowBlueprintReferralV0ABI";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
@@ -14,6 +15,8 @@ import { SignableMessage, decodeFunctionData } from "viem";
 import { PublicClient } from "viem";
 import { base } from "viem/chains";
 import { decodeBlueprintCallData } from "../blueprint-decoders";
+import { transformAutomateClaimRequisitionEvent } from "../claimOrder/tractor-claim";
+import { AutomateClaimBlueprintData, AutomateClaimBlueprintStruct } from "../claimOrder/tractor-claim-types";
 import { ConvertUpBlueprintStruct } from "../convertUp";
 import {
   Requisition,
@@ -153,7 +156,12 @@ type SelectRequisitionTypeArgs = {
   data: Awaited<ReturnType<typeof fetchTractorEvents>>;
 };
 
-const combinedABI = [...sowBlueprintv0ABI, ...sowBlueprintReferralV0ABI, ...convertUpBlueprintV0ABI] as const;
+const combinedABI = [
+  ...sowBlueprintv0ABI,
+  ...sowBlueprintReferralV0ABI,
+  ...convertUpBlueprintV0ABI,
+  ...automateClaimBlueprintABI,
+] as const;
 
 type BaseDecodedTractorRequisition = {
   type: RequisitionType;
@@ -169,7 +177,12 @@ type DecodedConvertUpRequisition = BaseDecodedTractorRequisition & {
   data: NonNullable<ReturnType<typeof transformConvertUpRequisitionEvent>>;
 };
 
-type DecodedTractorRequisition = DecodedSowRequisition | DecodedConvertUpRequisition;
+type DecodedAutomateClaimRequisition = BaseDecodedTractorRequisition & {
+  type: "automateClaimBlueprint";
+  data: NonNullable<ReturnType<typeof transformAutomateClaimRequisitionEvent>>;
+};
+
+type DecodedTractorRequisition = DecodedSowRequisition | DecodedConvertUpRequisition | DecodedAutomateClaimRequisition;
 
 const blueprintTransformerLookup = {
   sowBlueprintv0: {
@@ -190,6 +203,10 @@ const blueprintTransformerLookup = {
   convertUpBlueprint: {
     transformer: transformConvertUpRequisitionEvent,
     type: "convertUpBlueprint",
+  },
+  automateClaimBlueprint: {
+    transformer: transformAutomateClaimRequisitionEvent,
+    type: "automateClaimBlueprint",
   },
 } as const;
 
@@ -279,9 +296,11 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
     const map: {
       sowBlueprintv0: TractorRequisitionEvent<SowBlueprintData>[];
       convertUpBlueprint: TractorRequisitionEvent<ConvertUpBlueprintStruct<TokenValue>>[];
+      automateClaimBlueprint: TractorRequisitionEvent<AutomateClaimBlueprintData>[];
     } = {
       sowBlueprintv0: [],
       convertUpBlueprint: [],
+      automateClaimBlueprint: [],
     };
 
     for (const event of publishEvents) {
@@ -323,6 +342,15 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
         });
       } else if (data.type === "sowBlueprintv0") {
         map.sowBlueprintv0.push({
+          requisition,
+          blockNumber: Number(event.blockNumber),
+          timestamp,
+          isCancelled: cancelledHashes.has(requisition.blueprintHash),
+          requisitionType: data.type,
+          decodedData: data.data,
+        });
+      } else if (data.type === "automateClaimBlueprint") {
+        map.automateClaimBlueprint.push({
           requisition,
           blockNumber: Number(event.blockNumber),
           timestamp,

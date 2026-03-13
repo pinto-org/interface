@@ -1,8 +1,15 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { PublisherTractorExecution, SowBlueprintData, TractorRequisitionEvent } from "@/lib/Tractor";
+import {
+  getEnabledClaimOpLabels,
+  getEnabledClaimOps,
+  transformAutomateClaimRequisitionEvent,
+} from "@/lib/Tractor/claimOrder";
+import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
 import { getTokenNameByIndex } from "@/utils/token";
 import {
+  AutomateClaimOrderData,
   ConvertUpOrderData,
   MixedOrderFilters,
   MixedOrderSortBy,
@@ -144,6 +151,46 @@ export function transformConvertUpOrderToUnified(
   };
 }
 
+// Transform AutomateClaim order to unified format
+export function transformAutomateClaimOrderToUnified(
+  req: TractorRequisitionEvent<AutomateClaimBlueprintStruct>,
+  executions: PublisherTractorExecution[] = [],
+): UnifiedTractorOrder {
+  if (!req.decodedData) {
+    throw new Error("Missing decoded data for AutomateClaim order");
+  }
+
+  const transformed = transformAutomateClaimRequisitionEvent(req.decodedData);
+  if (!transformed) {
+    throw new Error("Failed to transform AutomateClaim data");
+  }
+
+  const { mowEnabled, plantEnabled, harvestEnabled } = getEnabledClaimOps(transformed);
+  const operatorTip = TokenValue.fromBlockchain(transformed.operatorParams.operatorTipAmount, 6).toHuman();
+
+  const automateClaimOrderData: AutomateClaimOrderData = {
+    type: "automateClaim",
+    mowEnabled,
+    plantEnabled,
+    harvestEnabled,
+    operatorTip,
+    percentComplete: 0,
+  };
+
+  return {
+    id: req.requisition.blueprintHash,
+    type: "automateClaim",
+    timestamp: req.timestamp,
+    blockNumber: req.blockNumber,
+    publisher: req.requisition.blueprint.publisher,
+    isCancelled: req.isCancelled,
+    isComplete: false,
+    orderData: automateClaimOrderData,
+    executions,
+    requisition: req,
+  };
+}
+
 // Sort unified orders
 export function sortUnifiedOrders(orders: UnifiedTractorOrder[], sortBy: MixedOrderSortBy): UnifiedTractorOrder[] {
   const sortedOrders = [...orders];
@@ -213,6 +260,11 @@ export function filterUnifiedOrders(orders: UnifiedTractorOrder[], filters: Mixe
 
 // Format order summary for display
 export function getOrderSummary(order: UnifiedTractorOrder): string {
+  if (order.type === "automateClaim") {
+    const data = order.orderData as AutomateClaimOrderData;
+    const ops = getEnabledClaimOpLabels(data);
+    return `Automate Claim • ${ops.join(", ")} • Active`;
+  }
   const typeLabel = order.type === "sow" ? "Sow" : "Convert Up";
   const amount =
     order.type === "sow"
@@ -223,7 +275,7 @@ export function getOrderSummary(order: UnifiedTractorOrder): string {
 }
 
 // Get order type badge info
-export function getOrderTypeBadge(orderType: "sow" | "convertUp") {
+export function getOrderTypeBadge(orderType: "sow" | "convertUp" | "automateClaim") {
   switch (orderType) {
     case "sow":
       return {
@@ -236,6 +288,12 @@ export function getOrderTypeBadge(orderType: "sow" | "convertUp") {
         label: "Convert Up",
         className: "bg-green-100 text-green-800 border-green-200",
         icon: "⬆️",
+      };
+    case "automateClaim":
+      return {
+        label: "Automate Claim",
+        className: "bg-green-100 text-green-800 border-green-200",
+        icon: "🔄",
       };
   }
 }
