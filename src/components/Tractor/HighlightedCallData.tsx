@@ -74,6 +74,52 @@ function ConvertUpBlueprintDisplay({ params }: { params: any }) {
   );
 }
 
+function AutomateClaimBlueprintDisplay({ params }: { params: any }) {
+  return (
+    <div className="space-y-2">
+      <div className="text-gray-500">Function: automateClaimBlueprint</div>
+      <div className="pl-4 space-y-1 text-gray-600">
+        <div>minMowAmount: {params.claimParams.minMowAmount.toString()}</div>
+        <div>minPlantAmount: {params.claimParams.minPlantAmount.toString()}</div>
+        <div>
+          fieldHarvestConfigs:
+          {params.claimParams.fieldHarvestConfigs.length > 0 ? (
+            <div className="pl-4">
+              {params.claimParams.fieldHarvestConfigs.map((config: any, index: number) => (
+                <div key={index}>
+                  [{index}] fieldId: {config.fieldId.toString()}, minHarvestAmount: {config.minHarvestAmount.toString()}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span> []</span>
+          )}
+        </div>
+        <div>minRinseAmount: {params.claimParams.minRinseAmount.toString()}</div>
+        <div>minUnripeClaimAmount: {params.claimParams.minUnripeClaimAmount.toString()}</div>
+        <div>
+          operatorTips:
+          <div className="pl-4">
+            <div>mowTipAmount: {params.opParams.mowTipAmount.toString()}</div>
+            <div>plantTipAmount: {params.opParams.plantTipAmount.toString()}</div>
+            <div>harvestTipAmount: {params.opParams.harvestTipAmount.toString()}</div>
+            <div>rinseTipAmount: {params.opParams.rinseTipAmount.toString()}</div>
+            <div>unripeClaimTipAmount: {params.opParams.unripeClaimTipAmount.toString()}</div>
+          </div>
+        </div>
+        <div>
+          operatorParams:
+          <div className="pl-4">
+            <div>operatorTipAmount: {params.opParams.baseOpParams.operatorTipAmount.toString()}</div>
+            <div>tipAddress: {params.opParams.baseOpParams.tipAddress}</div>
+            <div>whitelistedOperators: [{params.opParams.baseOpParams.whitelistedOperators.join(", ")}]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GenericParameterDisplay({
   selector,
   data,
@@ -147,7 +193,7 @@ function RequisitionDataDisplay({
   }
 }
 
-const knownBlueprintTypes = new Set(["sow", "convertUp"]);
+const knownBlueprintTypes = new Set(["sow", "convertUp", "automateClaim"]);
 
 export function HighlightedCallData({
   blueprintData,
@@ -176,6 +222,8 @@ export function HighlightedCallData({
               return <SowBlueprintDisplay params={decodedResult.params} />;
             case "convertUp":
               return <ConvertUpBlueprintDisplay params={decodedResult.params} />;
+            case "automateClaim":
+              return <AutomateClaimBlueprintDisplay params={decodedResult.params} />;
             case "generic":
               return (
                 <GenericParameterDisplay

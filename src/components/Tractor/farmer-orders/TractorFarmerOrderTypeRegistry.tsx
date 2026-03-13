@@ -7,12 +7,17 @@ import {
   SowBlueprintData,
   decodeSowTractorData,
 } from "@/lib/Tractor";
+import {
+  decodeAutomateClaimBlueprint,
+  getEnabledClaimOps,
+  transformAutomateClaimRequisitionEvent,
+} from "@/lib/Tractor/claimOrder";
+import { AutomateClaimBlueprintStruct } from "@/lib/Tractor/claimOrder/tractor-claim-types";
 import { decodeConvertUpTractorOrder } from "@/lib/Tractor/convertUp/tractor-convert-up";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
 import { prepareRequisitionEventForTxn } from "@/lib/Tractor/utils";
-import React from "react";
 import { base } from "viem/chains";
-import { Col } from "../../Container";
+import { AutomateClaimExecutionHistory, AutomateClaimVisualization } from "../AutomateClaim";
 import ConvertUpExecutionHistory from "../executions/ConvertUpExecutionHistory";
 import SowExecutionHistory from "../executions/SowExecutionHistory";
 import { OrderTypeConfig, TractorOrderData } from "../types";
@@ -77,6 +82,30 @@ const ConvertUpOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
   );
 };
 
+// Automate Claim Order Description
+const AutomateClaimDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
+  if (isViewOnly) {
+    return (
+      <span>
+        This is your active Automate Claim Order. It allows an Operator to execute Silo claim operations (Mow, Plant,
+        Harvest) for you when the conditions are met.
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex flex-col gap-3">
+      <span>
+        An Automate Claim Order allows you to pay an Operator to execute Silo claim operations (Mow, Plant, Harvest) for
+        you automatically.
+      </span>
+      <span>
+        This allows you to interact with the Pinto protocol autonomously when the conditions of your Order are met.
+      </span>
+    </span>
+  );
+};
+
 // Transform functions for order data
 const transformSowOrderData = (
   req: RequisitionEvent<SowBlueprintData>,
@@ -125,6 +154,19 @@ const transformConvertUpOrderData = (
   };
 };
 
+const transformAutomateClaimOrderData = (req: RequisitionEvent<AutomateClaimBlueprintStruct>): TractorOrderData => {
+  if (!req.decodedData) throw new Error("Missing decoded data for AutomateClaim order");
+
+  const transformed = transformAutomateClaimRequisitionEvent(req.decodedData);
+  if (!transformed) throw new Error("Failed to transform AutomateClaim data");
+
+  return {
+    type: "automateClaim",
+    ...getEnabledClaimOps(transformed),
+    operatorTip: transformed.operatorParams.operatorTipAmountAsString,
+  };
+};
+
 // Unified transform function with overloads for type safety
 function transformOrderData(
   req: RequisitionEvent<SowBlueprintData>,
@@ -132,7 +174,11 @@ function transformOrderData(
 ): TractorOrderData;
 function transformOrderData(req: ConvertUpOrderbookEntry, getStrategyProps: GetStrategyProps): TractorOrderData;
 function transformOrderData(
-  req: RequisitionEvent<SowBlueprintData> | ConvertUpOrderbookEntry,
+  req: RequisitionEvent<AutomateClaimBlueprintStruct>,
+  getStrategyProps: GetStrategyProps,
+): TractorOrderData;
+function transformOrderData(
+  req: RequisitionEvent<SowBlueprintData> | ConvertUpOrderbookEntry | RequisitionEvent<AutomateClaimBlueprintStruct>,
   getStrategyProps: GetStrategyProps,
 ): TractorOrderData {
   if (isSowRequest(req)) {
@@ -140,6 +186,9 @@ function transformOrderData(
   }
   if (isConvertUpRequest(req)) {
     return transformConvertUpOrderData(req, getStrategyProps);
+  }
+  if (isAutomateClaimRequest(req)) {
+    return transformAutomateClaimOrderData(req);
   }
   throw new Error("Unknown request type for order transformation");
 }
@@ -166,16 +215,21 @@ function isConvertUpRequest(req: any): req is ConvertUpOrderbookEntry {
   return req && "orderInfo" in req && "totalAvailableBdv" in req;
 }
 
+function isAutomateClaimRequest(req: any): req is RequisitionEvent<AutomateClaimBlueprintStruct> {
+  return req && "requisitionType" in req && req.requisitionType === "automateClaimBlueprint";
+}
+
 // Type for the strategy props hook
 type GetStrategyProps = ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>;
 
 // Type for decoded data
 type DecodedSowData = ReturnType<typeof decodeSowTractorData>;
 type DecodedConvertUpData = ReturnType<typeof decodeConvertUpTractorData>;
+type DecodedAutomateClaimData = ReturnType<typeof decodeAutomateClaimBlueprint>;
 
 // Extended OrderTypeConfig interface with only the used fields
 export interface ExtendedOrderTypeConfig extends OrderTypeConfig {
-  decodeData: (blueprintData: `0x${string}`) => DecodedSowData | DecodedConvertUpData | null;
+  decodeData: (blueprintData: `0x${string}`) => DecodedSowData | DecodedConvertUpData | DecodedAutomateClaimData | null;
   prepareForCancellation?: typeof prepareForCancellation;
   transformOrderData: typeof transformOrderData;
 }
@@ -208,6 +262,21 @@ export const ORDER_TYPE_REGISTRY = {
 
     // Data Handling
     decodeData: decodeConvertUpTractorData,
+    prepareForCancellation: prepareForCancellation,
+    transformOrderData: transformOrderData,
+  },
+
+  automateClaim: {
+    // UI Components
+    visualization: AutomateClaimVisualization,
+    executionHistory: AutomateClaimExecutionHistory,
+
+    // Metadata
+    title: "Review Automate Claim Order",
+    description: (isViewOnly: boolean) => <AutomateClaimDescription isViewOnly={isViewOnly} />,
+
+    // Data Handling
+    decodeData: decodeAutomateClaimBlueprint,
     prepareForCancellation: prepareForCancellation,
     transformOrderData: transformOrderData,
   },
