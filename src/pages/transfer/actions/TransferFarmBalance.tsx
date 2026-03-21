@@ -27,7 +27,7 @@ export default function TransferFarmBalance() {
 
   useEffect(() => {
     setTransferNotice(false);
-  }, [balanceTo, destination]);
+  }, [destination]);
 
   const totalAmount = useMemo(
     () => transferData.reduce((total, tokenData) => Number(tokenData.amount) + total, 0),
@@ -93,9 +93,7 @@ export default function TransferFarmBalance() {
       stepNumber={step}
       setStep={setStep}
       totalSteps={2}
-      enableNextStep={
-        !!destination && totalAmount > 0 && !!balanceTo && (balanceTo === FarmToMode.INTERNAL ? transferNotice : true)
-      }
+      enableNextStep={!!destination && totalAmount > 0 && !!balanceTo && transferNotice}
       onSubmit={onSubmit}
       stepDescription={stepDescription}
     >

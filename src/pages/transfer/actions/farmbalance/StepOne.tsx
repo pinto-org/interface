@@ -244,28 +244,29 @@ export default function StepOne({
       <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-col gap-2">
         <Label>Send tokens to</Label>
         <AddressInputField value={destination} setValue={setDestination} />
-        <AnimatePresence>
-          {destination && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <PintoAssetTransferNotice
-                transferNotice={transferNotice}
-                setTransferNotice={setTransferNotice}
-                variant={balanceTo === FarmToMode.EXTERNAL ? "walletBalance" : "farmBalance"}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.div>
 
       <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-col gap-4 items-start">
         <Label>I want to send these tokens to the recipient's:</Label>
         <DestinationBalanceSelect balanceTo={balanceTo} setBalanceTo={setBalanceTo} variant="transferFlow" />
       </motion.div>
+
+      <AnimatePresence>
+        {destination && balanceTo !== undefined && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <PintoAssetTransferNotice
+              transferNotice={transferNotice}
+              setTransferNotice={setTransferNotice}
+              variant={balanceTo === FarmToMode.EXTERNAL ? "walletBalance" : "farmBalance"}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
