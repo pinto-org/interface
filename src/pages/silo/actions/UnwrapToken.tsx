@@ -26,9 +26,9 @@ import useTransaction from "@/hooks/useTransaction";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
+import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
-import { pickCratesAsCrates, sortCratesByStem } from "@/utils/convert";
 import { tryExtractErrorMessage } from "@/utils/error";
 import { formatter } from "@/utils/format";
 import { toSafeTVFromHuman } from "@/utils/number";
@@ -86,7 +86,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // Queries & Hooks
   // Quote for redeemToSilo and redeemAdvanced
   const { data: quote, ...quoteQuery } = useUnwrapTokenQuoteQuery(amountTV, siloToken, mainToken, quoteDisabled);
-  const output = useUnwrapQuoteOutputSummary(contractBalances.deposits, mainToken, quote);
+  const output = useUnwrapQuoteOutputSummary(mainToken, quote);
 
   // Quote for swap (ONLY if tokenOut is not main token)
   const swap = useSwap({
@@ -522,18 +522,9 @@ function useUnwrapTokenQuoteQuery(amount: TV, tokenIn: Token, tokenOut: Token, d
   };
 }
 
-function useUnwrapQuoteOutputSummary(
-  data: ReturnType<typeof useFarmerSilo>["deposits"],
-  token: Token,
-  quote: TV | undefined,
-) {
+function useUnwrapQuoteOutputSummary(token: Token, quote: TV | undefined) {
   const { tokenPrices } = usePriceData();
-
-  // sort by latest deposit first
-  const sortedDeposits = useMemo(() => {
-    const depositsData = data.get(token);
-    return sortCratesByStem(depositsData?.deposits ?? [], "desc");
-  }, [data, token]);
+  const siloData = useSiloData();
 
   return useMemo(() => {
     if (!quote || quote.lte(0)) return undefined;
@@ -541,11 +532,19 @@ function useUnwrapQuoteOutputSummary(
     const tokenPrice = tokenPrices.get(token);
     const usd = quote.mul(tokenPrice?.instant ?? 0);
 
+    const sData = siloData.tokenData.get(token);
+    if (!sData) return undefined;
+
+    const stalkGain = quote.mul(sData.rewards.stalk).mul(sData.tokenBDV);
+    const seedGain = quote.mul(sData.rewards.seeds).mul(sData.tokenBDV);
+
     return {
-      ...pickCratesAsCrates(sortedDeposits, quote),
+      amount: quote,
+      stalk: { total: stalkGain },
+      seeds: seedGain,
       usd: usd,
     };
-  }, [quote, sortedDeposits]);
+  }, [quote, token, tokenPrices, siloData]);
 }
 
 function useFilterOutTokens(token: Token) {
