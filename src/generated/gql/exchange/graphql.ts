@@ -17,17 +17,19 @@ export type Scalars = {
   BigDecimal: { input: any; output: any; }
   BigInt: { input: any; output: any; }
   Bytes: { input: any; output: any; }
-  /**
-   * 8 bytes signed integer
-   *
-   */
+  /** 8 bytes signed integer */
   Int8: { input: any; output: any; }
-  /**
-   * A string representation of microseconds UNIX timestamp (16 digits)
-   *
-   */
+  /** A string representation of microseconds UNIX timestamp (16 digits) */
   Timestamp: { input: any; output: any; }
 };
+
+/** Indicates whether the current, partially filled bucket should be included in the response. Defaults to `exclude` */
+export enum AggregationCurrent {
+  /** Exclude the current, partially filled bucket from the response */
+  exclude = 'exclude',
+  /** Include the current, partially filled bucket in the response */
+  include = 'include'
+}
 
 export enum AggregationInterval {
   day = 'day',
@@ -455,10 +457,8 @@ export type BeanstalkDailySnapshotFilter = {
   wells?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_?: InputMaybe<WellFilter>;
   wells_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export enum BeanstalkDailySnapshotOrderBy {
@@ -780,10 +780,8 @@ export type BeanstalkHourlySnapshotFilter = {
   wells?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_?: InputMaybe<WellFilter>;
   wells_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export enum BeanstalkHourlySnapshotOrderBy {
@@ -1119,10 +1117,8 @@ export type BeanstalkFilter = {
   wells?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_?: InputMaybe<WellFilter>;
   wells_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not?: InputMaybe<Array<Scalars['String']['input']>>;
   wells_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  wells_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export enum BeanstalkOrderBy {
@@ -1971,35 +1967,25 @@ export type TradeFilter = {
   account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   afterReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   afterReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  afterReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   afterReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   afterReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  afterReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   afterTokenRates?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   afterTokenRates_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  afterTokenRates_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   afterTokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   afterTokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  afterTokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   and?: InputMaybe<Array<InputMaybe<TradeFilter>>>;
   beforeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beforeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  beforeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beforeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beforeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  beforeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   beforeTokenRates?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   beforeTokenRates_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  beforeTokenRates_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   beforeTokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   beforeTokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  beforeTokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   biTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   biTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  biTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   biTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   biTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  biTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2040,10 +2026,8 @@ export type TradeFilter = {
   liqLpTokenAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   liqReservesAmount?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   liqReservesAmount_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  liqReservesAmount_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   liqReservesAmount_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   liqReservesAmount_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  liqReservesAmount_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   logIndex?: InputMaybe<Scalars['Int']['input']>;
   logIndex_gt?: InputMaybe<Scalars['Int']['input']>;
   logIndex_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -2126,15 +2110,11 @@ export type TradeFilter = {
   tradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  tradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  tradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   tradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   tradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2146,15 +2126,11 @@ export type TradeFilter = {
   transferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   transferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   transferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  transferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   transferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   transferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  transferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   transferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  transferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   transferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   transferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  transferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   transferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   transferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   transferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2603,15 +2579,11 @@ export type WellDailySnapshotFilter = {
   convertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  convertVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  convertVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  convertVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  convertVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   convertVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   convertVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2630,22 +2602,16 @@ export type WellDailySnapshotFilter = {
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeBiTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeBiTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2657,15 +2623,11 @@ export type WellDailySnapshotFilter = {
   cumulativeTransferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTransferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTransferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTransferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTransferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2684,22 +2646,16 @@ export type WellDailySnapshotFilter = {
   day_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   deltaBiTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaBiTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaBiTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaBiTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaBiTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaBiTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaConvertVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaConvertVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaConvertVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaConvertVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaConvertVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaConvertVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2726,22 +2682,16 @@ export type WellDailySnapshotFilter = {
   deltaLpTokenSupply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTokenRates?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTokenRates_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTokenRates_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2753,15 +2703,11 @@ export type WellDailySnapshotFilter = {
   deltaTransferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTransferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTransferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTransferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTransferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTransferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTransferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2826,10 +2772,8 @@ export type WellDailySnapshotFilter = {
   season_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   tokenRates?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tokenRates_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   totalLiquidityUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3039,15 +2983,11 @@ export type WellHourlySnapshotFilter = {
   convertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  convertVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  convertVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  convertVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  convertVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   convertVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   convertVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3066,22 +3006,16 @@ export type WellHourlySnapshotFilter = {
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeBiTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeBiTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3093,15 +3027,11 @@ export type WellHourlySnapshotFilter = {
   cumulativeTransferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTransferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTransferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTransferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTransferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3112,22 +3042,16 @@ export type WellHourlySnapshotFilter = {
   cumulativeTransferVolumeUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaBiTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaBiTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaBiTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaBiTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaBiTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaBiTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaConvertVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaConvertVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaConvertVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaConvertVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaConvertVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaConvertVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaConvertVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaConvertVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3154,22 +3078,16 @@ export type WellHourlySnapshotFilter = {
   deltaLpTokenSupply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTokenRates?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTokenRates_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTokenRates_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3181,15 +3099,11 @@ export type WellHourlySnapshotFilter = {
   deltaTransferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTransferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  deltaTransferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaTransferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTransferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaTransferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaTransferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTransferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaTransferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3262,10 +3176,8 @@ export type WellHourlySnapshotFilter = {
   season_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   tokenRates?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tokenRates_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   totalLiquidityUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3469,17 +3381,13 @@ export type WellUpgradeHistoryFilter = {
   or?: InputMaybe<Array<InputMaybe<WellUpgradeHistoryFilter>>>;
   pumpData?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  pumpData_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  pumpData_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumps?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_?: InputMaybe<PumpFilter>;
   pumps_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  pumps_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_not?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  pumps_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   well?: InputMaybe<Scalars['String']['input']>;
   wellFunction?: InputMaybe<Scalars['String']['input']>;
   wellFunctionData?: InputMaybe<Scalars['Bytes']['input']>;
@@ -3611,15 +3519,11 @@ export type WellFilter = {
   convertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  convertVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  convertVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   convertVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  convertVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  convertVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   convertVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   convertVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   convertVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3638,22 +3542,16 @@ export type WellFilter = {
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeBiTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeBiTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeBiTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3665,15 +3563,11 @@ export type WellFilter = {
   cumulativeTransferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTransferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeTransferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTransferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTransferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  cumulativeTransferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   cumulativeTransferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTransferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3782,47 +3676,33 @@ export type WellFilter = {
   or?: InputMaybe<Array<InputMaybe<WellFilter>>>;
   pumpData?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  pumpData_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumpData_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  pumpData_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   pumps?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_?: InputMaybe<PumpFilter>;
   pumps_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  pumps_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_not?: InputMaybe<Array<Scalars['String']['input']>>;
   pumps_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  pumps_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   reserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   reservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  reservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   reservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   reservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  reservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   reserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyBiTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyBiTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyBiTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyBiTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyBiTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyBiTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyConvertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyConvertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyConvertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingDailyConvertVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyConvertVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyConvertVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingDailyConvertVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyConvertVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyConvertVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyConvertVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyConvertVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyConvertVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyConvertVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyConvertVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyConvertVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3834,15 +3714,11 @@ export type WellFilter = {
   rollingDailyTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingDailyTradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingDailyTradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyTradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyTradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3854,15 +3730,11 @@ export type WellFilter = {
   rollingDailyTransferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTransferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTransferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingDailyTransferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTransferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTransferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingDailyTransferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingDailyTransferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyTransferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTransferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTransferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingDailyTransferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingDailyTransferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyTransferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingDailyTransferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3873,22 +3745,16 @@ export type WellFilter = {
   rollingDailyTransferVolumeUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyBiTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyBiTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyBiTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyBiTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyBiTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyBiTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyConvertVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyConvertVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyConvertVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingWeeklyConvertVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyConvertVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyConvertVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingWeeklyConvertVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyConvertVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyConvertVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyConvertVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyConvertVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyConvertVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyConvertVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingWeeklyConvertVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingWeeklyConvertVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3900,15 +3766,11 @@ export type WellFilter = {
   rollingWeeklyTradeVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTradeVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTradeVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingWeeklyTradeVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTradeVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTradeVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingWeeklyTradeVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTradeVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyTradeVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTradeVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTradeVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyTradeVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTradeVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingWeeklyTradeVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingWeeklyTradeVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3920,15 +3782,11 @@ export type WellFilter = {
   rollingWeeklyTransferVolumeReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTransferVolumeReservesUSD?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTransferVolumeReservesUSD_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingWeeklyTransferVolumeReservesUSD_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTransferVolumeReservesUSD_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTransferVolumeReservesUSD_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  rollingWeeklyTransferVolumeReservesUSD_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   rollingWeeklyTransferVolumeReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyTransferVolumeReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTransferVolumeReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTransferVolumeReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  rollingWeeklyTransferVolumeReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   rollingWeeklyTransferVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingWeeklyTransferVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   rollingWeeklyTransferVolumeUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3959,23 +3817,17 @@ export type WellFilter = {
   symbol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   tokenOrder?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   tokenOrder_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  tokenOrder_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   tokenOrder_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   tokenOrder_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  tokenOrder_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   tokenRates?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tokenRates_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokenRates_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  tokenRates_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   tokens?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_?: InputMaybe<TokenFilter>;
   tokens_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  tokens_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_not?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  tokens_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   totalLiquidityUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalLiquidityUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -4102,7 +3954,6 @@ export type Meta = {
    * will be null if the _meta field has a block constraint that asks for
    * a block number. It will be filled if the _meta field has no block constraint
    * and therefore asks for the latest  block
-   *
    */
   block: Block;
   /** The deployment ID */
