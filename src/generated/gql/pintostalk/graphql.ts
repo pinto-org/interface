@@ -17,17 +17,19 @@ export type Scalars = {
   BigDecimal: { input: any; output: any; }
   BigInt: { input: any; output: any; }
   Bytes: { input: any; output: any; }
-  /**
-   * 8 bytes signed integer
-   *
-   */
+  /** 8 bytes signed integer */
   Int8: { input: any; output: any; }
-  /**
-   * A string representation of microseconds UNIX timestamp (16 digits)
-   *
-   */
+  /** A string representation of microseconds UNIX timestamp (16 digits) */
   Timestamp: { input: any; output: any; }
 };
+
+/** Indicates whether the current, partially filled bucket should be included in the response. Defaults to `exclude` */
+export enum AggregationCurrent {
+  /** Exclude the current, partially filled bucket from the response */
+  exclude = 'exclude',
+  /** Include the current, partially filled bucket in the response */
+  include = 'include'
+}
 
 export enum AggregationInterval {
   day = 'day',
@@ -81,17 +83,13 @@ export type BeanstalkFilter = {
   _change_block?: InputMaybe<BlockChangedFilter>;
   activeFarmers?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   activeFarmers_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  activeFarmers_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   activeFarmers_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   activeFarmers_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  activeFarmers_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<BeanstalkFilter>>>;
   farmersToUpdate?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmersToUpdate_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  farmersToUpdate_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmersToUpdate_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmersToUpdate_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  farmersToUpdate_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   fertilizer1155?: InputMaybe<Scalars['Bytes']['input']>;
   fertilizer1155_contains?: InputMaybe<Scalars['Bytes']['input']>;
   fertilizer1155_gt?: InputMaybe<Scalars['Bytes']['input']>;
@@ -2139,10 +2137,8 @@ export type FieldFilter = {
   or?: InputMaybe<Array<InputMaybe<FieldFilter>>>;
   plotIndexes?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   plotIndexes_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  plotIndexes_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   plotIndexes_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   plotIndexes_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  plotIndexes_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   podIndex?: InputMaybe<Scalars['BigInt']['input']>;
   podIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
   podIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3126,10 +3122,8 @@ export type MarketPerformanceSeasonalFilter = {
   and?: InputMaybe<Array<InputMaybe<MarketPerformanceSeasonalFilter>>>;
   cumulativePercentChange?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativePercentChange_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativePercentChange_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativePercentChange_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativePercentChange_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativePercentChange_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeTotalPercentChange?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTotalPercentChange_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   cumulativeTotalPercentChange_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3148,10 +3142,8 @@ export type MarketPerformanceSeasonalFilter = {
   cumulativeTotalUsdChange_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeUsdChange?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeUsdChange_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeUsdChange_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeUsdChange_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   cumulativeUsdChange_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  cumulativeUsdChange_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -3163,28 +3155,20 @@ export type MarketPerformanceSeasonalFilter = {
   or?: InputMaybe<Array<InputMaybe<MarketPerformanceSeasonalFilter>>>;
   percentChange?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   percentChange_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  percentChange_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   percentChange_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   percentChange_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  percentChange_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenBalances?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   prevSeasonTokenBalances_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  prevSeasonTokenBalances_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   prevSeasonTokenBalances_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   prevSeasonTokenBalances_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  prevSeasonTokenBalances_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   prevSeasonTokenUsdPrices?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenUsdPrices_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  prevSeasonTokenUsdPrices_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenUsdPrices_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenUsdPrices_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  prevSeasonTokenUsdPrices_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenUsdValues?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenUsdValues_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  prevSeasonTokenUsdValues_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenUsdValues_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTokenUsdValues_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  prevSeasonTokenUsdValues_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   prevSeasonTotalUsd?: InputMaybe<Scalars['BigDecimal']['input']>;
   prevSeasonTotalUsd_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   prevSeasonTotalUsd_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3224,16 +3208,12 @@ export type MarketPerformanceSeasonalFilter = {
   silo_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   thisSeasonTokenUsdPrices?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTokenUsdPrices_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  thisSeasonTokenUsdPrices_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTokenUsdPrices_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTokenUsdPrices_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  thisSeasonTokenUsdPrices_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTokenUsdValues?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTokenUsdValues_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  thisSeasonTokenUsdValues_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTokenUsdValues_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTokenUsdValues_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  thisSeasonTokenUsdValues_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   thisSeasonTotalUsd?: InputMaybe<Scalars['BigDecimal']['input']>;
   thisSeasonTotalUsd_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   thisSeasonTotalUsd_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3268,10 +3248,8 @@ export type MarketPerformanceSeasonalFilter = {
   totalUsdChange_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   usdChange?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   usdChange_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  usdChange_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   usdChange_not?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   usdChange_not_contains?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  usdChange_not_contains_nocase?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   valid?: InputMaybe<Scalars['Boolean']['input']>;
   valid_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   valid_not?: InputMaybe<Scalars['Boolean']['input']>;
@@ -4190,7 +4168,6 @@ export type PodListing = {
    * The maximum amount of Pods remaining to be sold by *this* PodListing.
    *
    * When this PodListing is Filled or Cancelled, `amount` does NOT change.
-   *
    */
   amount: Scalars['BigInt']['output'];
   /** Timestamp of PodListing creation. */
@@ -4207,14 +4184,12 @@ export type PodListing = {
    * The amount of Pods Filled since the initial PodListing was Created.
    *
    * `0 <= filled <= originalAmount`
-   *
    */
   filled: Scalars['BigInt']['output'];
   /**
    * The number of Pods purchased from *this* PodListing.
    *
    * If not yet Filled or the PodListing is CANCELLED: `filledAmount = 0`
-   *
    */
   filledAmount: Scalars['BigInt']['output'];
   /** Historical ID for joins */
@@ -4223,7 +4198,6 @@ export type PodListing = {
    * The PodListing ID is a unique subgraph ID; if fieldId is 0: `{account}-{index}`, if fieldId isn't 0: `{account}-{index}:{fieldId}`
    *
    * The on-chain identifier for a PodListing is the `index`.
-   *
    */
   id: Scalars['ID']['output'];
   /**
@@ -4236,29 +4210,21 @@ export type PodListing = {
    *    0         the first Pod issued
    *    100,000   harvestableIndex
    *    150,000   index
-   *
    */
   index: Scalars['BigInt']['output'];
-  /**
-   * When the `harvestableIndex` reaches this number, the Listing becomes EXPIRED.
-   *
-   */
+  /** When the `harvestableIndex` reaches this number, the Listing becomes EXPIRED. */
   maxHarvestableIndex: Scalars['BigInt']['output'];
   /** Minimum number of Beans required to perform a Fill. */
   minFillAmount: Scalars['BigInt']['output'];
   /** Where Beans are sent when the PodListing is Filled. See `FarmToMode`. */
   mode: Scalars['Int']['output'];
-  /**
-   * The total number of Pods listed during the first emission of PodListingCreated.
-   *
-   */
+  /** The total number of Pods listed during the first emission of PodListingCreated. */
   originalAmount: Scalars['BigInt']['output'];
   /**
    * The original index from the first emission of PodListingCreated in a chain.
    *
    * If `originalIndex !== index`, then this PodListing was created when a parent
    * PodListing was partially filled.
-   *
    */
   originalIndex: Scalars['BigInt']['output'];
   /** The place of this plot in the pod line at the time it was listed */
@@ -4273,14 +4239,12 @@ export type PodListing = {
    * Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
    *
    * If `pricingType = 1`, this field is set to `0` and should be ignored.
-   *
    */
   pricePerPod: Scalars['Int']['output'];
   /**
    * [V2] The FIXED or DYNAMIC pricing function, encoded as bytes.
    *
    * This must be decoded client-side, see `LibPolynomial.sol` for more info.
-   *
    */
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /**
@@ -4289,7 +4253,6 @@ export type PodListing = {
    * null = V1 FIXED  = use `pricePerPod`
    * 0    = V2 FIXED  = use `pricePerPod`
    * 1    = V2 DYNAMIC = use `pricingFunction`
-   *
    */
   pricingType?: Maybe<Scalars['Int']['output']>;
   /**
@@ -4302,14 +4265,12 @@ export type PodListing = {
    * If this PodListing has NOT been Filled: `remainingAmount = amount`
    * If this PodListing has been Filled: `remainingAmount < amount`
    * If this PodListing has been Cancelled: `remainingAmount = 0`
-   *
    */
   remainingAmount: Scalars['BigInt']['output'];
   /**
    * The position within the Plot from which to sell Pods.
    *
    * 0 <= `start` <= (plot size - `amount`)
-   *
    */
   start: Scalars['BigInt']['output'];
   /** Current market status of listing */
@@ -6186,7 +6147,6 @@ export type PodOrder = {
    * If FIXED (V1): `amount * pricePerPod` fields emitted in PodOrderCreated.
    * If FIXED (V2): `amount` field emitted in PodOrderCreated.
    * If DYNAMIC (V2): `amount` field emitted in PodOrderCreated.
-   *
    */
   beanAmount: Scalars['BigInt']['output'];
   /**
@@ -6196,7 +6156,6 @@ export type PodOrder = {
    * `0 <= beanAmountFilled <= beanAmount`
    *
    * Upon PodOrder cancellation, this value is locked.
-   *
    */
   beanAmountFilled: Scalars['BigInt']['output'];
   /** Timestamp of PodOrder creation. */
@@ -6209,22 +6168,17 @@ export type PodOrder = {
   fieldId: Scalars['BigInt']['output'];
   /** All Fills associated with this PodOrder. */
   fills: Array<PodFill>;
-  /**
-   * Historical ID for joins: `{account}-{createdAt}`
-   *
-   */
+  /** Historical ID for joins: `{account}-{createdAt}` */
   historyID: Scalars['String']['output'];
   /**
    * The PodOrder ID matchces the `id` stored on-chain:
    *
    * `keccak256(abi.encodePacked(account, pricePerPod, maxPlaceInLine, minFillAmount))`
-   *
    */
   id: Scalars['ID']['output'];
   /**
    * The Farmer is willing to buy any Pod that is before maxPlaceInLine at pricePerPod.
    * As the Pod Line moves, this value stays the same because new Pods meet the criteria.
-   *
    */
   maxPlaceInLine: Scalars['BigInt']['output'];
   /** Minimum number of Pods required to perform a Fill. */
@@ -6237,7 +6191,6 @@ export type PodOrder = {
    * If pricingType = DYNAMIC: No constraint, since `podAmount` is unknown.
    *
    * Upon PodOrder cancellation, this value is locked.
-   *
    */
   podAmountFilled: Scalars['BigInt']['output'];
   /** Marketplace used for Pod Order. */
@@ -6248,7 +6201,6 @@ export type PodOrder = {
    * Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
    *
    * If `pricingType = 1`, this field is initialized to `0` and should be ignored.
-   *
    */
   pricePerPod: Scalars['Int']['output'];
   /**
@@ -6259,7 +6211,6 @@ export type PodOrder = {
    * null    = V1 FIXED    = use `pricePerPod`
    * "0x"    = V2 FIXED    = use `pricePerPod`
    * "0x..." = V2 DYNAMIC  = use `pricingFunction`
-   *
    */
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /**
@@ -6268,7 +6219,6 @@ export type PodOrder = {
    * null = V1 FIXED  = use `pricePerPod`
    * 0    = V2 FIXED  = use `pricePerPod`
    * 1    = V2 DYNAMIC = use `pricingFunction`
-   *
    */
   pricingType?: Maybe<Scalars['Int']['output']>;
   /** Current status of order. */
@@ -6424,7 +6374,6 @@ export type PodOrderCreated = MarketplaceEvent & {
    * The represented value emitted with this event changed with BIP-29 at block 15277986
    * Pre  BIP-29: The number of pods ordered is emitted
    * Post BIP-29: The number of beans supplied for the order is emitted.
-   *
    */
   amount: Scalars['BigInt']['output'];
   /** Block number of this event */
@@ -9500,10 +9449,7 @@ export type SiloDeposit = {
   farmer: Farmer;
   /** Transaction hashes pertaining to this deposit */
   hashes: Array<Scalars['Bytes']['output']>;
-  /**
-   * Account - Token Address - Deposit Version - (Season|Stem)
-   *
-   */
+  /** Account - Token Address - Deposit Version - (Season|Stem) */
   id: Scalars['ID']['output'];
   /** Season of deposit */
   season?: Maybe<Scalars['Int']['output']>;
@@ -9598,10 +9544,8 @@ export type SiloDepositFilter = {
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   hashes?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   hashes_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  hashes_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   hashes_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   hashes_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  hashes_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -10407,10 +10351,8 @@ export type SiloYieldFilter = {
   u_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   whitelistedTokens?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   whitelistedTokens_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  whitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   whitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   whitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
 export enum SiloYieldOrderBy {
@@ -10438,10 +10380,8 @@ export type SiloFilter = {
   activeFarmers_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   allWhitelistedTokens?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   allWhitelistedTokens_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  allWhitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   allWhitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   allWhitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  allWhitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<SiloFilter>>>;
   assets_?: InputMaybe<SiloAssetFilter>;
   avgConvertDownPenalty?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -10532,10 +10472,8 @@ export type SiloFilter = {
   depositedBDV_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   dewhitelistedTokens?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   dewhitelistedTokens_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  dewhitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   dewhitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   dewhitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  dewhitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
   farmer_?: InputMaybe<FarmerFilter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
@@ -10676,10 +10614,8 @@ export type SiloFilter = {
   unpenalizedStalkConvertDown_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   whitelistedTokens?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   whitelistedTokens_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  whitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   whitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   whitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
 export enum SiloOrderBy {
@@ -14026,7 +13962,6 @@ export type Meta = {
    * will be null if the _meta field has a block constraint that asks for
    * a block number. It will be filled if the _meta field has no block constraint
    * and therefore asks for the latest  block
-   *
    */
   block: Block;
   /** The deployment ID */

@@ -219,7 +219,7 @@ export function Market() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isBeanstalkMarketplace = searchParams.get("beanstalk") === "true";
   const fieldId = isBeanstalkMarketplace ? 1n : 0n;
-  const podMarketplaceId = isBeanstalkMarketplace ? "1" : undefined;
+  const podMarketplaceId = isBeanstalkMarketplace ? "1" : "0";
 
   const handleToggleBeanstalk = useCallback(
     (checked: boolean) => {
