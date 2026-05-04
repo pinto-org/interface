@@ -18,7 +18,7 @@ const config: CodegenConfig = {
       },
     },
     "src/generated/gql/pintostalk-cache/": {
-      schema: "https://graph.bean.money/cache",
+      schema: "https://graph.pinto.money/cache",
       documents: ["src/queries/beanstalk/**/*.cache.graphql"],
       preset: "client",
       presetConfig: {
