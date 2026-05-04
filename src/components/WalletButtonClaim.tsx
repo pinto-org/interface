@@ -52,7 +52,7 @@ export default function WalletButtonClaim() {
   const farmerSilo = useFarmerSilo();
   const siloQueryKeys = farmerSilo.queryKeys;
   const priceData = usePriceData();
-  const { mayBeWhitelistedTokens, whitelistedTokens } = useTokenData();
+  const { whitelistedTokens } = useTokenData();
   const [balanceTo, setBalanceTo] = useState<FarmToMode>(FarmToMode.INTERNAL);
 
   const queryClient = useQueryClient();
@@ -82,7 +82,7 @@ export default function WalletButtonClaim() {
     try {
       if (!chainId || !account.address || !balanceTo) return;
 
-      const tokensToMow = mayBeWhitelistedTokens.map((token: Token) => token.address);
+      const tokensToMow = whitelistedTokens.map((token: Token) => token.address);
       const mow = encodeFunctionData({
         abi: beanstalkAbi,
         functionName: "mowMultiple",
