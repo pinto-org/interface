@@ -273,6 +273,7 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
     functionName: "balanceOfStalk",
     args: [farmerAddress ?? ZERO_ADDRESS],
     query: {
+      ...QUERY_SETTINGS,
       enabled: Boolean(farmerAddress),
       select: (data) => TokenValue.fromBlockchain(data ?? 0n, STALK.decimals),
     },
@@ -284,6 +285,7 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
     functionName: "balanceOfEarnedBeans",
     args: [farmerAddress ?? ZERO_ADDRESS],
     query: {
+      ...QUERY_SETTINGS,
       enabled: Boolean(farmerAddress),
       select: (data) => TokenValue.fromBlockchain(data ?? 0n, BEAN.decimals),
     },

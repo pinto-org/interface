@@ -5,7 +5,6 @@ import HelperLink, { hoveredIdAtom } from "@/components/HelperLink";
 import NoBaseValueAlert from "@/components/NoBaseValueAlert";
 import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import Panel from "@/components/ui/Panel";
-import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerStatus from "@/hooks/useFarmerStatus";
 import { NavbarPanelType, navbarPanelAtom } from "@/state/app/navBar.atoms";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
@@ -43,7 +42,6 @@ const Navbar = () => {
   const queryClient = useQueryClient();
 
   const account = useAccount();
-  const farmerActions = useFarmerActions();
   const farmerBalances = useFarmerBalances();
   const priceData = usePriceData();
   const farmerSilo = useFarmerSilo();
@@ -54,9 +52,7 @@ const Navbar = () => {
   const { refetch: refetchTwaDeltaBLP, queryKey: TwaDeltaBLPQuery } = useTwaDeltaBLPQuery();
   const { refetch: refetchTwaDeltaB } = useTwaDeltaBQuery();
 
-  const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
-  const floodValue = farmerActions.floodAssets.totalValue;
-  const usdValue = farmerActions.totalValue.wallet.total;
+  const hasFloodAssets = farmerSilo.flood.farmerSops.some((sop) => sop.wellsPlenty.plenty.gt(0));
 
   const isHome = useMatch("/");
   const isOverview = useMatch("/overview");
@@ -116,7 +112,7 @@ const Navbar = () => {
       return;
     }
 
-    if (floodValue.gt(0)) {
+    if (hasFloodAssets) {
       setPanelState({
         ...panelState,
         openPanel: "wallet",
@@ -128,10 +124,13 @@ const Navbar = () => {
           showTransfer: false,
         },
       });
+      return;
     }
+
     togglePanel("wallet");
   }, [
     account.address,
+    hasFloodAssets,
 
     modal,
     panelState,
@@ -272,18 +271,7 @@ const Navbar = () => {
                 <ScrollHideComponent>
                   <HelperLink
                     onClick={handleHelperLinkClick}
-                    text={
-                      !account.address
-                        ? "Connect your Wallet"
-                        : /* : floodValue.gt(0)
-                          ? `Claim ${formatter.usd(floodValue)} from Flood`
-                          : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Wallets" : "Balance"}`
-                          */
-                          /*
-                        `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet`
-                        */
-                          `Manage External Wallet`
-                    }
+                    text={!account.address ? "Connect your Wallet" : "Manage External Wallet"}
                     className={`absolute top-[9.375rem] right-[22.5rem] flex flex-row-reverse`}
                     sourceAnchor="right"
                     targetAnchor="left"

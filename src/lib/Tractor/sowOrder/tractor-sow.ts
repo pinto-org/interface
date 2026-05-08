@@ -12,7 +12,6 @@ import {
   SOW_BLUEPRINT_V0_SELECTOR,
   TRACTOR_HELPERS_ADDRESS,
 } from "@/constants/address";
-import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { TRACTOR_DEPLOYMENT_BLOCK } from "@/lib/Tractor/core/constants";
@@ -27,6 +26,7 @@ import { generateBatchSortDepositsCallData } from "../../claim/depositUtils";
 import { CreateTractorDataReturnType, WithdrawalPlan, decodeEncodedTractorDataToAdvancedPipeCalls } from "../core";
 import { loadPublishedRequisitions } from "../requisitions/tractor-requisition";
 import { LowStalkDepositsMode, WithdrawalPlanFilterParams } from "./../core/shared-tractor-types";
+import { getSoilEventQueryOptions } from "./soil-event-query";
 import { OrderbookEntry, SowBlueprintData, SowBlueprintDisplayData, TractorSowOrderParams } from "./tractor-sow-types";
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -440,6 +440,7 @@ export function decodeSowTractorData(
 
 export interface LoadOrderbookDataOptions {
   filterOutCompleted?: boolean;
+  currentSeason?: number;
 }
 
 export async function loadOrderbookData(
@@ -454,7 +455,7 @@ export async function loadOrderbookData(
 ): Promise<OrderbookEntry[]> {
   if (!protocolAddress || !publicClient) return [];
 
-  const loadOptions: Required<LoadOrderbookDataOptions> = { filterOutCompleted: true, ...options };
+  const loadOptions = { filterOutCompleted: true, ...options };
 
   const knownBlueprintHashes = new Set<string>(
     activeApiEntries?.map((order) => order.requisition.blueprintHash.toLowerCase()) ?? [],
@@ -808,12 +809,12 @@ export async function loadOrderbookData(
     // Get the total amount of soil available from the protocol
     try {
       // Query for the most recent Soil event
+      const soilQueryOptions = getSoilEventQueryOptions(latestBlock?.number, loadOptions.currentSeason);
       const soilEvents = await publicClient.getContractEvents({
         address: protocolAddress,
         abi: diamondABI,
         eventName: "Soil",
-        fromBlock: TIME_TO_BLOCKS.month,
-        toBlock: "latest",
+        ...soilQueryOptions,
       });
 
       // Get the most recent event (should be the last one)
