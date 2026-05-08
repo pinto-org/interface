@@ -7,6 +7,7 @@ import { OrderbookEntry, TractorAPI, TractorAPIOrdersResponse, loadOrderbookData
 import { TEMPERATURE_DECIMALS } from "@/state/protocol/field";
 import { queryKeys } from "@/state/queryKeys";
 import { useTemperature } from "@/state/useFieldData";
+import { useSeason } from "@/state/useSunData";
 import { getChainConstant } from "@/utils/chain";
 import { resolveChainId } from "@/utils/chain";
 import { HashString } from "@/utils/types.generic";
@@ -150,6 +151,7 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
   const client = usePublicClient({ chainId });
   const diamond = useProtocolAddress();
   const temperature = useTemperature();
+  const currentSeason = useSeason();
 
   // Deconstructed args
   const { address, chainOnly = false, enabled = true } = params;
@@ -182,7 +184,10 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
   );
 
   const ordersChainQuery = useQuery<OrderbookEntry[] | undefined, DefaultError, T>({
-    queryKey: queryKeys.tractor.sowOrdersV0Chain(orders?.lastUpdated ?? chainOnly ? 1 : 0, temperature.max, params),
+    queryKey: queryKeys.tractor.sowOrdersV0Chain(orders?.lastUpdated ?? chainOnly ? 1 : 0, temperature.max, {
+      ...params,
+      currentSeason,
+    }),
     queryFn: async () => {
       if (temperature.max.lte(0) || !client) {
         return [];
@@ -203,7 +208,7 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
         temperature.max.toNumber(),
         orders?.orders,
         lookbackBlocks,
-        params,
+        { ...params, currentSeason },
       );
 
       console.debug("[TRACTOR/useTractorSowOrderbook/ordersChainQuery] DATA", {

@@ -2,7 +2,7 @@ const TWENTY_MINS = 1000 * 60 * 20;
 
 const FIVE_MINS = 1000 * 60 * 5;
 
-const FIFTEEN_SECONDS = 1000 * 60;
+const QUOTE_REFRESH_INTERVAL = 1000 * 60;
 
 export const defaultQuerySettingsSlow = {
   staleTime: TWENTY_MINS * 3, // 1 hour
@@ -44,12 +44,12 @@ export const defaultQuerySettingsNoRefetch = {
  * Default query settings for quote queries.
  * This is used for queries that are used to fetch quote data & need to fetch data very frequently.
  *
- * default query settings is to fetch data every 15 seconds
+ * Default quote queries refresh every 60 seconds. Keep the constant name aligned with the actual value.
  */
 export const defaultQuerySettingsQuote = {
   ...defaultQuerySettingsFast,
-  staleTime: FIFTEEN_SECONDS,
-  refetchInterval: FIFTEEN_SECONDS,
+  staleTime: QUOTE_REFRESH_INTERVAL,
+  refetchInterval: QUOTE_REFRESH_INTERVAL,
 };
 
 export const QUERY_SETTINGS = {
