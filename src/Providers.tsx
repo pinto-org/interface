@@ -2,6 +2,7 @@ import { Web3Provider } from "./Web3Provider";
 import StateProvider from "./state/StateProvider";
 
 import { Toaster } from "sonner";
+import AppVersionGuard from "./components/AppVersionGuard.tsx";
 import { CheckmarkIcon, CloseIconAlt } from "./components/Icons.tsx";
 import LoadingSpinner from "./components/LoadingSpinner.tsx";
 
@@ -10,6 +11,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <Web3Provider>
       <StateProvider>
         {children}
+        <AppVersionGuard />
         <div className="sm:[&_[data-sonner-toaster]]:w-full max-sm:[&_[data-sonner-toaster]]:!w-full max-sm:[&_[data-sonner-toast]]:!w-fit">
           <Toaster
             toastOptions={{
