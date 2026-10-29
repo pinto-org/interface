@@ -93,7 +93,7 @@ export default function DepositSelectDialog({
         }, []);
 
         const totalAmount = selectedDeposits
-          .reduce((sum, deposit) => deposit.amount.add(sum), TokenValue.ZERO)
+          .reduce((sum, deposit) => (deposit.unlockedAmount ?? deposit.amount).add(sum), TokenValue.ZERO)
           .toHuman();
 
         const newTransferData: DepositTransferData = {

@@ -1,4 +1,6 @@
 import { ChainLookup, HashString } from "@/utils/types.generic";
+import { configuredTractorAddress } from "@/utils/tractorDeployment";
+import { configuredStable2Deployment } from "@/utils/stable2Deployment";
 
 import { base } from "viem/chains";
 
@@ -13,15 +15,30 @@ export const DIAMOND_PRICE_ADDRESS: HashString = "0x13D25ABCB6a19948d35654715c72
 // re-export here for backwards compatibility
 export const PIPELINE_ADDRESS: HashString = "0xb1bE0001f5a373b69b1E132b420e6D9687155e80";
 
-export const TRACTOR_HELPERS_ADDRESS: HashString = "0xBCa2F299602c2a43850c8b2FD19D5275D0F388b6";
+export const TRACTOR_HELPERS_ADDRESS = configuredTractorAddress(
+  import.meta.env.VITE_TRACTOR_HELPERS_ADDRESS,
+  "0xBCa2F299602c2a43850c8b2FD19D5275D0F388b6",
+);
 
-export const SILO_HELPERS_ADDRESS: HashString = "0xE145082A7C5EDd1767f8148A6c29a17488d1eb31";
+export const SILO_HELPERS_ADDRESS = configuredTractorAddress(
+  import.meta.env.VITE_SILO_HELPERS_ADDRESS,
+  "0xE145082A7C5EDd1767f8148A6c29a17488d1eb31",
+);
 
-export const SOW_BLUEPRINT_V0_ADDRESS: HashString = "0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B";
+export const SOW_BLUEPRINT_V0_ADDRESS = configuredTractorAddress(
+  import.meta.env.VITE_SOW_BLUEPRINT_ADDRESS,
+  "0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B",
+);
 
-export const SOW_BLUEPRINT_REFERRAL_V0_ADDRESS: HashString = "0xD9DF9C4C0160401702de1771AAAaD886e2375F65"; // Placeholder - update after deployment
+export const SOW_BLUEPRINT_REFERRAL_V0_ADDRESS = configuredTractorAddress(
+  import.meta.env.VITE_SOW_REFERRAL_BLUEPRINT_ADDRESS,
+  "0xD9DF9C4C0160401702de1771AAAaD886e2375F65",
+);
 
-export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = "0x5167Ae1fF37bE08D9cc9188C7e64DB228B6F06ca";
+export const CONVERT_UP_BLUEPRINT_V0_ADDRESS = configuredTractorAddress(
+  import.meta.env.VITE_CONVERT_UP_BLUEPRINT_ADDRESS,
+  "0x5167Ae1fF37bE08D9cc9188C7e64DB228B6F06ca",
+);
 
 export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
 
@@ -38,6 +55,14 @@ export const WELL_FUNCTION_ADDRESSES: ChainLookup<{
     cp2: "0xBA510C289fD067EBbA41335afa11F0591940d6fe",
   },
 } as const;
+
+// Additional, explicitly verified Base release; legacy Stable2 and CP2 remain recognized.
+// Local Base forks use the same build configuration through resolveChainId.
+export const PINTO_STABLE2_DEPLOYMENT = configuredStable2Deployment(
+  import.meta.env.VITE_PINTO_STABLE2_ADDRESS,
+  import.meta.env.VITE_PINTO_STABLE2_RUNTIME_HASH,
+  Object.values(WELL_FUNCTION_ADDRESSES[base.id]),
+);
 
 export const NFT_COLLECTION_1_CONTRACT: HashString = "0xBea5e200a087529AA3B62c460040aE94E3651b76";
 

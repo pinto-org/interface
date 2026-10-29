@@ -3,6 +3,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
 import { truncateHex } from "@/utils/format";
+import { depositTransferPreview } from "@/utils/depositTransferPreview";
 import { useMemo } from "react";
 import DepositsList from "../../DepositsList";
 import { DepositTransferData } from "../TransferDeposits";
@@ -19,7 +20,10 @@ export default function FinalStep({ destination, transferData }: FinalStepProps)
         const amount = TokenValue.fromHuman(data.amount || 0, data.token.decimals);
         return amount.gt(0);
       })
-      .flatMap((data) => data.deposits.map((deposits) => truncateHex(deposits.idHex)));
+      .flatMap((data) => {
+        const amount = TokenValue.fromHuman(data.amount || 0, data.token.decimals);
+        return (depositTransferPreview(amount, data.deposits)?.depositIds ?? []).map((id) => truncateHex(id));
+      });
   }, [transferData]);
 
   return (

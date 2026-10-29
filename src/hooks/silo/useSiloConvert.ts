@@ -8,6 +8,8 @@ import { ConvertStrategyQuote, SiloConvertType } from "@/lib/siloConvert/strateg
 import { SiloConvertLP2MainWithdrawPairStrategy as LP2MainWithdrawPairStrategy } from "@/lib/siloConvert/strategies/implementations";
 import { PipelineConvertStrategyAndArgs } from "@/lib/siloConvert/types";
 import { queryKeys } from "@/state/queryKeys";
+import { useSeason } from "@/state/useSunData";
+import { depositFingerprint } from "@/utils/depositSelection";
 import { stringEq } from "@/utils/string";
 import { AdvancedFarmCall, DepositData, FarmToMode, Token, TokenDepositData } from "@/utils/types";
 import { isDev } from "@/utils/utils";
@@ -108,10 +110,20 @@ export function useSiloMaxConvertQuery(
   const account = useAccount();
 
   const farmerMax = farmerDeposits?.convertibleAmount?.toBlockchain();
+  const season = useSeason();
+  const fingerprint = depositFingerprint(farmerDeposits?.convertibleDeposits);
+  const { chainId, diamond } = siloConvert.context;
 
   const queryKey = useMemo(
-    () => queryKeys.silo.convert.maxConvert(source?.address, target?.address, farmerMax),
-    [source, target, farmerMax],
+    () => [
+      ...queryKeys.silo.convert.maxConvert(source?.address, target?.address, farmerMax),
+      chainId,
+      diamond,
+      account.address,
+      season,
+      fingerprint,
+    ],
+    [source, target, farmerMax, chainId, diamond, account.address, season, fingerprint],
   );
 
   const query = useQuery({
@@ -162,10 +174,13 @@ export function useSiloConvertQuote(
   enabled: boolean = true,
 ) {
   const account = useAccount();
+  const season = useSeason();
+  const fingerprint = depositFingerprint(convertibleDeposits);
+  const { chainId, diamond } = siloConvert.context;
 
   const queryKey = useMemo(
-    () =>
-      queryKeys.silo.convert.quote(
+    () => [
+      ...queryKeys.silo.convert.quote(
         account.address,
         source.address,
         target?.address,
@@ -174,7 +189,25 @@ export function useSiloConvertQuote(
         options.secondaryAmount?.gt(0) ?? false,
         slippage,
       ),
-    [account.address, source.address, target?.address, amountIn, options.isPairWithdrawal, slippage],
+      chainId,
+      diamond,
+      season,
+      fingerprint,
+      options.secondaryAmount?.toBlockchain(),
+    ],
+    [
+      account.address,
+      source.address,
+      target?.address,
+      amountIn,
+      options.isPairWithdrawal,
+      slippage,
+      chainId,
+      diamond,
+      season,
+      fingerprint,
+      options.secondaryAmount?.toBlockchain(),
+    ],
   );
 
   const sourceAmount = useSafeTokenValue(amountIn, source.decimals);

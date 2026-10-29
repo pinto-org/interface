@@ -54,7 +54,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const mainToken = useChainConstant(MAIN_TOKEN);
   const sMainToken = useChainConstant(S_MAIN_TOKEN);
   const deposits = farmerDeposits.deposits.get(mainToken);
-  const depositedAmount = deposits?.amount;
+  const depositedAmount = deposits?.unlockedAmount ?? deposits?.amount;
 
   const [slippage, setSlippage] = useState<number>(0.1);
   const [amountIn, setAmountIn] = useState<string>("");
@@ -280,7 +280,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
       return;
     }
 
-    if (deposits?.amount.lte(0)) {
+    if (depositedAmount?.lte(0)) {
       setSource("balances");
     }
 
@@ -295,7 +295,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   // Derived booleans
   const confirming = allowanceConfirming || isConfirming || submitting;
   const isValidAmount = amountInTV.gt(0);
-  const inputDisabled = usingDeposits ? !deposits?.amount : !balance;
+  const inputDisabled = usingDeposits ? !depositedAmount?.gt(0) : !balance;
   const quoting = usingDeposits ? quote.isLoading : swap.isLoading;
   const disabledFromLoading = confirming || quoting || submitting || isConfirming;
   const toModeSelected = exists(mode);

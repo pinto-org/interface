@@ -166,6 +166,10 @@ export interface DepositData {
   lastStem: TokenValue;
   amount: TokenValue;
   depositBdv: TokenValue;
+  /** Ownership includes locked Auto Convert output; only unlockedAmount is spendable. */
+  unlockedAmount?: TokenValue;
+  lockedAmount?: TokenValue;
+  unlockAt?: number;
   currentBdv: TokenValue;
   stalk: DepositStalkBreakdown;
   isPlantDeposit?: boolean;
@@ -176,6 +180,8 @@ export interface DepositData {
 
 export interface TokenDepositData {
   amount: TokenValue;
+  unlockedAmount?: TokenValue;
+  lockedAmount?: TokenValue;
   convertibleAmount: TokenValue;
   currentBDV: TokenValue;
   depositBDV: TokenValue;

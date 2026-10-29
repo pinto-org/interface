@@ -7,6 +7,7 @@ import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStal
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { tractorExecutionGasUSD } from "@/utils/tractorDisplay";
 import { Token } from "@/utils/types";
 import { useCallback, useMemo } from "react";
 import { ColumnConfig, ExecuteOrdersTab } from "./ExecuteOrdersTab";
@@ -64,10 +65,7 @@ const calculateProfit = (
 
   // Calculate gas cost in USD
   const currentGasPrice = gasPrice || BigInt(1_000_000_000);
-  const gasCostInWei = gasEstimate * currentGasPrice;
-  const gasCostInEth = Number(gasCostInWei) / 1e18;
-  const ethPriceInUsd = Number(ethPrice.toNumber()) / 1e6;
-  const gasCostInUsd = gasCostInEth * ethPriceInUsd;
+  const gasCostInUsd = tractorExecutionGasUSD(gasEstimate, currentGasPrice, ethPrice);
 
   // Calculate tip amount in USD
   const tipData = calculateUsdValue(order.decodedData.opParams.operatorTipAmount, mainToken, tokenPrices);

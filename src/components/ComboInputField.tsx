@@ -173,6 +173,7 @@ function ComboInputField({
 
   // Track the last amount we set internally to detect external changes
   const lastInternalAmountRef = useRef<string>(amount);
+  const resettingTokenRef = useRef(false);
 
   const tokenPrices = usePriceData();
   const selectedTokenPrice = selectedToken
@@ -315,8 +316,10 @@ function ComboInputField({
    * Reset amount when token changes
    */
   useEffect(() => {
+    resettingTokenRef.current = true;
     setInternalAmount(TokenValue.ZERO);
     setDisplayValue("0");
+    setIsUserInput(false);
     if (setAmount) {
       setAmount("0");
       lastInternalAmountRef.current = "0";
@@ -325,20 +328,29 @@ function ComboInputField({
   }, [selectedToken]);
 
   /**
-   * Clamp the internal amount to the max amount
-   * - ONLY when the selected token changes
-   * - ONLY when the max amount changes
-   * - ONLY when the amount has been changed by the user
-   *
-   * Input clamping is handled in changeValue()
+   * Balance-driven clamps must update the transaction amount as well as the
+   * display. They are not user keystrokes, so the typing debounce won't do this.
    */
   useEffect(() => {
+    // The reset effect runs first, but this render still holds the old amount.
+    if (resettingTokenRef.current) {
+      resettingTokenRef.current = false;
+      return;
+    }
     const clamped = getClamped(internalAmount, maxAmount);
     if (!clamped.didClamp) return;
 
     setInternalAmount(clamped.amount);
     setDisplayValue(clamped.amount.toHuman());
+    lastInternalAmountRef.current = clamped.amount.toHuman();
+    setAmount?.(clamped.amount.toHuman());
+    setIsUserInput(false);
   }, [selectedToken, maxAmount, getClamped]);
+
+  // Revalidate even if a balance/account changes without a new keystroke.
+  useEffect(() => {
+    handleSetError(internalAmount.gt(maxAmount));
+  }, [internalAmount, maxAmount, handleSetError]);
 
   /**
    * Handle changes to the amount from outside the component
@@ -367,11 +379,16 @@ function ComboInputField({
     const amountTV = TokenValue.fromHuman(stringToNumber(amount), customMinAmount.decimals);
 
     if (amountTV.eq(0) && disableClampMinOn0) return;
-    if (amountTV.lt(customMinAmount)) {
-      setInternalAmount(customMinAmount);
-      setDisplayValue(customMinAmount.toHuman());
+    // A minimum must never undo a balance clamp (including a failed read's zero).
+    const minimum = disableClamping ? customMinAmount : TokenValue.min(customMinAmount, maxAmount);
+    if (amountTV.lt(minimum)) {
+      setInternalAmount(minimum);
+      setDisplayValue(minimum.toHuman());
+      lastInternalAmountRef.current = minimum.toHuman();
+      setAmount?.(minimum.toHuman());
+      setIsUserInput(false);
     }
-  }, [amount, customMinAmount, disableClampMinOn0]);
+  }, [amount, customMinAmount, disableClampMinOn0, disableClamping, maxAmount]);
 
   useEffect(() => {
     if (mode === "plots" && selectedPlots?.length) {

@@ -71,6 +71,13 @@ export const encodeTractorAndOptimizeDeposits = async (
   };
 };
 
+/** Historical progress belongs to the signed target, never the current creation address. */
+export function tractorBlueprintTarget(encodedData: `0x${string}`) {
+  const calls = decodeEncodedTractorDataToAdvancedPipeCalls(encodedData);
+  if (!calls?.length) throw new Error("Cannot resolve the signed blueprint target");
+  return calls[0].target;
+}
+
 export function decodeEncodedTractorDataToAdvancedPipeCalls(
   encodedData: `0x${string}`,
   operationName?: string,

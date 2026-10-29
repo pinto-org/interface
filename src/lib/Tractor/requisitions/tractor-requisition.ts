@@ -1,6 +1,6 @@
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { sowBlueprintReferralV0ABI } from "@/constants/abi/SowBlueprintReferralV0ABI";
-import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
+import { sowCompatibleABI } from "@/utils/tractorSowABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { SEEDS, STALK } from "@/constants/internalTokens";
@@ -153,7 +153,7 @@ type SelectRequisitionTypeArgs = {
   data: Awaited<ReturnType<typeof fetchTractorEvents>>;
 };
 
-const combinedABI = [...sowBlueprintv0ABI, ...sowBlueprintReferralV0ABI, ...convertUpBlueprintV0ABI] as const;
+const combinedABI = [...sowCompatibleABI, ...sowBlueprintReferralV0ABI, ...convertUpBlueprintV0ABI] as const;
 
 type BaseDecodedTractorRequisition = {
   type: RequisitionType;
@@ -172,6 +172,10 @@ type DecodedConvertUpRequisition = BaseDecodedTractorRequisition & {
 type DecodedTractorRequisition = DecodedSowRequisition | DecodedConvertUpRequisition;
 
 const blueprintTransformerLookup = {
+  sowBlueprint: {
+    transformer: transformSowRequisitionEvent,
+    type: "sowBlueprintv0",
+  },
   sowBlueprintv0: {
     transformer: transformSowRequisitionEvent,
     type: "sowBlueprintv0",
@@ -207,7 +211,7 @@ export const decodeTractorBlueprint = (
     const data = pipeCalls[0].callData;
 
     // Try decoding with the combined ABI first
-    let decoded: ReturnType<typeof decodeFunctionData>;
+    let decoded: ReturnType<typeof decodeFunctionData<typeof combinedABI>>;
     try {
       decoded = decodeFunctionData({
         abi: combinedABI,

@@ -1,7 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ZERO_ADDRESS } from "@/constants/address";
 import { SEEDS, STALK } from "@/constants/internalTokens";
-import { defaultQuerySettings } from "@/constants/query";
 import {
   beanstalkAbi,
   useReadFarmer_BalanceOfGrownStalkMultiple,
@@ -10,11 +9,12 @@ import {
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
-import { DepositData, FailableUseContractsResult, Token, TokenDepositData } from "@/utils/types";
-import { exists, unpackStem } from "@/utils/utils";
+import { DepositData, Token, TokenDepositData } from "@/utils/types";
+import { depositAvailability, readDepositsWithLocks } from "@/utils/depositLocks";
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { Address, ReadContractReturnType, decodeAbiParameters, encodeFunctionData, toHex } from "viem";
-import { useAccount, useReadContract, useReadContracts, useSimulateContract } from "wagmi";
+import { Address, decodeAbiParameters, encodeFunctionData, toHex } from "viem";
+import { useAccount, useChainId, useConfig, useReadContract, useSimulateContract } from "wagmi";
 import { usePriceData } from "./usePriceData";
 import { useSiloData } from "./useSiloData";
 import useTokenData from "./useTokenData";
@@ -101,42 +101,23 @@ const createSelectMowStatusPerToken = (whitelist: Token[], mainToken: Token) => 
  * @param tokens - The tokens to fetch deposits for
  * @returns A selector function that transforms the contract response into a map of token indices to their deposit arrays
  */
-const getSelectDepositsForAccount = (tokens: Token[]) => {
-  return (
-    response: FailableUseContractsResult<
-      ReadContractReturnType<typeof beanstalkAbi, "getTokenDepositsForAccount", [Address, Address]>
-    >,
-  ) => {
-    const depositMap = new Map<string, DepositQuery[]>();
-    // Process each token's deposit response
-    for (const [lpIdx, token] of tokens.entries()) {
-      const result = response[lpIdx]?.result;
-
-      if (!result) continue; // Skip failed or empty responses
-
-      // Transform raw contract data into structured deposit objects
-      const tokenDeposits: DepositQuery[] = result.depositIds
-        .map((depositId, index) => {
-          const stem = unpackStem(depositId);
-          const thisTokenDeposits = result.tokenDeposits[index];
-
-          if (!exists(thisTokenDeposits)) return;
-
-          return {
-            id: depositId,
-            stem,
-            depositedAmount: thisTokenDeposits.amount,
-            depositedBDV: thisTokenDeposits.bdv,
-          };
-        })
-        .filter((deposit): deposit is DepositQuery => exists(deposit));
-
-      // Store deposits by token index for efficient lookup in main processing
-      depositMap.set(getTokenIndex(token), tokenDeposits);
-    }
-
-    return depositMap;
-  };
+// Deposits and their locks are read at the same block, including historical tokens.
+const mapDeposits = (snapshot: Awaited<ReturnType<typeof readDepositsWithLocks>>, tokens: Token[]) => {
+  const depositMap = new Map<string, DepositQuery[]>();
+  for (const result of snapshot.deposits) {
+    const token = tokens.find((candidate) => stringEq(candidate.address, result.token));
+    if (!token) continue;
+    depositMap.set(
+      getTokenIndex(token),
+      result.depositIds.map((id, index) => ({
+        id,
+        stem: BigInt.asIntN(96, id),
+        depositedAmount: result.tokenDeposits[index].amount,
+        depositedBDV: result.tokenDeposits[index].bdv,
+      })),
+    );
+  }
+  return depositMap;
 };
 
 const selectFloodData = (data: { result: readonly `0x${string}`[] }) => {
@@ -219,41 +200,31 @@ const abiSnippet = [
  * responses into a structured format for easier processing.
  *
  * Data Flow:
- * 1. Creates parallel contract calls for each potentially whitelisted token
- * 2. Calls getTokenDepositsForAccount(farmer, token) for each token
- * 3. Transforms raw responses into DepositQuery objects
- * 4. Maps results by token index for efficient lookup
+ * Reads deposits for all supported current/former whitelist tokens and their
+ * output locks at one block. The single-argument getter excludes former tokens.
  *
  * @returns Query result containing a map of token indices to their deposit arrays
  */
-const useFarmerSiloDepositsQuery = () => {
+const useFarmerSiloDepositsQuery = (farmerAddress?: Address) => {
   const diamond = useProtocolAddress();
-  const farmer = useAccount();
-
-  const { mayBeWhitelistedTokens } = useTokenData();
-
-  const selectDepositsForAccount = useMemo(
-    () => getSelectDepositsForAccount(mayBeWhitelistedTokens),
-    [mayBeWhitelistedTokens],
+  const config = useConfig();
+  const chainId = useChainId();
+  const { mainToken, mayBeWhitelistedTokens } = useTokenData();
+  const tokens = useMemo(() => mayBeWhitelistedTokens.map((token) => token.address), [mayBeWhitelistedTokens]);
+  const queryKey = useMemo(
+    () => ["depositsWithLocks", chainId, diamond, farmerAddress, mainToken.address, tokens],
+    [chainId, diamond, farmerAddress, mainToken.address, tokens],
   );
-
-  const query = useReadContracts({
-    // Create parallel contract calls for all potentially whitelisted tokens
-    contracts: mayBeWhitelistedTokens.map((token) => ({
-      address: diamond,
-      abi: beanstalkAbi,
-      functionName: "getTokenDepositsForAccount" as const,
-      args: [farmer.address ?? ZERO_ADDRESS, token.address] as const,
-    })),
-    allowFailure: true, // Continue even if individual calls fail
-    query: {
-      enabled: !!farmer.address, // Only run when wallet is connected
-      select: selectDepositsForAccount,
-      ...defaultQuerySettings,
-    },
+  const query = useQuery({
+    queryKey,
+    queryFn: () =>
+      readDepositsWithLocks(config.getClient({ chainId }), diamond, farmerAddress!, mainToken.address, tokens),
+    enabled: !!farmerAddress,
+    staleTime: 10_000,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
   });
-
-  return query;
+  return { ...query, queryKey };
 };
 
 export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
@@ -292,7 +263,11 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
   });
 
   // Fetch deposit data
-  const { data: depositsByToken, ...depositsQuery } = useFarmerSiloDepositsQuery();
+  const depositsQuery = useFarmerSiloDepositsQuery(farmerAddress);
+  const depositsByToken = useMemo(
+    () => (depositsQuery.data ? mapDeposits(depositsQuery.data, maybeWLTokens) : undefined),
+    [depositsQuery.data, maybeWLTokens],
+  );
 
   const { data: roots, ...rootsQuery } = useReadContract({
     address: protocolAddress,
@@ -375,6 +350,8 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
       const convertibleDeposits: DepositData[] = [];
 
       let amount = TokenValue.fromBlockchain(0n, token.decimals);
+      let unlockedAmount = TokenValue.fromBlockchain(0n, token.decimals);
+      let totalLockedAmount = TokenValue.fromBlockchain(0n, token.decimals);
       let convertibleAmount = TokenValue.fromBlockchain(0n, token.decimals);
       let depositBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
       let currentBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
@@ -387,6 +364,16 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
         const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
         const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
         const depositAmount = TokenValue.fromBlockchain(deposit.depositedAmount, token.decimals);
+        const lock = depositsQuery.data?.locks[deposit.id.toString()];
+        const availability = depositAvailability(
+          deposit.depositedAmount,
+          lock,
+          depositsQuery.data?.timestamp ?? 0,
+          depositsQuery.isError,
+        );
+        const lockedAmount = TokenValue.fromBlockchain(availability.locked, token.decimals);
+        // Preserve last known ownership on RPC failure, but do not spend stale crates.
+        const availableAmount = TokenValue.fromBlockchain(availability.available, token.decimals);
         const _currentBDV = depositAmount.mul(siloTokenData.tokenBDV);
 
         // 0.000001 is the minimum BDV for a deposit to be considered valid so we don't run into divide by 0 errors
@@ -413,6 +400,8 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
         totalSeeds = totalSeeds.add(seeds);
 
         amount = amount.add(depositAmount);
+        unlockedAmount = unlockedAmount.add(availableAmount);
+        totalLockedAmount = totalLockedAmount.add(lockedAmount);
         depositBDV = depositBDV.add(_depositBDV);
         currentBDV = currentBDV.add(_currentBDV).reDecimal(BEAN.decimals);
 
@@ -431,6 +420,9 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
           stem: depositStem,
           season: deposit.season ?? 0,
           amount: depositAmount,
+          lockedAmount,
+          unlockedAmount: availableAmount,
+          unlockAt: lock?.unlockAt,
           depositBdv: _depositBDV,
           currentBdv: _currentBDV,
           stalk: {
@@ -449,13 +441,16 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
         depositData.push(thisDeposit);
 
         if (!isGerminating) {
-          convertibleAmount = convertibleAmount.add(depositAmount);
+          convertibleAmount = convertibleAmount.add(availableAmount);
           convertibleDeposits.push(thisDeposit);
         }
       });
 
       output.set(token, {
         amount,
+        unlockedAmount,
+        // Failed reads disable spending, but do not create a protocol output lock.
+        lockedAmount: totalLockedAmount,
         convertibleAmount,
         currentBDV,
         depositBDV,
@@ -487,6 +482,8 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
     };
   }, [
     depositsByToken,
+    depositsQuery.data,
+    depositsQuery.isError,
     maybeWLTokens,
     siloData.tokenData,
     priceData.price,
@@ -632,6 +629,9 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
       // Query management
       queryKeys,
       refetch: refetch,
+      depositsError: depositsQuery.error,
+      autoConvertSupported: depositsQuery.data?.supported ?? false,
+      isRefreshingDeposits: depositsQuery.isFetching,
     }),
     [
       activeStalkBalance.data,
@@ -650,6 +650,9 @@ export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
       queriesLessFloodInfoLoading,
       queryKeys,
       refetch,
+      depositsQuery.error,
+      depositsQuery.data?.supported,
+      depositsQuery.isFetching,
     ],
   );
 }

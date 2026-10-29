@@ -684,4 +684,4 @@ export const sowBlueprintReferralV0ABI = [
     stateMutability: "pure",
     type: "function",
   },
-];
+] as const;

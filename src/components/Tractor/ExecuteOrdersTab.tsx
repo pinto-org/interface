@@ -9,14 +9,16 @@ import { useGasPrice } from "@/hooks/useGasPrice";
 import useTransaction from "@/hooks/useTransaction";
 import { RequisitionData, prepareRequisitionEventForTxn, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { formatter } from "@/utils/format";
+import { refreshAfterTractorExecution } from "@/utils/tractorQueryRefresh";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount, useChainId, usePublicClient } from "wagmi";
 import { Col } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
 
@@ -115,6 +117,8 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
   bottomContent,
 }: ExecuteOrdersTabProps<T>) {
   const protocolAddress = useProtocolAddress();
+  const chainId = useChainId();
+  const queryClient = useQueryClient();
   const publicClient = usePublicClient();
   const { address } = useAccount();
   const { data: gasPrice } = useGasPrice();
@@ -145,6 +149,9 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
       if (!receipt?.transactionHash) return;
       setCompletedExecutions((prev) => new Set(prev).add(receipt.transactionHash));
       refetchOrders?.();
+      // A Tractor execution changes more than the order: Sow consumes Soil and
+      // creates Pods, and both order types change deposits and operator balances.
+      void refreshAfterTractorExecution(queryClient, chainId, protocolAddress);
     },
   });
 
@@ -422,7 +429,7 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
               </div>
             </TableHead>
             {successfulSimulations.size > 0 && calculateProfit && (
-              <TableHead className={cn("px-1.5", tableStyles.headerRow)}>Estimated Profit</TableHead>
+              <TableHead className={cn("px-1.5", tableStyles.headerRow)}>Est. Profit (before L1 fees)</TableHead>
             )}
           </TableRow>
         </TableHeader>

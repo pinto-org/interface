@@ -51,7 +51,7 @@ import { usePreferredInputSiloDepositToken, usePreferredInputToken } from "@/hoo
 import useSafeTokenValue from "@/hooks/useSafeTokenValue";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { trackSimpleEvent } from "@/utils/analytics";
-import { sortAndPickCrates } from "@/utils/convert";
+import { depositWithdrawalPreview } from "@/utils/convert";
 import { toSafeTVFromHuman } from "@/utils/number";
 import { HashString } from "@/utils/types.generic";
 import { useDebouncedEffect } from "@/utils/useDebounce";
@@ -214,6 +214,9 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
       if (inputError) {
         throw new Error("Invalid input");
       }
+      if (fromSilo && (farmerSilo.depositsError || !withdrawBreakdown)) {
+        throw new Error("Deposit availability changed. Refresh the amount before sowing.");
+      }
       // Check soil availability before submitting
       // This prevents transaction submission even if UI state is bypassed
       if (totalSoilLoading || !totalSoil || totalSoil.lte(0)) {
@@ -353,6 +356,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     referralAddress,
     totalSoil,
     totalSoilLoading,
+    farmerSilo.depositsError,
   ]);
 
   // Callbacks
@@ -454,7 +458,14 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     (!totalSoilLoading && totalSoil.lte(0)) ||
     (!maxBuyQuery.isLoading && Boolean(tokenBalance && maxBuy?.lt(tokenBalance)));
 
-  const ctaDisabled = isLoading || isConfirming || submitting || !ready || inputError || !canProceed;
+  const ctaDisabled =
+    isLoading ||
+    isConfirming ||
+    submitting ||
+    !ready ||
+    inputError ||
+    !canProceed ||
+    (fromSilo && (!!farmerSilo.depositsError || !withdrawBreakdown));
 
   // Determine button text based on error conditions
   // If no soil available, show "No Soil available" (consistent with warning message)
@@ -797,7 +808,7 @@ const useMapSiloDepositsToAmounts = (deposits: ReturnType<typeof useFarmerSilo>[
   return useMemo(
     () =>
       Object.values(tokenMap).reduce<Map<Token, TV>>(
-        (acc, curr) => acc.set(curr, deposits.get(curr)?.amount ?? TV.ZERO),
+        (acc, curr) => acc.set(curr, deposits.get(curr)?.unlockedAmount ?? deposits.get(curr)?.amount ?? TV.ZERO),
         new Map(),
       ),
     [deposits, tokenMap],
@@ -820,11 +831,7 @@ const useWithdrawDepositBreakdown = (
     const tokenDeposits = deposits?.get(token);
     if (!tokenDeposits || !tokenDeposits?.deposits.length) return;
 
-    // Take the minimum of the amount in and the amount in the deposits
-    // If the amount is greater than amount deposited, sortAndPickCrates will throw
-    const amount = TV.min(toSafeTVFromHuman(inputAmount, token.decimals), tokenDeposits.amount);
-
-    return sortAndPickCrates("withdraw", amount, tokenDeposits.deposits);
+    return depositWithdrawalPreview(toSafeTVFromHuman(inputAmount, token.decimals), tokenDeposits.deposits);
   }, [deposits, inputAmount, enabled, token]);
 
   return breakdown;

@@ -356,7 +356,7 @@ export class SiloConvertMaxConvertQuoter {
             if (!curr?.amount) {
               throw new Error(`Invalid deposit data: missing amount for deposit ${curr?.idHex || "unknown"}`);
             }
-            return prev.add(curr.amount);
+            return prev.add(curr.unlockedAmount ?? curr.amount);
           }, TV.ZERO),
         "calculate farmer available amount",
         { depositsCount: farmerDeposits.length },

@@ -330,6 +330,7 @@ export default function Swap() {
                 selectedToken={tokenOut}
                 isLoading={swapQuery.isLoading || false}
                 disableInput
+                disableClamping // A quoted output is not limited by the wallet's existing output balance.
                 hideMax
                 filterTokens={filterTokensForBuy}
                 selectKey="buy"

@@ -42,7 +42,7 @@ export default function StepTwo({
   const tokenAndBalanceMap = new Map<Token, TokenValue>();
   for (const deposit of depositedData) {
     if (deposit.depositData.amount.gt(0)) {
-      tokenAndBalanceMap.set(deposit.token, deposit.depositData.amount);
+      tokenAndBalanceMap.set(deposit.token, deposit.depositData.unlockedAmount ?? deposit.depositData.amount);
     }
   }
 
@@ -53,7 +53,10 @@ export default function StepTwo({
 
     transferData.forEach((data) => {
       if (data.deposits.length > 0) {
-        const maxAmount = data.deposits.reduce((sum, deposit) => deposit.amount.add(sum), TokenValue.ZERO);
+        const maxAmount = data.deposits.reduce(
+          (sum, deposit) => (deposit.unlockedAmount ?? deposit.amount).add(sum),
+          TokenValue.ZERO,
+        );
         newMaxAmounts.set(data.token.address, maxAmount);
       }
     });
@@ -100,7 +103,10 @@ export default function StepTwo({
       }
 
       // Calculate total amount from all deposits
-      const totalAmount = newTokenDeposits.deposits.reduce((sum, deposit) => deposit.amount.add(sum), TokenValue.ZERO);
+      const totalAmount = newTokenDeposits.deposits.reduce(
+        (sum, deposit) => (deposit.unlockedAmount ?? deposit.amount).add(sum),
+        TokenValue.ZERO,
+      );
 
       // Create new transfer data array
       return currentTransferData.map((item, i) =>
@@ -174,7 +180,7 @@ export default function StepTwo({
       )}
       <div className="flex flex-col gap-12">
         {usingMax ? (
-          <DepositsList />
+          <DepositsList transferData={transferData} />
         ) : (
           transferData.map((data, index) => {
             const deposits = depositedBalances.get(data.token)?.deposits.length || 0;

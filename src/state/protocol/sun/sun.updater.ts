@@ -5,10 +5,12 @@ import { morningFieldDevModeAtom } from "@/state/protocol/field/field.atoms";
 import { useTemperatureQuery } from "@/state/protocol/field/field.updater";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useMorning, useSunData, useTimeOffset } from "@/state/useSunData";
+import { hasProtocolSeasonChanged, isProtocolSeasonQuery, type SeasonSnapshot } from "@/utils/protocolSeasonRefresh";
+import { useQueryClient } from "@tanstack/react-query";
 import { arbitrumNetwork, localhostNetwork, tenderlyTestnetNetwork } from "@/utils/wagmi/chains";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useChainId, useConfig, useReadContract } from "wagmi";
 import { Sun, getIsMorning, getNextExpectedSunrise } from ".";
 import {
@@ -24,6 +26,8 @@ const useFetchSun = () => {
   // Hooks
   const chainId = useChainId();
   const diamond = useProtocolAddress();
+  const queryClient = useQueryClient();
+  const previousSeason = useRef<SeasonSnapshot>();
 
   // Atoms & Setters
   const [seasonData, setSeasonData] = useAtom(seasonAtom);
@@ -35,8 +39,20 @@ const useFetchSun = () => {
     address: diamond,
     abi: chainId === arbitrumNetwork.id ? arbTimeAbi : diamondABI,
     functionName: "time",
-    query: QUERY_SETTINGS.default,
+    query: { ...QUERY_SETTINGS.default, staleTime: 10_000, refetchInterval: 15_000 },
   });
+
+  useEffect(() => {
+    if (!seasonQuery.data) return;
+    const current = { chainId, diamond, season: seasonQuery.data.current };
+    if (hasProtocolSeasonChanged(previousSeason.current, current)) {
+      void queryClient.invalidateQueries({
+        predicate: (query) => isProtocolSeasonQuery(query.queryKey, chainId, diamond),
+        refetchType: "active",
+      });
+    }
+    previousSeason.current = current;
+  }, [chainId, diamond, seasonQuery.data?.current, queryClient]);
 
   // Update Query Keys
   useUpdateQueryKeys(sunQueryKeysAtom, seasonQuery.queryKey, "season");

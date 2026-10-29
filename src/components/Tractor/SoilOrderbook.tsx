@@ -238,7 +238,7 @@ export function SoilOrderbookContent({
 
     requisitions.forEach((req) => {
       try {
-        const data = decodeSowTractorData(req.requisition.blueprint.data);
+        const data = unwrapSowBlueprintData(decodeSowTractorData(req.requisition.blueprint.data));
         if (data) {
           const reqTemp = parseFloat(data.minTempAsString);
           // Only include orders with temperature below current max

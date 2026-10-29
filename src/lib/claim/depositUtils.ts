@@ -485,7 +485,7 @@ export function createSmartGroups(deposits: DepositData[], targetGroups: number 
 
   // Filter and map deposits, including BDV for small deposit handling
   const validDeposits = deposits
-    .filter((d) => !d.isGerminating)
+    .filter((d) => !d.isGerminating && (d.unlockedAmount ?? d.amount).eq(d.amount))
     .map((d) => ({
       stem: d.stem.toHuman(),
       ratio: d.stalk.total.div(d.depositBdv),
@@ -574,6 +574,10 @@ export function encodeGroupCombineCalls(
     const selectedDepositData = group.deposits
       .map((stem) => deposits.find((d) => d.stem.toHuman() === stem))
       .filter((d): d is DepositData => d !== undefined);
+
+    if (selectedDepositData.some((d) => (d.unlockedAmount ?? d.amount).lt(d.amount))) {
+      throw new Error("Locked Auto Convert output cannot be combined yet");
+    }
 
     const totalAmount = selectedDepositData.reduce((sum, deposit) => {
       return deposit.amount.add(sum);

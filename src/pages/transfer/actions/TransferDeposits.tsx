@@ -7,6 +7,7 @@ import useMaxBurnableStalkOnRain from "@/hooks/useMaxBurnableStalkOnRain";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { sortAndPickCrates } from "@/utils/convert";
+import { reconcileDepositSelection } from "@/utils/depositSelection";
 import { DepositData, type Token } from "@/utils/types";
 import { exists } from "@/utils/utils";
 import { useEffect, useMemo, useState } from "react";
@@ -36,6 +37,16 @@ export default function TransferDeposits() {
   const [transferData, setTransferData] = useState<DepositTransferData[]>([]);
   const [usingMax, setUsingMax] = useState<boolean>(false);
   const [transferNotice, setTransferNotice] = useState<boolean>(false);
+
+  useEffect(() => {
+    const next = reconcileDepositSelection(transferData, farmerSilo.deposits);
+    if (!next.changed) return;
+    setTransferData(next.selection);
+    setTransferNotice(false);
+    setStep((current) => (!next.selection.length ? 1 : current === 3 ? 2 : current));
+    if (!next.selection.length) setUsingMax(false);
+    toast.info("Deposits changed. Review the updated unlocked amounts before sending.");
+  }, [farmerSilo.deposits, transferData]);
 
   useEffect(() => {
     setTransferNotice(false);
@@ -87,6 +98,7 @@ export default function TransferDeposits() {
 
     let amount = TokenValue.fromHuman(0, STALK.decimals);
     for (const data of transferData) {
+      if (!data.deposits.length || TokenValue.fromHuman(data.amount || 0, data.token.decimals).lte(0)) continue;
       const pickedDeposits = sortAndPickCrates(
         "transfer",
         TokenValue.fromHuman(data.amount, data.token.decimals),
@@ -103,6 +115,10 @@ export default function TransferDeposits() {
 
   function onSubmit() {
     if (!account.address || !destination) return;
+    if (farmerSilo.depositsError || reconcileDepositSelection(transferData, farmerSilo.deposits).changed) {
+      toast.error("Deposits changed or could not be verified. Review before sending.");
+      return;
+    }
 
     try {
       setSubmitting(true);

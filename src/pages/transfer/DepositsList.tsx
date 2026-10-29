@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/Label";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
+import { depositTransferPreview, proportionalDepositValue } from "@/utils/depositTransferPreview";
 import { useMemo } from "react";
 import { DepositTransferData } from "./actions/TransferDeposits";
 
@@ -21,26 +22,25 @@ export default function DepositsList({ transferData }: { transferData?: DepositT
         .map((data) => {
           // Get the total deposit for this token
           const totalTokenDeposit = farmerDeposits.get(data.token);
-          if (!totalTokenDeposit) return null;
+          if (!totalTokenDeposit || totalTokenDeposit.amount.lte(0)) return null;
 
           // Calculate percentage of total being transferred
           const transferAmount = TokenValue.fromHuman(data.amount || 0, data.token.decimals);
-          const totalAmount = totalTokenDeposit.amount;
-
-          // Calculate percentage only if total amount is greater than 0
-          const percentage = totalAmount.gt(0) ? transferAmount.div(totalAmount) : TokenValue.ZERO;
-
-          // Calculate proportional stalk and seeds
-          const estimatedStalk = totalTokenDeposit.stalk.total.mul(percentage);
-          const estimatedSeeds = totalTokenDeposit.seeds.mul(percentage);
+          const picked = depositTransferPreview(transferAmount, data.deposits);
+          if (!picked) return null;
 
           return {
             token: data.token,
             deposit: {
               amount: transferAmount,
-              depositBDV: data.deposits.reduce((sum, deposit) => sum.add(deposit.depositBdv), TokenValue.ZERO),
-              stalk: estimatedStalk,
-              seeds: estimatedSeeds,
+              depositBDV: picked.bdv,
+              currentBDV: proportionalDepositValue(
+                totalTokenDeposit.currentBDV,
+                transferAmount,
+                totalTokenDeposit.amount,
+              ),
+              stalk: picked.stalk,
+              seeds: picked.seeds,
             },
           };
         })
@@ -99,7 +99,14 @@ export default function DepositsList({ transferData }: { transferData?: DepositT
                   <span>{formatter.token(tokenDeposit.deposit.amount, tokenDeposit.token)}</span>
                   {!isSingleDeposit && <span>{tokenDeposit.token.symbol}</span>}
                 </div>
-                <span className="text-right font-[340] text-[0.875rem] sm:text-[1rem] text-pinto-gray-4 -mt-2">{`$${Number(tokenDeposit.deposit.depositBDV.mul(priceData.price).toHuman()).toFixed(2)}`}</span>
+                <span className="text-right font-[340] text-[0.875rem] sm:text-[1rem] text-pinto-gray-4 -mt-2">
+                  {formatter.usd(
+                    (tokenDeposit.token.isWhitelisted
+                      ? tokenDeposit.deposit.currentBDV
+                      : tokenDeposit.deposit.depositBDV
+                    ).mul(priceData.price),
+                  )}
+                </span>
               </div>
             );
           })}

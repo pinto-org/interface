@@ -20,6 +20,13 @@ export type ConvertDetails = {
   crates: DepositCrateData[];
 };
 
+/** Render-safe preview: never silently substitute a smaller withdrawal for a stale input. */
+export function depositWithdrawalPreview(amount: TokenValue, deposits: DepositData[]) {
+  const available = deposits.reduce((sum, d) => sum.add(d.unlockedAmount ?? d.amount), TokenValue.ZERO);
+  if (amount.lte(0) || amount.gt(available)) return undefined;
+  return sortAndPickCrates("withdraw", amount, deposits);
+}
+
 export interface PickedCratesDetails {
   totalAmount: TokenValue;
   totalBDV: TokenValue;
@@ -67,9 +74,9 @@ export function pickCrates(deposits: DepositData[], amount: TokenValue): PickedC
   const cratesToWithdrawFrom: DepositCrateData[] = [];
 
   deposits.some((deposit) => {
-    const amountToRemoveFromCrate = totalAmount.add(deposit.amount).lte(amount)
-      ? deposit.amount
-      : amount.sub(totalAmount);
+    const available = deposit.unlockedAmount ?? deposit.amount;
+    if (available.lte(0) || totalAmount.gte(amount)) return totalAmount.gte(amount);
+    const amountToRemoveFromCrate = totalAmount.add(available).lte(amount) ? available : amount.sub(totalAmount);
     const cratePct = amountToRemoveFromCrate.div(deposit.amount);
     const crateBDV = deposit.depositBdv.mul(cratePct);
     const crateSeeds = deposit.seeds.mul(cratePct);
@@ -145,9 +152,9 @@ export function pickCratesMultiple(
     remaining = remaining.filter((deposit) => !deposit.amount.eq(0));
 
     for (const deposit of remaining) {
-      const amountToRemoveFromCrate = totalAmount.add(deposit.amount).lte(amount)
-        ? deposit.amount
-        : amount.sub(totalAmount);
+      const available = deposit.unlockedAmount ?? deposit.amount;
+      if (available.lte(0) || totalAmount.gte(amount)) continue;
+      const amountToRemoveFromCrate = totalAmount.add(available).lte(amount) ? available : amount.sub(totalAmount);
       const cratePct = amountToRemoveFromCrate.div(deposit.amount);
 
       // update decimals to match the correct decimals
@@ -186,8 +193,11 @@ export function pickCratesMultiple(
       });
 
       deposit.amount = deposit.amount.sub(amountToRemoveFromCrate);
+      deposit.unlockedAmount = available.sub(amountToRemoveFromCrate);
       deposit.stalk = {
         ...deposit.stalk,
+        initial: deposit.stalk.initial.sub(initialStalk),
+        grownSinceDeposit: deposit.stalk.grownSinceDeposit.sub(grownSinceDepositStalk),
         base: deposit.stalk.base.sub(baseStalk),
         grown: deposit.stalk.grown.sub(grownStalk),
         total: deposit.stalk.total.sub(crateStalk),
@@ -237,9 +247,11 @@ export function pickCratesAsCrates(sortedDeposits: DepositData[], quote: TokenVa
   };
 
   sortedDeposits.some((d) => {
-    const amount = aggAmount.add(d.amount).lte(quote) ? d.amount : quote.sub(aggAmount);
+    const available = d.unlockedAmount ?? d.amount;
+    if (available.lte(0) || aggAmount.gte(quote)) return aggAmount.gte(quote);
+    const amount = aggAmount.add(available).lte(quote) ? available : quote.sub(aggAmount);
 
-    const cratePct = amount.div(d.depositBdv);
+    const cratePct = amount.div(d.amount);
     const seeds = d.seeds.mul(cratePct);
 
     aggStalk.base = aggStalk.base.add(d.stalk.base.mul(cratePct));
@@ -257,6 +269,8 @@ export function pickCratesAsCrates(sortedDeposits: DepositData[], quote: TokenVa
     toDeposits.push({
       ...d,
       amount: amount,
+      unlockedAmount: amount,
+      lockedAmount: TokenValue.ZERO,
       depositBdv: d.depositBdv.mul(cratePct),
       currentBdv: d.currentBdv.mul(cratePct),
       stalk: {
@@ -273,6 +287,7 @@ export function pickCratesAsCrates(sortedDeposits: DepositData[], quote: TokenVa
     return aggAmount.eq(quote);
   });
 
+  if (aggAmount.lt(quote)) throw new Error("Not enough unlocked deposits");
   return {
     amount: aggAmount,
     stalk: aggStalk,

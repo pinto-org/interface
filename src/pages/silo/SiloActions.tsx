@@ -8,7 +8,8 @@ import { usePriceData } from "@/state/usePriceData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import RedeemDeposits from "./actions/RedeemDeposits";
 import Convert from "./actions/Convert";
 import Deposit from "./actions/Deposit";
 import UnwrapToken from "./actions/UnwrapToken";
@@ -21,11 +22,12 @@ interface SiloToken {
 
 const SLUGS = {
   wrappable: ["wrap", "unwrap"],
-  nonWrappable: ["deposit", "withdraw", "convert"],
-  nonWhitelistedNonWrappable: ["withdraw", "convert"],
+  nonWrappable: ["deposit", "withdraw", "convert", "redeem"],
+  nonWhitelistedNonWrappable: ["withdraw", "convert", "redeem"],
 } as const;
 
 export default function SiloActions({ token }: SiloToken) {
+  const [redemptionBusy, setRedemptionBusy] = useState(false);
   const [tab, handleChangeTab] = useParamsTabs(
     token.isSiloWrapped ? SLUGS.wrappable : token.isWhitelisted ? SLUGS.nonWrappable : SLUGS.nonWhitelistedNonWrappable,
     "action",
@@ -63,6 +65,7 @@ export default function SiloActions({ token }: SiloToken) {
   };
   const handleTabChange = useCallback(
     (newTab: string) => {
+      if (redemptionBusy) return;
       // Track tab changes
       const eventMap = {
         deposit: ANALYTICS_EVENTS.SILO.DEPOSIT_TAB_CLICK,
@@ -84,7 +87,7 @@ export default function SiloActions({ token }: SiloToken) {
 
       handleChangeTab(newTab);
     },
-    [tab, token, handleChangeTab],
+    [tab, token, handleChangeTab, redemptionBusy],
   );
 
   useEffect(() => {
@@ -119,7 +122,10 @@ export default function SiloActions({ token }: SiloToken) {
   return (
     <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
       <TabsList
-        className={cn("grid w-full", token.isSiloWrapped || !token.isWhitelisted ? "grid-cols-2" : "grid-cols-3")}
+        className={cn(
+          "grid w-full",
+          token.isSiloWrapped ? "grid-cols-2" : token.isWhitelisted ? "grid-cols-4" : "grid-cols-3",
+        )}
       >
         {token.isSiloWrapped ? (
           <>
@@ -159,10 +165,20 @@ export default function SiloActions({ token }: SiloToken) {
             ) : (
               <TabsTrigger value="convert">Convert</TabsTrigger>
             )}
+            <TabsTrigger value="redeem">Fee-free exit</TabsTrigger>
           </>
         )}
       </TabsList>
       <Separator className="my-4" />
+      {farmerSilo.depositsError && (
+        <p role="alert">Unable to verify current deposits and locks. Spending is disabled until balances refresh.</p>
+      )}
+      {!farmerSilo.depositsError && userDeposits?.lockedAmount?.gt(0) && (
+        <p className="mb-4 text-sm text-pinto-gray-4">
+          {userDeposits.lockedAmount.toHuman()} {token.symbol} is temporarily unavailable following Auto Convert. Your
+          total ownership and Stalk are unchanged by this lock; unlocked deposits remain available.
+        </p>
+      )}
       {token.isWhitelisted && (
         <TabsContent value="deposit">
           <Deposit siloToken={token} />
@@ -174,6 +190,11 @@ export default function SiloActions({ token }: SiloToken) {
       <TabsContent value="convert">
         <Convert siloToken={token} />
       </TabsContent>
+      {!token.isSiloWrapped && (
+        <TabsContent value="redeem">
+          <RedeemDeposits key={token.address} siloToken={token} onBusyChange={setRedemptionBusy} />
+        </TabsContent>
+      )}
       {token.isSiloWrapped && (
         <TabsContent value="wrap">
           <WrapToken siloToken={token} />

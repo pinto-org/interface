@@ -21,6 +21,7 @@ import { SiloConvertType } from "./strategies/core";
 import { DefaultConvertStrategy, SiloConvertLP2MainWithdrawPairStrategy } from "./strategies/implementations";
 import { ConversionQuotationError, SiloConvertError, SimulationError } from "./strategies/validation/SiloConvertErrors";
 import { SiloConvertContext } from "./types";
+import { quoteAlternativeRoutes } from "./quoteAlternativeRoutes";
 import { decodeConvertResults } from "./utils";
 
 /**
@@ -206,7 +207,7 @@ export class SiloConvert {
     forceUpdateCache: boolean = false,
   ): Promise<SiloConvertSummary<SiloConvertType>[]> {
     try {
-      return this._quote(source, target, farmerDeposits, amountIn, slippage, options, signal, forceUpdateCache);
+      return await this._quote(source, target, farmerDeposits, amountIn, slippage, options, signal, forceUpdateCache);
     } catch (_e) {
       // Don't retry if the request was aborted
       if (_e instanceof Error && _e.name === "AbortError") {
@@ -257,21 +258,21 @@ export class SiloConvert {
     });
     throwIfAborted(signal);
 
-    const quotedRoutes = await this.handleQuoteRoutes(routes, farmerDeposits, slippage, signal).catch((e) => {
-      logError("[SiloConvert/quote] FAILED to quote routes: ", e);
-      throw e;
-    });
-    throwIfAborted(signal);
-
-    const simulationsRawResults = await this.handleSimulateQuotedRoutes(quotedRoutes);
-    throwIfAborted(signal);
-
-    console.debug("[SiloConvert/quote] post simulation results: ", {
-      quotedRoutes,
-      simulationsRawResults,
-    });
-
-    const datas = this.handleDecodeRouteAndPriceResults(quotedRoutes, simulationsRawResults);
+    // A failed optional aggregator route must not hide a valid direct conversion.
+    // Quote, simulate (including price-read fallback), and decode each COMPLETE
+    // route separately. Never keep only part of a multi-strategy conversion.
+    const alternatives = await quoteAlternativeRoutes(
+      routes,
+      async (route) => {
+        const quoted = await this.handleQuoteRoutes([route], farmerDeposits, slippage, signal);
+        throwIfAborted(signal);
+        const simulated = await this.handleSimulateQuotedRoutes(quoted);
+        throwIfAborted(signal);
+        return this.handleDecodeRouteAndPriceResults(quoted, simulated);
+      },
+      signal,
+    );
+    const datas = alternatives.flat();
 
     console.debug("[SiloConvert/quote] ------------------");
     console.debug("[SiloConvert/quote] quoting finished!!!", datas, "\n");

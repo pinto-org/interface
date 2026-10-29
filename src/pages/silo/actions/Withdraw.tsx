@@ -102,7 +102,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const [tokenOut, setTokenOut] = useState<Token | undefined>(getInitialWithdrawToken(siloToken));
   const [slippage, setSlippage] = useState(0.1);
-  const [inputError, setInputError] = useState(false);
 
   const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
   const amountTV = useSafeTokenValue(amount, siloToken);
@@ -184,13 +183,17 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const convertData = useMemo(() => {
     const data = new Map<Token, TokenValue>();
-    data.set(siloToken, farmerDepositData ? farmerDepositData.amount : TokenValue.ZERO);
+    data.set(
+      siloToken,
+      farmerDepositData ? farmerDepositData.unlockedAmount ?? farmerDepositData.amount : TokenValue.ZERO,
+    );
     return data;
   }, [siloToken, farmerDepositData]);
 
-  const hasBalance = farmerDepositData?.amount.gt(0);
+  const hasBalance = (farmerDepositData?.unlockedAmount ?? farmerDepositData?.amount)?.gt(0);
 
-  const exceedsBalance = farmerDepositData?.amount.lt(amountTV);
+  const exceedsBalance = (farmerDepositData?.unlockedAmount ?? farmerDepositData?.amount)?.lt(amountTV);
+  const inputError = Boolean(exceedsBalance);
 
   const shouldSwap = tokenOut && !tokensEqual(siloToken, tokenOut) && !siloToken.isMain && !shouldConvertWithdraw;
 
@@ -492,7 +495,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           disableInput={isConfirming || !hasBalance}
           setAmount={setAmount}
           setToken={noop}
-          setError={setInputError}
+          // Auto Convert can reduce this balance while the form is open. Keep the
+          // user's amount visible until they edit it or press Max; do not silently
+          // clamp only the child input while the transaction retains the old amount.
+          disableClamping
+          disableDebounce
           selectedToken={siloToken}
           tokenAndBalanceMap={convertData}
           mode="balance"

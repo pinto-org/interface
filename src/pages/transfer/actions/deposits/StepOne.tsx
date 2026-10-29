@@ -23,10 +23,10 @@ export default function StepOne({ transferData, setTransferData, usingMax, setUs
         );
         if (!token) continue;
         const tokenDepositData = farmerDeposits.get(token);
-        if (tokenDepositData && tokenDepositData.amount.gt(0)) {
+        if (tokenDepositData && (tokenDepositData.unlockedAmount ?? tokenDepositData.amount).gt(0)) {
           const tokenData = {
             token: token,
-            amount: tokenDepositData.amount.toHuman(),
+            amount: (tokenDepositData.unlockedAmount ?? tokenDepositData.amount).toHuman(),
             deposits: tokenDepositData.deposits,
           };
           newTransferData.push(tokenData);
@@ -41,7 +41,7 @@ export default function StepOne({ transferData, setTransferData, usingMax, setUs
     const tokenAddresses: string[] = [];
     if (usingMax) {
       for (const depositData of farmerDeposits) {
-        if (depositData[1].amount.gt(0)) {
+        if ((depositData[1].unlockedAmount ?? depositData[1].amount).gt(0)) {
           tokenAddresses.push(depositData[0].address);
         }
       }

@@ -40,6 +40,7 @@ import { useDeterminePriceImpactWithResults } from "@/hooks/wells/usePriceImpact
 import { useWellUnderlying } from "@/hooks/wells/wells";
 import { SiloConvert, SiloConvertSummary } from "@/lib/siloConvert/SiloConvert";
 import { MaxConvertResult } from "@/lib/siloConvert/SiloConvert.maxConvertQuoter";
+import { reconcileRouteIndex } from "@/lib/siloConvert/quoteAlternativeRoutes";
 import { SiloConvertType } from "@/lib/siloConvert/strategies/core";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -185,13 +186,9 @@ function ConvertForm({
   const convertPriceResults = useExtractSiloConvertResultPriceResults(quote);
   const priceImpact = useDeterminePriceImpactWithResults(convertPriceResults);
 
-  // initialize the route index to the first sorted index
+  // Reconcile after an optional alternative disappears during quote refresh.
   useEffect(() => {
-    if (!sortedIndexes?.length || routeIndex !== undefined) {
-      return;
-    }
-
-    setRouteIndex(sortedIndexes[0]);
+    if (sortedIndexes?.length) setRouteIndex(reconcileRouteIndex(routeIndex, sortedIndexes));
   }, [sortedIndexes, routeIndex]);
 
   const selectedRoute = exists(routeIndex) && quote?.[routeIndex] ? quote[routeIndex] : undefined;
@@ -750,7 +747,7 @@ const ConvertTokenOutput = ({
 
   const getDisplayUSD = () => {
     if (!targetToken || !postPriceData) {
-      return formatter.usd(0);
+      return "USD estimate unavailable";
     }
     if (targetToken.isMain) {
       const priceTV = TV.fromBigInt(postPriceData.price, 6);
@@ -758,7 +755,7 @@ const ConvertTokenOutput = ({
     }
 
     const targetWellPriceData = postPriceData.pools[getTokenIndex(targetToken.address)];
-    if (!targetWellPriceData) return formatter.usd(0);
+    if (!targetWellPriceData) return "USD estimate unavailable";
 
     const totalUSD = amount.mul(TV.fromBigInt(targetWellPriceData.lpUsd, 6));
     return formatter.usd(totalUSD);

@@ -11,6 +11,8 @@ import { beanstalkPriceAddress } from "@/generated/contractHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
+import { assertTractorDeploymentReady } from "@/utils/tractorDeployment";
+import { convertUpOrderProgress } from "@/utils/tractorDisplay";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
 import { multicall } from "viem/actions";
 import { base } from "viem/chains";
@@ -23,6 +25,7 @@ import {
   decodeEncodedTractorDataToAdvancedPipeCalls,
   encodeTractorAndOptimizeDeposits,
   getTokenIndexesFromTractorTokenStrategy,
+  tractorBlueprintTarget,
 } from "../core";
 import {
   getTractorConvertUpParamsDecimalConfig,
@@ -81,6 +84,16 @@ export async function createConvertUpTractorData({
   }
 
   guardDecimals(args, chainId);
+  await assertTractorDeploymentReady(publicClient, protocolAddress, {
+    explicit: Boolean(
+      import.meta.env.VITE_TRACTOR_HELPERS_ADDRESS &&
+        import.meta.env.VITE_SILO_HELPERS_ADDRESS &&
+        import.meta.env.VITE_CONVERT_UP_BLUEPRINT_ADDRESS,
+    ),
+    blueprint: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
+    silo: SILO_HELPERS_ADDRESS,
+    tractor: TRACTOR_HELPERS_ADDRESS,
+  });
 
   // Get source token indices based on strategy
   const sourceTokenIndices = await getTokenIndexesFromTractorTokenStrategy(publicClient, args.tokenStrategy);
@@ -279,7 +292,7 @@ export async function loadConvertUpOrderbookData(
   // Fetch order info for all active requisitions
   const mcResults = await multicall(publicClient, {
     contracts: activeRequisitions.map((req) => ({
-      address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
+      address: tractorBlueprintTarget(req.requisition.blueprint.data),
       abi: convertUpBlueprintV0ABI,
       functionName: "orderInfo" as const,
       args: [req.requisition.blueprintHash],
@@ -287,9 +300,17 @@ export async function loadConvertUpOrderbookData(
   });
 
   // Process requisitions with decoded data and market condition checks
-  const requisitionsWithConditions = activeRequisitions.map((req, idx) => {
+  const requisitionsWithConditions = activeRequisitions.flatMap((req, idx) => {
     const decodedData = req.decodedData;
     const orderInfoResult = mcResults[idx];
+    // Publishing is permissionless. A malformed target must not hide healthy
+    // orders, and an unreadable counter must never be treated as unexecuted.
+    if (orderInfoResult?.status !== "success") return [];
+    const progress = convertUpOrderProgress(
+      decodedData?.convertUpParams.totalBeanAmountToConvert.toBigInt() ?? 0n,
+      orderInfoResult.result[0],
+      orderInfoResult.result[1],
+    );
 
     let orderInfo = {
       lastExecutedTimestamp: undefined as string | undefined,
@@ -298,12 +319,7 @@ export async function loadConvertUpOrderbookData(
 
     if (orderInfoResult?.status === "success") {
       const [lastExecutedTimestamp, bdvLeftToConvert] = orderInfoResult.result;
-      let bdvLeftToConvertTV = decodedData?.convertUpParams.totalBeanAmountToConvert ?? TV.ZERO;
-
-      // Order has been executed at least once
-      if (lastExecutedTimestamp !== 0n) {
-        bdvLeftToConvertTV = TV.fromBigInt(bdvLeftToConvert, mainToken.decimals);
-      }
+      const bdvLeftToConvertTV = TV.fromBigInt(progress.remaining, mainToken.decimals);
 
       orderInfo = {
         lastExecutedTimestamp: lastExecutedTimestamp !== 0n ? lastExecutedTimestamp.toString() : undefined,
@@ -329,17 +345,20 @@ export async function loadConvertUpOrderbookData(
       meetsConditions.capacity = currentCapacity.gte(minCapacity);
     }
 
-    return {
-      ...req,
-      decodedData: decodedData || undefined,
-      orderInfo,
-      meetsConditions,
-      // Initialize fields that will be populated later
-      withdrawalPlan: undefined,
-      totalAvailableBdv: TV.ZERO,
-      currentlyConvertible: TV.ZERO,
-      amountConvertibleNextExecution: TV.ZERO,
-    } as ConvertUpOrderbookEntry;
+    return [
+      {
+        ...req,
+        decodedData: decodedData || undefined,
+        isComplete: progress.complete,
+        orderInfo,
+        meetsConditions,
+        // Initialize fields that will be populated later
+        withdrawalPlan: undefined,
+        totalAvailableBdv: TV.ZERO,
+        currentlyConvertible: TV.ZERO,
+        amountConvertibleNextExecution: TV.ZERO,
+      } as ConvertUpOrderbookEntry,
+    ];
   });
 
   // Implement three-tier sorting for chain requisitions only
@@ -523,7 +542,7 @@ export async function loadConvertUpOrderbookData(
     orderbookData: orderbookData,
   });
 
-  return orderbookData;
+  return loadOptions.filterOutCompleted ? orderbookData.filter((entry) => !entry.isComplete) : orderbookData;
 }
 
 const sortConvertOrderbookData = (orderbookData: ConvertUpOrderbookEntry[], finalSortBy: "hash" | "tip" = "tip") => {

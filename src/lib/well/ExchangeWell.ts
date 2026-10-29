@@ -1,14 +1,16 @@
 import { TV } from "@/classes/TokenValue";
 import { abiSnippets } from "@/constants/abiSnippets";
-import { WELL_FUNCTION_ADDRESSES } from "@/constants/address";
+import { PINTO_STABLE2_DEPLOYMENT, WELL_FUNCTION_ADDRESSES } from "@/constants/address";
 import { resolveChainId } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { CallStruct, Token } from "@/utils/types";
 import { AddressLookup } from "@/utils/types.generic";
 import { exists } from "@/utils/utils";
-import { multicall } from "@wagmi/core";
+import { assertStable2Runtime, type Stable2Deployment } from "@/utils/stable2Deployment";
+import { getBlockNumber, getBytecode, multicall } from "@wagmi/core";
 import { Address, ContractFunctionParameters } from "viem";
+import { base } from "viem/chains";
 import { Config as WagmiConfig } from "wagmi";
 
 export interface RawWellData {
@@ -29,6 +31,12 @@ export class ExchangeWell {
   static loadWells = async (addresses: Address[], config: WagmiConfig): Promise<AddressLookup<ExtendedRawWellData>> => {
     if (!addresses.length) return {};
 
+    // Capture the actual RPC chain once; a wallet switch during these reads must
+    // not classify one chain's Well using another chain's code or configuration.
+    const chainId = config.state.chainId;
+    const deployment = resolveChainId(chainId) === base.id ? PINTO_STABLE2_DEPLOYMENT : undefined;
+    const blockNumber = deployment ? await getBlockNumber(config, { chainId, cacheTime: 0 }) : undefined;
+
     const contracts: ContractFunctionParameters<typeof abiSnippets.wells.well>[] = addresses.map((address) => {
       return {
         abi: abiSnippets.wells.well,
@@ -38,7 +46,14 @@ export class ExchangeWell {
       };
     });
 
-    const data = await multicall(config, { contracts: contracts, allowFailure: true });
+    const [data] = await Promise.all([
+      multicall(config, { contracts, allowFailure: true, chainId, blockNumber }),
+      deployment
+        ? getBytecode(config, { address: deployment.address, chainId, blockNumber }).then((code) =>
+            assertStable2Runtime(code, deployment),
+          )
+        : undefined,
+    ]);
 
     const wells = data.reduce<AddressLookup<ExtendedRawWellData>>((acc, datum, i) => {
       if (!datum.result) return acc;
@@ -52,10 +67,7 @@ export class ExchangeWell {
         wellFunction,
         wellData,
         aquifer,
-        wellFunctionType: ExchangeWell.deriveWellFunctionType(
-          resolveChainId(config.state.chainId),
-          wellFunction.target,
-        ),
+        wellFunctionType: ExchangeWell.deriveWellFunctionType(resolveChainId(chainId), wellFunction.target, deployment),
       };
 
       return acc;
@@ -110,10 +122,11 @@ export class ExchangeWell {
 
   // ---------- PRIVATE METHODS ----------
 
-  private static deriveWellFunctionType(chainId: number, wellFunction: Address) {
+  private static deriveWellFunctionType(chainId: number, wellFunction: Address, deployment?: Stable2Deployment) {
     const knownWellFunctions = WELL_FUNCTION_ADDRESSES[resolveChainId(chainId)];
-    if (stringEq(wellFunction, knownWellFunctions.stable2)) return "stable2";
-    if (stringEq(wellFunction, knownWellFunctions.cp2)) return "cp2";
+    if (knownWellFunctions && stringEq(wellFunction, knownWellFunctions.stable2)) return "stable2";
+    if (knownWellFunctions && stringEq(wellFunction, knownWellFunctions.cp2)) return "cp2";
+    if (deployment && stringEq(wellFunction, deployment.address)) return "stable2";
 
     throw new Error(`Unknown well function type for ${wellFunction}`);
   }

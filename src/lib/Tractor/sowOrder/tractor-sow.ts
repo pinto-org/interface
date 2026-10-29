@@ -19,11 +19,19 @@ import { getTokenIndexesFromTractorTokenStrategy } from "@/lib/Tractor/core/toke
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { TEMPERATURE_DECIMALS } from "@/state/protocol/field";
 import { sanitizeNumericInputValue } from "@/utils/string";
+import { assertTractorDeploymentReady } from "@/utils/tractorDeployment";
+import { sowCompatibleABI, sowEntryPoint, SOW_RELEASE_SELECTOR } from "@/utils/tractorSowABI";
 import { AdvancedPipeCall, FarmFromMode, Token, TokenDepositData } from "@/utils/types";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
+import { sowOrderProgress } from "@/utils/tractorDisplay";
 import { base } from "viem/chains";
 import { generateBatchSortDepositsCallData } from "../../claim/depositUtils";
-import { CreateTractorDataReturnType, WithdrawalPlan, decodeEncodedTractorDataToAdvancedPipeCalls } from "../core";
+import {
+  CreateTractorDataReturnType,
+  WithdrawalPlan,
+  decodeEncodedTractorDataToAdvancedPipeCalls,
+  tractorBlueprintTarget,
+} from "../core";
 import { loadPublishedRequisitions } from "../requisitions/tractor-requisition";
 import { LowStalkDepositsMode, WithdrawalPlanFilterParams } from "./../core/shared-tractor-types";
 import { getSoilEventQueryOptions } from "./soil-event-query";
@@ -86,6 +94,19 @@ export async function createSowTractorData({
   protocolAddress?: `0x${string}`;
   referralAddress?: `0x${string}`; // Optional referral address
 }): Promise<CreateTractorDataReturnType> {
+  if (!protocolAddress) throw new Error("Protocol address is required to prepare an order");
+  await assertTractorDeploymentReady(publicClient, protocolAddress, {
+    explicit: Boolean(
+      import.meta.env.VITE_TRACTOR_HELPERS_ADDRESS &&
+        import.meta.env.VITE_SILO_HELPERS_ADDRESS &&
+        (referralAddress
+          ? import.meta.env.VITE_SOW_REFERRAL_BLUEPRINT_ADDRESS
+          : import.meta.env.VITE_SOW_BLUEPRINT_ADDRESS),
+    ),
+    blueprint: referralAddress ? SOW_BLUEPRINT_REFERRAL_V0_ADDRESS : SOW_BLUEPRINT_V0_ADDRESS,
+    silo: SILO_HELPERS_ADDRESS,
+    tractor: TRACTOR_HELPERS_ADDRESS,
+  });
   // Add more detailed debug logs
   // console.debug("tokenStrategy received:", tokenStrategy);
   // console.debug("tokenStrategy.type:", tokenStrategy.type);
@@ -185,8 +206,8 @@ export async function createSowTractorData({
         ],
       })
     : encodeFunctionData({
-        abi: sowBlueprintv0ABI,
-        functionName: "sowBlueprintv0",
+        abi: sowCompatibleABI,
+        functionName: sowEntryPoint(Boolean(import.meta.env.VITE_SOW_BLUEPRINT_ADDRESS)),
         args: [sowBlueprintStruct],
       });
 
@@ -275,7 +296,7 @@ export function handleDecodeSowV0BlueprintFromAdvancedPipe(
 
   try {
     const sowDecoded = decodeFunctionData({
-      abi: sowBlueprintv0ABI,
+      abi: sowCompatibleABI,
       data: sowBlueprintData,
     });
 
@@ -386,7 +407,7 @@ export function unwrapSowBlueprintData(
 ): SowBlueprintData | null {
   if (!decodedResult) return null;
 
-  if ("blueprintData" in decodedResult && typeof decodedResult.blueprintData === "object") {
+  if ("blueprintData" in decodedResult) {
     // Wrapped referral format
     return decodedResult.blueprintData;
   }
@@ -415,7 +436,7 @@ export function decodeSowTractorData(
       if (selector === SOW_BLUEPRINT_REFERRAL_V0_SELECTOR) {
         // Use referral blueprint ABI
         return handleDecodeSowReferralBlueprintFromAdvancedPipe(calls, chainId);
-      } else if (selector === SOW_BLUEPRINT_V0_SELECTOR) {
+      } else if (selector === SOW_BLUEPRINT_V0_SELECTOR || selector === SOW_RELEASE_SELECTOR) {
         // Use v0 blueprint ABI
         return handleDecodeSowV0BlueprintFromAdvancedPipe(calls, chainId);
       } else {
@@ -609,37 +630,33 @@ export async function loadOrderbookData(
       // console.debug(`Publisher: ${publisher}`);
 
       try {
-        // Determine blueprint address from the selector in the encoded data
-        const blueprintData = requisition.requisition.blueprint.data;
-        let blueprintAddress: `0x${string}` = SOW_BLUEPRINT_V0_ADDRESS;
-        let isReferralBlueprint = false;
-
-        try {
-          const calls = decodeEncodedTractorDataToAdvancedPipeCalls(blueprintData, "sowV0");
-          if (calls?.length) {
-            const selector = calls[0].callData.slice(0, 10) as `0x${string}`;
-            if (selector === SOW_BLUEPRINT_REFERRAL_V0_SELECTOR) {
-              blueprintAddress = SOW_BLUEPRINT_REFERRAL_V0_ADDRESS;
-              isReferralBlueprint = true;
-            }
-          }
-        } catch (error) {
-          console.warn("Failed to determine blueprint address, defaulting to v0:", error);
-        }
-
         // Get pintos left to sow from the appropriate contract
         const pintosLeft = await publicClient.readContract({
-          address: isReferralBlueprint ? SOW_BLUEPRINT_REFERRAL_V0_ADDRESS : SOW_BLUEPRINT_V0_ADDRESS,
-          abi: isReferralBlueprint ? sowBlueprintReferralV0ABI : sowBlueprintv0ABI,
+          address: tractorBlueprintTarget(requisition.requisition.blueprint.data),
+          abi: sowBlueprintv0ABI,
           functionName: "getPintosLeftToSow",
           args: [requisition.requisition.blueprintHash],
         });
 
-        // If pintosLeft is zero, this means the storage slot hasn't been initialized yet
-        const finalPintosLeft =
-          pintosLeft === 0n && decodedData
-            ? TokenValue.fromBlockchain(decodedData.sowAmounts.totalAmountToSow, 6)
-            : TokenValue.fromBlockchain(pintosLeft, 6);
+        const progress = sowOrderProgress(decodedData?.sowAmounts.totalAmountToSow ?? 0n, pintosLeft);
+        const finalPintosLeft = TokenValue.fromBlockchain(progress.remaining, 6);
+        if (progress.complete) {
+          if (!loadOptions.filterOutCompleted)
+            orderbookData.push({
+              ...requisition,
+              decodedData: decodedData ?? undefined,
+              referralAddress,
+              isComplete: true,
+              pintosLeftToSow: TokenValue.ZERO,
+              totalAvailablePinto: TokenValue.ZERO,
+              currentlySowable: TokenValue.ZERO,
+              amountSowableNextSeason: TokenValue.ZERO,
+              amountSowableNextSeasonConsideringAvailableSoil: TokenValue.ZERO,
+              estimatedPlaceInLine: TokenValue.ZERO,
+              minTemp: TokenValue.fromBlockchain(decodedData?.minTemp ?? 0n, TEMPERATURE_DECIMALS),
+            });
+          continue;
+        }
 
         // console.debug(`Pintos Left to Sow: ${finalPintosLeft.toHuman()}`);
 

@@ -8,6 +8,7 @@ import { convertUpBlueprintDecoder } from "./convert-up-decoder";
 import { genericBlueprintDecoder } from "./generic-decoder";
 import { sowBlueprintDecoder } from "./sow-decoder";
 import { sowBlueprintReferralDecoder } from "./sow-referral-decoder";
+import { SOW_RELEASE_SELECTOR } from "@/utils/tractorSowABI";
 
 export interface BlueprintDecoder {
   selector: string;
@@ -24,6 +25,7 @@ export interface DecodedBlueprintResult {
 
 export const BLUEPRINT_REGISTRY: Record<string, BlueprintDecoder> = {
   [SOW_BLUEPRINT_V0_SELECTOR]: sowBlueprintDecoder,
+  [SOW_RELEASE_SELECTOR]: sowBlueprintDecoder,
   [SOW_BLUEPRINT_REFERRAL_V0_SELECTOR]: sowBlueprintReferralDecoder,
   [CONVERT_UP_BLUEPRINT_V0_SELECTOR]: convertUpBlueprintDecoder,
 } as const;

@@ -33,6 +33,9 @@ interface ImportMetaEnv {
    *
    */
   readonly VITE_SG_FETCH_DISABLED?: string;
+  /** Replacement Base PintoStable2 Well-function identity from the verified release manifest. */
+  readonly VITE_PINTO_STABLE2_ADDRESS?: string;
+  readonly VITE_PINTO_STABLE2_RUNTIME_HASH?: string;
 }
 
 declare module "*.md";

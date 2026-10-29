@@ -408,7 +408,9 @@ const ConvertPriceImpactSummary = ({
               </InlineRowLeft>
             }
           >
-            {formatter.usd(priceImpactSummary?.priceAfter, { decimals: 4 })}
+            {priceImpactSummary?.priceAfter
+              ? formatter.usd(priceImpactSummary.priceAfter, { decimals: 4 })
+              : "Unavailable"}
           </InlineRow>
         </>
       ) : null}

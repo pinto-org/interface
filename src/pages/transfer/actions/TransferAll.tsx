@@ -61,6 +61,12 @@ export default function TransferAll() {
   });
 
   async function onSubmit() {
+    if (farmerSilo.depositsError || depositsToSend.some(({ deposit }) => deposit.lockedAmount?.gt(0))) {
+      toast.error(
+        "Send all is unavailable while deposits are locked or unverified. Use Send Deposits to send unlocked amounts.",
+      );
+      return;
+    }
     try {
       setSubmitting(true);
       toast.loading("Transferring...");
