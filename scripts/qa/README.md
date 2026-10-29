@@ -9,7 +9,85 @@ Current main already contains Tractor order creation and 0x v2 AllowanceHolder
 routing. This port uses those implementations instead of transplanting the
 obsolete interface's transaction stack.
 
-## Latest acceptance summary — October 29, 2026
+## Post-commit continuation — October 29, 2026
+
+**QA is still incomplete.** The local checkpoints are protocol `c0f9a4e` and
+interface `d43d6581`, authored/committed as `fordpintomoney`; neither was pushed.
+Unrelated approved Pod Market changes remain outside the interface checkpoint.
+This continuation changes no production source or contract, sends no transaction,
+and does not replace either protected fork.
+
+### Stable2 conversion fault/recovery matrix
+
+The browser uses UI 17849 and child RPC 18585. The starting publisher owns
+**0.019 PINTOUSDC LP**, in stem `629222512`, with **0.019 BDV**. The displayed
+deposit summary rounds to 0.02 LP, while the conversion form correctly shows
+0.019 available. A fresh 0.001-LP-to-Pinto quote resolves through the explicitly
+configured replacement Stable2 loader; the tiny output is displayed as `<0.01`.
+This pass checks the form, not a new conversion receipt.
+
+| Sequence | Observed result | Acceptance |
+| --- | --- | --- |
+| Healthy 0.001 Stable2 LP quote | Positive output preview and enabled Convert; correct 0.019-LP availability | Pass for quote readiness |
+| Fail actual deposit RPC reads, including retries | Four failed reads; input resets to 0, output clears, Convert disables; ownership stays visible; explicit unavailable-data alert | Pass; unavailable data is not described as an Auto Convert lock |
+| Restore successful reads | Available balance returns to 0.019; input stays 0; no old positive output returns; Convert stays disabled | Pass; no recovered-zero/old-quote mismatch |
+| Enter a fresh 0.001 quote, then report unsupported wallet chain 1338 | Entire React page goes blank; console reports `RangeError: Division by zero` from `calculatePriceImpact` | Fail; recorded upstream UI defect, not fixed |
+| Reload after recording the failure | App renders again with local wallet chain 1337, no quote, fault injection off and QA wallet disconnected | Recovery requires reload; not graceful network-change handling |
+
+The network test changes only the QA connector's reported chain. All RPC traffic
+remains on the loopback child, and the QA signer independently prohibits sending
+on the simulated unsupported chain. It is **not** a real-wallet/Privy test or
+evidence of a transaction being sent to another network. Neither Convert nor any
+other submission action was clicked in this pass.
+
+Source inspection confirms the crashing `src/hooks/wells/usePriceImpactSummary.ts`
+is unchanged from the upstream base `60f611d5`. Its calculator guards a missing
+post-conversion price but divides by the opening price without checking for zero.
+`usePriceData` represents unavailable opening data as zero. The conversion form
+can still hold a price result during the network transition, exposing this
+combination. The shared price-impact query also lacks explicit account/chain
+fields in its key; that deserves a scoped check, but this pass does not claim it
+proved cross-account execution. Approval was requested for a separate guarded
+unavailable-price fix, context-scope checks and regressions. No production fix
+was inferred from the testing goal.
+
+### Release identity qualification
+
+All **65 preserved core deployment hashes** still match their original manifest,
+and there are no missing linked deployments in the current comparison. The
+protocol checkpoint now includes invariant caching added after the browser
+release was created. Its `LibAutoConvertCurve` and `LibAutoConvertStable2Policy`
+executable runtimes differ from this fork. Other changed runtimes in the report
+differ only in Solidity metadata. Thus the earlier exact-current-artifact claim
+below is historical: this is still a valid preserved release fixture, **not**
+an execution rehearsal of the newly committed cache optimization. No silent
+upgrade, reset, or substitution was made to obtain a passing comparison.
+
+The commit-time checks separately passed 659 Auto Convert tests, 231 tests on
+the exact staged UI tree, both builds, and runtime/initcode limits for all 78
+checked contracts. The staged UI intentionally omits seven unrelated Market tests;
+its TypeScript check reports five upstream Market errors, including the missing
+`MarketplacePodListing` export supplied by an uncommitted Market change. Those
+checks do not cover or dismiss the new browser crash above.
+
+### Isolation and evidence
+
+Read-only before/after assertions confirm that both heads, Season 16991,
+the publisher's Stable2 deposit and replacement Stable2 runtime hash are unchanged:
+
+- Child: **53247833**, `0xdb5821419e8e48ef365229c3b93a08cb94aae4f200e97cc1ff3981f6b0c99e93`.
+- Protected parent: **53247819**, `0x5d806c26d0d416f7dae6d7e25aadcf8a4b16fdf481ebe8f6a9f6c92a191d1bac`.
+
+Evidence directory: `/tmp/pinto-ui-continuation.afHVb7/`. It contains the read-only
+assertion scripts, `before.json`, `after.json`, `release-drift.json`, the captured
+console stack, accessibility snapshots and screenshots for the quote, read failure,
+safe recovery and blank-page failure. Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/stable2-network-fault-2026-10-29.tgz`.
+It does not replace any earlier evidence. Referral helper configuration, missing
+fee-exempt Sow creation UI, real-wallet/mobile testing and production-indexer
+reconciliation remain unresolved as detailed below.
+
+## Release acceptance summary — October 29, 2026 (before commit checkpoint)
 
 **The current-release rehearsal and affected browser regressions pass, but overall
 UI QA remains incomplete. This is not production sign-off.** The October 28 release
