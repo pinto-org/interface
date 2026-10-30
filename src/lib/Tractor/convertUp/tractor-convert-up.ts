@@ -10,9 +10,9 @@ import { MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkPriceAddress } from "@/generated/contractHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
-import { AdvancedPipeCall } from "@/utils/types";
 import { assertTractorDeploymentReady } from "@/utils/tractorDeployment";
 import { convertUpOrderProgress } from "@/utils/tractorDisplay";
+import { AdvancedPipeCall } from "@/utils/types";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
 import { multicall } from "viem/actions";
 import { base } from "viem/chains";
@@ -93,6 +93,7 @@ export async function createConvertUpTractorData({
     blueprint: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
     silo: SILO_HELPERS_ADDRESS,
     tractor: TRACTOR_HELPERS_ADDRESS,
+    requiredVersion: "1.1",
   });
 
   // Get source token indices based on strategy
