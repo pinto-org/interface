@@ -95,7 +95,7 @@ export default function CreateListing({ onSelectionChange }: CreateListingProps 
   const repayment = useFarmerBeanstalkRepayment();
 
   const queryClient = useQueryClient();
-  const { allPodListings, allMarket, farmerMarket } = useQueryKeys({ account, harvestableIndex });
+  const { allPodListings, allMarket, farmerMarket } = useQueryKeys({ account });
   const allQK = useMemo(() => [allPodListings, allMarket, farmerMarket], [allPodListings, allMarket, farmerMarket]);
 
   const userPlots = useMemo(() => {

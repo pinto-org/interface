@@ -6,7 +6,6 @@ import { beanstalkAbi } from "@/generated/contractHooks";
 import { AllPodListingsQuery } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { useHarvestableIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
@@ -21,14 +20,12 @@ export interface CancelListingProps {
 export default function CancelListing({ listing }: CancelListingProps) {
   const diamondAddress = useProtocolAddress();
   const account = useAccount();
-  const harvestableIndex = useHarvestableIndex();
   const { fieldId } = useBeanstalkMarket();
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const { allPodListings, allMarket, farmerMarket } = useQueryKeys({
     account: account.address,
-    harvestableIndex,
   });
   const allQK = useMemo(() => [allPodListings, allMarket, farmerMarket], [allPodListings, allMarket, farmerMarket]);
 

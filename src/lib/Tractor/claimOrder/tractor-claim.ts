@@ -225,19 +225,10 @@ export async function createAutomateClaimTractorData({
   const struct = buildAutomateClaimStruct(formValues, tipPerExecution, whitelistedOperators);
 
   // 2. Encode the automateClaimBlueprint function call
-  // Convert sourceTokenIndices from number[] to bigint[] for ABI encoding (uint256[])
-  const abiStruct = {
-    ...struct,
-    claimParams: {
-      ...struct.claimParams,
-      sourceTokenIndices: struct.claimParams.sourceTokenIndices.map((i) => BigInt(i)),
-    },
-  };
-
   const blueprintCall = encodeFunctionData({
     abi: automateClaimBlueprintABI,
     functionName: "automateClaimBlueprint",
-    args: [abiStruct],
+    args: [struct],
   });
 
   // 3. Create advancedPipe struct targeting the blueprint contract

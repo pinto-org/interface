@@ -69,7 +69,7 @@ const calculateProfit = (
   const currentGasPrice = gasPrice || BigInt(1_000_000_000);
   const gasCostInWei = gasEstimate * currentGasPrice;
   const gasCostInEth = Number(gasCostInWei) / 1e18;
-  const ethPriceInUsd = Number(ethPrice.toNumber()) / 1e6;
+  const ethPriceInUsd = ethPrice.toNumber();
   const gasCostInUsd = gasCostInEth * ethPriceInUsd;
 
   // Use the base operator tip amount

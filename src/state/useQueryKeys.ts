@@ -18,7 +18,10 @@ export function useQueryKeys({ chainId, account, harvestableIndex }: UseQueryKey
   );
 
   const allPodListings = useMemo(
-    () => ["allPodListings", { chainId: chainId, variables: [harvestableIndex?.toHuman()] }],
+    () => [
+      "allPodListings",
+      harvestableIndex === undefined ? { chainId } : { chainId, variables: [harvestableIndex.toHuman()] },
+    ],
     [chainId, harvestableIndex],
   );
 
