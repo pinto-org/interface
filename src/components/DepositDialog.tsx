@@ -8,6 +8,7 @@ import { ResponsiveDialog } from "@/components/ui/ResponsiveDialog";
 import { Separator } from "@/components/ui/Separator";
 import { useDenomination } from "@/hooks/useAppSettings";
 import { formatter, truncateHex } from "@/utils/format";
+import { getSiloDepositUsdValue } from "@/utils/silo";
 import { DepositData, Token } from "@/utils/types";
 import { useAccount } from "wagmi";
 import IconImage from "./ui/IconImage";
@@ -18,9 +19,17 @@ interface DepositDialogProps {
   deposit: DepositData;
   token: Token;
   price: TokenValue;
+  tokenUsdPrice?: TokenValue;
 }
 
-export default function DepositDialog({ open, onOpenChange, deposit, token, price }: Readonly<DepositDialogProps>) {
+export default function DepositDialog({
+  open,
+  onOpenChange,
+  deposit,
+  token,
+  price,
+  tokenUsdPrice,
+}: Readonly<DepositDialogProps>) {
   const denomination = useDenomination();
   const { address } = useAccount();
 
@@ -35,7 +44,14 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
     ? 0
     : formatter.twoDec(deposit.stalk.grown, { showPositiveSign: true });
 
-  const bdvToUse = token.isWhitelisted ? deposit.currentBdv : deposit.depositBdv;
+  const usdValue = getSiloDepositUsdValue({
+    isWhitelisted: token.isWhitelisted,
+    amount: deposit.amount,
+    currentBdv: deposit.currentBdv,
+    depositBdv: deposit.depositBdv,
+    bdvPrice: price,
+    tokenUsdPrice,
+  });
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
@@ -159,11 +175,7 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
                 <div className="flex justify-between min-h-6 items-center">
                   <span className="text-pinto-gray-4">Current Value</span>
                   <span className="text-primary">
-                    {`${
-                      denomination === "USD"
-                        ? formatter.usd((bdvToUse || TokenValue.ZERO).mul(price))
-                        : formatter.pdv(deposit.depositBdv)
-                    }`}
+                    {`${denomination === "USD" ? formatter.usd(usdValue) : formatter.pdv(deposit.depositBdv)}`}
                   </span>
                 </div>
                 <div className="flex justify-between min-h-12 items-start">

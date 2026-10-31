@@ -1,5 +1,9 @@
+import {
+  getConvertQuoteFailureNotice,
+  quoteAlternativeRoutes,
+  reconcileRouteIndex,
+} from "@/lib/siloConvert/quoteAlternativeRoutes";
 import { describe, expect, it } from "vitest";
-import { quoteAlternativeRoutes, reconcileRouteIndex } from "@/lib/siloConvert/quoteAlternativeRoutes";
 
 describe("complete alternative conversion routes", () => {
   it("selects a surviving route after the previously selected alternative disappears", () => {
@@ -41,5 +45,25 @@ describe("complete alternative conversion routes", () => {
         controller.signal,
       ),
     ).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+describe("convert quote failure notice", () => {
+  const base = { quoteEnabled: true, isFetching: false, isError: false, hasZeroOutput: false, isDefaultConvert: false };
+  it("explains a failed LP to LP quote instead of leaving the button silently disabled", () => {
+    expect(getConvertQuoteFailureNotice({ ...base, isError: true })).toBe(
+      "Unable to quote this Convert. Try increasing slippage.",
+    );
+    expect(getConvertQuoteFailureNotice({ ...base, isError: true, isDefaultConvert: true })).toContain(
+      "lowering the amount",
+    );
+  });
+  it("treats a quote with no output as a failure", () => {
+    expect(getConvertQuoteFailureNotice({ ...base, hasZeroOutput: true })).toMatch(/^Unable to quote/);
+  });
+  it("stays hidden while quoting, when quoting is disabled, or when the quote succeeded", () => {
+    expect(getConvertQuoteFailureNotice({ ...base, isError: true, isFetching: true })).toBeUndefined();
+    expect(getConvertQuoteFailureNotice({ ...base, isError: true, quoteEnabled: false })).toBeUndefined();
+    expect(getConvertQuoteFailureNotice(base)).toBeUndefined();
   });
 });

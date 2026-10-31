@@ -9,7 +9,9 @@ import { sortAndPickCrates } from "../../utils/convert";
 // historical BDV. They are not a substitute for rendered-component tests.
 test("USD deposit labels use current value while PDV keeps historical credit", () => {
   const rows = readFileSync("src/components/DepositsTable.tsx", "utf8");
-  assert.match(rows, /token\.isWhitelisted \? deposit\?\.currentBdv : deposit\?\.depositBdv/);
+  // Whitelisted rows use current BDV; de-whitelisted rows use market value (lpUsd), like the amount input.
+  assert.match(rows, /getSiloDepositUsdValue\(\{[^}]*currentBdv: deposit\?\.currentBdv,[^}]*tokenUsdPrice,?\s*\}\)/);
+  assert.match(rows, /formatter\.usd\(usdValue\)/);
   assert.match(rows, /formatter\.pdv\(deposit\.depositBdv\)/);
   const farmer = readFileSync("src/state/useFarmerSilo.ts", "utf8");
   assert.match(farmer, /token\.isWhitelisted \? currentBDV : depositBDV/);

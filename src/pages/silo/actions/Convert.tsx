@@ -40,7 +40,7 @@ import { useDeterminePriceImpactWithResults } from "@/hooks/wells/usePriceImpact
 import { useWellUnderlying } from "@/hooks/wells/wells";
 import { SiloConvert, SiloConvertSummary } from "@/lib/siloConvert/SiloConvert";
 import { MaxConvertResult } from "@/lib/siloConvert/SiloConvert.maxConvertQuoter";
-import { reconcileRouteIndex } from "@/lib/siloConvert/quoteAlternativeRoutes";
+import { getConvertQuoteFailureNotice, reconcileRouteIndex } from "@/lib/siloConvert/quoteAlternativeRoutes";
 import { SiloConvertType } from "@/lib/siloConvert/strategies/core";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -426,6 +426,14 @@ function ConvertForm({
     submitting ||
     loading;
 
+  const quoteFailureNotice = getConvertQuoteFailureNotice({
+    quoteEnabled: Boolean(quoteEnabled && targetToken),
+    isFetching: quoteQuery.isFetching,
+    isError: quoteQuery.isError,
+    hasZeroOutput: Boolean(quote) && amountOut.lte(0),
+    isDefaultConvert: Boolean(isDefaultConvert),
+  });
+
   const siloLabels = convertResult ? getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed) : null;
 
   const altTextProps = useMemo(() => {
@@ -561,6 +569,11 @@ function ConvertForm({
           />
         )}
       </div>
+      {quoteFailureNotice && (
+        <Warning variant="warning" role="alert">
+          {quoteFailureNotice}
+        </Warning>
+      )}
       <>
         <Button {...actionButtonSharedProps} onClick={onSubmit} disabled={disabled} className="hidden sm:flex">
           Convert

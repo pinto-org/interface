@@ -38,6 +38,7 @@ import { useSiloData } from "@/state/useSiloData";
 import { useSeason } from "@/state/useSunData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
+import { getSiloDepositUsdValue } from "@/utils/silo";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
@@ -111,6 +112,7 @@ function SiloTokenInner({ siloToken }: { siloToken: Token }) {
                     farmerDeposits={farmerDeposits}
                     isMobile={isMobile}
                     price={siloToken.isMain ? priceData.price : poolPrice}
+                    tokenUsdPrice={priceData.tokenPrices.get(siloToken)?.instant}
                   />
                 </div>
               </div>
@@ -435,16 +437,30 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
 interface IFarmerSiloTokenDeposits extends IBaseSiloToken {
   farmerDeposits: TokenDepositData | undefined;
   price: TokenValue;
+  tokenUsdPrice?: TokenValue;
 }
 
-const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price, isMobile }: IFarmerSiloTokenDeposits) => {
+const FarmerSiloTokenDeposits = ({
+  siloToken,
+  farmerDeposits,
+  price,
+  tokenUsdPrice,
+  isMobile,
+}: IFarmerSiloTokenDeposits) => {
   const denomination = useDenomination();
 
   const stalkAmount = farmerDeposits?.stalk.total.sub(farmerDeposits?.stalk.germinating ?? TokenValue.ZERO);
   const hasGerminating = farmerDeposits?.stalk.germinating.gt(0);
   const hasOnlyGerminating = stalkAmount?.eq(0) && hasGerminating;
 
-  const bdvToUse = siloToken.isWhitelisted ? farmerDeposits?.currentBDV : farmerDeposits?.depositBDV;
+  const usdValue = getSiloDepositUsdValue({
+    isWhitelisted: siloToken.isWhitelisted,
+    amount: farmerDeposits?.amount,
+    currentBdv: farmerDeposits?.currentBDV,
+    depositBdv: farmerDeposits?.depositBDV,
+    bdvPrice: price,
+    tokenUsdPrice,
+  });
 
   return (
     <div className="flex flex-col gap-6 sm:flex-row sm:gap-16">
@@ -458,7 +474,7 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price, isMobile }:
         </div>
         <div className="flex flex-row items-center gap-x-1 -mt-1 sm:mt-0">
           <div className="pinto-body font-thin sm:font-regular text-pinto-secondary">
-            {denomination === "USD" ? formatter.usd(bdvToUse?.mul(price)) : formatter.pdv(farmerDeposits?.depositBDV)}
+            {denomination === "USD" ? formatter.usd(usdValue) : formatter.pdv(farmerDeposits?.depositBDV)}
           </div>
           <DenominationSwitcher />
         </div>

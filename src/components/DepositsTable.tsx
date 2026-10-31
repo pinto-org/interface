@@ -9,6 +9,7 @@ import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter, truncateHex } from "@/utils/format";
+import { getSiloDepositUsdValue } from "@/utils/silo";
 import { stringEq } from "@/utils/string";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -30,6 +31,7 @@ interface DepositRowProps {
   deposit: DepositData;
   token: Token;
   price: TokenValue;
+  tokenUsdPrice?: TokenValue;
   useToggle?: boolean;
   isSelected?: boolean;
   disabled?: boolean;
@@ -48,6 +50,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
       deposit,
       token,
       price,
+      tokenUsdPrice,
       useToggle,
       isSelected,
       disabled,
@@ -76,7 +79,14 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
       return totalBdv.gt(0) ? totalStalk.div(totalBdv) : TokenValue.ZERO;
     };
 
-    const bdvToUse = token.isWhitelisted ? deposit?.currentBdv : deposit?.depositBdv;
+    const usdValue = getSiloDepositUsdValue({
+      isWhitelisted: token.isWhitelisted,
+      amount: deposit?.amount,
+      currentBdv: deposit?.currentBdv,
+      depositBdv: deposit?.depositBdv,
+      bdvPrice: price,
+      tokenUsdPrice,
+    });
 
     return (
       <TableRow
@@ -125,7 +135,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
               {new Date((deposit.unlockAt ?? 0) * 1000).toLocaleString()}
             </div>
           )}
-          <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">{`${denomination === "USD" ? formatter.usd((bdvToUse || TokenValue.ZERO).mul(price)) : formatter.pdv(deposit.depositBdv)}`}</div>
+          <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">{`${denomination === "USD" ? formatter.usd(usdValue) : formatter.pdv(deposit.depositBdv)}`}</div>
         </TableCell>
         <TableCell className="pinto-sm text-right">
           <div className="flex flex-row gap-1 items-center justify-end">
@@ -238,6 +248,7 @@ export default function DepositsTable({
 
   const pool = priceData.pools.find((poolData) => stringEq(poolData.pool.address, token.address));
   const poolPrice = pool?.price ?? TokenValue.ZERO;
+  const tokenUsdPrice = priceData.tokenPrices.get(token)?.instant;
 
   const isDepositInOtherGroup = (stem: string) => {
     return disabledDeposits?.includes(stem) || false;
@@ -311,6 +322,7 @@ export default function DepositsTable({
                           <DepositRow
                             deposit={deposit}
                             price={token.isMain ? priceData.price : poolPrice}
+                            tokenUsdPrice={tokenUsdPrice}
                             token={token}
                             useToggle
                             isSelected={selected.includes(stem) ?? false}
@@ -330,6 +342,7 @@ export default function DepositsTable({
                         key={stem}
                         deposit={deposit}
                         price={token.isMain ? priceData.price : poolPrice}
+                        tokenUsdPrice={tokenUsdPrice}
                         token={token}
                         groups={groups}
                         farmerDeposits={tokenData}
@@ -351,6 +364,7 @@ export default function DepositsTable({
           deposit={selectedDeposit}
           token={token}
           price={token.isMain ? priceData.price : poolPrice}
+          tokenUsdPrice={tokenUsdPrice}
         />
       )}
     </div>
