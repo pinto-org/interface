@@ -11,6 +11,7 @@ import { trackSimpleEvent } from "@/utils/analytics";
 import { truncateHex } from "@/utils/format";
 import { encodeReferralAddress } from "@/utils/referral";
 import { CopyIcon } from "@radix-ui/react-icons";
+import { useId } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
@@ -19,6 +20,8 @@ interface ReferralLinkGeneratorProps {
 }
 
 export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGeneratorProps) {
+  const referralLinkId = useId();
+  const referralCodeId = useId();
   const { address } = useAccount();
   const { delegateAddress } = useReferralData();
   const { meetsRequirement, totalBeansSown, amountNeeded, progressPercentage } = useFarmerSowEligibility();
@@ -96,9 +99,12 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
           <>
             {/* Referral Link */}
             <div className="flex flex-col gap-2">
-              <label className="pinto-sm text-pinto-light">Referral Link</label>
+              <label htmlFor={referralLinkId} className="pinto-sm text-pinto-light">
+                Referral Link
+              </label>
               <div className="flex flex-row gap-2">
                 <Input
+                  id={referralLinkId}
                   value={referralUrl}
                   readOnly
                   outlined
@@ -118,9 +124,12 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
             </div>
             {/* Referral Code */}
             <div className="flex flex-col gap-2">
-              <label className="pinto-sm text-pinto-light">Referral Code (also works)</label>
+              <label htmlFor={referralCodeId} className="pinto-sm text-pinto-light">
+                Referral Code (also works)
+              </label>
               <div className="flex flex-row gap-2">
                 <Input
+                  id={referralCodeId}
                   value={referralCode}
                   readOnly
                   outlined
@@ -155,7 +164,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-start">
               {/* Pod Destination Address */}
               <div className="flex flex-col gap-2 flex-1">
-                <label className="pinto-sm text-pinto-light">Pod Destination Address</label>
+                <span className="pinto-sm text-pinto-light">Pod Destination Address</span>
                 <div className="flex flex-col">
                   <span className="pinto-body text-pinto-dark">
                     {podDestinationAddress ? (
@@ -186,7 +195,7 @@ export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGenerator
             </div>
             {/* Social Sharing Icons */}
             <div className="flex flex-col gap-2">
-              <label className="pinto-sm text-pinto-light">Share via</label>
+              <span className="pinto-sm text-pinto-light">Share via</span>
               <div className="flex gap-2">
                 <Button
                   onClick={handleTwitterShare}

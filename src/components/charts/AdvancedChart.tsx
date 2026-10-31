@@ -263,9 +263,9 @@ export const AdvancedChart = () => {
         <CalendarButton setTimePeriod={setTimePeriod} />
       </div>
       {seasonsData.hasUnavailableApiData && (
-        <p role="status" className="px-4 py-2 text-sm text-pinto-light">
+        <output className="block px-4 py-2 text-sm text-pinto-light">
           Some chart data is temporarily unavailable. Available charts are still shown.
-        </p>
+        </output>
       )}
       {selectedCharts.length > 0 ? (
         <TVChart

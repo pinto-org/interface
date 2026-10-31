@@ -230,9 +230,12 @@ const SetEnvironmentVariables = () => {
         Set these environment variables to cache your RPC endpoint and fork block number for faster Anvil node startup:
       </div>
       <Col className="w-full gap-2">
-        <label className="pinto-body-sm text-pinto-secondary">Base RPC URL (optional):</label>
+        <label htmlFor="base-rpc-url" className="pinto-body-sm text-pinto-secondary">
+          Base RPC URL (optional):
+        </label>
         <input
           type="text"
+          id="base-rpc-url"
           value={rpcUrl}
           onChange={(e) => setRpcUrl(e.target.value)}
           placeholder="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
@@ -240,11 +243,12 @@ const SetEnvironmentVariables = () => {
         />
       </Col>
       <Col className="w-full gap-2">
-        <label className="pinto-body-sm text-pinto-secondary">
+        <label htmlFor="latest-block-number" className="pinto-body-sm text-pinto-secondary">
           Latest Block Number {loading ? "(fetching...)" : "(auto-fetched)"}:
         </label>
         <input
           type="text"
+          id="latest-block-number"
           value={blockNumber}
           onChange={(e) => setBlockNumber(e.target.value)}
           placeholder={loading ? "Fetching latest block..." : "Enter block number"}
