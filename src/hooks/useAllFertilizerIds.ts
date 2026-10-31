@@ -121,7 +121,7 @@ export function useAllFertilizerIds() {
   }, [fertQuery, idsQuery]);
 
   // If no active fertilizer, return empty without error
-  const fertIds = !hasActiveFert ? [] : idsQuery.data ?? [];
+  const fertIds = !hasActiveFert ? [] : (idsQuery.data ?? []);
 
   return {
     fertilizerIds: fertIds,

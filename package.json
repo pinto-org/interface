@@ -124,8 +124,7 @@
     "brace-expansion": "^2.0.2",
     "micromatch": "^4.0.8",
     "cross-spawn": "7.0.6",
-    "viem": "^2.47.6",
-    "ox": "^0.8.1"
+    "viem": "^2.47.6"
   },
   "packageManager": "yarn@4.5.0"
 }
