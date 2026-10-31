@@ -1,9 +1,9 @@
+import { TokenValue as TV } from "@/classes/TokenValue";
 // @vitest-environment jsdom
 import React, { act, useState } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { type Root, createRoot } from "react-dom/client";
 import { Simulate } from "react-dom/test-utils";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { TokenValue as TV } from "@/classes/TokenValue";
 import { ComboInputField } from "../ComboInputField";
 
 vi.mock("@/state/useFarmerBalances", () => ({ useFarmerBalances: () => ({ balances: new Map() }) }));
@@ -17,8 +17,15 @@ const token: any = { address: "0x0000000000000000000000000000000000000001", deci
 let root: Root;
 let container: HTMLDivElement;
 let setParent: (amount: string) => void;
-function Harness({ balance = "1", unclamped = false, minimum = "0", disabled = false, selectedToken = token }) {
-  const [amount, setAmount] = useState("0");
+function Harness({
+  balance = "1",
+  unclamped = false,
+  minimum = "0",
+  disabled = false,
+  selectedToken = token,
+  initialAmount = "0",
+}) {
+  const [amount, setAmount] = useState(initialAmount);
   const [error, setError] = useState(false);
   setParent = setAmount;
   return (
@@ -137,6 +144,13 @@ test("changing tokens resets to zero instead of publishing the next token's maxi
   settle();
   expect(input().value).toBe("0");
   expect(parent()).toBe("0");
+});
+
+test("mounting with an existing controlled amount keeps the displayed and submitted values", () => {
+  render({ balance: "100000", initialAmount: "100000", unclamped: true });
+  settle();
+  expect(input().value).toBe("100000");
+  expect(parent()).toBe("100000");
 });
 
 test("computed quote fields opt out of balance clamping and retain outputs larger than owned balance", () => {

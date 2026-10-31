@@ -15,6 +15,7 @@ interface SiloOutputDisplayProps {
   showNegativeDeltas?: boolean;
   showGrownStalkSeasonsNotice?: boolean;
   grownStalkSeasons?: number;
+  showGrownStalkTime?: boolean;
   amountLabel?: string;
   stalkLabel?: string;
   seedsLabel?: string;
@@ -35,6 +36,7 @@ export default function SiloOutputDisplay({
   showNegativeDeltas = false,
   showGrownStalkSeasonsNotice = false,
   grownStalkSeasons = 0,
+  showGrownStalkTime = false,
   amountLabel = "Deposited Amount",
   stalkLabel = "Stalk",
   seedsLabel = "Seed",
@@ -87,8 +89,11 @@ export default function SiloOutputDisplay({
             <span>
               It would take ~{formatter.number(grownStalkSeasons.toFixed(0))} Season
               {grownStalkSeasons > 1 && <span>s</span>}
-              {grownStalkSeasons >= 168 && formatSeasonsAsTime(grownStalkSeasons)} for this much value to grow the
-              amount of Stalk being burned.{" "}
+              {(showGrownStalkTime || grownStalkSeasons >= 168) &&
+                (grownStalkSeasons < 24
+                  ? ` (${grownStalkSeasons} hour${grownStalkSeasons === 1 ? "" : "s"})`
+                  : formatSeasonsAsTime(grownStalkSeasons))}{" "}
+              for this much value to grow the amount of Stalk being burned.{" "}
               <Link
                 to="https://docs.pinto.money/farm/silo#the-stalk-system"
                 target="_blank"

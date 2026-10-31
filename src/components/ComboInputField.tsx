@@ -84,6 +84,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   mode?: "deposits" | "plots" | "balance";
   inputFrameColor?: "white" | "off-white";
   altText?: string;
+  balanceTextClassName?: string;
   altTextMobile?: string;
   customMaxAmount?: TokenValue;
   customMinAmount?: TokenValue;
@@ -131,6 +132,7 @@ function ComboInputField({
   balancesToShow,
   mode,
   altText,
+  balanceTextClassName,
   altTextMobile,
   customMaxAmount,
   customMinAmount,
@@ -174,6 +176,7 @@ function ComboInputField({
   // Track the last amount we set internally to detect external changes
   const lastInternalAmountRef = useRef<string>(amount);
   const resettingTokenRef = useRef(false);
+  const previousTokenRef = useRef(selectedToken);
 
   const tokenPrices = usePriceData();
   const selectedTokenPrice = selectedToken
@@ -316,6 +319,9 @@ function ComboInputField({
    * Reset amount when token changes
    */
   useEffect(() => {
+    // Mounting another withdrawal form must retain its controlled amount.
+    if (previousTokenRef.current === selectedToken) return;
+    previousTokenRef.current = selectedToken;
     resettingTokenRef.current = true;
     setInternalAmount(TokenValue.ZERO);
     setDisplayValue("0");
@@ -683,7 +689,12 @@ function ComboInputField({
                 {isLoading ? (
                   <Skeleton className="flex w-20 h-5 rounded-lg" />
                 ) : (
-                  <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em] flex flex-row gap-2 items-center">
+                  <div
+                    className={cn(
+                      "text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em] flex flex-row gap-2 items-center",
+                      balanceTextClassName,
+                    )}
+                  >
                     {altText && mode === "deposits" && <img src={depositIcon} alt="Deposit" />}
                     {altText && mode === "plots" && <img src={plotIcon} alt="Plots" />}
                     {altText ? (

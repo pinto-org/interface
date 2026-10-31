@@ -8,6 +8,12 @@ import { fixtureConfig, fixturePriceSource } from "./fixture-config.mjs";
 import { keccak256 } from "viem";
 
 const root = resolve(import.meta.dirname, "../..");
+// Optional deterministic replay of genuine recorded 0x responses on a matching fork.
+// Exact request matching fails closed; production builds never import this harness.
+const qaQuoteRecords = process.env.PINTO_QA_QUOTE_RECORDS
+  ? JSON.parse(readFileSync(process.env.PINTO_QA_QUOTE_RECORDS, "utf8")) : undefined;
+const quoteKey = (url) => JSON.stringify([...new URL(url, "http://127.0.0.1").searchParams.entries()]
+  .map(([k,v]) => [k, v.startsWith("0x") ? v.toLowerCase() : v]).sort(([a],[b]) => a.localeCompare(b)));
 const { rpc, port, startBlock } = fixtureConfig();
 async function request(method, params = []) {
   const response = await fetch(rpc, {
@@ -64,8 +70,21 @@ const server = await createServer({
   server: { host: "127.0.0.1", port, strictPort: true },
   plugins: [{
     name: "local-redemption-wallet-qa", enforce: "pre",
-    configureServer(vite) { vite.middlewares.use(qaMarketMiddleware); },
+    configureServer(vite) {
+      if (qaQuoteRecords) vite.middlewares.use((req, res, next) => {
+        if (!req.url?.startsWith("/__qa/0x/swap/allowance-holder/quote/")) return next();
+        const found = qaQuoteRecords.find((record) => quoteKey(record.url) === quoteKey(req.url));
+        res.setHeader("Content-Type", "application/json");
+        res.statusCode = found ? 200 : 422;
+        res.end(JSON.stringify(found?.response ?? { error: "Recorded quote does not match this request" }));
+      });
+      vite.middlewares.use(qaMarketMiddleware);
+    },
     transform(code, id) {
+      if (qaQuoteRecords && id === resolve(root, "src/constants/endpoints.ts")) {
+        assert.ok(code.includes('router: makeSubdomainURL("0x")'));
+        return code.replace('router: makeSubdomainURL("0x")', 'router: "/__qa/0x"');
+      }
       if (id === resolve(root, "src/constants/address.ts"))
         return fixturePriceSource(code, qaPriceAddress);
       if (id === resolve(root, "src/generated/contractHooks.ts"))
@@ -73,7 +92,7 @@ const server = await createServer({
       if (id === resolve(root, "scripts/qa/wallet.ts"))
         return code.replace('"http://127.0.0.1:18569"', JSON.stringify(rpc));
       if (id === resolve(root, "scripts/qa/main.tsx"))
-        return code.replaceAll("53178878", String(startBlock));
+        return code.replaceAll("53178878", String(startBlock)).replace("LOCAL FORK QA", qaQuoteRecords ? "LOCAL FORK QA — RECORDED 0x QUOTES AT MATCHING FORK BLOCK" : "LOCAL FORK QA");
       // Only these market reads use the event-backed local QA adapter. All production
       // source files, GraphQL documents, query keys and transaction encoders are unchanged.
       if (/\/src\/state\/market\/use(AllMarket|FarmerMarket|MyPodOrders|MyPodListings|PodOrders|PodListings)\.ts$/.test(id)) {

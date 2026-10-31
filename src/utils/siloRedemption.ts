@@ -16,7 +16,7 @@ export type RedemptionRequest = {
   diamond: Address;
   well: Address;
   pinto: Address;
-  kind: "lp" | "pinto";
+  kind: "lp" | "lp-paired" | "pinto";
 };
 export type RedemptionSnapshot = RedemptionRequest & {
   blockNumber: bigint;
@@ -31,8 +31,12 @@ export type RedemptionSnapshot = RedemptionRequest & {
 export type RedemptionSelection = { stems: bigint[]; amounts: bigint[]; amount: bigint };
 
 /** All eligibility, balances, locks and curve discovery come from one block. */
-export async function readRedemptionSnapshot(client: Client, request: RedemptionRequest): Promise<RedemptionSnapshot> {
-  const block = await getBlock(client, { blockTag: "latest" });
+export async function readRedemptionSnapshot(
+  client: Client,
+  request: RedemptionRequest,
+  blockNumber?: bigint,
+): Promise<RedemptionSnapshot> {
+  const block = await getBlock(client, blockNumber === undefined ? { blockTag: "latest" } : { blockNumber });
   const options = { address: request.diamond, blockNumber: block.number };
   const base: RedemptionSnapshot = {
     ...request,
@@ -53,6 +57,20 @@ export async function readRedemptionSnapshot(client: Client, request: Redemption
   });
   // A genuinely absent selector is a legacy deployment; RPC failures are NOT.
   if (facet === zeroAddress) return base;
+  if (request.kind === "lp-paired") {
+    for (const signature of [
+      "getRedeemDepositsToPairedTokenOut(address,address,int96[],uint256[])",
+      "redeemDepositsToPairedToken(address,int96[],uint256[],uint256,uint256,uint8)",
+    ]) {
+      const route = await readContract(client, {
+        ...options,
+        abi: redemptionViews,
+        functionName: "facetAddress",
+        args: [toFunctionSelector(signature)],
+      });
+      if (route === zeroAddress) return base;
+    }
+  }
   const [[threshold, referenceWell], enabled] = await Promise.all([
     readContract(client, { ...options, abi: autoConvertABI, functionName: "getSiloRedemptionPolicy" }),
     readContract(client, {
@@ -113,7 +131,7 @@ export async function readRedemptionSnapshot(client: Client, request: Redemption
     enabled: true,
     threshold,
     referenceWell,
-    outputToken: request.kind === "pinto" ? tokens[1] : request.pinto,
+    outputToken: request.kind === "lp" ? request.pinto : tokens[1],
     deposits,
   };
 }
@@ -166,9 +184,21 @@ export async function quoteRedemption(client: Client, snapshot: RedemptionSnapsh
   const args = [snapshot.account, snapshot.well, selection.stems, selection.amounts] as const;
   if (snapshot.kind === "lp")
     return readContract(client, { ...options, functionName: "getRedeemDepositsToPintoOut", args });
-  const [token, amount] = await readContract(client, { ...options, functionName: "getSwapPintoDepositsOut", args });
+  const [token, amount] = await readContract(client, {
+    ...options,
+    functionName: snapshot.kind === "lp-paired" ? "getRedeemDepositsToPairedTokenOut" : "getSwapPintoDepositsOut",
+    args,
+  });
   if (token.toLowerCase() !== snapshot.outputToken.toLowerCase()) throw new Error("Quote output token changed");
   return amount;
+}
+
+export function redemptionWriteFunction(kind: RedemptionRequest["kind"]) {
+  return kind === "lp"
+    ? "redeemDepositsToPinto"
+    : kind === "lp-paired"
+      ? "redeemDepositsToPairedToken"
+      : "swapPintoDeposits";
 }
 
 /** Keep the reviewed assets, minimum and deadline; revalidation cannot widen consent. */

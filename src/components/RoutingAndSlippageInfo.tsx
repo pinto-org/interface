@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useParseConvertRouteRoutes } from "@/hooks/silo/useSiloConvertResult";
-import { SwapSummary, SwapSummaryExchange } from "@/hooks/swap/useSwapSummary";
+import { SwapRoutingSummary, SwapSummaryExchange } from "@/hooks/swap/useSwapSummary";
 import { PriceImpactSummary, PriceImpactSummaryMap } from "@/hooks/wells/usePriceImpactSummary";
 import { ConvertResultStruct, SiloConvertSummary } from "@/lib/siloConvert/SiloConvert";
 import { ExtendedPoolData } from "@/lib/siloConvert/SiloConvert.cache";
@@ -31,13 +31,14 @@ interface RoutingAndSlippageInfoContext {
   tokenIn: Token;
   preferredSummary: "swap" | "priceImpact";
   txnType: SiloTxn;
-  swapSummary?: SwapSummary;
+  swapSummary?: SwapRoutingSummary;
   convertSummary?: SiloConvertSummary<SiloConvertType>;
   priceImpact?: PriceImpactSummaryMap;
   priceImpactSummary?: PriceImpactSummary;
   secondaryPriceImpactSummary?: PriceImpactSummary;
   wellToken?: Token;
   noMarginTopOnTrigger?: boolean;
+  openDetailsOnClick?: boolean;
 }
 
 interface RoutingAndSlippageInfoProps extends RoutingAndSlippageInfoContext {
@@ -65,6 +66,13 @@ const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
       return;
     }
 
+    if (props.openDetailsOnClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDialogOpen(true);
+      return;
+    }
+
     // Header click: toggle expanded state
     e.preventDefault();
     e.stopPropagation();
@@ -78,6 +86,11 @@ const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
   };
 
   const handleContentClick = (e: React.MouseEvent) => {
+    if (props.openDetailsOnClick && props.swapSummary) {
+      e.preventDefault();
+      setIsDialogOpen(true);
+      return;
+    }
     // prevent opening the dialog if there's no price impact or swap summary
     if (!exists(props.priceImpactSummary?.priceAfter) && !exists(props.swapSummary)) {
       e.preventDefault();
@@ -107,6 +120,7 @@ const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
             wellToken: props.wellToken,
             convertSummary: props.convertSummary,
             noMarginTopOnTrigger: props.noMarginTopOnTrigger,
+            openDetailsOnClick: props.openDetailsOnClick,
           }}
         >
           <DialogTrigger className="w-full" onClick={handleContentClick}>
@@ -117,9 +131,13 @@ const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
             />
           </DialogTrigger>
           <DialogContent
-            hideCloseButton={true}
-            aria-describedby="routing-and-slippage-dialog-contents"
-            className={cn("bg-pinto-off-white", props.txnType === "Convert" && "sm:min-w-[600px]")}
+            hideCloseButton={!props.openDetailsOnClick}
+            aria-describedby={props.swapSummary?.valueBreakdown ? "routing-value-explanation" : undefined}
+            className={cn(
+              "bg-pinto-off-white",
+              props.txnType === "Convert" && "sm:min-w-[600px]",
+              props.openDetailsOnClick && "max-h-[85dvh] overflow-y-auto sm:max-w-xl",
+            )}
           >
             <DialogHeader>
               <DialogTitle>
@@ -146,7 +164,8 @@ const RoutingHeader = ({
   isAnimating,
   onHeaderClick,
 }: { isExpanded: boolean; isAnimating: boolean; onHeaderClick: (e: React.MouseEvent) => void }) => {
-  const { swapSummary, noMarginTopOnTrigger, txnType, convertSummary } = useRoutingAndSlippageInfoContext();
+  const { swapSummary, noMarginTopOnTrigger, txnType, convertSummary, openDetailsOnClick } =
+    useRoutingAndSlippageInfoContext();
   const exchanges = swapSummary?.swap?.exchanges || [];
   const parseRoutes = useParseConvertRouteRoutes();
 
@@ -189,9 +208,13 @@ const RoutingHeader = ({
         )}
       </div>
       <div className="flex flex-row items-center gap-x-2">
-        <ChevronDownIcon
-          className={cn("w-4 h-4 text-pinto-light transition-transform duration-200", isExpanded && "rotate-180")}
-        />
+        {openDetailsOnClick ? (
+          <ArrowRightIcon className="w-4 h-4" />
+        ) : (
+          <ChevronDownIcon
+            className={cn("w-4 h-4 text-pinto-light transition-transform duration-200", isExpanded && "rotate-180")}
+          />
+        )}
       </div>
     </div>
   );
@@ -562,13 +585,7 @@ const getDetailsWithExchange = (exchange: SwapSummaryExchange, noBase = false) =
 const RoutesFormContent = () => {
   const { swapSummary, priceImpactSummary, txnType, tokenOut } = useRoutingAndSlippageInfoContext();
   const exchanges = swapSummary?.swap?.exchanges;
-  const totalSlippage = swapSummary?.totalSlippage ?? 0;
-
-  const slippageColor = () => {
-    if (totalSlippage >= 4) return "error";
-    if (totalSlippage >= 3.5) return "warning-orange";
-    return totalSlippage >= 3 ? "warning-yellow" : "default";
-  };
+  const totalSlippage = swapSummary?.totalSlippage;
 
   return (
     <>
@@ -590,8 +607,8 @@ const RoutesFormContent = () => {
         </div>
       </div>
       <div className="flex flex-row justify-between">
-        <div className="pinto-sm">Route Slippage</div>
-        <div className="pinto-sm">{formatter.pct(totalSlippage)}</div>
+        <div className="pinto-sm">{swapSummary?.valueBreakdown ? "Estimated value loss" : "Route Slippage"}</div>
+        <div className="pinto-sm">{formatter.pct(totalSlippage, { defaultValue: "—" })}</div>
       </div>
       {!tokenOut.isMain && priceImpactSummary?.priceImpact && (
         <div className="flex flex-row justify-between">
@@ -618,7 +635,11 @@ const SlippageDialogHeader = () => {
 
   return (
     <div className="flex flex-row pinto-body font-medium">
-      {isLPToLPConvert || swapSummary?.swap.routes?.length ? "Order Routing and Price Impact" : "Price Impact"}
+      {swapSummary?.valueBreakdown
+        ? "Withdrawal route and value breakdown"
+        : isLPToLPConvert || swapSummary?.swap.routes?.length
+          ? "Order Routing and Price Impact"
+          : "Price Impact"}
     </div>
   );
 };
@@ -750,6 +771,8 @@ const ConvertRoutingDetails = () => {
 const SwapRoutingDetails = () => {
   const { swapSummary } = useRoutingAndSlippageInfoContext();
   if (!swapSummary?.swap.routes[0]) return null;
+  const breakdown = swapSummary.valueBreakdown;
+  const dollar = (value?: TV) => (value === undefined ? "—" : formatter.usd(value));
 
   return (
     <div className="space-y-4">
@@ -758,10 +781,48 @@ const SwapRoutingDetails = () => {
         decorative
         className="bg-pinto-gray-2 h-[1px] w-[calc(100%+3rem)] -translate-x-6"
       />
+      {breakdown && (
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between gap-3">
+            <span>Input value at reference prices</span>
+            <span>{dollar(breakdown.input)}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span>After fee-free pool exits</span>
+            <span>{dollar(breakdown.afterExit)}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span>Quoted final output</span>
+            <span>{dollar(breakdown.output)}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span>Value change in pool exits</span>
+            <span>
+              {breakdown.input && breakdown.afterExit
+                ? formatter.usd(breakdown.afterExit.sub(breakdown.input), { showPositiveSign: true })
+                : "—"}
+            </span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span>Value change in 0x swaps</span>
+            <span>
+              {breakdown.afterExit && breakdown.output
+                ? formatter.usd(breakdown.output.sub(breakdown.afterExit), { showPositiveSign: true })
+                : "—"}
+            </span>
+          </div>
+          <p id="routing-value-explanation" className="pinto-xs-light text-pinto-light">
+            Estimated value loss compares input and quoted output at the app’s reference USD prices. It reflects price
+            impact, quoted swap fees and differences from those prices. Gas and Stalk/Seeds losses are excluded. Maximum
+            slippage separately limits adverse movement after quoting.
+          </p>
+        </div>
+      )}
       <div className="pinto-sm text-pinto-primary py-2">Order Routing</div>
       {swapSummary.swap.routes.map((route) => {
         return (
           <div key={`${route.sellToken.address}-${route.buyToken.address}-${route.amountIn}-${route.amountOut}`}>
+            {route.step && <div className="pinto-xs-light text-pinto-light">{route.step}</div>}
             <div className="flex flex-row justify-between px-1 py-2 items-center">
               {/* route + exchange */}
               <div className="flex flex-col gap-y-2">
@@ -779,22 +840,45 @@ const SwapRoutingDetails = () => {
                   </div>
                 </div>
                 <RouteExchangeDetails exchange={route.exchange} feePct={route.exchangeFeePct} />
+                {route.description && <div className="pinto-xs-light text-pinto-light">{route.description}</div>}
+                {route.step && route.exchange === "0x" && (
+                  <div className="pinto-xs-light text-pinto-light">
+                    {formatter.xDec(route.amountIn, 8)} {route.sellToken.symbol} in
+                  </div>
+                )}
               </div>
               <div className="flex flex-col justify-end items-end gap-y-1">
                 <div className="pinto-sm">
-                  {formatter.xDec(route.amountOut, route.buyToken.displayDecimals ?? 8)} {route.buyToken.symbol}
+                  {formatter.xDec(
+                    route.amountOut,
+                    route.step ? Math.min(8, route.buyToken.decimals) : route.buyToken.displayDecimals ?? 8,
+                  )}{" "}
+                  {route.buyToken.symbol}
                 </div>
-                <div className="pinto-sm text-pinto-light">{formatter.usd(route.usdOut)}</div>
+                <div className="pinto-sm text-pinto-light">
+                  {route.usdOut === undefined ? "—" : formatter.usd(route.usdOut)}
+                </div>
               </div>
             </div>
+            {route.fills?.length ? (
+              <div className="pl-3 border-l border-pinto-gray-2 space-y-1 pinto-xs-light text-pinto-light">
+                <div>0x pool hops (may split in parallel)</div>
+                {route.fills.map((fill, index) => (
+                  <div key={`${index}-${fill.source}`} className="break-words">
+                    {fill.from} → {fill.to} · {fill.source} · {fill.proportionBps / 100}% hop share
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         );
       })}
       <div className="flex flex-row justify-between pt-2 pb-2">
-        <div className="pinto-sm">Route slippage</div>
+        <div className="pinto-sm">{breakdown ? "Estimated value loss" : "Route slippage"}</div>
         <div className="pinto-sm">
           {formatter.pct(swapSummary.swap.totalSlippage, {
             maxDecimals: 3,
+            defaultValue: "—",
           })}
         </div>
       </div>

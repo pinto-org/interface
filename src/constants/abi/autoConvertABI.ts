@@ -3098,4 +3098,130 @@ export const autoConvertABI = [
     name: "AutoConvertNonCanonicalAmount",
     type: "error",
   },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "well",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "lpAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "enum LibTransfer.To",
+        name: "mode",
+        type: "uint8",
+      },
+    ],
+    name: "SiloDepositsRedeemedToPairedToken",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "well",
+        type: "address",
+      },
+      {
+        internalType: "int96[]",
+        name: "stems",
+        type: "int96[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+    ],
+    name: "getRedeemDepositsToPairedTokenOut",
+    outputs: [
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "well",
+        type: "address",
+      },
+      {
+        internalType: "int96[]",
+        name: "stems",
+        type: "int96[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256",
+        name: "minAmountOut",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+      {
+        internalType: "enum LibTransfer.To",
+        name: "mode",
+        type: "uint8",
+      },
+    ],
+    name: "redeemDepositsToPairedToken",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountOut",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
 ] as const;

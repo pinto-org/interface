@@ -1,18 +1,27 @@
-import { test } from "vitest";
 import assert from "node:assert/strict";
-import { createClient, createWalletClient, custom, decodeFunctionData, encodeAbiParameters, type Address } from "viem";
+import {
+  type Address,
+  createClient,
+  createWalletClient,
+  custom,
+  decodeFunctionData,
+  encodeAbiParameters,
+  toFunctionSelector,
+} from "viem";
 import { base } from "viem/chains";
+import { test } from "vitest";
 import { autoConvertABI } from "../../constants/abi/autoConvertABI";
 import { guardedWalletConnector } from "../../utils/guardedWallet";
 import {
+  type RedemptionDeposit,
   parseRedemptionAmount,
   quoteRedemption,
   readRedemptionSnapshot,
   redemptionMinimum,
   redemptionViews,
+  redemptionWriteFunction,
   revalidateRedemption,
   selectRedemptionDeposits,
-  type RedemptionDeposit,
 } from "../../utils/siloRedemption";
 
 const account: Address = "0x0000000000000000000000000000000000000040";
@@ -31,6 +40,8 @@ function mockChain(
     amount?: bigint;
     quote?: bigint;
     changedToken?: boolean;
+    missingPairedSelector?: "quote" | "write";
+    changedQuoteToken?: boolean;
   } = {},
 ) {
   const abi = [...autoConvertABI, ...redemptionViews];
@@ -50,7 +61,18 @@ function mockChain(
           let output: any;
           switch (name) {
             case "facetAddress":
-              output = [options.legacy ? "0x0000000000000000000000000000000000000000" : diamond];
+              output = [
+                options.legacy ||
+                (options.missingPairedSelector &&
+                  decoded.args?.[0] ===
+                    toFunctionSelector(
+                      options.missingPairedSelector === "quote"
+                        ? "getRedeemDepositsToPairedTokenOut(address,address,int96[],uint256[])"
+                        : "redeemDepositsToPairedToken(address,int96[],uint256[],uint256,uint256,uint8)",
+                    ))
+                  ? "0x0000000000000000000000000000000000000000"
+                  : diamond,
+              ];
               break;
             case "getSiloRedemptionPolicy":
               output = [24n, well, 200];
@@ -83,7 +105,8 @@ function mockChain(
               output = [40n, 1100];
               break;
             case "getSwapPintoDepositsOut":
-              output = [paired, options.quote ?? 900n];
+            case "getRedeemDepositsToPairedTokenOut":
+              output = [options.changedQuoteToken ? diamond : paired, options.quote ?? 900n];
               break;
             case "getRedeemDepositsToPintoOut":
               output = [options.quote ?? 900n];
@@ -140,6 +163,31 @@ test("legacy/disabled deployments stay unavailable; RPC errors never masquerade 
   assert.equal((await readRedemptionSnapshot(disabled.client, request)).enabled, false);
   assert.ok(!disabled.calls.includes("getTokenDepositsForAccount"));
   await assert.rejects(readRedemptionSnapshot(mockChain({ rpcError: true }).client, request), /RPC unavailable/);
+});
+
+test("qualified paired-token LP exits select LP crates, verify both selectors and quote the exact output", async () => {
+  const { client, calls } = mockChain();
+  const snapshot = await readRedemptionSnapshot(client, { ...request, kind: "lp-paired" });
+  assert.equal(snapshot.outputToken, paired);
+  assert.equal(snapshot.deposits[0].available, 100n);
+  assert.ok(!calls.includes("getAutoConvertOutputLock"));
+  const selection = selectRedemptionDeposits(snapshot.deposits, 150n);
+  assert.equal(await quoteRedemption(client, snapshot, selection), 900n);
+  assert.ok(calls.includes("getRedeemDepositsToPairedTokenOut"));
+  assert.ok(!calls.includes("getRedeemDepositsToPintoOut"));
+  assert.equal(redemptionWriteFunction(snapshot.kind), "redeemDepositsToPairedToken");
+  assert.equal(redemptionWriteFunction("lp"), "redeemDepositsToPinto");
+  assert.equal(redemptionWriteFunction("pinto"), "swapPintoDeposits");
+  await assert.rejects(
+    quoteRedemption(mockChain({ changedQuoteToken: true }).client, snapshot, selection),
+    /Quote output token changed/,
+  );
+  for (const missingPairedSelector of ["quote", "write"] as const) {
+    const old = mockChain({ missingPairedSelector });
+    assert.equal((await readRedemptionSnapshot(old.client, { ...request, kind: "lp-paired" })).supported, false);
+    assert.ok(!old.calls.includes("getTokenDepositsForAccount"));
+    assert.equal((await readRedemptionSnapshot(old.client, { ...request, kind: "lp" })).supported, true);
+  }
 });
 
 test("selection rejects dust BDV, unavailable deposits, duplicates and oversized batches", () => {

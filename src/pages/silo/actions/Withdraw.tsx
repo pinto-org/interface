@@ -52,7 +52,7 @@ import { AddressLookup } from "@/utils/types.generic";
 import { cn, exists, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useConfig } from "wagmi";
@@ -76,7 +76,15 @@ interface WithdrawOutput {
   bdvLost: TokenValue;
 }
 
-function Withdraw({ siloToken }: { siloToken: Token }) {
+function Withdraw({
+  siloToken,
+  onBusyChange,
+  unified,
+}: {
+  siloToken: Token;
+  onBusyChange?: (busy: boolean) => void;
+  unified?: { amount: string; setAmount: (value: string) => void; output: ReactNode };
+}) {
   const config = useConfig();
   const account = useAccount();
   const chainId = useChainId();
@@ -96,11 +104,13 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
 
   const [mode, toFarm, setMode] = useFarmTogglePreference();
-  const [amount, setAmount] = useState("");
+  const [localAmount, setLocalAmount] = useState("");
+  const amount = unified?.amount ?? localAmount;
+  const setAmount = unified?.setAmount ?? setLocalAmount;
 
   const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);
 
-  const [tokenOut, setTokenOut] = useState<Token | undefined>(getInitialWithdrawToken(siloToken));
+  const [tokenOut, setTokenOut] = useState<Token | undefined>(unified ? siloToken : getInitialWithdrawToken(siloToken));
   const [slippage, setSlippage] = useState(0.1);
 
   const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
@@ -267,6 +277,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     errorMessage: "Withdraw failed",
     successCallback: onSuccess,
   });
+
+  useEffect(() => {
+    onBusyChange?.(submitting || isConfirming);
+    return () => onBusyChange?.(false);
+  }, [submitting, isConfirming, onBusyChange]);
 
   const handleWithdrawConvert = async (convQuote: ReturnType<typeof useSiloConvertQuote>["data"]) => {
     if (!convQuote) {
@@ -487,7 +502,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       <div>
         <div className="h-10 flex flex-row justify-between items-center">
           <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">Amount to Withdraw</div>
-          <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+          {!unified && <SlippageButton slippage={slippage} setSlippage={setSlippage} />}
         </div>
         <ComboInputField
           amount={amount}
@@ -511,7 +526,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
         label={`Withdraw ${tokenOut?.symbol || "Assets"} to Farm Wallet`}
       />
-      {siloToken.isLP && (
+      {siloToken.isLP && !unified && (
         <Col className="w-full py-2 gap-2">
           <div className="pinto-body-light text-pinto-light whitespace-nowrap">
             {tokenOut ? "Withdraw" : "Withdraw as"}
@@ -612,6 +627,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           </motion.div>
         )}
       </AnimatePresence>
+      {unified?.output}
       {shouldSwap && withdrawOutput && (
         <RoutingAndSlippageInfo
           title="Total Withdraw Slippage"

@@ -9,11 +9,10 @@ import { trackSimpleEvent } from "@/utils/analytics";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useCallback, useEffect, useState } from "react";
-import RedeemDeposits from "./actions/RedeemDeposits";
 import Convert from "./actions/Convert";
 import Deposit from "./actions/Deposit";
+import UnifiedWithdrawal from "./actions/UnifiedWithdrawal";
 import UnwrapToken from "./actions/UnwrapToken";
-import Withdraw from "./actions/Withdraw";
 import WrapToken from "./actions/WrapToken";
 
 interface SiloToken {
@@ -27,7 +26,7 @@ const SLUGS = {
 } as const;
 
 export default function SiloActions({ token }: SiloToken) {
-  const [redemptionBusy, setRedemptionBusy] = useState(false);
+  const [withdrawalBusy, setWithdrawalBusy] = useState(false);
   const [tab, handleChangeTab] = useParamsTabs(
     token.isSiloWrapped ? SLUGS.wrappable : token.isWhitelisted ? SLUGS.nonWrappable : SLUGS.nonWhitelistedNonWrappable,
     "action",
@@ -65,7 +64,7 @@ export default function SiloActions({ token }: SiloToken) {
   };
   const handleTabChange = useCallback(
     (newTab: string) => {
-      if (redemptionBusy) return;
+      if (withdrawalBusy) return;
       // Track tab changes
       const eventMap = {
         deposit: ANALYTICS_EVENTS.SILO.DEPOSIT_TAB_CLICK,
@@ -87,7 +86,7 @@ export default function SiloActions({ token }: SiloToken) {
 
       handleChangeTab(newTab);
     },
-    [tab, token, handleChangeTab, redemptionBusy],
+    [tab, token, handleChangeTab, withdrawalBusy],
   );
 
   useEffect(() => {
@@ -101,8 +100,13 @@ export default function SiloActions({ token }: SiloToken) {
   }, [token, tab, handleChangeTab]);
 
   useEffect(() => {
+    // Keep an in-flight exit mounted; wait for eligibility before resolving deep links.
+    if (withdrawalBusy || farmerSilo.isLoading) return;
     // Redirect away from disabled tabs
-    if (tab === "convert" && isConvertDisabled) {
+    if (tab === "redeem") {
+      // Preserve old exit links, but put their content under Withdraw.
+      handleChangeTab(isWithdrawDisabled && token.isWhitelisted ? "deposit" : "withdraw");
+    } else if (tab === "convert" && isConvertDisabled) {
       // Redirect to deposit if available, otherwise withdraw if not disabled, otherwise no redirect needed
       if (token.isWhitelisted) {
         handleChangeTab("deposit");
@@ -117,14 +121,24 @@ export default function SiloActions({ token }: SiloToken) {
         handleChangeTab("convert");
       }
     }
-  }, [isConvertDisabled, isWithdrawDisabled, tab, token.isWhitelisted, handleChangeTab]);
+  }, [
+    isConvertDisabled,
+    isWithdrawDisabled,
+    withdrawalBusy,
+    farmerSilo.isLoading,
+    tab,
+    token.isWhitelisted,
+    handleChangeTab,
+  ]);
 
   return (
-    <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
+    <Tabs value={tab === "redeem" ? "withdraw" : tab} onValueChange={handleTabChange} className="w-full">
       <TabsList
         className={cn(
           "grid w-full",
-          token.isSiloWrapped ? "grid-cols-2" : token.isWhitelisted ? "grid-cols-4" : "grid-cols-3",
+          token.isSiloWrapped ? "grid-cols-2" : token.isWhitelisted ? "grid-cols-3" : "grid-cols-2",
+          !token.isSiloWrapped &&
+            "[&_[role=tab]]:px-2 [&_[role=tab]]:text-sm sm:[&_[role=tab]]:px-3 sm:[&_[role=tab]]:text-xl",
         )}
       >
         {token.isSiloWrapped ? (
@@ -165,7 +179,6 @@ export default function SiloActions({ token }: SiloToken) {
             ) : (
               <TabsTrigger value="convert">Convert</TabsTrigger>
             )}
-            <TabsTrigger value="redeem">Fee-free exit</TabsTrigger>
           </>
         )}
       </TabsList>
@@ -185,16 +198,11 @@ export default function SiloActions({ token }: SiloToken) {
         </TabsContent>
       )}
       <TabsContent value="withdraw">
-        <Withdraw siloToken={token} />
+        <UnifiedWithdrawal key={token.address} siloToken={token} onBusyChange={setWithdrawalBusy} />
       </TabsContent>
       <TabsContent value="convert">
         <Convert siloToken={token} />
       </TabsContent>
-      {!token.isSiloWrapped && (
-        <TabsContent value="redeem">
-          <RedeemDeposits key={token.address} siloToken={token} onBusyChange={setRedemptionBusy} />
-        </TabsContent>
-      )}
       {token.isSiloWrapped && (
         <TabsContent value="wrap">
           <WrapToken siloToken={token} />

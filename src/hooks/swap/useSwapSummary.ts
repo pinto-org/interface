@@ -43,6 +43,22 @@ export interface SwapSummary {
   totalSlippage: number;
 }
 
+/** Display data also supports routes whose token USD prices are not yet available. */
+export type SwapRoutingSummary = {
+  swap: {
+    routes: (Omit<SwapRouteSummary, "usdIn" | "usdOut"> & {
+      usdOut?: TV;
+      description?: string;
+      step?: string;
+      fills?: { from: string; to: string; source: string; proportionBps: number }[];
+    })[];
+    totalSlippage?: number;
+    exchanges: SwapSummaryExchange[];
+  };
+  totalSlippage?: number;
+  valueBreakdown?: { input?: TV; afterExit?: TV; output?: TV };
+};
+
 export default function useSwapSummary(quote: BeanSwapNodeQuote | undefined): SwapSummary | undefined {
   const { tokenPrices } = usePriceData();
 

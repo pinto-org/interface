@@ -1,0 +1,41 @@
+// Prepare only an explicit disposable Anvil child for UI QA; never targets Base.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { createServer } from 'vite';
+import { createPublicClient, createWalletClient, http, parseAbi, parseUnits } from 'viem';
+import { base } from 'viem/chains';
+const rpc = process.env.PINTO_QA_RPC;
+assert.equal(new URL(rpc).hostname, '127.0.0.1');
+assert.notEqual(rpc, 'http://127.0.0.1:18598', 'Never modify preserved parent');
+const chain = { ...base, id: 1337 };
+const client = createPublicClient({ chain, transport: http(rpc, { timeout: 180_000, retryCount: 0 }) });
+assert.equal(await client.getChainId(), 1337);
+assert.match(await client.request({ method: 'web3_clientVersion' }), /^anvil\//);
+const donor = process.env.PINTO_QA_DONOR ?? '0xfb7c4c283e2b7d4b96cd2c5f4fed551907b3c66c';
+assert.match(donor, /^0x[0-9a-fA-F]{40}$/);
+const account = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+const diamond = '0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f';
+const pinto = '0xb170000aeeFa790fa61D6e837d1035906839a3c8';
+const well = '0x3e1133aC082716DDC3114bbEFEeD8B1731eA9cb1';
+process.env.VITE_BASE_ENDPOINT = 'pinto.money';
+const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
+try {
+  const { readRedemptionSnapshot, selectRedemptionDeposits } = await server.ssrLoadModule('/src/utils/siloRedemption.ts');
+  const snap = await readRedemptionSnapshot(client, { account: donor, diamond, pinto, well, kind: 'pinto' });
+  const amount = process.env.PINTO_QA_PREPARE_AMOUNT ?? '8000';
+  const selected = selectRedemptionDeposits(snap.deposits, parseUnits(amount, 6));
+  await client.request({ method: 'anvil_impersonateAccount', params: [donor] });
+  await client.request({ method: 'anvil_setBalance', params: [donor, '0x56bc75e2d63100000'] });
+  const wallet = createWalletClient({ chain, transport: http(rpc), account: donor });
+  const tx = { address: diamond, abi: parseAbi(['function transferDeposits(address sender,address recipient,address token,int96[] stems,uint256[] amounts) payable returns(uint256[])']), functionName: 'transferDeposits', args: [donor, account, pinto, selected.stems, selected.amounts] };
+  await client.simulateContract({ ...tx, account: donor });
+  const estimate = await client.estimateContractGas({ ...tx, account: donor });
+  const hash = await wallet.writeContract({ ...tx, gas: estimate * 130n / 100n + 50_000n });
+  const receipt = await client.waitForTransactionReceipt({ hash }); assert.equal(receipt.status, 'success');
+  await client.request({ method: 'anvil_stopImpersonatingAccount', params: [donor] });
+  const eligible = await readRedemptionSnapshot(client, { account, diamond, pinto, well, kind: 'pinto' });
+  const fixture = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+  fixture.rpc = rpc; fixture.startBlock = Number(receipt.blockNumber); fixture.qaPreparation = { donor, amount, hash, preservesDepositAge: true };
+  fs.writeFileSync(process.argv[3], JSON.stringify(fixture, null, 2));
+  console.log(JSON.stringify({ rpc, hash, block: String(receipt.blockNumber), eligiblePinto: String(eligible.deposits.reduce((s,d) => s + (d.eligible ? d.available : 0n),0n)), snapshot: await client.request({ method: 'evm_snapshot' }) }));
+} finally { await server.close(); }

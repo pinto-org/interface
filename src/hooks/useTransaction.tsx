@@ -28,6 +28,8 @@ type ConstrictedWriteContractParams = Omit<Parameters<WriteContractMutateAsync<C
 type WriteContractParams = Prettify<Omit<ConstrictedWriteContractParams, "account"> & { value?: bigint | undefined }>;
 
 export interface UseTransactionParams {
+  /** Keep confirmation tracking on the submission chain if the wallet switches. */
+  confirmationChainId?: number;
   /**
    * message to be shown on error. Overrides the error message from the error returned txn submissions.
    * If this is not provided, the error message from the error returned txn submissions will be used.
@@ -79,6 +81,7 @@ const sendErrorToast = (error: any, errMessage?: string) => {
 };
 
 export default function useTransaction({
+  confirmationChainId,
   errorMessage,
   successMessage,
   token,
@@ -128,8 +131,9 @@ export default function useTransaction({
 
   const receipt = useWaitForTransactionReceipt({
     hash,
+    chainId: confirmationChainId ?? chainId,
     // 2 confirmation on production networks
-    confirmations: getIsProdNetwork(chainId) ? 2 : 1,
+    confirmations: getIsProdNetwork(confirmationChainId ?? chainId) ? 2 : 1,
     pollingInterval: 1_000,
   });
 
@@ -147,7 +151,7 @@ export default function useTransaction({
       setSubmitting(false);
       hashes.current.delete(hash);
       toast.dismiss();
-      const explorerLink = getExplorerLink(hash, chainId);
+      const explorerLink = getExplorerLink(hash, confirmationChainId ?? chainId);
       toast.success(
         <div className="flex flex-row items-center gap-4">
           <span className="text-pinto-sm">{successMessage ?? "Transaction successful"}</span>
@@ -173,7 +177,7 @@ export default function useTransaction({
         clearAllowances(token);
       }
     }
-  }, [chainId, receipt.isSuccess, hash, successCallback, token, clearAllowances]);
+  }, [chainId, confirmationChainId, receipt.isSuccess, hash, successCallback, token, clearAllowances]);
 
   // on Error
   useEffect(() => {

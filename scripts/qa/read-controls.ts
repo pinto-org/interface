@@ -9,6 +9,7 @@ const depositSelectors = new Set([
 const exitSelectors = new Set([
   "swapPintoDeposits(address,int96[],uint256[],uint256,uint256,uint8)",
   "redeemDepositsToPinto(address,int96[],uint256[],uint256,uint256,uint8)",
+  "redeemDepositsToPairedToken(address,int96[],uint256[],uint256,uint256,uint8)",
 ].map(toFunctionSelector));
 const multicall = "0xca11bde05977b3631167028862be2a173976ca11";
 

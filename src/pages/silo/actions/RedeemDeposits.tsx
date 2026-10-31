@@ -2,6 +2,7 @@ import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/ToggleGroup";
 import { autoConvertABI } from "@/constants/abi/autoConvertABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
@@ -16,23 +17,68 @@ import {
   readRedemptionSnapshot,
   redemptionMinimum,
   redemptionSelectionKey,
+  redemptionWriteFunction,
   revalidateRedemption,
   selectRedemptionDeposits,
 } from "@/utils/siloRedemption";
 import { FarmToMode, type Token } from "@/utils/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAccount, watchAccount } from "@wagmi/core";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { formatUnits, type Address } from "viem";
+import { type Address, formatUnits } from "viem";
 import { estimateContractGas, simulateContract } from "viem/actions";
 import { useAccount, useChainId, useConfig } from "wagmi";
+import FeeFreeWithdrawalAmount from "./FeeFreeWithdrawalAmount";
+import RoutedRedemption from "./RoutedRedemption";
+
+export default function RedeemDeposits(props: { siloToken: Token; onBusyChange: (busy: boolean) => void }) {
+  const [route, setRoute] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const onBusyChange = useCallback(
+    (value: boolean) => {
+      setBusy(value);
+      props.onBusyChange(value);
+    },
+    [props.onBusyChange],
+  );
+  return (
+    <div className="flex flex-col gap-4">
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        value={route ? "routed" : "direct"}
+        onValueChange={(value) => {
+          if (value) setRoute(value === "routed");
+        }}
+        disabled={busy}
+        aria-label="Withdrawal routing"
+        className="grid grid-cols-2 items-stretch gap-2"
+      >
+        {[
+          ["direct", "Direct withdrawal"],
+          ["routed", "Withdraw to one token"],
+        ].map(([value, label]) => (
+          <ToggleGroupItem
+            key={value}
+            value={value}
+            className="w-full h-full min-h-[2.5rem] sm:min-h-[2.75rem] py-2 rounded-full bg-pinto-gray-1 border-pinto-gray-3 text-[1rem] leading-[1.1rem] sm:text-[1.25rem] sm:leading-[1.3875rem] -tracking-[0.02em] font-[400] text-black whitespace-normal"
+          >
+            {label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      {route ? (
+        <RoutedRedemption {...props} onBusyChange={onBusyChange} />
+      ) : (
+        <DirectRedemption {...props} onBusyChange={onBusyChange} />
+      )}
+    </div>
+  );
+}
 
 /** A separate voluntary withdrawal, not a Silo convert and not a wallet-age exemption. */
-export default function RedeemDeposits({
-  siloToken,
-  onBusyChange,
-}: { siloToken: Token; onBusyChange: (busy: boolean) => void }) {
+function DirectRedemption({ siloToken, onBusyChange }: { siloToken: Token; onBusyChange: (busy: boolean) => void }) {
   const config = useConfig();
   const account = useAccount();
   const chainId = useChainId();
@@ -47,6 +93,7 @@ export default function RedeemDeposits({
   const [amount, setAmount] = useState("0");
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [slippageBps, setSlippageBps] = useState(50);
+  const [lpOutput, setLpOutput] = useState<"pinto" | "paired">("pinto");
   const [refreshing, setRefreshing] = useState(false);
   const preparing = useRef(false);
   const mounted = useRef(false);
@@ -59,7 +106,7 @@ export default function RedeemDeposits({
   }, [onBusyChange]);
   const client = config.getClient({ chainId });
   const isPinto = siloToken.address.toLowerCase() === tokens.mainToken.address.toLowerCase();
-  const kind = isPinto ? "pinto" : "lp";
+  const kind = isPinto ? "pinto" : lpOutput === "paired" ? "lp-paired" : "lp";
   const request = {
     account: account.address!,
     diamond,
@@ -68,14 +115,13 @@ export default function RedeemDeposits({
     kind,
   } as const;
   const snapshot = useQuery({
-    queryKey: ["siloRedemption", chainId, diamond, account.address, siloToken.address, wellAddress],
+    queryKey: ["siloRedemption", chainId, diamond, account.address, siloToken.address, wellAddress, kind],
     queryFn: () => readRedemptionSnapshot(client, request),
     enabled: Boolean(account.address && diamond && wellAddress && (isPinto || siloToken.isLP)),
     staleTime: 5_000,
     refetchInterval: 15_000,
     refetchOnWindowFocus: true,
   });
-  const available = snapshot.data?.deposits.reduce((sum, d) => sum + (d.eligible ? d.available : 0n), 0n) ?? 0n;
   const selection = useMemo(() => {
     try {
       const parsed = parseRedemptionAmount(amount, siloToken.decimals);
@@ -184,7 +230,7 @@ export default function RedeemDeposits({
         address: diamond,
         account: request.account,
         abi: autoConvertABI,
-        functionName: kind === "lp" ? "redeemDepositsToPinto" : "swapPintoDeposits",
+        functionName: redemptionWriteFunction(reviewedSnapshot.kind),
         args: [wellAddress, selected.stems, selected.amounts, reviewedMinimum, deadline, Number(destination)],
       } as const;
       // Match the actual write, including its sender, minimum and deadline. A
@@ -215,15 +261,37 @@ export default function RedeemDeposits({
       <p className="text-sm text-pinto-gray-5">
         {isPinto
           ? "Sell qualified deposited Pinto for a Well’s paired token"
-          : "Withdraw qualified LP deposits directly as Pinto"}{" "}
+          : "Withdraw qualified LP deposits directly as Pinto or the Well’s paired token"}{" "}
         without the Well’s swap fee. This withdraws the selected deposits and forfeits their Stalk and Seeds. Price
         impact and network gas still apply.
       </p>
       <p className="text-sm text-pinto-gray-5">
-        Qualification uses grown Stalk per BDV, calibrated once to 24 Seasons of the lowest-growth eligible LP—not 24
-        hours in your wallet. Pinto may take longer. Germinating deposits and locked Auto Convert output are excluded.
+        Deposits must be non-germinating and meet the protocol’s grown Stalk per BDV threshold. The threshold is
+        calibrated once to 24 Seasons of the lowest-growth eligible LP, rather than time in your wallet. Pinto may take
+        longer to qualify.
       </p>
       <fieldset disabled={busy} className="flex flex-col gap-4 disabled:opacity-60">
+        {!isPinto && (
+          <div>
+            <Label className="flex h-10 items-center">Receive</Label>
+            <Select
+              value={lpOutput}
+              onValueChange={(value) => {
+                setLpOutput(value as "pinto" | "paired");
+                setAmount("0");
+              }}
+              disabled={busy}
+            >
+              <SelectTrigger aria-label="LP withdrawal output">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pinto">Pinto</SelectItem>
+                <SelectItem value="paired">Well’s paired token</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         {isPinto && (
           <div>
             <Label className="flex h-10 items-center">Output Well</Label>
@@ -248,32 +316,14 @@ export default function RedeemDeposits({
             </Select>
           </div>
         )}
-        <div>
-          <Label htmlFor="redemption-amount" className="flex h-10 items-center">
-            Eligible amount to withdraw ({siloToken.symbol})
-          </Label>
-          <div className="flex gap-2">
-            <input
-              id="redemption-amount"
-              inputMode="decimal"
-              autoComplete="off"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              disabled={busy}
-              className="min-w-0 w-full rounded-md border bg-background p-3 text-lg"
-            />
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => setAmount(formatUnits(available, siloToken.decimals))}
-            >
-              Max
-            </Button>
-          </div>
-          <p className="text-sm mt-2">
-            Eligible, unlocked balance: {formatUnits(available, siloToken.decimals)} {siloToken.symbol}
-          </p>
-        </div>
+        <FeeFreeWithdrawalAmount
+          token={siloToken}
+          amount={amount}
+          setAmount={setAmount}
+          deposits={snapshot.data?.deposits ?? []}
+          disabled={busy}
+          loading={snapshot.isPending || snapshot.isError}
+        />
         <div>
           <Label className="flex h-10 items-center">Destination</Label>
           <DestinationBalanceSelect balanceTo={destination} setBalanceTo={setDestination} />
@@ -301,7 +351,7 @@ export default function RedeemDeposits({
       ) : snapshot.isError ? (
         <p role="alert">Could not verify eligibility. No transaction will be submitted.</p>
       ) : !snapshot.data?.supported ? (
-        <p>This deployment does not support fee-exempt deposit exits yet.</p>
+        <p>This deployment does not support this fee-exempt deposit exit yet.</p>
       ) : !snapshot.data.enabled ? (
         <p>Fee-exempt exits are not enabled for this Well.</p>
       ) : null}
@@ -328,7 +378,13 @@ export default function RedeemDeposits({
         Refresh eligibility and quote
       </Button>
       <Button onClick={submit} disabled={disabled} variant="gradient" rounded="full" width="full" size="xxl">
-        {busy ? "Preparing withdrawal…" : isPinto ? "Withdraw and sell Pinto" : "Withdraw LP as Pinto"}
+        {busy
+          ? "Preparing withdrawal…"
+          : isPinto
+            ? "Withdraw and sell Pinto"
+            : lpOutput === "paired"
+              ? "Withdraw LP as paired token"
+              : "Withdraw LP as Pinto"}
       </Button>
     </div>
   );
