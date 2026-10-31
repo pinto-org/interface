@@ -5,7 +5,7 @@ import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
 import ConvertUpOrderbookDialog from "@/components/Tractor/ConvertUpOrderbook";
 import ConvertUpTractorOrderBookChart from "@/components/Tractor/ConvertUpTractorOrderBookChart";
 import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders";
-import { TractorConvertUpOrdersPanel } from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
+import TractorOrdersPanelGeneric from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import CompactSeasonalLineChart from "@/components/charts/CompactSeasonalLineChart";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
@@ -30,6 +30,8 @@ import SiloConvertUpStats from "./SiloConvertUpStats";
 
 const mobileOnlyActions = ["orders"] as const;
 const actions = [...mobileOnlyActions, "tractor"] as const;
+
+const SILO_ORDER_TYPES = ["convertUp", "automateClaim"] as const;
 
 // Pull this out to minimize re-renders
 const useConvertUpTractorActiveTab = () => {
@@ -116,7 +118,7 @@ export const SiloConvertUpContent = () => {
               <ConvertUpTractorOrders onSeeAllClick={() => setOpen(true)} />
             </Tabs.TabsContent>
             <Tabs.TabsContent value="tractor">
-              <TractorConvertUpOrdersPanel />
+              <TractorOrdersPanelGeneric orderTypes={[...SILO_ORDER_TYPES]} />
             </Tabs.TabsContent>
           </Tabs.Tabs>
         </div>

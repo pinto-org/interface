@@ -17,7 +17,7 @@ import { useNavigate, useParams } from "react-router-dom";
 export function PodOrdersTable() {
   const { id: selectedOrder } = useParams();
   const BEAN = useTokenData().mainToken;
-  const { podMarketplaceId } = useBeanstalkMarket();
+  const { podMarketplaceId, isBeanstalkMarketplace } = useBeanstalkMarket();
   const podOrdersQuery = usePodOrders(podMarketplaceId);
   const podOrders = podOrdersQuery.data?.podOrders;
 
@@ -44,9 +44,11 @@ export function PodOrdersTable() {
   const navigate = useNavigate();
   const navigateTo = useCallback(
     (id: string) => {
-      navigate(`/market/pods/sell/fill?orderId=${id}`);
+      navigate(
+        `/market/pods/sell/fill?orderId=${encodeURIComponent(id)}${isBeanstalkMarketplace ? "&beanstalk=true" : ""}`,
+      );
     },
-    [navigate],
+    [navigate, isBeanstalkMarketplace],
   );
 
   useEffect(() => {

@@ -111,7 +111,6 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
   const queryClient = useQueryClient();
   const { allPodListings, allMarket, farmerMarket, farmerField } = useQueryKeys({
     account: account.address,
-    harvestableIndex,
   });
   const { queryKey: farmerPlotsQK } = useFarmerPlotsQuery();
   const allQK = useMemo(

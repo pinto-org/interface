@@ -4,8 +4,10 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useTransaction from "@/hooks/useTransaction";
 import { Blueprint, PublisherTractorExecution, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
+import { queryKeys } from "@/state/queryKeys";
 import { cn } from "@/utils/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -64,6 +66,7 @@ export default function ReviewTractorOrderDialog({
   const [decodeAbi, setDecodeAbi] = useState(false);
   const protocolAddress = useProtocolAddress();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Get order type configuration from registry
   // Memoize the order config to avoid re-rendering the component on every render
@@ -81,8 +84,22 @@ export default function ReviewTractorOrderDialog({
     successMessage: "Order published successfully",
     errorMessage: "Failed to publish order",
     successCallback: () => {
-      // Close the dialog after successful submission
+      // Invalidate all tractor queries to refresh order lists
+      queryClient.invalidateQueries({ queryKey: queryKeys.base.tractor });
+
+      // Close the dialog
       onOpenChange(false);
+
+      // Navigate to the Field page with tractor tab active
+      if (orderData.type === "sow") {
+        navigate("/field?tab=tractor");
+      }
+
+      // Call the parent success callback to refresh data
+      onSuccess?.();
+
+      // Call the onOrderPublished callback if provided
+      onOrderPublished?.();
     },
   });
 
@@ -114,6 +131,7 @@ export default function ReviewTractorOrderDialog({
 
     try {
       setSubmitting(true);
+
       // Check if we need to include deposit optimization calls
       if (depositOptimizationCalls && depositOptimizationCalls.length > 0) {
         console.debug(`Publishing requisition with ${depositOptimizationCalls.length} deposit optimization calls`);
@@ -147,30 +165,8 @@ export default function ReviewTractorOrderDialog({
           args: [signedRequisition],
         });
       }
-
-      // Success handling
-      toast.success("Order published successfully");
-
-      // Close the dialog
-      onOpenChange(false);
-
-      // Navigate to the Field page with tractor tab active
-      if (orderData.type === "sow") {
-        navigate("/field?tab=tractor");
-      }
-
-      // Call the parent success callback to refresh data
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      // Call the onOrderPublished callback if provided
-      if (onOrderPublished) {
-        onOrderPublished();
-      }
     } catch (error) {
       console.error("Error publishing requisition:", error);
-    } finally {
       setSubmitting(false);
     }
   };

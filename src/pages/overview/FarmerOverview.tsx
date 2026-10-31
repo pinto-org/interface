@@ -569,4 +569,4 @@ const Overview = () => {
 
 export default Overview;
 
-const ORDER_TYPES: OrderType[] = ["sow", "convertUp"] as const;
+const ORDER_TYPES: OrderType[] = ["sow", "convertUp", "automateClaim"] as const;
