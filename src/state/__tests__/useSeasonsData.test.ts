@@ -4,7 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import useSeasonsData from "../useSeasonsData";
 import stalkData from "./fixtures/advanced-chart.json";
 
-const api = vi.hoisted(() => ({ apy: undefined as any, tractor: undefined as any, inflow: undefined as any }));
+const api = vi.hoisted(() => ({
+  apy: undefined as any,
+  tractor: undefined as any,
+  inflow: undefined as any,
+  market: [] as any[],
+  prices: {} as any,
+}));
 vi.mock("wagmi", () => ({ useChainId: () => 8453 }));
 vi.mock("../useTokenData", () => ({
   default: () => ({ mainToken: { address: "0xb170000aeefa790fa61d6e837d1035906839a3c8", decimals: 6 } }),
@@ -25,8 +31,8 @@ vi.mock("../seasonal/queries/useSeasonalInflowSnapshots", () => ({
 }));
 vi.mock("../seasonal/queries/useSeasonalMarketPerformance", () => ({
   SMPChartType: {},
-  useMarketPerformanceCalc: () => ({}),
-  useSeasonalMarketPerformanceData: () => ({ data: [], isLoading: false }),
+  useMarketPerformanceCalc: () => api.prices,
+  useSeasonalMarketPerformanceData: () => ({ data: api.market, isLoading: false }),
 }));
 
 function readSeasons(options = {}) {
@@ -50,6 +56,8 @@ beforeEach(() => {
   api.apy = undefined;
   api.tractor = undefined;
   api.inflow = undefined;
+  api.market = [];
+  api.prices = {};
 });
 
 describe("All explorer during a Pinto API outage", () => {
@@ -80,4 +88,19 @@ describe("All explorer during a Pinto API outage", () => {
     expect(data[0]).not.toHaveProperty("pinto7d");
     expect(data[0]).not.toHaveProperty("pinto30d");
   });
+});
+
+it("keeps price history when a market token has shorter or missing history", () => {
+  api.market = [
+    { season: 17027, timestamp: "1793412057" },
+    { season: 17028, timestamp: "1793415657" },
+  ];
+  api.prices = { WETH: [{ season: 17028, value: 2000 }], cbETH: [], cbBTC: [], WSOL: [] };
+  const { data } = readSeasons({ marketPerformanceData: true });
+  expect(data[0].price.toNumber()).toBe(0.033);
+  expect(data[0].marketPriceWeth).toBe(2000);
+  expect(data[1].marketPriceWeth).toBeUndefined();
+  expect(data[0].marketPriceCbbtc).toBeUndefined();
+  expect(data[1].season).toBe(17027);
+  expect(data[1].timestamp).toBe(1793412057);
 });

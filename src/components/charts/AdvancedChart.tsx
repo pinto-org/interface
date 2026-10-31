@@ -158,7 +158,7 @@ export const AdvancedChart = () => {
       const _output: TVChartFormattedData[] = [];
       seasonsData.data.forEach((seasonData) => {
         // Verify a datapoint is available for this season (some data, like tractor, is not since season 1)
-        if (selectedChart.priceScaleKey in seasonData) {
+        if (seasonData[selectedChart.priceScaleKey] !== undefined && seasonData[selectedChart.priceScaleKey] !== null) {
           const formatValue = selectedChart.valueFormatter;
           const dataPoint = {
             value: formatValue(seasonData[selectedChart.priceScaleKey]),
