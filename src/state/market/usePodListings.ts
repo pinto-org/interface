@@ -7,12 +7,12 @@ import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useMemo } from "react";
 import { useChainId } from "wagmi";
-import { useHarvestableIndex } from "../useFieldData";
 import { useQueryKeys } from "../useQueryKeys";
+import { useMarketHarvestableIndex } from "./useMarketHarvestableIndex";
 
-export default function usePodListings(podMarketplaceId?: string) {
+export default function usePodListings(podMarketplaceId = "0") {
   const chainId = useChainId();
-  const harvestableIndex = useHarvestableIndex();
+  const harvestableIndex = useMarketHarvestableIndex(podMarketplaceId);
 
   const { allPodListings: queryKey } = useQueryKeys({ chainId, harvestableIndex });
 
@@ -26,7 +26,7 @@ export default function usePodListings(podMarketplaceId?: string) {
       if (podMarketplaceId) variables.podMarketplace = podMarketplaceId;
       return request(subgraphs[chainId].beanstalk, AllPodListingsDocument, variables);
     },
-    enabled: harvestableIndex.gt(0),
+    enabled: harvestableIndex.gte(0),
   });
 
   // Filter out listings that cannot be purchased (pricePerPod * remainingAmount < minFillAmount)

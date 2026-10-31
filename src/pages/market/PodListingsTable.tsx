@@ -8,8 +8,8 @@ import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PODS } from "@/constants/internalTokens";
 import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
+import { useMarketHarvestableIndex } from "@/state/market/useMarketHarvestableIndex";
 import usePodListings from "@/state/market/usePodListings";
-import { useHarvestableIndex } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { useCallback, useEffect, useState } from "react";
@@ -18,11 +18,11 @@ import { useNavigate, useParams } from "react-router-dom";
 export function PodListingsTable() {
   const { id: selectedListing } = useParams();
   const BEAN = useTokenData().mainToken;
-  const { podMarketplaceId } = useBeanstalkMarket();
+  const { podMarketplaceId, isBeanstalkMarketplace } = useBeanstalkMarket();
 
   const podListingsQuery = usePodListings(podMarketplaceId);
   const podListings = podListingsQuery.data?.podListings;
-  const harvestableIndex = useHarvestableIndex();
+  const harvestableIndex = useMarketHarvestableIndex(podMarketplaceId);
 
   const rowsPerPage = 12;
   const totalRows = podListings?.length || 0;
@@ -34,9 +34,11 @@ export function PodListingsTable() {
   const navigate = useNavigate();
   const navigateTo = useCallback(
     (id: string) => {
-      navigate(`/market/pods/buy/fill?listingId=${id}`);
+      navigate(
+        `/market/pods/buy/fill?listingId=${encodeURIComponent(id)}${isBeanstalkMarketplace ? "&beanstalk=true" : ""}`,
+      );
     },
-    [navigate],
+    [navigate, isBeanstalkMarketplace],
   );
 
   useEffect(() => {

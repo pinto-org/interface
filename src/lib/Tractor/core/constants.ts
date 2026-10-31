@@ -7,6 +7,7 @@ import { LowStalkDepositsMode } from "./shared-tractor-types";
 // Block number at which Tractor was deployed - use this as starting point for event queries
 export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
 export const TRACTOR_DEPLOYMENT_BLOCK_CONVERT_UP = 37073327n;
+export const TRACTOR_DEPLOYMENT_BLOCK_AUTOMATE_CLAIM = 41417660n;
 
 export const TRACTOR_TOKEN_STRATEGY_INDICIES = {
   LOWEST_PRICE: 254,
@@ -16,6 +17,7 @@ export const TRACTOR_TOKEN_STRATEGY_INDICIES = {
 export const TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE = {
   sowBlueprintv0: TRACTOR_DEPLOYMENT_BLOCK,
   convertUpBlueprint: TRACTOR_DEPLOYMENT_BLOCK_CONVERT_UP,
+  automateClaimBlueprint: TRACTOR_DEPLOYMENT_BLOCK_AUTOMATE_CLAIM,
 } as const;
 
 export const LOW_STALK_DEPOSIT_MODES_TO_LABELS = {

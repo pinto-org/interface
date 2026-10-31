@@ -87,6 +87,12 @@ const tractorQueryKeys = {
     publisher ?? "no-publisher",
     lastUpdatedBlock?.toString() ?? "0",
   ],
+  automateClaimOrders: (address?: string, chainId?: number) => [
+    BASE_QKS.tractor,
+    "automateClaimOrders",
+    address ?? "no-address",
+    chainId?.toString() ?? "0",
+  ],
   ...convertUpQK,
 } as const;
 

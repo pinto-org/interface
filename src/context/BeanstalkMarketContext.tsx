@@ -9,7 +9,7 @@ export interface BeanstalkMarketContextValue {
 export const BeanstalkMarketContext = createContext<BeanstalkMarketContextValue>({
   isBeanstalkMarketplace: false,
   fieldId: 0n,
-  podMarketplaceId: undefined,
+  podMarketplaceId: "0",
 });
 
 export function useBeanstalkMarket() {

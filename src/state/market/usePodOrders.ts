@@ -5,7 +5,7 @@ import request from "graphql-request";
 import { useChainId } from "wagmi";
 import { useQueryKeys } from "../useQueryKeys";
 
-export default function usePodOrders(podMarketplaceId?: string) {
+export default function usePodOrders(podMarketplaceId = "0") {
   const chainId = useChainId();
 
   const { allPodOrders: queryKey } = useQueryKeys({ chainId });

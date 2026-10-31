@@ -1,5 +1,6 @@
 import { Abi } from "viem";
 import { arbitrum, base, foundry, localhost, mainnet } from "wagmi/chains";
+import { automateClaimBlueprintABI } from "./abi/AutomateClaimBlueprintABI";
 import { pipelineABI } from "./abi/PipelineABI";
 import { siloHelpersABI } from "./abi/SiloHelpersABI";
 import { sowBlueprintv0ABI } from "./abi/SowBlueprintv0ABI";
@@ -9,6 +10,7 @@ import { depotABI } from "./abi/depotABI";
 import { diamondABI } from "./abi/diamondABI";
 import { diamondPriceABI } from "./abi/diamondPriceABI";
 import {
+  AUTOMATE_CLAIM_BLUEPRINT_ADDRESS,
   CONVERT_UP_BLUEPRINT_V0_ADDRESS,
   DIAMOND_PRICE_ADDRESS,
   PIPELINE_ADDRESS,
@@ -84,6 +86,12 @@ const ADDRESSES_LOOKUP = {
     [TESTNET_CHAIN_ID]: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
     [foundry.id]: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
   },
+  automateClaimBlueprint: {
+    [base.id]: AUTOMATE_CLAIM_BLUEPRINT_ADDRESS,
+    [localhost.id]: AUTOMATE_CLAIM_BLUEPRINT_ADDRESS,
+    [TESTNET_CHAIN_ID]: AUTOMATE_CLAIM_BLUEPRINT_ADDRESS,
+    [foundry.id]: AUTOMATE_CLAIM_BLUEPRINT_ADDRESS,
+  },
 } as const;
 
 const ABI_CONFIG = {
@@ -118,6 +126,10 @@ const ABI_CONFIG = {
   convertUpBlueprint: {
     abi: convertUpBlueprintV0ABI as Abi,
     address: ADDRESSES_LOOKUP.convertUpBlueprint,
+  },
+  automateClaimBlueprint: {
+    abi: automateClaimBlueprintABI as Abi,
+    address: ADDRESSES_LOOKUP.automateClaimBlueprint,
   },
 } as const;
 
