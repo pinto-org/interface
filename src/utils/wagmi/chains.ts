@@ -5,16 +5,22 @@ import { arbitrum as viem__arbitrum } from "viem/chains";
 const API_KEY = import.meta.env.VITE_ALCHEMY_API_KEY;
 
 const ARB_ALCHEMY_RPC_URL = `https://arb-mainnet.g.alchemy.com/v2/${API_KEY}`;
+const ARB_ALCHEMY_WS_URL = `wss://arb-mainnet.g.alchemy.com/v2/${API_KEY}`;
 
 const BASE_ALCHEMY_RPC_URL = `https://base-mainnet.g.alchemy.com/v2/${API_KEY}`;
+const BASE_ALCHEMY_WS_URL = `wss://base-mainnet.g.alchemy.com/v2/${API_KEY}`;
 
 export const LOCAL_RPC_URL = "http://127.0.0.1:8545";
+export const LOCAL_WS_RPC_URL = "ws://127.0.0.1:8545";
 
 export const BASE_RPC_URL = API_KEY ? BASE_ALCHEMY_RPC_URL : viem__base.rpcUrls.default.http[0];
+export const BASE_WS_RPC_URL = API_KEY ? BASE_ALCHEMY_WS_URL : undefined;
 
 export const ARB_RPC_URL = API_KEY ? ARB_ALCHEMY_RPC_URL : viem__arbitrum.rpcUrls.default.http[0];
+export const ARB_WS_RPC_URL = API_KEY ? ARB_ALCHEMY_WS_URL : undefined;
 
 export const TENDERLY_RPC_URL = import.meta.env.VITE_TENDERLY_RPC_URL ?? BASE_RPC_URL;
+const TENDERLY_WS_RPC_URL = TENDERLY_RPC_URL ? TENDERLY_RPC_URL.replace(/^http/, "ws") : BASE_WS_RPC_URL;
 
 const localhostNetwork = defineChain({
   ...viem__base,
@@ -78,6 +84,21 @@ export const ENABLE_SWITCH_CHAINS = enabledChainIds.length > 1;
 export const getChainWithChainId = (chainId: number) => {
   const cid = chainId.toString();
   return CHAIN_ID_MAP[cid];
+};
+
+export const getChainWebSocketRpcUrl = (chainId: number) => {
+  switch (chainId) {
+    case baseNetwork.id:
+      return BASE_WS_RPC_URL;
+    case arbitrumNetwork.id:
+      return ARB_WS_RPC_URL;
+    case localhostNetwork.id:
+      return LOCAL_WS_RPC_URL;
+    case tenderlyTestnetNetwork.id:
+      return TENDERLY_WS_RPC_URL;
+    default:
+      return undefined;
+  }
 };
 
 export const getEnvEnabledChains = (): Chain[] => {

@@ -17,17 +17,19 @@ export type Scalars = {
   BigDecimal: { input: any; output: any; }
   BigInt: { input: any; output: any; }
   Bytes: { input: any; output: any; }
-  /**
-   * 8 bytes signed integer
-   *
-   */
+  /** 8 bytes signed integer */
   Int8: { input: any; output: any; }
-  /**
-   * A string representation of microseconds UNIX timestamp (16 digits)
-   *
-   */
+  /** A string representation of microseconds UNIX timestamp (16 digits) */
   Timestamp: { input: any; output: any; }
 };
+
+/** Indicates whether the current, partially filled bucket should be included in the response. Defaults to `exclude` */
+export enum AggregationCurrent {
+  /** Exclude the current, partially filled bucket from the response */
+  exclude = 'exclude',
+  /** Include the current, partially filled bucket in the response */
+  include = 'include'
+}
 
 export enum AggregationInterval {
   day = 'day',
@@ -1124,10 +1126,8 @@ export type BeanFilter = {
   dewhitelistedPools?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_?: InputMaybe<PoolFilter>;
   dewhitelistedPools_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedPools_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_not?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedPools_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   hourlySnapshots_?: InputMaybe<BeanHourlySnapshotFilter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
@@ -1207,10 +1207,8 @@ export type BeanFilter = {
   pools?: InputMaybe<Array<Scalars['String']['input']>>;
   pools_?: InputMaybe<PoolFilter>;
   pools_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  pools_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   pools_not?: InputMaybe<Array<Scalars['String']['input']>>;
   pools_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  pools_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   supply?: InputMaybe<Scalars['BigInt']['input']>;
   supplyInPegLP?: InputMaybe<Scalars['BigDecimal']['input']>;
   supplyInPegLP_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -1795,6 +1793,23 @@ export enum FarmerBalanceOrderBy {
   walletBalance = 'walletBalance'
 }
 
+/**
+ * The severity level of a log entry.
+ * Log levels are ordered from most to least severe: CRITICAL > ERROR > WARNING > INFO > DEBUG
+ */
+export enum LogLevel {
+  /** Critical errors that require immediate attention */
+  CRITICAL = 'CRITICAL',
+  /** Detailed diagnostic information for debugging */
+  DEBUG = 'DEBUG',
+  /** Error conditions that indicate a failure */
+  ERROR = 'ERROR',
+  /** Informational messages about normal operations */
+  INFO = 'INFO',
+  /** Warning conditions that may require attention */
+  WARNING = 'WARNING'
+}
+
 /** Defines the order direction, either ascending or descending */
 export enum OrderDirection {
   asc = 'asc',
@@ -2202,10 +2217,8 @@ export type PoolDailySnapshotFilter = {
   deltaLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaVolume?: InputMaybe<Scalars['BigInt']['input']>;
   deltaVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2294,10 +2307,8 @@ export type PoolDailySnapshotFilter = {
   pool_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   reserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   season?: InputMaybe<Scalars['String']['input']>;
   season_?: InputMaybe<SeasonFilter>;
   season_contains?: InputMaybe<Scalars['String']['input']>;
@@ -2361,10 +2372,8 @@ export type PoolDailySnapshotFilter = {
   twaPrice_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   twaReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  twaReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  twaReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaToken2Price?: InputMaybe<Scalars['BigDecimal']['input']>;
   twaToken2Price_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   twaToken2Price_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2539,10 +2548,8 @@ export type PoolHourlySnapshotFilter = {
   deltaLiquidityUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   deltaReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaVolume?: InputMaybe<Scalars['BigInt']['input']>;
   deltaVolumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   deltaVolumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2631,10 +2638,8 @@ export type PoolHourlySnapshotFilter = {
   pool_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   reserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   season?: InputMaybe<Scalars['String']['input']>;
   seasonNumber?: InputMaybe<Scalars['Int']['input']>;
   seasonNumber_gt?: InputMaybe<Scalars['Int']['input']>;
@@ -2706,10 +2711,8 @@ export type PoolHourlySnapshotFilter = {
   twaPrice_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   twaReserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaReserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  twaReserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaReserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaReserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  twaReserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   twaToken2Price?: InputMaybe<Scalars['BigDecimal']['input']>;
   twaToken2Price_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   twaToken2Price_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2915,17 +2918,13 @@ export type PoolFilter = {
   or?: InputMaybe<Array<InputMaybe<PoolFilter>>>;
   reserves?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   reserves_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  reserves_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tokens?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_?: InputMaybe<TokenFilter>;
   tokens_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  tokens_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_not?: InputMaybe<Array<Scalars['String']['input']>>;
   tokens_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  tokens_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   volume?: InputMaybe<Scalars['BigInt']['input']>;
   volumeUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   volumeUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -2986,6 +2985,8 @@ export enum PoolOrderBy {
 
 export type Query = {
   __typename?: 'Query';
+  /** Query execution logs emitted by the subgraph during indexing. Results are sorted by timestamp in descending order (newest first). */
+  _logs: Array<Log>;
   /** Access to subgraph metadata */
   _meta?: Maybe<Meta>;
   bean?: Maybe<Bean>;
@@ -3022,6 +3023,17 @@ export type Query = {
   twaOracles: Array<TwaOracle>;
   version?: Maybe<Version>;
   versions: Array<Version>;
+};
+
+
+export type QueryLogsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  from?: InputMaybe<Scalars['String']['input']>;
+  level?: InputMaybe<LogLevel>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  to?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -4253,10 +4265,8 @@ export type TwaOracleFilter = {
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   lastBalances?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   lastBalances_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  lastBalances_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   lastBalances_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   lastBalances_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  lastBalances_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   lastSun?: InputMaybe<Scalars['BigInt']['input']>;
   lastSun_gt?: InputMaybe<Scalars['BigInt']['input']>;
   lastSun_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4297,16 +4307,12 @@ export type TwaOracleFilter = {
   pool_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   priceCumulativeLast?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   priceCumulativeLast_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  priceCumulativeLast_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   priceCumulativeLast_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   priceCumulativeLast_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  priceCumulativeLast_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   priceCumulativeSun?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   priceCumulativeSun_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  priceCumulativeSun_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   priceCumulativeSun_not?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   priceCumulativeSun_not_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  priceCumulativeSun_not_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
 export enum TwaOracleOrderBy {
@@ -4456,6 +4462,54 @@ export type Block = {
   timestamp?: Maybe<Scalars['Int']['output']>;
 };
 
+/**
+ * A key-value pair of additional data associated with a log entry.
+ * These correspond to arguments passed to the log function in the subgraph code.
+ */
+export type LogArgument = {
+  __typename?: '_LogArgument_';
+  /** The parameter name */
+  key: Scalars['String']['output'];
+  /** The parameter value, serialized as a string */
+  value: Scalars['String']['output'];
+};
+
+/**
+ * Source code location metadata for a log entry.
+ * Indicates where in the subgraph's AssemblyScript code the log statement was executed.
+ */
+export type LogMeta = {
+  __typename?: '_LogMeta_';
+  /** The column number in the source file */
+  column: Scalars['Int']['output'];
+  /** The line number in the source file */
+  line: Scalars['Int']['output'];
+  /** The module or file path where the log was emitted */
+  module: Scalars['String']['output'];
+};
+
+/**
+ * A log entry emitted by a subgraph during indexing.
+ * Logs can be generated by the subgraph's AssemblyScript code using the `log.*` functions.
+ */
+export type Log = {
+  __typename?: '_Log_';
+  /** Additional structured data passed to the log function as key-value pairs */
+  arguments: Array<LogArgument>;
+  /** Unique identifier for this log entry */
+  id: Scalars['String']['output'];
+  /** The severity level of the log entry */
+  level: LogLevel;
+  /** Metadata about the source location in the subgraph code where the log was emitted */
+  meta: LogMeta;
+  /** The deployment hash of the subgraph that emitted this log */
+  subgraphId: Scalars['String']['output'];
+  /** The log message text */
+  text: Scalars['String']['output'];
+  /** The timestamp when the log was emitted, in RFC3339 format (e.g., '2024-01-15T10:30:00Z') */
+  timestamp: Scalars['String']['output'];
+};
+
 /** The type for the top-level _meta field */
 export type Meta = {
   __typename?: '_Meta_';
@@ -4464,7 +4518,6 @@ export type Meta = {
    * will be null if the _meta field has a block constraint that asks for
    * a block number. It will be filled if the _meta field has no block constraint
    * and therefore asks for the latest  block
-   *
    */
   block: Block;
   /** The deployment ID */

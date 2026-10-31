@@ -24,6 +24,7 @@ import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
+import { getTotalDepositedUsd } from "@/utils/siloValue";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex, sortTokensForDeposits } from "@/utils/token";
 import { Token } from "@/utils/types";
@@ -133,10 +134,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             const userData = farmerDeposits.get(token);
             const apy = apys?.[getTokenIndex(token)] as ExtendSiloTokenYield | undefined;
 
-            const depositedBDV = data?.depositedBDV;
-            const germinatingBDV = data?.germinatingBDV;
-            const totalBDV = depositedBDV?.add(germinatingBDV ?? TokenValue.ZERO);
-
             // non whitelisted wells have 0 currentBDV
             const effectiveBDV = !token.isWhitelisted
               ? (userData?.depositBDV ?? TokenValue.ZERO)
@@ -148,6 +145,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
 
             const _pool = priceData.pools.find((poolData) => stringEq(poolData.pool.address, token.address));
             const _poolPrice = _pool?.price ?? TokenValue.ZERO;
+            const depositedUsd = getTotalDepositedUsd(data, token.isMain ? priceData.price : _pool?.lpUsd);
 
             const hasGerminatingDeposits = farmerSilo.deposits
               .get(token)
@@ -212,8 +210,8 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                 <TableCell className="pinto-sm text-right text-pinto-secondary pl-0 opacity-70 hidden sm:table-cell">
                   {farmerSilo.isLoading ? (
                     <Skeleton className="w-20 h-6 rounded-[0.75rem] ml-auto" />
-                  ) : _pool || token.isMain ? (
-                    formatter.usd(totalBDV?.mul(_pool ? _pool.price : priceData.price))
+                  ) : depositedUsd ? (
+                    formatter.usd(depositedUsd)
                   ) : (
                     "-"
                   )}

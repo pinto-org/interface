@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { defaultQuerySettings } from "@/constants/query";
 import { CREAM_S_MAIN_TOKEN } from "@/constants/tokens";
 import { useChainConstant } from "@/utils/chain";
 import { useReadContract } from "wagmi";
@@ -26,6 +27,7 @@ export const useCreamSiloWrappedTokenExchangeRate = () => {
     abi: creamABISnippet,
     functionName: "exchangeRateStored",
     query: {
+      ...defaultQuerySettings,
       select: select,
     },
   });

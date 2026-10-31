@@ -89,17 +89,32 @@ export default function WalletButtonClaim() {
         args: [account.address, tokensToMow],
       });
 
-      const claimFlood = encodeFunctionData({
+      const claimAllPlenty = encodeFunctionData({
         abi: beanstalkAbi,
         functionName: "claimAllPlenty",
         args: [Number(balanceTo)],
       });
 
+      // claimAllPlenty only iterates currently-whitelisted SOP wells, so plenty
+      // sitting in storage for dewhitelisted wells (e.g. PINTO_WETH, PINTO_WSOL)
+      // is skipped. Issue an explicit claimPlenty(well) for each dewhitelisted
+      // well the user has nonzero plenty in.
+      const whitelistedAddresses = new Set(whitelistedTokens.map((t) => t.address.toLowerCase()));
+      const dewhitelistedClaims = farmerSilo.flood.farmerSops
+        .filter((sop) => sop.wellsPlenty.plenty.gt(0) && !whitelistedAddresses.has(sop.well.address.toLowerCase()))
+        .map((sop) =>
+          encodeFunctionData({
+            abi: beanstalkAbi,
+            functionName: "claimPlenty",
+            args: [sop.well.address as `0x${string}`, Number(balanceTo)],
+          }),
+        );
+
       return writeWithEstimateGas({
         address: diamond,
         abi: beanstalkAbi,
         functionName: "farm",
-        args: [[mow, claimFlood]],
+        args: [[mow, claimAllPlenty, ...dewhitelistedClaims]],
       });
     } catch (e) {
       console.error(e);

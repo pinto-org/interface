@@ -21,26 +21,75 @@ export type Scalars = {
 
 export type CachedBeanHourlySnapshot = {
   __typename?: 'CachedBeanHourlySnapshot';
-  blockNumber: Scalars['BigInt']['output'];
+  createdTimestamp: Scalars['BigInt']['output'];
   crosses: Scalars['Int']['output'];
   deltaCrosses: Scalars['Int']['output'];
   deltaLiquidityUSD: Scalars['BigDecimal']['output'];
   deltaVolume: Scalars['BigInt']['output'];
   deltaVolumeUSD: Scalars['BigDecimal']['output'];
   id: Scalars['ID']['output'];
-  instantaneousDeltaB: Scalars['BigInt']['output'];
+  instDeltaB: Scalars['BigDecimal']['output'];
+  instPrice: Scalars['BigDecimal']['output'];
+  l2sr: Scalars['BigDecimal']['output'];
+  lastUpdateBlockNumber: Scalars['BigInt']['output'];
+  lastUpdateTimestamp: Scalars['BigInt']['output'];
   liquidityUSD: Scalars['BigDecimal']['output'];
   lockedBeans: Scalars['BigInt']['output'];
   marketCap: Scalars['BigDecimal']['output'];
-  price: Scalars['BigDecimal']['output'];
-  season: Scalars['Int']['output'];
+  seasonNumber: Scalars['Int']['output'];
   supply: Scalars['BigInt']['output'];
   supplyInPegLP: Scalars['BigDecimal']['output'];
-  timestamp: Scalars['BigInt']['output'];
-  twaDeltaB: Scalars['BigInt']['output'];
+  twaBeanLiquidityUSD: Scalars['BigDecimal']['output'];
+  twaDeltaB: Scalars['BigDecimal']['output'];
+  twaLiquidityUSD: Scalars['BigDecimal']['output'];
+  twaNonBeanLiquidityUSD: Scalars['BigDecimal']['output'];
   twaPrice: Scalars['BigDecimal']['output'];
   volume: Scalars['BigInt']['output'];
   volumeUSD: Scalars['BigDecimal']['output'];
+};
+
+export type CachedBeanstalkHourlySnapshot = {
+  __typename?: 'CachedBeanstalkHourlySnapshot';
+  createdTimestamp: Scalars['BigInt']['output'];
+  cumulativeBuyVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeConvertDownVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeConvertNeutralTradeVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeConvertNeutralTransferVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeConvertUpVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeConvertVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeSellVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeTradeVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeTransferVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaBuyVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaConvertDownVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaConvertNeutralTradeVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaConvertNeutralTransferVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaConvertUpVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaConvertVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaLiquidityUSD: Scalars['BigDecimal']['output'];
+  deltaSellVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaTradeVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaTransferVolumeUSD: Scalars['BigDecimal']['output'];
+  id: Scalars['ID']['output'];
+  lastUpdateBlockNumber: Scalars['BigInt']['output'];
+  lastUpdateTimestamp: Scalars['BigInt']['output'];
+  season: Scalars['Int']['output'];
+  totalLiquidityUSD: Scalars['BigDecimal']['output'];
+};
+
+export type CachedFarmerBalanceHourlySnapshot = {
+  __typename?: 'CachedFarmerBalanceHourlySnapshot';
+  createdTimestamp: Scalars['BigInt']['output'];
+  deltaFarmBalance: Scalars['BigInt']['output'];
+  deltaTotalBalance: Scalars['BigInt']['output'];
+  deltaWalletBalance: Scalars['BigInt']['output'];
+  farmBalance: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  lastUpdateBlockNumber: Scalars['BigInt']['output'];
+  lastUpdateTimestamp: Scalars['BigInt']['output'];
+  seasonNumber: Scalars['Int']['output'];
+  totalBalance: Scalars['BigInt']['output'];
+  walletBalance: Scalars['BigInt']['output'];
 };
 
 export type CachedFieldHourlySnapshot = {
@@ -48,19 +97,25 @@ export type CachedFieldHourlySnapshot = {
   blocksToSoldOutSoil?: Maybe<Scalars['BigInt']['output']>;
   caseId?: Maybe<Scalars['BigInt']['output']>;
   createdAt: Scalars['BigInt']['output'];
+  cultivationFactor?: Maybe<Scalars['BigDecimal']['output']>;
+  cultivationTemperature?: Maybe<Scalars['BigDecimal']['output']>;
+  deltaCultivationFactor?: Maybe<Scalars['BigDecimal']['output']>;
+  deltaCultivationTemperature?: Maybe<Scalars['BigDecimal']['output']>;
   deltaHarvestableIndex: Scalars['BigInt']['output'];
   deltaHarvestablePods: Scalars['BigInt']['output'];
   deltaHarvestedPods: Scalars['BigInt']['output'];
   deltaIssuedSoil: Scalars['BigInt']['output'];
   deltaNumberOfSowers: Scalars['Int']['output'];
   deltaNumberOfSows: Scalars['Int']['output'];
+  deltaPodDemand: Scalars['BigInt']['output'];
   deltaPodIndex: Scalars['BigInt']['output'];
   deltaPodRate: Scalars['BigDecimal']['output'];
   deltaRealRateOfReturn: Scalars['BigDecimal']['output'];
   deltaSoil: Scalars['BigInt']['output'];
   deltaSownBeans: Scalars['BigInt']['output'];
-  deltaTemperature: Scalars['Int']['output'];
+  deltaTemperature: Scalars['BigDecimal']['output'];
   deltaUnharvestablePods: Scalars['BigInt']['output'];
+  fieldId: Scalars['BigInt']['output'];
   harvestableIndex: Scalars['BigInt']['output'];
   harvestablePods: Scalars['BigInt']['output'];
   harvestedPods: Scalars['BigInt']['output'];
@@ -76,9 +131,60 @@ export type CachedFieldHourlySnapshot = {
   soil: Scalars['BigInt']['output'];
   soilSoldOut: Scalars['Boolean']['output'];
   sownBeans: Scalars['BigInt']['output'];
-  temperature: Scalars['Int']['output'];
+  temperature: Scalars['BigDecimal']['output'];
   unharvestablePods: Scalars['BigInt']['output'];
   updatedAt: Scalars['BigInt']['output'];
+};
+
+export type CachedGaugesInfoHourlySnapshot = {
+  __typename?: 'CachedGaugesInfoHourlySnapshot';
+  createdAt: Scalars['BigInt']['output'];
+  deltaG0CultivationFactor?: Maybe<Scalars['BigDecimal']['output']>;
+  deltaG0IsActive: Scalars['Boolean']['output'];
+  deltaG1BlightFactor?: Maybe<Scalars['BigInt']['output']>;
+  deltaG1ConvertDownPenalty?: Maybe<Scalars['BigDecimal']['output']>;
+  deltaG1IsActive: Scalars['Boolean']['output'];
+  deltaG2BdvConvertedThisSeason?: Maybe<Scalars['BigInt']['output']>;
+  deltaG2BonusStalkPerBdv?: Maybe<Scalars['BigInt']['output']>;
+  deltaG2IsActive: Scalars['Boolean']['output'];
+  deltaG2MaxConvertCapacity?: Maybe<Scalars['BigInt']['output']>;
+  deltaG2MaxTwaDeltaB?: Maybe<Scalars['BigInt']['output']>;
+  g0CultivationFactor?: Maybe<Scalars['BigDecimal']['output']>;
+  g0IsActive: Scalars['Boolean']['output'];
+  g1BlightFactor?: Maybe<Scalars['BigInt']['output']>;
+  g1ConvertDownPenalty?: Maybe<Scalars['BigDecimal']['output']>;
+  g1IsActive: Scalars['Boolean']['output'];
+  g2BdvConvertedThisSeason?: Maybe<Scalars['BigInt']['output']>;
+  g2BonusStalkPerBdv?: Maybe<Scalars['BigInt']['output']>;
+  g2IsActive: Scalars['Boolean']['output'];
+  g2MaxConvertCapacity?: Maybe<Scalars['BigInt']['output']>;
+  g2MaxTwaDeltaB?: Maybe<Scalars['BigInt']['output']>;
+  id: Scalars['ID']['output'];
+  season: Scalars['Int']['output'];
+  updatedAt: Scalars['BigInt']['output'];
+};
+
+export type CachedMarketPerformanceSeasonal = {
+  __typename?: 'CachedMarketPerformanceSeasonal';
+  cumulativePercentChange?: Maybe<Array<Scalars['BigDecimal']['output']>>;
+  cumulativeTotalPercentChange?: Maybe<Scalars['BigDecimal']['output']>;
+  cumulativeTotalUsdChange?: Maybe<Scalars['BigDecimal']['output']>;
+  cumulativeUsdChange?: Maybe<Array<Scalars['BigDecimal']['output']>>;
+  id: Scalars['ID']['output'];
+  percentChange?: Maybe<Array<Scalars['BigDecimal']['output']>>;
+  prevSeasonTokenBalances: Array<Scalars['BigInt']['output']>;
+  prevSeasonTokenUsdPrices: Array<Scalars['BigDecimal']['output']>;
+  prevSeasonTokenUsdValues: Array<Scalars['BigDecimal']['output']>;
+  prevSeasonTotalUsd: Scalars['BigDecimal']['output'];
+  season: Scalars['Int']['output'];
+  thisSeasonTokenUsdPrices?: Maybe<Array<Scalars['BigDecimal']['output']>>;
+  thisSeasonTokenUsdValues?: Maybe<Array<Scalars['BigDecimal']['output']>>;
+  thisSeasonTotalUsd?: Maybe<Scalars['BigDecimal']['output']>;
+  timestamp?: Maybe<Scalars['BigInt']['output']>;
+  totalPercentChange?: Maybe<Scalars['BigDecimal']['output']>;
+  totalUsdChange?: Maybe<Scalars['BigDecimal']['output']>;
+  usdChange?: Maybe<Array<Scalars['BigDecimal']['output']>>;
+  valid: Scalars['Boolean']['output'];
 };
 
 export type CachedPodMarketplaceHourlySnapshot = {
@@ -115,24 +221,28 @@ export type CachedPodMarketplaceHourlySnapshot = {
 
 export type CachedPoolHourlySnapshot = {
   __typename?: 'CachedPoolHourlySnapshot';
-  createdAt: Scalars['BigInt']['output'];
+  createdTimestamp: Scalars['BigInt']['output'];
   crosses: Scalars['Int']['output'];
-  deltaBeans: Scalars['BigInt']['output'];
   deltaCrosses: Scalars['Int']['output'];
   deltaLiquidityUSD: Scalars['BigDecimal']['output'];
   deltaReserves: Array<Scalars['BigInt']['output']>;
   deltaVolume: Scalars['BigInt']['output'];
   deltaVolumeUSD: Scalars['BigDecimal']['output'];
   id: Scalars['ID']['output'];
-  lastPrice: Scalars['BigDecimal']['output'];
+  instDeltaB: Scalars['BigDecimal']['output'];
+  instPrice: Scalars['BigDecimal']['output'];
+  lastUpdateBlockNumber: Scalars['BigInt']['output'];
+  lastUpdateTimestamp: Scalars['BigInt']['output'];
   liquidityUSD: Scalars['BigDecimal']['output'];
   reserves: Array<Scalars['BigInt']['output']>;
-  season: Scalars['Int']['output'];
-  twaDeltaBeans: Scalars['BigInt']['output'];
+  seasonNumber: Scalars['Int']['output'];
+  twaBeanLiquidityUSD: Scalars['BigDecimal']['output'];
+  twaDeltaB: Scalars['BigDecimal']['output'];
+  twaLiquidityUSD: Scalars['BigDecimal']['output'];
+  twaNonBeanLiquidityUSD: Scalars['BigDecimal']['output'];
   twaPrice: Scalars['BigDecimal']['output'];
-  twaToken2Price?: Maybe<Scalars['BigDecimal']['output']>;
-  updatedAt: Scalars['BigInt']['output'];
-  utilization: Scalars['BigDecimal']['output'];
+  twaReserves: Array<Scalars['BigInt']['output']>;
+  twaToken2Price: Scalars['BigDecimal']['output'];
   volume: Scalars['BigInt']['output'];
   volumeUSD: Scalars['BigDecimal']['output'];
 };
@@ -143,10 +253,13 @@ export type CachedSeason = {
   createdAt: Scalars['BigInt']['output'];
   deltaB: Scalars['BigInt']['output'];
   deltaBeans: Scalars['BigInt']['output'];
+  floodFieldBeans: Scalars['BigInt']['output'];
+  floodSiloBeans: Scalars['BigInt']['output'];
   id: Scalars['ID']['output'];
   incentiveBeans: Scalars['BigInt']['output'];
   marketCap: Scalars['BigDecimal']['output'];
   price: Scalars['BigDecimal']['output'];
+  raining: Scalars['Boolean']['output'];
   rewardBeans: Scalars['BigInt']['output'];
   season: Scalars['Int']['output'];
   sunriseBlock: Scalars['BigInt']['output'];
@@ -158,11 +271,9 @@ export type CachedSiloAssetHourlySnapshot = {
   createdAt: Scalars['BigInt']['output'];
   deltaDepositedAmount: Scalars['BigInt']['output'];
   deltaDepositedBDV: Scalars['BigInt']['output'];
-  deltaFarmAmount: Scalars['BigInt']['output'];
   deltaWithdrawnAmount: Scalars['BigInt']['output'];
   depositedAmount: Scalars['BigInt']['output'];
   depositedBDV: Scalars['BigInt']['output'];
-  farmAmount: Scalars['BigInt']['output'];
   id: Scalars['ID']['output'];
   season: Scalars['Int']['output'];
   updatedAt: Scalars['BigInt']['output'];
@@ -172,37 +283,83 @@ export type CachedSiloAssetHourlySnapshot = {
 export type CachedSiloHourlySnapshot = {
   __typename?: 'CachedSiloHourlySnapshot';
   activeFarmers: Scalars['Int']['output'];
+  avgConvertDownPenalty: Scalars['BigDecimal']['output'];
+  avgGrownStalkPerBdvPerSeason: Scalars['BigInt']['output'];
   beanMints: Scalars['BigInt']['output'];
-  beanToMaxLpGpPerBdvRatio?: Maybe<Scalars['BigInt']['output']>;
+  beanToMaxLpGpPerBdvRatio: Scalars['BigInt']['output'];
+  bonusStalkConvertUp: Scalars['BigInt']['output'];
   caseId?: Maybe<Scalars['BigInt']['output']>;
+  convertDownPenalty?: Maybe<Scalars['BigDecimal']['output']>;
   createdAt: Scalars['BigInt']['output'];
+  cropRatio: Scalars['BigDecimal']['output'];
   deltaActiveFarmers: Scalars['Int']['output'];
+  deltaAvgConvertDownPenalty: Scalars['BigDecimal']['output'];
+  deltaAvgGrownStalkPerBdvPerSeason: Scalars['BigInt']['output'];
   deltaBeanMints: Scalars['BigInt']['output'];
+  deltaBeanToMaxLpGpPerBdvRatio: Scalars['BigInt']['output'];
+  deltaBonusStalkConvertUp: Scalars['BigInt']['output'];
+  deltaConvertDownPenalty?: Maybe<Scalars['BigDecimal']['output']>;
+  deltaCropRatio: Scalars['BigDecimal']['output'];
   deltaDepositedBDV: Scalars['BigInt']['output'];
   deltaGerminatingStalk: Scalars['BigInt']['output'];
   deltaGrownStalkPerSeason: Scalars['BigInt']['output'];
+  deltaPenalizedStalkConvertDown: Scalars['BigInt']['output'];
   deltaPlantableStalk: Scalars['BigInt']['output'];
+  deltaPlantedBeans: Scalars['BigInt']['output'];
   deltaRoots: Scalars['BigInt']['output'];
   deltaStalk: Scalars['BigInt']['output'];
+  deltaTotalBdvConvertUp: Scalars['BigInt']['output'];
+  deltaTotalBdvConvertUpBonus: Scalars['BigInt']['output'];
+  deltaUnpenalizedStalkConvertDown: Scalars['BigInt']['output'];
   depositedBDV: Scalars['BigInt']['output'];
   germinatingStalk: Scalars['BigInt']['output'];
   grownStalkPerSeason: Scalars['BigInt']['output'];
   id: Scalars['ID']['output'];
+  penalizedStalkConvertDown: Scalars['BigInt']['output'];
   plantableStalk: Scalars['BigInt']['output'];
+  plantedBeans: Scalars['BigInt']['output'];
   roots: Scalars['BigInt']['output'];
   season: Scalars['Int']['output'];
   stalk: Scalars['BigInt']['output'];
+  totalBdvConvertUp: Scalars['BigInt']['output'];
+  totalBdvConvertUpBonus: Scalars['BigInt']['output'];
+  unpenalizedStalkConvertDown: Scalars['BigInt']['output'];
   updatedAt: Scalars['BigInt']['output'];
 };
 
-export type CachedTokenYield = {
-  __typename?: 'CachedTokenYield';
-  beanAPY: Scalars['BigDecimal']['output'];
+export type CachedTokenHourlySnapshot = {
+  __typename?: 'CachedTokenHourlySnapshot';
+  createdTimestamp: Scalars['BigInt']['output'];
+  decimals: Scalars['BigInt']['output'];
+  deltaFarmBalance: Scalars['BigInt']['output'];
+  deltaLastPriceUSD: Scalars['BigDecimal']['output'];
+  deltaPooledBalance: Scalars['BigInt']['output'];
+  deltaSupply: Scalars['BigInt']['output'];
+  deltaWalletBalance: Scalars['BigInt']['output'];
+  farmBalance: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  lastPriceUSD: Scalars['BigDecimal']['output'];
+  lastUpdateBlockNumber: Scalars['BigInt']['output'];
+  lastUpdateTimestamp: Scalars['BigInt']['output'];
+  name: Scalars['String']['output'];
+  pooledBalance: Scalars['BigInt']['output'];
+  seasonNumber: Scalars['Int']['output'];
+  supply: Scalars['BigInt']['output'];
+  walletBalance: Scalars['BigInt']['output'];
+};
+
+export type CachedTractorHourlySnapshot = {
+  __typename?: 'CachedTractorHourlySnapshot';
   createdAt: Scalars['BigInt']['output'];
-  id: Scalars['Bytes']['output'];
+  deltaTotalExecutions: Scalars['Int']['output'];
+  deltaTotalNegBeanTips: Scalars['BigInt']['output'];
+  deltaTotalPosBeanTips: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
   season: Scalars['Int']['output'];
-  stalkAPY: Scalars['BigDecimal']['output'];
-  token: Scalars['Bytes']['output'];
+  totalExecutions: Scalars['Int']['output'];
+  totalNegBeanTips: Scalars['BigInt']['output'];
+  totalPosBeanTips: Scalars['BigInt']['output'];
+  updatedAt: Scalars['BigInt']['output'];
 };
 
 export type CachedUnripeTokenHourlySnapshot = {
@@ -234,6 +391,42 @@ export type CachedUnripeTokenHourlySnapshot = {
   updatedAt: Scalars['BigInt']['output'];
 };
 
+export type CachedWellHourlySnapshot = {
+  __typename?: 'CachedWellHourlySnapshot';
+  convertVolumeReserves: Array<Scalars['BigInt']['output']>;
+  convertVolumeReservesUSD: Array<Scalars['BigDecimal']['output']>;
+  convertVolumeUSD: Scalars['BigDecimal']['output'];
+  createdTimestamp: Scalars['BigInt']['output'];
+  cumulativeBiTradeVolumeReserves: Array<Scalars['BigInt']['output']>;
+  cumulativeTradeVolumeReserves: Array<Scalars['BigInt']['output']>;
+  cumulativeTradeVolumeReservesUSD: Array<Scalars['BigDecimal']['output']>;
+  cumulativeTradeVolumeUSD: Scalars['BigDecimal']['output'];
+  cumulativeTransferVolumeReserves: Array<Scalars['BigInt']['output']>;
+  cumulativeTransferVolumeReservesUSD: Array<Scalars['BigDecimal']['output']>;
+  cumulativeTransferVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaBiTradeVolumeReserves: Array<Scalars['BigInt']['output']>;
+  deltaConvertVolumeReserves: Array<Scalars['BigInt']['output']>;
+  deltaConvertVolumeReservesUSD: Array<Scalars['BigDecimal']['output']>;
+  deltaConvertVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaLiquidityUSD: Scalars['BigDecimal']['output'];
+  deltaLpTokenSupply: Scalars['BigInt']['output'];
+  deltaTokenRates: Array<Scalars['BigDecimal']['output']>;
+  deltaTradeVolumeReserves: Array<Scalars['BigInt']['output']>;
+  deltaTradeVolumeReservesUSD: Array<Scalars['BigDecimal']['output']>;
+  deltaTradeVolumeUSD: Scalars['BigDecimal']['output'];
+  deltaTransferVolumeReserves: Array<Scalars['BigInt']['output']>;
+  deltaTransferVolumeReservesUSD: Array<Scalars['BigDecimal']['output']>;
+  deltaTransferVolumeUSD: Scalars['BigDecimal']['output'];
+  hour: Scalars['Int']['output'];
+  id: Scalars['ID']['output'];
+  lastUpdateBlockNumber: Scalars['BigInt']['output'];
+  lastUpdateTimestamp: Scalars['BigInt']['output'];
+  lpTokenSupply: Scalars['BigInt']['output'];
+  season: Scalars['Int']['output'];
+  tokenRates: Array<Scalars['BigDecimal']['output']>;
+  totalLiquidityUSD: Scalars['BigDecimal']['output'];
+};
+
 export type CachedWhitelistTokenHourlySnapshot = {
   __typename?: 'CachedWhitelistTokenHourlySnapshot';
   bdv?: Maybe<Scalars['BigInt']['output']>;
@@ -245,6 +438,7 @@ export type CachedWhitelistTokenHourlySnapshot = {
   deltaOptimalPercentDepositedBdv?: Maybe<Scalars['BigInt']['output']>;
   deltaStalkEarnedPerSeason: Scalars['BigInt']['output'];
   deltaStalkIssuedPerBdv: Scalars['BigInt']['output'];
+  deltaStemTip: Scalars['BigInt']['output'];
   gaugePoints?: Maybe<Scalars['BigInt']['output']>;
   id: Scalars['ID']['output'];
   isGaugeEnabled: Scalars['Boolean']['output'];
@@ -254,21 +448,45 @@ export type CachedWhitelistTokenHourlySnapshot = {
   selector: Scalars['Bytes']['output'];
   stalkEarnedPerSeason: Scalars['BigInt']['output'];
   stalkIssuedPerBdv: Scalars['BigInt']['output'];
+  stemTip: Scalars['BigInt']['output'];
+  updatedAt: Scalars['BigInt']['output'];
+};
+
+export type CachedWrappedDepositErc20HourlySnapshot = {
+  __typename?: 'CachedWrappedDepositERC20HourlySnapshot';
+  apy7d?: Maybe<Scalars['BigDecimal']['output']>;
+  apy24h?: Maybe<Scalars['BigDecimal']['output']>;
+  apy30d?: Maybe<Scalars['BigDecimal']['output']>;
+  apy90d?: Maybe<Scalars['BigDecimal']['output']>;
+  createdAt: Scalars['BigInt']['output'];
+  deltaRedeemRate: Scalars['BigInt']['output'];
+  deltaSupply: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  redeemRate: Scalars['BigInt']['output'];
+  season: Scalars['Int']['output'];
+  supply: Scalars['BigInt']['output'];
   updatedAt: Scalars['BigInt']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
   cache_beanHourlySnapshots: Array<CachedBeanHourlySnapshot>;
+  cache_beanstalkHourlySnapshots: Array<CachedBeanstalkHourlySnapshot>;
+  cache_farmerBalanceHourlySnapshots: Array<CachedFarmerBalanceHourlySnapshot>;
   cache_fieldHourlySnapshots: Array<CachedFieldHourlySnapshot>;
+  cache_gaugesInfoHourlySnapshots: Array<CachedGaugesInfoHourlySnapshot>;
+  cache_marketPerformanceSeasonals: Array<CachedMarketPerformanceSeasonal>;
   cache_podMarketplaceHourlySnapshots: Array<CachedPodMarketplaceHourlySnapshot>;
   cache_poolHourlySnapshots: Array<CachedPoolHourlySnapshot>;
   cache_seasons: Array<CachedSeason>;
   cache_siloAssetHourlySnapshots: Array<CachedSiloAssetHourlySnapshot>;
   cache_siloHourlySnapshots: Array<CachedSiloHourlySnapshot>;
-  cache_tokenYields: Array<CachedTokenYield>;
+  cache_tokenHourlySnapshots: Array<CachedTokenHourlySnapshot>;
+  cache_tractorHourlySnapshots: Array<CachedTractorHourlySnapshot>;
   cache_unripeTokenHourlySnapshots: Array<CachedUnripeTokenHourlySnapshot>;
+  cache_wellHourlySnapshots: Array<CachedWellHourlySnapshot>;
   cache_whitelistTokenHourlySnapshots: Array<CachedWhitelistTokenHourlySnapshot>;
+  cache_wrappedDepositERC20HourlySnapshots: Array<CachedWrappedDepositErc20HourlySnapshot>;
 };
 
 
@@ -281,7 +499,43 @@ export type QueryCacheBeanHourlySnapshotsArgs = {
 };
 
 
+export type QueryCacheBeanstalkHourlySnapshotsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryCacheFarmerBalanceHourlySnapshotsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryCacheFieldHourlySnapshotsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryCacheGaugesInfoHourlySnapshotsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryCacheMarketPerformanceSeasonalsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   orderDirection?: InputMaybe<Scalars['String']['input']>;
@@ -335,7 +589,16 @@ export type QueryCacheSiloHourlySnapshotsArgs = {
 };
 
 
-export type QueryCacheTokenYieldsArgs = {
+export type QueryCacheTokenHourlySnapshotsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryCacheTractorHourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   orderDirection?: InputMaybe<Scalars['String']['input']>;
@@ -353,7 +616,25 @@ export type QueryCacheUnripeTokenHourlySnapshotsArgs = {
 };
 
 
+export type QueryCacheWellHourlySnapshotsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryCacheWhitelistTokenHourlySnapshotsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  orderDirection?: InputMaybe<Scalars['String']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryCacheWrappedDepositErc20HourlySnapshotsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<Scalars['String']['input']>;
   orderDirection?: InputMaybe<Scalars['String']['input']>;
@@ -374,7 +655,7 @@ export type BeanstalkAdvancedChartQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkAdvancedChartQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'CachedSeason', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number, createdAt: any }>, fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: number, deltaTemperature: number, season: number, harvestableIndex: any, harvestablePods: any, harvestedPods: any, numberOfSowers: number, numberOfSows: number, podIndex: any, realRateOfReturn: any, seasonBlock: any, soil: any, soilSoldOut: boolean, unharvestablePods: any }>, siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio?: any | null, season: number, stalk: any, caseId?: any | null }> };
+export type BeanstalkAdvancedChartQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'CachedSeason', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number, createdAt: any }>, fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: any, deltaTemperature: any, season: number, harvestableIndex: any, harvestablePods: any, harvestedPods: any, numberOfSowers: number, numberOfSows: number, podIndex: any, realRateOfReturn: any, seasonBlock: any, soil: any, soilSoldOut: boolean, unharvestablePods: any }>, siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio: any, season: number, stalk: any, caseId?: any | null }> };
 
 export type BeanstalkSeasonsTableQueryVariables = Exact<{
   seasonsWhere?: InputMaybe<Scalars['String']['input']>;
@@ -389,7 +670,7 @@ export type BeanstalkSeasonsTableQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkSeasonsTableQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'CachedSeason', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number }>, fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: number, deltaTemperature: number, season: number }>, siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio?: any | null, season: number }> };
+export type BeanstalkSeasonsTableQuery = { __typename?: 'Query', seasons: Array<{ __typename?: 'CachedSeason', id: string, sunriseBlock: any, rewardBeans: any, price: any, deltaBeans: any, season: number }>, fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, caseId?: any | null, issuedSoil: any, deltaSownBeans: any, sownBeans: any, blocksToSoldOutSoil?: any | null, podRate: any, temperature: any, deltaTemperature: any, season: number }>, siloHourlySnapshots: Array<{ __typename?: 'CachedSiloHourlySnapshot', id: string, beanToMaxLpGpPerBdvRatio: any, season: number }> };
 
 export type FarmerSeasonalSiloQueryVariables = Exact<{
   where?: InputMaybe<Scalars['String']['input']>;
@@ -425,7 +706,7 @@ export type BeanstalkSeasonalFieldQueryVariables = Exact<{
 }>;
 
 
-export type BeanstalkSeasonalFieldQuery = { __typename?: 'Query', fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, season: number, podRate: any, temperature: number, podIndex: any, harvestableIndex: any, sownBeans: any, harvestedPods: any, issuedSoil: any, deltaSownBeans: any, createdAt: any }> };
+export type BeanstalkSeasonalFieldQuery = { __typename?: 'Query', fieldHourlySnapshots: Array<{ __typename?: 'CachedFieldHourlySnapshot', id: string, season: number, podRate: any, temperature: any, podIndex: any, harvestableIndex: any, sownBeans: any, harvestedPods: any, issuedSoil: any, deltaSownBeans: any, createdAt: any }> };
 
 export type BeanstalkSeasonalSiloQueryVariables = Exact<{
   where?: InputMaybe<Scalars['String']['input']>;

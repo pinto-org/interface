@@ -60,6 +60,7 @@ const tractorQueryKeys = {
     options?: {
       cancelled?: boolean;
       filterOutCompleted?: boolean;
+      currentSeason?: number;
     },
   ) => [
     BASE_QKS.tractor,
@@ -67,6 +68,7 @@ const tractorQueryKeys = {
     "chain",
     lastUpdatedBlock?.toString() ?? "0",
     maxTemp?.blockchainString ?? "0",
+    `season-${options?.currentSeason ?? "none"}`,
     `filter-completed-${Number(options?.filterOutCompleted ?? true)}`,
     `cancelled-${Number(options?.cancelled ?? "any")}`,
   ],

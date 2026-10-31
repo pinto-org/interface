@@ -37,7 +37,14 @@ interface ImportMetaEnv {
 
 declare module "*.md";
 
-// biome-ignore lint/correctness/noUnusedVariables:
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare const __PINTO_APP_VERSION__: {
+  buildId: string;
+  commit: string;
+  branch: string;
+  context: string;
+  builtAt: string;
+};

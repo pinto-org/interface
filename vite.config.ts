@@ -1,16 +1,65 @@
 import react from "@vitejs/plugin-react";
+import { execSync } from "node:child_process";
 import path from "path";
 import { defineConfig } from "vite";
 import strip from '@rollup/plugin-strip';
 import { configDefaults } from 'vitest/config';
 
+type AppVersion = {
+  buildId: string;
+  commit: string;
+  branch: string;
+  context: string;
+  builtAt: string;
+};
+
+const getGitCommit = () => {
+  try {
+    return execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
+  } catch {
+    return "unknown";
+  }
+};
+
+const getAppVersion = (): AppVersion => {
+  const builtAt = new Date().toISOString();
+  const commit =
+    process.env.COMMIT_REF ||
+    process.env.VERCEL_GIT_COMMIT_SHA ||
+    process.env.CF_PAGES_COMMIT_SHA ||
+    process.env.GITHUB_SHA ||
+    getGitCommit();
+
+  return {
+    buildId: process.env.VITE_APP_BUILD_ID || process.env.DEPLOY_ID || `${commit}-${builtAt}`,
+    commit,
+    branch: process.env.BRANCH || process.env.VERCEL_GIT_COMMIT_REF || process.env.GITHUB_REF_NAME || "",
+    context: process.env.CONTEXT || process.env.VITE_NETLIFY_CONTEXT || "",
+    builtAt,
+  };
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
   const isProduction = process.env.VITE_NETLIFY_CONTEXT === 'production';
+  const appVersion = getAppVersion();
   
   return {
+  define: {
+    __PINTO_APP_VERSION__: JSON.stringify(appVersion),
+  },
   plugins: [
     react(), 
+    {
+      name: "app-version",
+      generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "version.json",
+          source: `${JSON.stringify(appVersion)}\n`,
+        });
+      },
+    },
     {
       name: "markdown-loader",
       transform(code, id) {

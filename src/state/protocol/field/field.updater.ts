@@ -6,13 +6,16 @@ import { FieldIssuedSoilDocument } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useInvalidateField } from "@/state/useFieldData";
+import { usePriceQuery } from "@/state/usePriceData";
 import { useSeason } from "@/state/useSunData";
 import { exists } from "@/utils/utils";
+import { getChainWebSocketRpcUrl, getChainWithChainId } from "@/utils/wagmi/chains";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect } from "react";
-import { useChainId, useReadContract, useReadContracts, useWatchContractEvent } from "wagmi";
+import { useEffect, useState } from "react";
+import { createPublicClient, webSocket } from "viem";
+import { useChainId, useReadContract, useReadContracts } from "wagmi";
 import { morningAtom } from "../sun/sun.atoms";
 import {
   fieldInitialSoilAtom,
@@ -25,6 +28,8 @@ import {
 } from "./field.atoms";
 
 const INTERVAL = 1000 * 60 * 20; // 20 minutes, in milliseconds
+const MORNING_SOIL_REFRESH_INTERVAL = 1000 * 10; // 10 seconds, in milliseconds
+const VALUE_TARGET = 1;
 
 const settings = {
   query: {
@@ -248,30 +253,74 @@ export const useUpdateField = () => {
 // ---------------------------------------- Non Top level updater hooks ----------------------------------------
 
 /**
- * Update the soil every 10 seconds
+ * Keep morning soil fresh while below peg.
  */
 export const useUpdateMorningSoilOnInterval = () => {
   const diamond = useProtocolAddress();
-
+  const chainId = useChainId();
   const morning = useAtomValue(morningAtom);
   const soil = useAtomValue(fieldTotalSoilAtom).totalSoil;
 
   const invalidateField = useInvalidateField();
   const devMode = useAtomValue(morningFieldDevModeAtom);
+  const priceQuery = usePriceQuery();
+  const [usePollingFallback, setUsePollingFallback] = useState(false);
 
   const isMorning = morning.isMorning;
-  const noSoil = soil.lte(0);
+  const hasSoil = soil.gt(0);
+  const isBelowPeg =
+    exists(priceQuery.data) && TV.fromBlockchain(priceQuery.data.price, SOIL_DECIMALS).lt(VALUE_TARGET);
+  const shouldRefreshMorningSoil = isMorning && isBelowPeg && hasSoil && !devMode.freeze;
+  const webSocketRpcUrl = getChainWebSocketRpcUrl(chainId);
 
-  const handleInvalidateSoil = useCallback(() => {
-    invalidateField("soil");
-  }, [invalidateField]);
+  useEffect(() => {
+    setUsePollingFallback(false);
 
-  // Watch for Sow Events & invalidate the soil query when they occur
-  useWatchContractEvent({
-    address: diamond,
-    abi: diamondABI,
-    eventName: "Sow",
-    onLogs: handleInvalidateSoil,
-    enabled: isMorning && !noSoil && !devMode.freeze,
-  });
+    if (!shouldRefreshMorningSoil || !webSocketRpcUrl) return;
+
+    const chain = getChainWithChainId(chainId);
+    if (!chain) return;
+
+    const client = createPublicClient({
+      chain,
+      transport: webSocket(webSocketRpcUrl),
+    });
+
+    const unwatch = client.watchContractEvent({
+      address: diamond,
+      abi: diamondABI,
+      eventName: "Sow",
+      onLogs: () => invalidateField("soil"),
+      onError: (error) => {
+        console.warn("[protocol/field/useUpdateMorningSoilOnInterval]: Sow event websocket failed", error);
+        setUsePollingFallback(true);
+      },
+    });
+
+    return () => unwatch();
+  }, [chainId, diamond, invalidateField, shouldRefreshMorningSoil, webSocketRpcUrl]);
+
+  useEffect(() => {
+    if (!shouldRefreshMorningSoil || (webSocketRpcUrl && !usePollingFallback)) return;
+
+    const refreshSoil = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      invalidateField("soil");
+    };
+
+    const intervalId = window.setInterval(refreshSoil, MORNING_SOIL_REFRESH_INTERVAL);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshSoil();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [invalidateField, shouldRefreshMorningSoil, usePollingFallback, webSocketRpcUrl]);
 };
