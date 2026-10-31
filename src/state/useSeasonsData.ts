@@ -372,13 +372,11 @@ export default function useSeasonsData(
   const marketPercentSeasonal = useMarketPerformanceCalc(useMarketPerformanceQuery.data, SMPChartType.PERCENT_SEASONAL);
 
   const transformedData = useMemo(() => {
+    // REST API data is optional: an outage must not hide healthy subgraph charts.
     if (
       (beanstalkData && Object.keys(useStalkQuery.data || {}).length === 0) ||
       (beanData && (useBeanQuery.data?.length ?? 0) === 0) ||
       (basinData && (useBasinQuery.data?.length ?? 0) === 0) ||
-      (apyData && Object.keys(useAPYQuery.data || {}).length === 0) ||
-      (tractorData && (useTractorQuery.data?.length ?? 0) === 0) ||
-      (inflowData && (useInflowQuery.data?.length ?? 0) === 0) ||
       (marketPerformanceData && (useMarketPerformanceQuery.data?.length ?? 0) === 0)
     ) {
       return [];
@@ -566,9 +564,10 @@ export default function useSeasonsData(
       }
 
       if (apyData) {
-        allData.pinto30d = apy30d?.[idx]?.value || 0;
-        allData.pinto7d = apy7d?.[idx]?.value || 0;
-        allData.pinto24h = apy24h?.[idx]?.value || 0;
+        // Omit unavailable points rather than plotting an outage as zero yield.
+        if (apy30d?.[idx]) allData.pinto30d = apy30d[idx].value;
+        if (apy7d?.[idx]) allData.pinto7d = apy7d[idx].value;
+        if (apy24h?.[idx]) allData.pinto24h = apy24h[idx].value;
 
         if (!allData.season) {
           allData.season = apy24h?.[idx]?.season;
@@ -578,7 +577,7 @@ export default function useSeasonsData(
 
       if (tractorData) {
         // Ensure tractor api response is fully caught up/in sync
-        if (!allData.season || tractorSnapshots[idx]?.season === allData.season) {
+        if (tractorSnapshots[idx] && (!allData.season || tractorSnapshots[idx].season === allData.season)) {
           allData.tractorSownPinto = TokenValue.fromBlockchain(
             tractorSnapshots[idx]?.totalPintoSown || 0n,
             PODS.decimals,
@@ -728,6 +727,10 @@ export default function useSeasonsData(
 
   return {
     isFetching: useBeanQuery.isLoading || useStalkQuery.isLoading,
+    hasUnavailableApiData:
+      (apyData && useAPYQuery.isError) ||
+      (tractorData && useTractorQuery.isError) ||
+      (inflowData && useInflowQuery.isError),
     data: transformedData,
   };
 }
