@@ -93,13 +93,11 @@ test("multi-strategy picking never reuses locked or previously selected amounts"
   assert.throws(() => pickCratesAsCrates([crate], TV.fromHuman(41, 6)), /Not enough/);
 });
 
-test("lock reads support legacy deployments and fail closed on RPC errors", async () => {
+test("current deposit snapshots read all tokens at one block without retired selectors and fail closed", async () => {
   const views = parseAbi([
-    "function facetAddress(bytes4) view returns(address)",
     "function getDepositsForAccount(address,address[]) view returns((address token,uint256[] depositIds,(uint128 amount,uint128 bdv)[] tokenDeposits)[])",
   ]);
-  const id = (BigInt(token) << 96n) | BigInt.asUintN(96, -7n);
-  for (const mode of ["legacy", "upgraded", "rpc-error"]) {
+  for (const fail of [false, true]) {
     let reads = 0;
     const client = createClient({
       transport: custom(
@@ -108,54 +106,35 @@ test("lock reads support legacy deployments and fail closed on RPC errors", asyn
             if (method === "eth_getBlockByNumber") return { number: "0x64", timestamp: "0x100", transactions: [] };
             assert.equal(method, "eth_call");
             assert.equal(params[1], "0x64");
-            const data = params[0].data;
-            let view;
-            try {
-              view = decodeFunctionData({ abi: views, data });
-            } catch {
-              /* lock getter */
-            }
-            if (view?.functionName === "facetAddress")
-              return encodeAbiParameters(
-                [{ type: "address" }],
-                [mode === "legacy" ? "0x0000000000000000000000000000000000000000" : diamond],
-              );
-            if (view?.functionName === "getDepositsForAccount") {
-              assert.deepEqual(view.args, [account, [token, recipient]], "include dewhitelisted tokens explicitly");
-              return encodeAbiParameters(views[1].outputs, [
-                [
-                  { token, depositIds: [id], tokenDeposits: [{ amount: 100n, bdv: 100n }] },
-                  {
-                    token: recipient,
-                    depositIds: [BigInt(recipient) << 96n],
-                    tokenDeposits: [{ amount: 7n, bdv: 9n }],
-                  },
-                ],
-              ]);
-            }
+            const view = decodeFunctionData({ abi: views, data: params[0].data });
+            assert.equal(view.functionName, "getDepositsForAccount");
+            assert.deepEqual(view.args, [account, [token, recipient]]);
             reads++;
-            const lock = decodeFunctionData({ abi: autoConvertABI, data });
-            assert.deepEqual(lock.args, [account, -7n]);
-            if (mode === "rpc-error") throw { code: -32000, message: "archive unavailable" };
-            return encodeAbiParameters([{ type: "uint256" }, { type: "uint40" }], [40n, 999]);
+            if (fail) throw new Error("archive unavailable");
+            return encodeAbiParameters(views[0].outputs, [
+              [
+                { token, depositIds: [BigInt(token) << 96n], tokenDeposits: [{ amount: 100n, bdv: 100n }] },
+                { token: recipient, depositIds: [BigInt(recipient) << 96n], tokenDeposits: [{ amount: 7n, bdv: 9n }] },
+              ],
+            ]);
           },
         },
         { retryCount: 0 },
       ),
     });
-    if (mode === "rpc-error")
+    if (fail)
       await assert.rejects(
         readDepositsWithLocks(client, diamond, account, token, [token, recipient]),
         /archive unavailable/,
       );
     else {
       const result = await readDepositsWithLocks(client, diamond, account, token, [token, recipient]);
-      assert.equal(result.deposits[0].tokenDeposits[0].amount, 100n, "ownership is never reduced by a lock");
-      assert.equal(result.deposits[1].tokenDeposits[0].amount, 7n, "dewhitelisted deposits remain visible");
-      assert.equal(result.supported, mode === "upgraded");
-      assert.equal(reads, mode === "upgraded" ? 1 : 0);
-      assert.equal(result.locks[id.toString()]?.amount ?? 0n, mode === "upgraded" ? 40n : 0n);
+      assert.equal(result.deposits[0].tokenDeposits[0].amount, 100n);
+      assert.equal(result.deposits[1].tokenDeposits[0].amount, 7n);
+      assert.deepEqual(result.locks, {});
+      assert.equal(result.supported, false);
     }
+    assert.equal(reads, 1);
   }
 });
 

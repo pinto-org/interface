@@ -10,6 +10,8 @@ import {
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useReferralCode } from "@/hooks/tractor/useReferralCode";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
+import useSowOrderCapacity from "@/hooks/tractor/useSowOrderCapacity";
+import { defaultSowAmounts } from "@/lib/Tractor/sowOrder/sowCapacity";
 import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -118,10 +120,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const mainToken = useChainConstant(MAIN_TOKEN);
   const podLine = usePodLine();
   const { referralCode: hookReferralCode, setReferralCode: setHookReferralCode } = useReferralCode();
-  const [totalAmount, tokenStrategy, temperature] = useWatch({
+  const [totalAmount, tokenStrategy, temperature, minimum, tip] = useWatch({
     control: form.control,
-    name: ["totalAmount", "selectedTokenStrategy", "temperature"],
+    name: ["totalAmount", "selectedTokenStrategy", "temperature", "minSoil", "operatorTip"],
   });
+  const capacity = useSowOrderCapacity(tokenStrategy, totalAmount, minimum, tip, open);
 
   // Read referral code from URL params when dialog opens and sync with hook and form
   const [didInitReferralCode, setDidInitReferralCode] = useState(false);
@@ -165,54 +168,6 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     }
   }, [customOperatorTip, operatorTipPreset, form]);
 
-  // Calculate max amount based on farmer deposits and token strategy
-  const maxDepositAmount = useMemo(() => {
-    if (!farmerDeposits) return undefined;
-
-    const summary = StrategyUtil.getSummary(tokenStrategy);
-    let total = TV.ZERO;
-
-    if (summary.type === "SPECIFIC_TOKEN" && summary.addresses) {
-      summary.addresses.forEach((address) => {
-        farmerDeposits.forEach((deposit, token) => {
-          if (token.address.toLowerCase() === address.toLowerCase() && deposit.amount) {
-            if (token.isLP) {
-              const price = calculations.priceData.tokenPrices.get(token)?.instant;
-              if (price) {
-                total = total.add(deposit.amount.mul(price));
-              }
-            } else {
-              total = total.add(deposit.amount);
-            }
-          }
-        });
-      });
-    } else {
-      farmerDeposits.forEach((deposit, token) => {
-        if (deposit.amount) {
-          if (token.isLP) {
-            const price = calculations.priceData.tokenPrices.get(token)?.instant;
-            if (price) {
-              total = total.add(deposit.amount.mul(price));
-            }
-          } else {
-            total = total.add(deposit.amount);
-          }
-        }
-      });
-    }
-
-    return total.gt(0) ? total : undefined;
-  }, [farmerDeposits, tokenStrategy, calculations.priceData]);
-
-  // Check if total amount exceeds max deposits
-  const exceedsDeposits = useMemo(() => {
-    if (!maxDepositAmount || !totalAmount) return false;
-    const cleaned = sanitizeNumericInputValue(totalAmount, mainToken.decimals);
-    if (cleaned.nonAmount) return false;
-    return cleaned.tv.toNumber() > maxDepositAmount.toNumber();
-  }, [maxDepositAmount, totalAmount, mainToken.decimals]);
-
   // Check if temperature is zero or empty
   const temperatureIsZero = useMemo(() => {
     if (!temperature) return false;
@@ -223,21 +178,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
 
   // Set default values for minSoil and maxPerSeason based on totalAmount
   useEffect(() => {
-    if (!totalAmount || totalAmount === "") return;
-
-    const totalAmountTV = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
-    if (totalAmountTV.eq(0)) return;
-
-    // minSoil: min(TotalValueToSow, 25 PINTO)
-    const twentyFivePinto = TV.fromHuman(25, mainToken.decimals);
-    const minSoilValue = TV.min(totalAmountTV, twentyFivePinto);
-    const minSoilFormatted = formatter.number(minSoilValue);
-    form.setValue("minSoil", minSoilFormatted, { shouldValidate: true });
-
-    // maxPerSeason: TotalValueToSow
-    const maxPerSeasonFormatted = formatter.number(totalAmountTV);
-    form.setValue("maxPerSeason", maxPerSeasonFormatted, { shouldValidate: true });
-  }, [totalAmount, mainToken.decimals, form]);
+    const amounts = defaultSowAmounts(totalAmount);
+    if (!amounts) return;
+    form.setValue("minSoil", amounts.minimum, { shouldValidate: true });
+    form.setValue("maxPerSeason", amounts.maximum, { shouldValidate: true });
+  }, [totalAmount, form]);
 
   // Set default value for podLineLength: current pod line * 2
   useEffect(() => {
@@ -338,6 +283,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     // prevent default to avoid form submission
     e.preventDefault();
     e.stopPropagation();
+    if (!capacity.canProceed) return;
 
     if (formStep === FormStep.MAIN_FORM) {
       const isValid = await form.trigger();
@@ -384,7 +330,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const isStep1 = formStep === FormStep.MAIN_FORM;
 
   const nextDisabled =
-    (isLoading || isMissingFields || !allFieldsValid || exceedsDeposits || temperatureIsZero) && isStep1;
+    (isLoading || isMissingFields || !allFieldsValid || !capacity.canProceed || temperatureIsZero) && isStep1;
 
   return (
     <>
@@ -413,6 +359,12 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     <SowOrderV0Fields>
                       {/* Sow Using */}
                       <SowOrderV0Fields.TokenStrategy openDialog={handleOpenTokenSelectionDialog} />
+                      {/* Keep the tip editable even when it exceeds available funding. */}
+                      <OperatorTipFormField
+                        averageTipPaid={averageTipPaid}
+                        preset={operatorTipPreset}
+                        setPreset={handleSetOperatorTipPreset}
+                      />
                       {/* I want to Sow up to */}
                       <SowOrderV0Fields.TotalAmount farmerDeposits={farmerDeposits} />
                       {/* Execute when Temperature is at least */}
@@ -468,7 +420,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         </Col>
                       </Col>
                     </Col>
-                    <SowOrderFormButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
+                    {!capacity.canProceed && <p role="alert">{capacity.message}</p>}
+                    <SowOrderFormButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} disabled={!capacity.canProceed} />
                   </Col>
                 ) : formStep === FormStep.ADVANCED ? (
                   // Step 3 - Advanced Form
@@ -484,7 +437,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                 ) : null}
                 {formStep === FormStep.MAIN_FORM ? (
                   <>
-                    <SowOrderV0FormErrors errors={form.formState.errors} exceedsDeposits={exceedsDeposits} />
+                    <SowOrderV0FormErrors errors={form.formState.errors} />
                     <Row className="gap-6">
                       <Button
                         variant="outline"

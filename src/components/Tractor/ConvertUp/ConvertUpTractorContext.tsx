@@ -1,8 +1,6 @@
-import { TV } from "@/classes/TokenValue";
 import { Form } from "@/components/Form";
 import {
   ConvertUpV0FormSchema,
-  transformConvertUpFormValues,
   useConvertUpV0Form,
 } from "@/components/Tractor/form/schema/convertUp.schema";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
@@ -11,7 +9,6 @@ import { ExtendedTractorTokenStrategy } from "@/lib/Tractor/types";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { exists } from "@/utils/utils";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { useChainId } from "wagmi";
 import { TractorOperatorTipStrategy } from "../form/fields/sharedFields";
 
 export enum ConvertUpTractorOrderFormStep {
@@ -78,7 +75,6 @@ export default function ConvertUpOrderProvider({
   onOrderModified,
 }: Props) {
   const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
-  const chainId = useChainId();
 
   // Simplified operator tip state management
   const [operatorTipPreset, setOperatorTipPresetState] = useState<TractorOperatorTipStrategy>("Normal");
@@ -99,8 +95,7 @@ export default function ConvertUpOrderProvider({
    *
    * When activated:
    * - Captures current form values
-   * - Transforms them to their final format via transformConvertUpFormValues
-   * - Converts all numeric TokenValue fields to human-readable strings
+   * - Keeps form units (percentage slippage and the seed-check toggle) intact
    * - Stores this snapshot as originalValues for later reference
    *
    * Common usage scenarios:
@@ -112,29 +107,9 @@ export default function ConvertUpOrderProvider({
     (val: boolean) => {
       const values = form.form.getValues();
 
-      const transformed = transformConvertUpFormValues(values, chainId);
-
-      const newDraftState = val
-        ? {
-            ...transformed,
-            totalBeanAmountToConvert: transformed.totalBeanAmountToConvert.tv.toHuman(),
-            minBeansConvertPerExecution: transformed.minBeansConvertPerExecution.tv.toHuman(),
-            maxBeansConvertPerExecution: transformed.maxBeansConvertPerExecution.tv.toHuman(),
-            minTimeBetweenConverts: transformed.minTimeBetweenConverts.tv.toHuman(),
-            minConvertBonusCapacity: transformed.minConvertBonusCapacity.tv.toHuman(),
-            maxGrownStalkPerBdv: transformed.maxGrownStalkPerBdv.tv.toHuman(),
-            grownStalkPerBdvBonusBid: transformed.grownStalkPerBdvBonusBid.tv.toHuman(),
-            seedDifference: transformed.seedDifference.tv.toHuman(),
-            maxPriceToConvertUp: transformed.maxPriceToConvertUp.tv.toHuman(),
-            minPriceToConvertUp: transformed.minPriceToConvertUp.tv.toHuman(),
-            maxGrownStalkPerBdvPenalty: transformed.maxGrownStalkPerBdvPenalty.tv.toHuman(),
-            slippageRatio: transformed.slippageRatio.tv.toHuman(),
-            operatorTip: transformed.operatorTip.tv.toHuman(),
-            customOperatorTip: transformed.customOperatorTip?.nonAmount
-              ? ""
-              : transformed.customOperatorTip?.tv.toHuman() ?? "",
-          }
-        : null;
+      // A draft is form state, not encoded contract parameters. Serializing here
+      // would divide percentage slippage a second time when the draft is restored.
+      const newDraftState = val ? structuredClone(values) : null;
 
       setDraftState({ isActive: val, originalValues: newDraftState });
     },
@@ -175,7 +150,7 @@ export default function ConvertUpOrderProvider({
       }
 
       const seedDiff = data.convertUpParams.seedDifference;
-      const checkSeedDifference = !seedDiff.eq(TV.fromBigInt(1n, seedDiff.decimals));
+      const checkSeedDifference = !seedDiff.eq(0);
 
       const prefillValues = {
         tokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
@@ -193,7 +168,7 @@ export default function ConvertUpOrderProvider({
         maxGrownStalkPerBdvPenalty: data.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
         seedDifference: seedDiff.toHuman(),
         seedDifferenceCheck: checkSeedDifference,
-        slippageRatio: data.convertUpParams.slippageRatio.toHuman(),
+        slippageRatio: data.convertUpParams.slippageRatio.mul(100).toHuman(),
         operatorTip: data.opParams.operatorTipAmount.toHuman(),
         lowStalkDeposits: data.convertUpParams.lowStalkDeposits,
       };

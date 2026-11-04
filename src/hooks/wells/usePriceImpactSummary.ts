@@ -168,12 +168,14 @@ export default function usePriceImpactSummary(
     return [
       PRICE_IMPACT_PREDICATE,
       {
+        chainId,
+        account: account.address?.toLowerCase(),
         approvalToken: approvalToken?.address ?? "no-approval-token",
         value: value?.toHuman() ?? "0",
         qkDep,
       },
     ];
-  }, [advancedFarmWorkflow, value, qkDependency, approvalToken]);
+  }, [advancedFarmWorkflow, value, qkDependency, approvalToken, chainId, account.address]);
 
   const query = useQuery({
     queryKey: queryKey,
@@ -210,14 +212,15 @@ export default function usePriceImpactSummary(
    * Clear the price impact query
    */
   const clear = useCallback(() => {
-    qc.removeQueries({ queryKey: PRICE_IMPACT_PREDICATE, exact: false, type: "all" });
+    qc.removeQueries({ queryKey: [PRICE_IMPACT_PREDICATE], exact: false, type: "all" });
   }, [qc]);
 
   return { ...query, data: priceImpactByWell, get, clear } as const;
 }
 
-function calculatePriceImpact(priceBefore: TV, priceAfter?: TV): number | undefined {
-  if (!priceAfter) return undefined;
+export function calculatePriceImpact(priceBefore: TV, priceAfter?: TV): number | undefined {
+  // Missing opening data (including a network transition) is not a zero-percent impact.
+  if (priceBefore.lte(0) || !priceAfter) return undefined;
 
   let priceImpact: TV | undefined = undefined;
 

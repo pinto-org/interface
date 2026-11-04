@@ -6,6 +6,8 @@ import { readFileSync } from "node:fs";
 import { marketEndpoint, qaMarketMiddleware } from "./market-orders.mjs";
 import { fixtureConfig, fixturePriceSource } from "./fixture-config.mjs";
 import { keccak256 } from "viem";
+import { checkReleaseInputs } from "./release-input-preflight.mjs";
+import { createGaugeHistoryMiddleware } from "./gauge-history.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 // Optional deterministic replay of genuine recorded 0x responses on a matching fork.
@@ -15,8 +17,19 @@ const qaQuoteRecords = process.env.PINTO_QA_QUOTE_RECORDS
 const quoteKey = (url) => JSON.stringify([...new URL(url, "http://127.0.0.1").searchParams.entries()]
   .map(([k,v]) => [k, v.startsWith("0x") ? v.toLowerCase() : v]).sort(([a],[b]) => a.localeCompare(b)));
 const { rpc, port, startBlock } = fixtureConfig();
+if (process.env.PINTO_QA_PARITY_REPORT) {
+  const inputs = await checkReleaseInputs({
+    parityFile: process.env.PINTO_QA_PARITY_REPORT,
+    protocolRoot: process.env.PINTO_QA_PROTOCOL_ROOT ?? resolve(root, "../protocol"),
+    uiRoot: root,
+  });
+  console.log("QA release inputs match saved parity evidence; live runtime/topology check still required", inputs);
+} else {
+  console.warn("QA legacy-fixture mode: current-release source/ABI parity NOT checked");
+}
 async function request(method, params = []) {
   const response = await fetch(rpc, {
+    signal: AbortSignal.timeout(15000),
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });
@@ -34,11 +47,18 @@ process.env.VITE_TENDERLY_RPC_URL = rpc;
 // Exercise the production Stable2 configuration path, never a source transform.
 process.env.VITE_PINTO_STABLE2_ADDRESS = "";
 process.env.VITE_PINTO_STABLE2_RUNTIME_HASH = "";
+process.env.VITE_PINTO_DEWHITELIST_WSTETH = "false";
 let qaPriceAddress;
 if (process.argv[2]) {
   const fixture = JSON.parse(readFileSync(process.argv[2], "utf8"));
   assert.equal(fixture.chainId, 1337);
   assert.equal(fixture.noLiveWrites, true);
+  if (fixture.wstethDewhitelisted !== undefined) {
+    assert.equal(typeof fixture.wstethDewhitelisted, "boolean");
+    // This is release configuration, not a source transform. The fixture's release
+    // verifier must establish the actual on-chain whitelist before this is set.
+    process.env.VITE_PINTO_DEWHITELIST_WSTETH = String(fixture.wstethDewhitelisted);
+  }
   if (fixture.stable2) {
     const qaStable2Address = fixture.stable2.address;
     assert.match(qaStable2Address, /^0x[0-9a-fA-F]{40}$/);
@@ -79,11 +99,18 @@ const server = await createServer({
         res.end(JSON.stringify(found?.response ?? { error: "Recorded quote does not match this request" }));
       });
       vite.middlewares.use(qaMarketMiddleware);
+      vite.middlewares.use(createGaugeHistoryMiddleware({ rpc, startBlock }));
     },
     transform(code, id) {
       if (qaQuoteRecords && id === resolve(root, "src/constants/endpoints.ts")) {
         assert.ok(code.includes('router: makeSubdomainURL("0x")'));
         return code.replace('router: makeSubdomainURL("0x")', 'router: "/__qa/0x"');
+      }
+      if (id === resolve(root, "src/state/seasonal/queries/useSeasonalGaugeInfo.ts"))
+        return 'export { default } from "/scripts/qa/useForkGaugeHistory.ts";';
+      if (id === resolve(root, "src/pages/silo/SiloConvertUpContent.tsx")) {
+        assert.ok(code.includes("<span>Convert Up Data</span>"));
+        return code.replace("<span>Convert Up Data</span>", '<span>Convert Up Data<br /><small>Local fork observations only — not production history</small></span>');
       }
       if (id === resolve(root, "src/constants/address.ts"))
         return fixturePriceSource(code, qaPriceAddress);

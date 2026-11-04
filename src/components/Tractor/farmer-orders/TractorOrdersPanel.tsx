@@ -9,7 +9,7 @@ import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetT
 import useTransaction from "@/hooks/useTransaction";
 import { PublisherTractorExecution } from "@/lib/Tractor";
 import type { Blueprint } from "@/lib/Tractor";
-import { queryKeys } from "@/state/queryKeys";
+import { refreshTractorOrders } from "@/utils/tractorQueryRefresh";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
@@ -87,6 +87,7 @@ function TractorOrdersPanelGeneric({
   const { data: sowOrders, ...sowOrdersQuery } = useTractorSowOrderbook({
     address,
     filterOutCompleted: false,
+    includeSoilForecast: false,
     enabled: !!address && filters.orderTypes.includes("sow"),
   });
 
@@ -189,7 +190,7 @@ function TractorOrdersPanelGeneric({
     errorMessage: "Failed to cancel order",
     successCallback: useCallback(() => {
       // Invalidate tractor-related queries to refresh order data
-      queryClient.invalidateQueries({ queryKey: queryKeys.base.tractor });
+      void refreshTractorOrders(queryClient);
     }, [queryClient]),
   });
 

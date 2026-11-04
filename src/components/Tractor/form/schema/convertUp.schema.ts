@@ -355,7 +355,6 @@ const getSecondsBetweenConverts = (minTimeBetweenConverts: TV, timeScale: TimeSc
   }
 };
 
-const MICRO_SEED = TV.fromBigInt(1n, SEEDS.decimals);
 
 export const transformConvertUpFormValues = (values: FormSchema, chainId: number): FormSchema<SanitizedTV> => {
   const dc = getTractorConvertUpParamsDecimalConfig(chainId);
@@ -392,9 +391,9 @@ export const transformConvertUpFormValues = (values: FormSchema, chainId: number
     dc.maxGrownStalkPerBdvPenalty,
   );
 
-  // Default seed difference if seed difference check is false
+  // The helper uses exactly zero to disable this filter; one atom is a real constraint.
   const seedDifference: SanitizedTV = postSanitizedSanitizedValue(
-    !values.seedDifferenceCheck ? MICRO_SEED.toHuman() : values.seedDifference,
+    !values.seedDifferenceCheck ? "0" : values.seedDifference,
     dc.seedDifference,
     true,
   );
@@ -590,10 +589,11 @@ export const useConvertUpV0State = () => {
           grownStalkPerBdvBonusBid: formData.grownStalkPerBdvBonusBid,
           maxPriceToConvertUp: formData.maxPriceToConvertUp,
           minPriceToConvertUp: formData.minPriceToConvertUp,
-          seedDifference: formData.seedDifference,
+          // Review the effective encoded constraint, not the retained unchecked input.
+          seedDifference: TV.fromBigInt(tractorData.struct.convertUpParams.seedDifference, SEEDS.decimals).toHuman(),
           timeScale: formData.timeScale,
           maxGrownStalkPerBdvPenalty: formData.maxGrownStalkPerBdvPenalty,
-          slippageRatio: formData.slippageRatio,
+          slippageRatio: TV.fromBigInt(tractorData.struct.convertUpParams.slippageRatio, 18).mul(100).toHuman(),
           lowStalkDeposits: formData.lowStalkDeposits,
           operatorTip: TV.fromBigInt(tractorData.struct.opParams.operatorTipAmount, 6).toHuman(),
         });

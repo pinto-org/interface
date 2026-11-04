@@ -18,7 +18,7 @@ function QAControls() {
     return () => { unwatch(); window.removeEventListener("qa-wallet-update", refresh); };
   }, []);
   return <aside style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 99999, padding: 8, background: "#fff3cd", fontSize: 12 }}>
-    <strong>LOCAL FORK QA — no real funds / no extension wallet. Tractor orders and Pod Market orders/listings are NEW local entries only, after block 53178878; not production subgraph coverage.</strong>{" "}
+    <strong>LOCAL FORK QA — no real funds / no extension wallet. Tractor orders and Pod Market orders/listings are NEW local entries only, after block 53178878; not production subgraph coverage. Convert bonus/capacity charts show only actual local fork observations since that block, not full historical data.</strong>{" "}
     <button onClick={() => setCollapsed((value) => !value)}>{collapsed ? "Expand QA controls" : "Collapse QA controls"}</button>{" "}
     {!collapsed && <>
     <button onClick={() => void connect(config, { connector: config.connectors[0] }).catch((e) => setError(e.message))}>Connect QA wallet</button>{" | "}

@@ -5,7 +5,7 @@ import { getBlock, readContract } from "viem/actions";
 export const redemptionViews = parseAbi([
   "function facetAddress(bytes4 selector) view returns(address)",
   "function getTokenDepositsForAccount(address account,address token) view returns((address token,uint256[] depositIds,(uint128 amount,uint128 bdv)[] tokenDeposits))",
-  "function stemTipForToken(address token) view returns(int96)",
+  "function grownStalkForDeposit(address account,address token,int96 stem) view returns(uint256)",
   "function getGerminatingStem(address token) view returns(int96)",
   "function tokens() view returns(address[])",
 ]);
@@ -24,13 +24,13 @@ export type RedemptionSnapshot = RedemptionRequest & {
   supported: boolean;
   enabled: boolean;
   threshold: bigint;
-  referenceWell: Address;
+  ema?: { meanScaled: bigint; activeSeasons: number; configuredSeasons: number; lastSeason: number };
   outputToken: Address;
   deposits: RedemptionDeposit[];
 };
 export type RedemptionSelection = { stems: bigint[]; amounts: bigint[]; amount: bigint };
 
-/** All eligibility, balances, locks and curve discovery come from one block. */
+/** All eligibility, balances and curve discovery come from one block. */
 export async function readRedemptionSnapshot(
   client: Client,
   request: RedemptionRequest,
@@ -45,7 +45,6 @@ export async function readRedemptionSnapshot(
     supported: false,
     enabled: false,
     threshold: 0n,
-    referenceWell: zeroAddress,
     outputToken: zeroAddress,
     deposits: [],
   };
@@ -71,8 +70,9 @@ export async function readRedemptionSnapshot(
       if (route === zeroAddress) return base;
     }
   }
-  const [[threshold, referenceWell], enabled] = await Promise.all([
+  const [[threshold], [meanScaled, activeSeasons, configuredSeasons, lastSeason], enabled] = await Promise.all([
     readContract(client, { ...options, abi: autoConvertABI, functionName: "getSiloRedemptionPolicy" }),
+    readContract(client, { ...options, abi: autoConvertABI, functionName: "getSiloRedemptionEmaState" }),
     readContract(client, {
       ...options,
       abi: autoConvertABI,
@@ -80,16 +80,16 @@ export async function readRedemptionSnapshot(
       args: [request.well],
     }),
   ]);
-  if (!enabled || threshold === 0n) return { ...base, supported: true, threshold, referenceWell };
+  const ema = { meanScaled, activeSeasons, configuredSeasons, lastSeason };
+  if (!enabled || threshold === 0n) return { ...base, supported: true, threshold, ema };
   const token = request.kind === "pinto" ? request.pinto : request.well;
-  const [crates, tip, germinatingStem, tokens] = await Promise.all([
+  const [crates, germinatingStem, tokens] = await Promise.all([
     readContract(client, {
       ...options,
       abi: redemptionViews,
       functionName: "getTokenDepositsForAccount",
       args: [request.account, token],
     }),
-    readContract(client, { ...options, abi: redemptionViews, functionName: "stemTipForToken", args: [token] }),
     readContract(client, { ...options, abi: redemptionViews, functionName: "getGerminatingStem", args: [token] }),
     readContract(client, {
       address: request.well,
@@ -106,22 +106,23 @@ export async function readRedemptionSnapshot(
     crates.depositIds.map(async (id, i) => {
       const stem = BigInt.asIntN(96, id);
       const { amount, bdv } = crates.tokenDeposits[i];
-      let available = amount;
-      if (request.kind === "pinto") {
-        const [locked, unlockAt] = await readContract(client, {
-          ...options,
-          abi: autoConvertABI,
-          functionName: "getAutoConvertOutputLock",
-          args: [request.account, stem],
-        });
-        if (BigInt(unlockAt) > block.timestamp) available = locked >= amount ? 0n : amount - locked;
-      }
+      // The getter includes exact signed grown-Stalk adjustments. Stem age alone
+      // can incorrectly accept or reject deposits after conversions/transfers.
+      const grown =
+        bdv > 0n && stem < germinatingStem
+          ? await readContract(client, {
+              ...options,
+              abi: redemptionViews,
+              functionName: "grownStalkForDeposit",
+              args: [request.account, token, stem],
+            })
+          : 0n;
       return {
         stem,
         amount,
         bdv,
-        available,
-        eligible: bdv > 0n && stem < germinatingStem && tip - stem >= threshold && available > 0n,
+        available: amount,
+        eligible: bdv > 0n && stem < germinatingStem && grown / bdv >= threshold && amount > 0n,
       };
     }),
   );
@@ -130,7 +131,7 @@ export async function readRedemptionSnapshot(
     supported: true,
     enabled: true,
     threshold,
-    referenceWell,
+    ema,
     outputToken: request.kind === "lp" ? request.pinto : tokens[1],
     deposits,
   };

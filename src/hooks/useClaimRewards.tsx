@@ -71,13 +71,10 @@ export function useClaimRewards() {
           functionName: "farm",
           args: [[plant, mow, ...updateData]],
         }),
-      }).catch((e) => {
-        console.error("failed to estimate gas... using default of 20m gas", e);
-        return 0n;
       });
+      if (_gas <= 0n) throw new Error("Gas estimation returned no usable estimate; transaction not sent");
 
-      // fallback to 20m gas if estimateGas returns fails and returns 0n
-      const gasWithBuffer = _gas === 0n ? 20_000_000n : (_gas * 160n) / 100n;
+      const gasWithBuffer = (_gas * 160n) / 100n;
 
       setIsSubmitting(false);
       return writeContractAsync({

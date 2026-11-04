@@ -42,6 +42,8 @@ function mockChain(
     changedToken?: boolean;
     missingPairedSelector?: "quote" | "write";
     changedQuoteToken?: boolean;
+    threshold?: bigint;
+    grownAdjustment?: bigint;
   } = {},
 ) {
   const abi = [...autoConvertABI, ...redemptionViews];
@@ -75,7 +77,7 @@ function mockChain(
               ];
               break;
             case "getSiloRedemptionPolicy":
-              output = [24n, well, 200];
+              output = [options.threshold ?? 24n, 200];
               break;
             case "isSiloRedemptionWell":
               output = [!options.disabled];
@@ -83,8 +85,11 @@ function mockChain(
             case "tokens":
               output = [[pinto, options.changedToken ? diamond : paired]];
               break;
-            case "stemTipForToken":
-              output = [100n];
+            case "getSiloRedemptionEmaState":
+              output = [1_000_000_000_000_000_000n, 24, 36, 200];
+              break;
+            case "grownStalkForDeposit":
+              output = [(100n - (decoded.args![2] as bigint)) * 100n + (options.grownAdjustment ?? 0n)];
               break;
             case "getGerminatingStem":
               output = [99n];
@@ -101,9 +106,6 @@ function mockChain(
               ];
               break;
             }
-            case "getAutoConvertOutputLock":
-              output = [40n, 1100];
-              break;
             case "getSwapPintoDepositsOut":
             case "getRedeemDepositsToPairedTokenOut":
               output = [options.changedQuoteToken ? diamond : paired, options.quote ?? 900n];
@@ -124,7 +126,7 @@ function mockChain(
   return { client, calls };
 }
 
-test("qualification checks signed stems, exact threshold, germination and partial locks at one block", async () => {
+test("qualification checks signed stems, exact threshold and germination at one block", async () => {
   const { client } = mockChain();
   const snapshot = await readRedemptionSnapshot(client, request);
   assert.equal(snapshot.enabled, true);
@@ -132,19 +134,19 @@ test("qualification checks signed stems, exact threshold, germination and partia
   assert.deepEqual(
     snapshot.deposits.map((d) => [d.stem, d.available, d.eligible]),
     [
-      [-7n, 60n, true],
-      [76n, 60n, true],
-      [77n, 60n, false],
-      [99n, 60n, false],
+      [-7n, 100n, true],
+      [76n, 100n, true],
+      [77n, 100n, false],
+      [99n, 100n, false],
     ],
   );
-  const selection = selectRedemptionDeposits(snapshot.deposits, 90n);
-  assert.deepEqual(selection, { stems: [-7n, 76n], amounts: [30n, 60n], amount: 90n });
+  const selection = selectRedemptionDeposits(snapshot.deposits, 150n);
+  assert.deepEqual(selection, { stems: [-7n, 76n], amounts: [50n, 100n], amount: 150n });
   assert.equal(await quoteRedemption(client, snapshot, selection), 900n);
-  assert.throws(() => selectRedemptionDeposits(snapshot.deposits, 121n), /eligible/);
+  assert.throws(() => selectRedemptionDeposits(snapshot.deposits, 201n), /eligible/);
 });
 
-test("expired locks unlock at the exact block timestamp; LP redemption does not require Pinto lock reads", async () => {
+test("current Pinto and LP redemptions need no retired lock selector", async () => {
   const { client } = mockChain({ now: 1100n });
   assert.equal((await readRedemptionSnapshot(client, request)).deposits[0].available, 100n);
   const lp = mockChain();
@@ -230,7 +232,6 @@ test("fresh validation retains reviewed deposits, output token, minimum and dead
     revalidateRedemption(mockChain({ changedToken: true }).client, snapshot, selected, 895n),
     /Output token changed/,
   );
-  // Keep locks active in the reviewed/fresh snapshots so this tests only expiry.
   const expired = { ...snapshot, timestamp: -201n };
   await assert.rejects(revalidateRedemption(client, expired, selected, 895n), /Quote expired/);
 });
@@ -359,4 +360,23 @@ test("Viem wallet_sendTransaction fallback works but rechecks account and chain 
     assert.equal(firstAttempt, true);
     assert.equal(sent, change === "none" ? 1 : 0);
   }
+});
+
+test("exact grown adjustments override stem age and a Sunrise threshold change invalidates review", async () => {
+  const original = await readRedemptionSnapshot(mockChain().client, request);
+  assert.deepEqual(original.ema, {
+    meanScaled: 1_000_000_000_000_000_000n,
+    activeSeasons: 24,
+    configuredSeasons: 36,
+    lastSeason: 200,
+  });
+  const reduced = await readRedemptionSnapshot(mockChain({ grownAdjustment: -1n }).client, request);
+  assert.equal(reduced.deposits[1].eligible, false, "integer division matches Solidity at the exact boundary");
+  const increased = await readRedemptionSnapshot(mockChain({ grownAdjustment: 100n }).client, request);
+  assert.equal(increased.deposits[2].eligible, true, "positive adjustment can qualify a younger stem");
+  const selected = selectRedemptionDeposits(original.deposits, 90n);
+  await assert.rejects(
+    revalidateRedemption(mockChain({ threshold: 25n }).client, original, selected, 895n),
+    /eligible|changed/,
+  );
 });

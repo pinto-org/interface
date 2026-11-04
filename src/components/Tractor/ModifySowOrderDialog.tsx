@@ -23,11 +23,13 @@ import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetT
 import { useReferralCode } from "@/hooks/tractor/useReferralCode";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
+import useSowOrderCapacity from "@/hooks/tractor/useSowOrderCapacity";
+import { defaultSowAmounts } from "@/lib/Tractor/sowOrder/sowCapacity";
 import useTransaction from "@/hooks/useTransaction";
 import { RequisitionEvent, SowBlueprintData, decodeSowTractorData, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
-import { queryKeys } from "@/state/queryKeys";
+import { refreshTractorOrders } from "@/utils/tractorQueryRefresh";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useChainConstant } from "@/utils/chain";
@@ -82,6 +84,11 @@ export default function ModifyTractorOrderDialog({
   const { form, getMissingFields, getAreAllFieldsValid, prefillValues } = useSowOrderV0Form();
   const { state, orderData, isLoading, handleCreateBlueprint } = useSowOrderV0State();
   const calculations = useSowOrderV0Calculations();
+  const [fundingStrategy, fundingTotal, fundingMinimum, fundingTip] = useWatch({
+    control: form.control,
+    name: ["selectedTokenStrategy", "totalAmount", "minSoil", "operatorTip"],
+  });
+  const capacity = useSowOrderCapacity(fundingStrategy, fundingTotal, fundingMinimum, fundingTip, open);
 
   // Local State
   const [showReview, setShowReview] = useState(false);
@@ -183,21 +190,11 @@ export default function ModifyTractorOrderDialog({
   const [totalAmount] = useWatch({ control: form.control, name: ["totalAmount"] });
 
   useEffect(() => {
-    if (!totalAmount || totalAmount === "") return;
-
-    const totalAmountTV = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
-    if (totalAmountTV.eq(0)) return;
-
-    // minSoil: min(TotalValueToSow, 25 PINTO)
-    const twentyFivePinto = TV.fromHuman(25, mainToken.decimals);
-    const minSoilValue = TV.min(totalAmountTV, twentyFivePinto);
-    const minSoilFormatted = formatter.number(minSoilValue);
-    form.setValue("minSoil", minSoilFormatted, { shouldValidate: false });
-
-    // maxPerSeason: TotalValueToSow
-    const maxPerSeasonFormatted = formatter.number(totalAmountTV);
-    form.setValue("maxPerSeason", maxPerSeasonFormatted, { shouldValidate: false });
-  }, [totalAmount, mainToken.decimals, form]);
+    const amounts = defaultSowAmounts(totalAmount);
+    if (!amounts) return;
+    form.setValue("minSoil", amounts.minimum, { shouldValidate: false });
+    form.setValue("maxPerSeason", amounts.maximum, { shouldValidate: false });
+  }, [totalAmount, form]);
 
   // Handlers for advanced form
   const handleSetAdvanced = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -287,6 +284,7 @@ export default function ModifyTractorOrderDialog({
   const handleNext = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!capacity.canProceed) return;
 
     if (formStep === 1) {
       // MAIN_FORM -> REVIEW
@@ -339,7 +337,7 @@ export default function ModifyTractorOrderDialog({
 
   const isMissingFields = missingFields.length > 0;
 
-  const nextDisabled = isLoading || isMissingFields || !allFieldsValid;
+  const nextDisabled = isLoading || isMissingFields || !allFieldsValid || !capacity.canProceed;
 
   return (
     <>
@@ -375,6 +373,12 @@ export default function ModifyTractorOrderDialog({
                         {/* Sow Using */}
                         <SowOrderV0Fields.TokenStrategy openDialog={() => setShowTokenSelectionDialog(true)} />
                         {/* I want to Sow up to */}
+                        {/* Keep the tip editable even when it exceeds available funding. */}
+                        <OperatorTipFormField
+                          averageTipPaid={averageTipValue}
+                          preset={operatorTipPreset}
+                          setPreset={handleSetOperatorTipPreset}
+                        />
                         <SowOrderV0Fields.TotalAmount farmerDeposits={farmerDeposits} />
                         {/* Execute when Temperature is at least */}
                         <SowOrderV0Fields.Temperature />
@@ -482,7 +486,8 @@ export default function ModifyTractorOrderDialog({
                           </Col>
                         </Col>
                       </Col>
-                      <SowOrderFormButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
+                      {!capacity.canProceed && <p role="alert">{capacity.message}</p>}
+                      <SowOrderFormButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} disabled={!capacity.canProceed} />
                     </Col>
                   ) : formStep === 3 ? (
                     // Step 3 - Advanced Form
@@ -574,7 +579,7 @@ function ModifyTractorOrderReviewDialog({
     errorMessage: "Failed to modify order",
     successCallback: () => {
       // Invalidate tractor-related queries to refresh order data
-      queryClient.invalidateQueries({ queryKey: queryKeys.base.tractor });
+      void refreshTractorOrders(queryClient);
       onOpenChange(false);
       if (onSuccess) {
         onSuccess();

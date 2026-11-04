@@ -54,14 +54,14 @@ export default function useSowOrderV0Calculations(options?: UseSowOrderV0Calcula
     let tokenWithHighestValueAddr: string | null = null;
     let tokenType: "SPECIFIC_TOKEN" | "LOWEST_SEEDS" | "MULTI_TOKENS" = "LOWEST_SEEDS";
 
-    // Check PINTO token first
+    // Compare every funding source in Pinto; LP quotes are not dollar values.
     const pintoToken = whitelistedTokens.find((t) => t.symbol === "PINTO");
     if (pintoToken) {
       const pintoDeposit = farmerDeposits.get(pintoToken);
       if (pintoDeposit?.amount) {
-        const pintoDollarValue = pintoDeposit.amount.mul(priceData.price);
-        if (pintoDollarValue.gt(highestValue)) {
-          highestValue = pintoDollarValue;
+        const pintoAmount = pintoDeposit.amount;
+        if (pintoAmount.gt(highestValue)) {
+          highestValue = pintoAmount;
           tokenWithHighestValueAddr = pintoToken.address;
           tokenType = "SPECIFIC_TOKEN";
         }
@@ -71,9 +71,9 @@ export default function useSowOrderV0Calculations(options?: UseSowOrderV0Calcula
     // Check all LP tokens
     whitelistedTokens.forEach((token) => {
       if (token.isLP) {
-        const lpDollarValue = swapResults.get(token.address);
-        if (lpDollarValue && lpDollarValue.gt(highestValue)) {
-          highestValue = lpDollarValue;
+        const lpPintoAmount = swapResults.get(token.address);
+        if (lpPintoAmount && lpPintoAmount.gt(highestValue)) {
+          highestValue = lpPintoAmount;
           tokenWithHighestValueAddr = token.address;
           tokenType = "SPECIFIC_TOKEN";
         }
@@ -88,7 +88,7 @@ export default function useSowOrderV0Calculations(options?: UseSowOrderV0Calcula
       type: tokenType,
       address: tokenWithHighestValueAddr as `0x${string}`,
     } as SowOrderTokenStrategy;
-  }, [farmerDeposits, whitelistedTokens, priceData.price, swapResults]);
+  }, [farmerDeposits, whitelistedTokens, swapResults]);
 
   // Check if deposits need optimization
   const areDepositsSorted = (deposits: DepositData[]): boolean => {

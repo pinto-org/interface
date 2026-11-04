@@ -422,9 +422,9 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
       </div>
       {siloToken.isLP && (
         <div className="pinto-sm-light sm:pinto-body-light font-thin sm:font-light text-pinto-lighter sm:text-pinto-lighter leading-2">
-          {siloToken.isLP
+          {siloToken.isWhitelisted
             ? `${siloToken.name} is a liquidity pool token on the Pinto Exchange. You can use a variety of input tokens to add liquidity and deposit the LP token in the Silo.`
-            : `${siloToken.name} is the token that powers the ${siloToken.name} protocol.`}
+            : `${siloToken.name} is dewhitelisted. Existing deposits can be withdrawn or converted into supported deposits; new deposits of this token are not supported.`}
         </div>
       )}
       <Link to="/explorer/silo" className="pinto-body text-pinto-green-4 hover:underline transition-all">

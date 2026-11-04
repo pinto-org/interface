@@ -23,7 +23,6 @@ const snapshot = (well = a(5), output = a(3)): RedemptionSnapshot => ({
   supported: true,
   enabled: true,
   threshold: 5n,
-  referenceWell: a(5),
   outputToken: output,
   deposits: [{ stem: -1n, amount: 1000n, bdv: 1000n, available: 1000n, eligible: true }],
 });

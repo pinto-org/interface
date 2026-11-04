@@ -9,6 +9,8 @@ import sowWithReferral from "@/encoders/sowWithReferral";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useReferralCode } from "@/hooks/tractor/useReferralCode";
+import useReferralRewardPreview from "@/hooks/tractor/useReferralRewardPreview";
+import ReferralCodeStatus from "@/components/referral/ReferralCodeStatus";
 import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
 import useTransaction from "@/hooks/useTransaction";
 import { inputExceedsSoilAtom } from "@/state/protocol/field/field.atoms";
@@ -193,10 +195,12 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     return TV.ZERO;
   }, [amountInTV, currentTemperature, isUsingMain, swap.data?.buyAmount]);
 
-  const bonusPods = useMemo(() => {
-    if (!referralAddress || !pods || pods.lte(0)) return TV.ZERO;
-    return pods.mul(0.05);
-  }, [referralAddress, pods]);
+  const referralPreview = useReferralRewardPreview(
+    referralCode,
+    soilSown?.reDecimal(6).toBigInt() ?? 0n,
+    pods?.reDecimal(6).toBigInt() ?? 0n,
+  );
+  const bonusPods = TV.fromBigInt(referralPreview.bonusPods, 6);
 
   const hasReferralCode = Boolean(referralAddress);
 
@@ -566,7 +570,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                         <OutputDisplay.Value value={formatCompact(pods)} token={PODS} suffix={PODS.symbol} />
                       </OutputDisplay.Item>
                       {hasReferralCode && bonusPods.gt(0) && (
-                        <OutputDisplay.Item label="Bonus Pods">
+                        <OutputDisplay.Item label="Estimated Bonus Pods">
                           <OutputDisplay.Value
                             value={formatCompact(bonusPods)}
                             token={PODS}
@@ -612,11 +616,10 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                   <div className="flex flex-col gap-0">
                     <Col className="gap-4">
                       {!hasSoil && <Warning>Your usable balance is 0.00 because there is no Soil available.</Warning>}
-                      {hasReferralCode && bonusPods.gt(0) && (
+                      {referralCode && (
                         <div className="px-2 py-3">
                           <span className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-                            You gained <span className="text-pinto-green-4 font-medium">5% more Pods</span> due to using
-                            a referral link!
+                            {referralPreview.message}
                           </span>
                         </div>
                       )}
@@ -688,7 +691,7 @@ const SettingsPoppover = ({
 }) => {
   const [internalAmount, setInternalAmount] = useState(slippage);
   const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
-  const { referralCode, isReferralCodeValid, setReferralCode } = useReferralCode();
+  const { referralCode, setReferralCode } = useReferralCode();
 
   const handlePopoverOpen = (isOpen: boolean) => {
     if (isOpen) {
@@ -748,15 +751,8 @@ const SettingsPoppover = ({
               placeholder="Enter referral code"
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value)}
-              className={isReferralCodeValid ? "border-green-500" : ""}
             />
-            {isReferralCodeValid && (
-              <div className="pinto-sm text-green-600 flex items-center gap-1">
-                <span>✓</span>
-                <span>Valid referral code</span>
-              </div>
-            )}
-            {referralCode && !isReferralCodeValid && <div className="pinto-sm text-red-600">Invalid referral code</div>}
+            <ReferralCodeStatus code={referralCode} />
           </div>
         </div>
       </PopoverContent>

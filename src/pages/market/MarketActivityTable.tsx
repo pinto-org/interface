@@ -7,12 +7,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PODS } from "@/constants/internalTokens";
+import { useBeanstalkMarket } from "@/context/BeanstalkMarketContext";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
+import { canCancelListing } from "@/utils/marketListing";
 import { Fill, Listing, Order } from "@/utils/types";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAccount, useChainId } from "wagmi";
+import CancelListing from "./actions/CancelListing";
 
 export interface MarketActivityTableProps {
   marketData: ReturnType<typeof useAllMarket>;
@@ -24,6 +28,12 @@ export function MarketActivityTable({ marketData, titleText, farmer }: MarketAct
   const { id: selection } = useParams();
   const harvestableIndex = useHarvestableIndex();
   const { data, isLoaded, isFetching } = marketData;
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const { fieldId } = useBeanstalkMarket();
+  const hasCancellableListing = data?.some(
+    (event) => event.type === "LISTING" && canCancelListing(event as Listing, address, fieldId),
+  );
 
   const rowsPerPage = 12;
   const totalRows = data?.length || 0;
@@ -85,12 +95,13 @@ export function MarketActivityTable({ marketData, titleText, farmer }: MarketAct
                   <TableHead className="w-[100px]">Fill %</TableHead>
                   <TableHead className="w-[100px]">Expires In</TableHead>
                   <TableHead className="text-right w-[80px]">Status</TableHead>
+                  {hasCancellableListing && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {!data?.length && (
                   <TableRow key="Empty">
-                    <TableCell colSpan={9}>No activity to show</TableCell>
+                    <TableCell colSpan={hasCancellableListing ? 10 : 9}>No activity to show</TableCell>
                   </TableRow>
                 )}
                 {data?.map((event, i) => {
@@ -229,6 +240,16 @@ export function MarketActivityTable({ marketData, titleText, farmer }: MarketAct
                         ) : (
                           <TableCell colSpan={2} className="text-right">
                             {status}
+                          </TableCell>
+                        )}
+                        {hasCancellableListing && (
+                          <TableCell className="text-right">
+                            {event.type === "LISTING" && canCancelListing(event as Listing, address, fieldId) && (
+                              <CancelListing
+                                key={`${chainId}-${address}-${fieldId}-${event.id}`}
+                                listing={event as Listing}
+                              />
+                            )}
                           </TableCell>
                         )}
                       </TableRow>

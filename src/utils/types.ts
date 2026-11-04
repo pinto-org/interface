@@ -263,6 +263,7 @@ export interface Plot {
 
 export interface Listing {
   type?: string;
+  farmer: string;
   id: string;
   amount: TokenValue;
   creationHash: string;

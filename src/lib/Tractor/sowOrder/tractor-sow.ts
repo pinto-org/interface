@@ -462,6 +462,9 @@ export function decodeSowTractorData(
 export interface LoadOrderbookDataOptions {
   filterOutCompleted?: boolean;
   currentSeason?: number;
+  /** Defaults to true. History-only consumers may omit the Soil allocation pass;
+   * they must not use amountSowableNextSeasonConsideringAvailableSoil as a forecast. */
+  includeSoilForecast?: boolean;
 }
 
 export async function loadOrderbookData(
@@ -821,6 +824,10 @@ export async function loadOrderbookData(
         runningPlaceInLine = runningPlaceInLine.add(podsToMint);
       }
     }
+
+    // Publisher cards use signed terms and execution history, not a Soil forecast.
+    // An empty orderbook also needs no historical Soil read or allocation.
+    if (loadOptions.includeSoilForecast === false || orderbookData.length === 0) return orderbookData;
 
     let availableSoil = TokenValue.ZERO;
     // Get the total amount of soil available from the protocol

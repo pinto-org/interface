@@ -218,8 +218,7 @@ export function MyListingsTable({ address, selectedIds = [], onSelectionChange }
                 {selectable && (
                   <TableHead className="w-[40px]">
                     <Checkbox
-                      checked={allVisibleSelected}
-                      indeterminate={someVisibleSelected}
+                      checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
                       onCheckedChange={(checked) => handleSelectAllChange(checked === true)}
                       aria-label="Select all visible listings"
                     />

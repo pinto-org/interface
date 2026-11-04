@@ -5,7 +5,7 @@ import { createQaReadControls } from "../../../scripts/qa/read-controls";
 import { qaAccount, qaDiamond } from "../../../scripts/qa/transaction-policy";
 import { autoConvertABI } from "../../constants/abi/autoConvertABI";
 
-const read = { to: qaDiamond, data: toFunctionSelector("getAutoConvertOutputLock(address,int96)") };
+const read = { to: qaDiamond, data: toFunctionSelector("grownStalkForDeposit(address,address,int96)") };
 const estimate = {
   to: qaDiamond,
   data: toFunctionSelector("swapPintoDeposits(address,int96[],uint256[],uint256,uint256,uint8)"),
@@ -16,7 +16,7 @@ test("QA failure is scoped to Diamond deposit/lock reads and restores without a 
   await control.beforeRequest("eth_call", [read]);
   control.setDepositFailure(true);
   for (const signature of [
-    "getAutoConvertOutputLock(address,int96)",
+    "grownStalkForDeposit(address,address,int96)",
     "getDepositsForAccount(address,address[])",
     "getTokenDepositsForAccount(address,address)",
   ]) {

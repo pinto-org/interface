@@ -26,13 +26,15 @@ export default function useMyPodListings({ account }: UseMyPodListingsProps) {
 
   const query = useQuery({
     queryKey,
-    queryFn: async () =>
-      request(subgraphs[chainId].beanstalk, MyPodListingsDocument, {
-        account: account?.toLowerCase(),
+    queryFn: async () => {
+      if (!account) throw new Error("An account is required to load its Pod listings");
+      return request(subgraphs[chainId].beanstalk, MyPodListingsDocument, {
+        account: account.toLowerCase(),
         maxHarvestableIndex: harvestableIndex.toBigInt().toString(),
         first: 100,
         skip: 0,
-      }),
+      });
+    },
     enabled: !!account && harvestableIndex.gt(0),
   });
 

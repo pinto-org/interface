@@ -134,9 +134,9 @@ function alignChartData(datasets: SeasonalChartData[][]): SeasonalChartData[][] 
     const seen = new Set<number>();
 
     // reverse to get the most recent data first in case of duplicate seasons
-    for (const point of [...dataset.reverse()]) {
+    for (const point of [...dataset].reverse()) {
       if (point.season < minSeason) continue;
-      if (point.season > maxSeason) break;
+      if (point.season > maxSeason) continue;
       if (!seen.has(point.season)) {
         filtered.push(point);
         seen.add(point.season);

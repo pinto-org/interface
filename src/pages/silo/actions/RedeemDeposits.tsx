@@ -266,9 +266,9 @@ function DirectRedemption({ siloToken, onBusyChange }: { siloToken: Token; onBus
         impact and network gas still apply.
       </p>
       <p className="text-sm text-pinto-gray-5">
-        Deposits must be non-germinating and meet the protocol’s grown Stalk per BDV threshold. The threshold is
-        calibrated once to 24 Seasons of the lowest-growth eligible LP, rather than time in your wallet. Pinto may take
-        longer to qualify.
+        Deposits must be non-germinating and meet the protocol’s grown Stalk per BDV threshold. The threshold is based
+        on a moving average of eligible LP Seed rates and the configured Season window. The threshold updates at
+        Sunrise. Pinto may take longer to qualify.
       </p>
       <fieldset disabled={busy} className="flex flex-col gap-4 disabled:opacity-60">
         {!isPinto && (

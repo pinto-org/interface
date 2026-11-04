@@ -46,7 +46,7 @@ test("match real Wagmi single/batch live reads for only the changed deployment",
 });
 
 test("refresh deposit/lock, redemption and event queries but not unrelated app data", () => {
-  for (const prefix of ["depositsWithLocks", "siloRedemption", "siloRedemptionQuote"]) {
+  for (const prefix of ["depositsWithLocks", "siloRedemption", "siloRedemptionQuote", "siloRoutedRedemption"]) {
     assert.ok(isProtocolSeasonQuery([prefix, 8453, diamond, other], 8453, diamond));
     assert.equal(isProtocolSeasonQuery([prefix, 42161, diamond], 8453, diamond), false);
     assert.equal(isProtocolSeasonQuery([prefix, 8453, other], 8453, diamond), false);

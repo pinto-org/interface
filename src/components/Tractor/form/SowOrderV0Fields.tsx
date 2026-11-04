@@ -10,6 +10,7 @@ import { MultiSlider } from "@/components/ui/Slider";
 import { Switch } from "@/components/ui/Switch";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useReadBeanstalk_MaxTemperature } from "@/generated/contractHooks";
+import useSowOrderCapacity from "@/hooks/tractor/useSowOrderCapacity";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useTemperature } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
@@ -24,15 +25,13 @@ import { Col, Row } from "@/components/Container";
 import { Label, TooltipLabel } from "@/components/ui/Label";
 import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { usePriceData } from "@/state/usePriceData";
-import useTokenData from "@/state/useTokenData";
 import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
-import { useAccount } from "wagmi";
 
 import { useReferralCode } from "@/hooks/tractor/useReferralCode";
+import useReferralRewardPreview from "@/hooks/tractor/useReferralRewardPreview";
+import ReferralCodeStatus from "@/components/referral/ReferralCodeStatus";
 
 const sharedInputProps = {
   type: "text",
@@ -166,85 +165,16 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
 }: {
   farmerDeposits?: ReturnType<typeof useFarmerSilo>["deposits"];
 }) {
-  const { address: accountAddress } = useAccount();
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const handlers = useSharedInputHandlers(ctx, "totalAmount");
   const decimals = useChainConstant(MAIN_TOKEN).decimals;
-  const [tokenStrategy, totalAmountValue] = useWatch({
+  const [tokenStrategy, totalAmountValue, minimum, tip] = useWatch({
     control: ctx.control,
-    name: ["selectedTokenStrategy", "totalAmount"],
+    name: ["selectedTokenStrategy", "totalAmount", "minSoil", "operatorTip"],
   });
-  const farmerBalances = useFarmerBalances();
-  const priceData = usePriceData();
-  const tokenData = useTokenData();
-
-  const maxAmount = useMemo(() => {
-    if (!accountAddress || !farmerDeposits) {
-      return undefined;
-    }
-
-    const summary = StrategyUtil.getSummary(tokenStrategy);
-    let totalAmount = TV.ZERO;
-
-    if (summary.type === "SPECIFIC_TOKEN" && summary.addresses) {
-      // Sum amounts for specific tokens
-      summary.addresses.forEach((address) => {
-        const token = tokenData.whitelistedTokens.find((t) => t.address === address);
-        if (token) {
-          const deposit = farmerDeposits.get(token);
-          if (deposit?.amount) {
-            // For LP tokens, use price to convert to main token value
-            if (token.isLP) {
-              const price = priceData.tokenPrices.get(token)?.instant;
-              if (price) {
-                totalAmount = totalAmount.add(deposit.amount.mul(price));
-              }
-            } else {
-              // For main token, use amount directly
-              totalAmount = totalAmount.add(deposit.amount);
-            }
-          } else {
-            // Check balances if no deposits
-            const balance = farmerBalances.balances.get(token);
-            if (balance?.total) {
-              if (token.isLP) {
-                const price = priceData.tokenPrices.get(token)?.instant;
-                if (price) {
-                  totalAmount = totalAmount.add(balance.total.mul(price));
-                }
-              } else {
-                totalAmount = totalAmount.add(balance.total);
-              }
-            }
-          }
-        }
-      });
-    } else {
-      // For LOWEST_SEEDS or LOWEST_PRICE, sum all available amounts
-      farmerDeposits.forEach((deposit, token) => {
-        if (deposit.amount) {
-          if (token.isLP) {
-            const price = priceData.tokenPrices.get(token)?.instant;
-            if (price) {
-              totalAmount = totalAmount.add(deposit.amount.mul(price));
-            }
-          } else {
-            totalAmount = totalAmount.add(deposit.amount);
-          }
-        }
-      });
-    }
-
-    return totalAmount.gt(0) ? totalAmount : undefined;
-  }, [accountAddress, farmerDeposits, tokenStrategy, farmerBalances, priceData, tokenData]);
-
-  // Check if total amount exceeds max deposits
-  const exceedsDeposits = useMemo(() => {
-    if (!maxAmount || !totalAmountValue) return false;
-    const cleaned = sanitizeNumericInputValue(totalAmountValue, decimals);
-    if (cleaned.nonAmount) return false;
-    return cleaned.tv.toNumber() > maxAmount.toNumber();
-  }, [maxAmount, totalAmountValue, decimals]);
+  const capacity = useSowOrderCapacity(tokenStrategy, totalAmountValue, minimum, tip);
+  const maxAmount = capacity.maxAmount;
+  const exceedsDeposits = capacity.exceeds;
 
   const getHandlers = (): BaseIFormContextHandlers => {
     return {
@@ -287,6 +217,9 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
           )}
         />
       </Row>
+      <span role={capacity.canProceed ? "status" : "alert"} className="pinto-sm-light">
+        {capacity.message}
+      </span>
     </Col>
   );
 };
@@ -494,10 +427,6 @@ SowOrderV0Fields.MorningAuction = function MorningAuction() {
   );
 };
 
-// TODO: ADD REFERRAL CODE VALIDATOR!
-
-const BONUS_MULTIPLIER = 0.05;
-
 SowOrderV0Fields.PodDisplay = function PodDisplay({
   onOpenReferralPopover,
 }: {
@@ -508,7 +437,7 @@ SowOrderV0Fields.PodDisplay = function PodDisplay({
   const [totalAmount, temperature] = useWatch({ control: ctx.control, name: ["totalAmount", "temperature"] });
   const { data: maxTemperature } = useReadBeanstalk_MaxTemperature();
   const temperatureState = useTemperature();
-  const { validReferralCodeFromStorage } = useReferralCode();
+  const { referralCode } = useReferralCode();
 
   const estimatedPods = useMemo(() => {
     if (!totalAmount || totalAmount === "") {
@@ -533,12 +462,12 @@ SowOrderV0Fields.PodDisplay = function PodDisplay({
     return multiplier.mul(totalAmountTV);
   }, [totalAmount, temperature, mainToken.decimals, maxTemperature, temperatureState.max]);
 
-  const bonusPods = useMemo(() => {
-    return estimatedPods.mul(BONUS_MULTIPLIER);
-  }, [estimatedPods]);
-
-  // Use validReferralCodeFromStorage for conditional rendering (from localStorage, cleared when invalid)
-  const hasReferralCode = Boolean(validReferralCodeFromStorage);
+  const referral = useReferralRewardPreview(
+    referralCode,
+    sanitizeNumericInputValue(totalAmount || "0", mainToken.decimals).tv.toBigInt(),
+    estimatedPods.reDecimal(6).toBigInt(),
+  );
+  const bonusPods = TV.fromBigInt(referral.bonusPods, 6);
 
   return (
     <Col className="w-full gap-2">
@@ -555,9 +484,9 @@ SowOrderV0Fields.PodDisplay = function PodDisplay({
           </div>
         </div>
       </Row>
-      {hasReferralCode ? (
+      {bonusPods.gt(0) ? (
         <Row className="w-full items-start justify-between gap-4">
-          <div className="pinto-sm-light text-pinto-light shrink-0">Bonus Pods</div>
+          <div className="pinto-sm-light text-pinto-light shrink-0">Estimated Bonus Pods</div>
           <div className="flex items-start gap-2 min-w-0">
             <IconImage src={podIcon} alt="Bonus Pods" size={5} className="shrink-0 mt-0.5" />
             <div className="pinto-body-bold text-pinto-green-4 break-all text-right">
@@ -569,20 +498,24 @@ SowOrderV0Fields.PodDisplay = function PodDisplay({
             </div>
           </div>
         </Row>
-      ) : (
-        <Row className="w-full justify-start">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenReferralPopover?.();
-            }}
-            className="pinto-sm-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
-          >
-            Have a referral code?
-          </button>
-        </Row>
+      ) : null}
+      {referralCode && (
+        <p role="status" className="pinto-sm-light text-pinto-light">
+          {referral.message}
+        </p>
       )}
+      <Row className="w-full justify-start">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenReferralPopover?.();
+          }}
+          className="pinto-sm-light text-pinto-green-4 underline cursor-pointer hover:text-pinto-green-3"
+        >
+          {referralCode ? "Edit referral code" : "Have a referral code?"}
+        </button>
+      </Row>
     </Col>
   );
 };
@@ -831,7 +764,7 @@ SowOrderV0Fields.ReferralCodePopover = function ReferralCodePopover({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const { referralCode, isReferralCodeValid, setReferralCode } = useReferralCode();
+  const { referralCode, setReferralCode } = useReferralCode();
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -858,15 +791,8 @@ SowOrderV0Fields.ReferralCodePopover = function ReferralCodePopover({
               placeholder="Enter referral code"
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value)}
-              className={isReferralCodeValid ? "border-green-500" : ""}
             />
-            {isReferralCodeValid && (
-              <div className="pinto-sm text-green-600 flex items-center gap-1">
-                <span>✓</span>
-                <span>Valid referral code</span>
-              </div>
-            )}
-            {referralCode && !isReferralCodeValid && <div className="pinto-sm text-red-600">Invalid referral code</div>}
+            <ReferralCodeStatus code={referralCode} />
           </div>
         </div>
       </PopoverContent>

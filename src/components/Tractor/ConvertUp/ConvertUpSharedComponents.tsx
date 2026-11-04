@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-import { STALK } from "@/constants/internalTokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import {
   LOW_STALK_DEPOSIT_MODES_TO_LABELS,
@@ -14,6 +14,8 @@ import {
 } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { formatter } from "@/utils/format";
+import { postSanitizedSanitizedValue } from "@/utils/string";
+import { formatConvertSeedDifference } from "@/utils/tractorDisplay";
 import { TimeScale, timeScaleToDisplay } from "@/utils/time";
 import { getTokenIndex } from "@/utils/token";
 import { MayPromise } from "@/utils/types.generic";
@@ -163,15 +165,11 @@ export const ConvertUpFormAdvancedParametersSummary = ({
   const maxConvertBdvPerExecution = values.maxBeansConvertPerExecution;
   const slippageRatio = values.slippageRatio;
   const lowStalkDeposits = values.lowStalkDeposits;
-  const seedDifference = values.seedDifference;
-
-  const seedDiffNum = Number(seedDifference);
-  const seedDiffAbs = seedDiffNum >= 0 ? seedDiffNum : seedDiffNum * -1;
-  const seedDiffLabel = seedDiffNum >= 0 ? "Minimum Seeds Gained Per PDV Converted" : "Maximum Seed Loss Per PDV";
-  const seedDiffTooltip =
-    seedDiffNum >= 0
-      ? "The minimum Seed gain per PDV required between the token being Converted into Pinto and Pinto at the time of execution."
-      : "The maximum Seed loss per PDV allowed between the token being Converted into Pinto and Pinto at the time of execution.";
+  const seedDifference = postSanitizedSanitizedValue(
+    values.seedDifferenceCheck ? values.seedDifference ?? "0" : "0",
+    SEEDS.decimals,
+    true,
+  ).tv;
 
   return (
     <Card className="flex flex-col gap-2 border-none">
@@ -206,9 +204,9 @@ export const ConvertUpFormAdvancedParametersSummary = ({
         value={values.capAmountToBonusCapacity ? "Yes" : "No"}
       />
       <ReviewRow
-        label={seedDiffLabel}
-        tooltip={seedDiffTooltip}
-        value={`${formatter.number(seedDiffAbs, { minValue: 0.01 })} Seeds`}
+        label="Seed difference check"
+        tooltip="The signed Seed gain or loss constraint per PDV. Disabled means no Seed difference restriction."
+        value={formatConvertSeedDifference(seedDifference)}
       />
       <ReviewRow
         label="Slippage Tolerance"

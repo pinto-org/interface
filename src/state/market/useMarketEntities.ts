@@ -13,19 +13,11 @@ export function useMarketEntities(data: AllMarketActivityQuery | undefined, isFe
 
     if (isLoaded) {
       data.podListings.forEach((listing) => {
-        // Filter out listings that cannot be purchased (pricePerPod * remainingAmount < minFillAmount)
-        const pricePerPod = TokenValue.fromBlockchain(listing.pricePerPod, PINTO.decimals);
-        const remainingAmount = TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals);
-        const minFillAmount = TokenValue.fromBlockchain(listing.minFillAmount, PINTO.decimals);
-        const totalValue = pricePerPod.mul(remainingAmount);
-
-        // Skip listings where totalValue < minFillAmount
-        if (totalValue.lt(minFillAmount)) {
-          return;
-        }
-
+        // Activity is also the owner's cancellation entry point. Do not apply
+        // purchase filters here: tiny remainders and completed history still matter.
         const parsed: Listing = {
           type: "LISTING",
+          farmer: listing.farmer.id,
           amount: TokenValue.fromBlockchain(listing.amount, PODS.decimals),
           creationHash: listing.creationHash,
           createdAt: Number(listing.createdAt),

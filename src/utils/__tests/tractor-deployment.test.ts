@@ -1,4 +1,4 @@
-import { type PublicClient, zeroAddress } from "viem";
+import { type PublicClient, toFunctionSelector, zeroAddress } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { assertTractorDeploymentReady, configuredTractorAddress } from "../tractorDeployment";
 
@@ -21,10 +21,13 @@ function fixture({
       expect(blockNumber).toBe(123n);
       return missingCode ? "0x" : "0x1234";
     }),
-    readContract: vi.fn(async ({ address, functionName, blockNumber }) => {
+    readContract: vi.fn(async ({ address, functionName, blockNumber, args }) => {
       expect(blockNumber).toBe(123n);
       if (rpcError) throw new Error("RPC unavailable");
-      if (functionName === "facetAddress") return upgraded ? diamond : zeroAddress;
+      if (functionName === "facetAddress") {
+        expect(args).toEqual([toFunctionSelector("getSiloRedemptionPolicy()")]);
+        return upgraded ? diamond : zeroAddress;
+      }
       expect(address).toBe(blueprint); // No fabricated getters on private helper immutables.
       if (functionName === "beanstalk") return wrongTarget ? zeroAddress : diamond;
       if (functionName === "siloHelpers") return silo;

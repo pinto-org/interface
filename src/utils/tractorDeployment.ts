@@ -31,7 +31,7 @@ export async function assertTractorDeploymentReady(
       address: diamond,
       abi: deploymentABI,
       functionName: "facetAddress",
-      args: [toFunctionSelector("getAutoConvertOutputLock(address,int96)")],
+      args: [toFunctionSelector("getSiloRedemptionPolicy()")],
       blockNumber,
     });
     if (facet === zeroAddress) return; // Preserve the existing Sow creation policy.

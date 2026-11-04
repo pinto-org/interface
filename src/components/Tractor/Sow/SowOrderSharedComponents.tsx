@@ -25,10 +25,12 @@ export const SowOrderFormButtonRow = ({
   handleBack,
   handleNext,
   isLoading,
+  disabled = false,
 }: {
   handleBack: (e: React.MouseEvent<HTMLButtonElement>) => void;
   handleNext: (e: React.MouseEvent<HTMLButtonElement>) => MayPromise<void>;
   isLoading: boolean;
+  disabled?: boolean;
 }) => {
   const { errors } = useFormState<SowOrderV0FormSchema>();
 
@@ -41,7 +43,7 @@ export const SowOrderFormButtonRow = ({
       isLoading={isLoading}
       right={{
         content: "Submit",
-        disabled: Boolean(hasErrors),
+        disabled: Boolean(hasErrors) || disabled,
       }}
       left={{
         content: "← Back",

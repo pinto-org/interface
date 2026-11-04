@@ -5,10 +5,9 @@ import { SG_FETCH_DISABLED } from "@/constants/subgraph";
 import { useNormalizeMayMultipleSeasonalData } from "@/state/seasonal/utils";
 import { formatDate } from "@/utils/format";
 import { UseSeasonalResult } from "@/utils/types";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { LineChartData, MakeGradientFunction } from "./LineChart";
+import { useCallback, useMemo, useState } from "react";
+import { MakeGradientFunction } from "./LineChart";
 import MultiAxisLineChart, { MultiAxisYAxisConfig } from "./MultiAxisLineChart";
-import { SeasonalChartData } from "./SeasonalChart";
 import { TimeTab } from "./TimeTabs";
 import { gradientFunctions, metallicMorningStrokeGradientFn } from "./chartHelpers";
 
@@ -46,45 +45,13 @@ const CompactSeasonalLineChart = ({
   // biome-ignore lint/complexity/noUselessTernary: nodata default when sg is down
   noData = SG_FETCH_DISABLED ? true : false,
 }: CompactSeasonalChartProps) => {
-  const [allData, setAllData] = useState<SeasonalChartData[][] | null>(null);
-  const [displayData, setDisplayData] = useState<SeasonalChartData[] | null>(null);
-  const [didLoad, setDidLoad] = useState(false);
-
-  const { isLoading, isError, data: inputData } = useNormalizeMayMultipleSeasonalData(useSeasonalResult);
-
-  // Prevent chart from thinking there is insufficient data in pre-fetch state
-  useEffect(() => {
-    if (isLoading && !didLoad && useSeasonalResult.every((r) => !!r.data)) {
-      setDidLoad(true);
-    }
-  }, [isLoading, didLoad, useSeasonalResult]);
-
-  useEffect(() => {
-    if (!inputData) return;
-    if (!allData || !inputData.every((r, i) => r.length === allData?.[i]?.length)) {
-      setAllData(inputData);
-      setDisplayData(inputData.map((data) => data[data.length - 1]));
-    }
-  }, [inputData, allData]);
-
-  const chartData = useMemo<LineChartData[][]>(() => {
-    if (!allData) return [];
-    return allData.map((d) =>
-      d.map((d) => ({
-        values: [d.value],
-        timestamp: d.timestamp,
-      })),
-    );
-  }, [allData]);
-
-  const handleMouseOver = useCallback(
-    (index: number | undefined) => {
-      if (allData) {
-        setDisplayData(allData.map((data) => data[index ?? data.length - 1] ?? data[data.length - 1]));
-      }
-    },
-    [allData],
-  );
+  const [hoverIndex, setHoverIndex] = useState<number>();
+  const { isLoading, isError, data: allData } = useNormalizeMayMultipleSeasonalData(useSeasonalResult);
+  // Derive from the current query, including same-length updates and range changes.
+  const displayData = !noData && !isError && !isLoading
+    ? allData?.map((data) => data[hoverIndex ?? data.length - 1] ?? data[data.length - 1])
+    : undefined;
+  const handleMouseOver = useCallback((index: number | undefined) => setHoverIndex(index), []);
 
   const minmax = useMemo(() => {
     let min: number = Infinity;
@@ -124,7 +91,7 @@ const CompactSeasonalLineChart = ({
         ticksCallback: tickValueFormatter?.[i],
       })),
     };
-  }, [allData, minmax]);
+  }, [allData, minmax, tickValueFormatter]);
 
   return (
     <div className={className}>
@@ -141,7 +108,7 @@ const CompactSeasonalLineChart = ({
             <div className="flex flex-row items-center gap-1 self-start">
               {token && <IconImage src={token.logoURI} size={4} alt={token.symbol} />}
               <span className="pinto-sm font-normal text-right">
-                {displayData?.[i]?.value ? valueFormatter[i]?.(displayData?.[i]?.value) : "--"}
+                {displayData?.[i]?.value !== undefined ? valueFormatter[i]?.(displayData[i].value) : "--"}
               </span>
             </div>
           </div>
@@ -159,13 +126,13 @@ const CompactSeasonalLineChart = ({
               <div className="flex flex-col items-center justify-center h-52 sm:h-52 box-border">
                 {noData ? (
                   <div className="pinto-body-light text-pinto-light">Unable to load</div>
-                ) : (isLoading && !isError) || !didLoad ? (
-                  <FrameAnimator size={75} />
                 ) : isError ? (
                   <>
                     <CloseIconAlt color={"red"} />
-                    <div className="pinto-body text-pinto-green-3">An error has occurred</div>
+                    <div role="alert" className="pinto-body text-pinto-green-3">Historical data unavailable</div>
                   </>
+                ) : isLoading ? (
+                  <div role="status" aria-label="Loading historical data"><FrameAnimator size={75} /></div>
                 ) : !isError && !isLoading && !allData ? (
                   <div className="pinto-body-light text-pinto-light">Insufficient data</div>
                 ) : null}
@@ -174,10 +141,10 @@ const CompactSeasonalLineChart = ({
           </div>
         </>
       )}
-      {!isLoading && allData && displayData && (
+      {!noData && !isError && !isLoading && allData && displayData && (
         <>
           <div className={size === "small" ? "aspect-3/1" : "aspect-6/1"}>
-            {!chartData?.every((d) => d.length > 1) && !isLoading ? (
+            {!allData.every((d) => d.length > 1) ? (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="pinto-body-light text-pinto-light">Insufficient data</div>
               </div>

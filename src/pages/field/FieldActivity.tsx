@@ -92,79 +92,81 @@ const FieldActivity = () => {
     [tractorOrders],
   );
 
-  // Render a loading skeleton for the entire table
-  if (loadingActivity && loadingTractorOrders) {
-    return <FieldActivitySkeleton />;
-  }
-
-  // Render if no data is available.
-  if (!activities?.length && !tractorOrders?.length) {
-    return <FieldActivityNoDataDisplay />;
-  }
-
   return (
     <div className="w-full relative">
-      {/* Tractor Orders Dialog */}
+      {/* Keep order access and an open dialog independent of forecast/history loading. */}
       <SoilOrderbookDialog open={showTractorOrdersDialog} onOpenChange={setShowTractorOrdersDialog} />
+      <div className="flex justify-center py-2">
+        <Button
+          variant="hoverTextPrimary"
+          onClick={() => setShowTractorOrdersDialog(true)}
+          noPadding
+          className="text-sm"
+        >
+          See all Tractor Orders
+        </Button>
+      </div>
       {/*
        * Table
        */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <FieldActivityHeader />
-          <tbody>
-            {/* Tractor Orders Section */}
-            {loadingTractorOrders ? (
-              <tr>
-                <td colSpan={9} className="px-2 py-2 text-xs font-light text-pinto-gray-4">
-                  <Col className="items-center justify-center p-4">Loading Tractor orders...</Col>
-                </td>
-              </tr>
-            ) : !!ordersWithSowableAmount?.length ? (
-              <>
-                {ordersWithSowableAmount.map((order) => {
-                  return (
-                    <TractorOrderRow
-                      key={`tractor-${order.requisition.blueprintHash}`}
-                      order={order}
-                      hoveredAddress={hoveredAddress}
-                      currentSeason={currentSeason}
-                      currentTemperature={currentTemperature}
-                      setHoveredAddress={setHoveredAddress}
-                    />
-                  );
-                })}
-              </>
-            ) : (
-              <>
-                <td colSpan={9} className="px-2 py-4 text-center text-xs font-light text-pinto-gray-4">
-                  <Col className="items-center justify-center">No Tractor orders executable next Season</Col>
-                </td>
-              </>
-            )}
+      {loadingActivity && loadingTractorOrders ? (
+        <FieldActivitySkeleton />
+      ) : !activities?.length && !tractorOrders?.length ? (
+        <FieldActivityNoDataDisplay />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <FieldActivityHeader />
+            <tbody>
+              {/* Tractor Orders Section */}
+              {loadingTractorOrders ? (
+                <tr>
+                  <td colSpan={9} className="px-2 py-2 text-xs font-light text-pinto-gray-4">
+                    <Col className="items-center justify-center p-4">Loading Tractor orders...</Col>
+                  </td>
+                </tr>
+              ) : !!ordersWithSowableAmount?.length ? (
+                <>
+                  {ordersWithSowableAmount.map((order) => {
+                    return (
+                      <TractorOrderRow
+                        key={`tractor-${order.requisition.blueprintHash}`}
+                        order={order}
+                        hoveredAddress={hoveredAddress}
+                        currentSeason={currentSeason}
+                        currentTemperature={currentTemperature}
+                        setHoveredAddress={setHoveredAddress}
+                      />
+                    );
+                  })}
+                </>
+              ) : (
+                <tr>
+                  <td colSpan={9} className="px-2 py-4 text-center text-xs font-light text-pinto-gray-4">
+                    <Col className="items-center justify-center">No Tractor orders executable next Season</Col>
+                  </td>
+                </tr>
+              )}
 
-            {/* Separator row between tractor orders and regular activity */}
-            {!!activities?.length && !!tractorOrders?.length && (
-              <tr>
-                <td colSpan={9} className="border-b-2 border-pinto-gray-3/20 py-0" />
-              </tr>
-            )}
-            {/**
-             * See All Tractor Orders Row
-             */}
-            {!loadingTractorOrders && <SeeAllTractorOrdersRow setShowOrdersDialog={setShowTractorOrdersDialog} />}
-            {/* Regular Activity Section */}
-            {(activities ?? []).map((activity) => (
-              <FieldActivityRow
-                key={activity.id}
-                activity={activity}
-                hoveredAddress={hoveredAddress}
-                setHoveredAddress={setHoveredAddress}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+              {/* Separator row between tractor orders and regular activity */}
+              {!!activities?.length && !!tractorOrders?.length && (
+                <tr>
+                  <td colSpan={9} className="border-b-2 border-pinto-gray-3/20 py-0" />
+                </tr>
+              )}
+              {/* Regular Activity Section */}
+              {(activities ?? []).map((activity) => (
+                <FieldActivityRow
+                  key={activity.id}
+                  activity={activity}
+                  hoveredAddress={hoveredAddress}
+                  setHoveredAddress={setHoveredAddress}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
@@ -176,20 +178,6 @@ export default FieldActivity;
 // ================================================================================
 
 // -------------------- TABLE --------------------
-
-const SeeAllTractorOrdersRow = ({ setShowOrdersDialog }: { setShowOrdersDialog: (show: boolean) => void }) => {
-  return (
-    <tr className="border-b-2 border-pinto-gray-3/20">
-      <td colSpan={9}>
-        <div className="flex flex-col items-center justify-center w-full">
-          <Button variant="hoverTextPrimary" onClick={() => setShowOrdersDialog(true)} noPadding className="text-sm">
-            See all Tractor Orders
-          </Button>
-        </div>
-      </td>
-    </tr>
-  );
-};
 
 const TractorOrderRow = React.memo(
   ({

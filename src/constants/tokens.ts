@@ -15,9 +15,11 @@ import sPintoIcon from "@/assets/tokens/sPINTO.png";
 import wstETHIcon from "@/assets/tokens/wstETH.png";
 import { Token, Token3PIntegration } from "@/utils/types";
 import { ChainLookup } from "@/utils/types.generic";
+import { wstethDewhitelisted } from "@/utils/releaseSettings";
 import { arbitrum, base } from "viem/chains";
 
 const defaultChain = base.id;
+const releaseDewhitelistsWsteth = wstethDewhitelisted(import.meta.env.VITE_PINTO_DEWHITELIST_WSTETH);
 
 // -------------------- PROTOCOL TOKEN --------------------
 
@@ -185,7 +187,7 @@ export const WSTETH_TOKEN: ChainLookup<Token> = {
     decimals: 18,
     displayDecimals: 2,
     isLPUnderlying: true,
-    isCompositeLPWhitelisted: true,
+    isCompositeLPWhitelisted: !releaseDewhitelistsWsteth,
     logoURI: wstETHIcon,
     color: "#00A3FF",
   },
@@ -209,7 +211,7 @@ export const PINTO_WSTETH_TOKEN: ChainLookup<Token> = {
     decimals: 18,
     displayDecimals: 2,
     isLP: true,
-    isWhitelisted: true,
+    isWhitelisted: !releaseDewhitelistsWsteth,
     logoURI: pintoWstethIcon,
     color: "#00A3FF",
     tokens: [MAIN_TOKEN[base.id].address, WSTETH_TOKEN[base.id].address],

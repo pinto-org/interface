@@ -138,7 +138,7 @@ export default function FillListing({ selectedListingId, selectedPlaceInLine, on
   const successDataRef = useRef<{ pods: number; avgPrice: number; total: number } | null>(null);
 
   // Price per pod filter state
-  const [maxPricePerPod, setMaxPricePerPod] = useState<number>(0);
+  const [maxPricePerPod, setMaxPricePerPod] = useState<number>(Number(DEFAULT_PRICE_INPUT));
   const [maxPricePerPodInput, setMaxPricePerPodInput] = useState<string>(DEFAULT_PRICE_INPUT);
 
   // Place in line state

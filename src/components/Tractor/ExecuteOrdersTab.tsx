@@ -17,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, parseEventLogs } from "viem";
 import { useAccount, useChainId, usePublicClient } from "wagmi";
 import { Col } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
@@ -127,7 +127,6 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
   const [gasEstimates, setGasEstimates] = useState<Map<string, bigint>>(new Map());
   const [sortedOrders, setSortedOrders] = useState<T[]>([]);
   const [sortingEnabled, setSortingEnabled] = useState(false);
-  const [hasExecutedOrder, setHasExecutedOrder] = useState(false);
 
   // Simulation state
   const [simulatingReq, setSimulatingReq] = useState<string | null>(null);
@@ -140,18 +139,49 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
   // Execution state
   const [completedExecutions, setCompletedExecutions] = useState<Set<string>>(new Set());
   const [executingReq, setExecutingReq] = useState<string | null>(null);
+  // Serialize sends until confirmation. Register the order before requesting a
+  // wallet signature so even an immediate receipt is attributed to its order.
+  const pendingExecution = useRef<{ hash: string; chainId: number; diamond: `0x${string}` } | null>(null);
+
+  const failExecution = useCallback((error: unknown) => {
+    const pending = pendingExecution.current;
+    if (!pending) return;
+    pendingExecution.current = null;
+    setExecutingReq(null);
+    setFailedSimulations((prev) => new Set(prev).add(pending.hash));
+    setSimulationErrors((prev) => new Map(prev).set(pending.hash, extractErrorMessage(error)));
+  }, []);
 
   // Transaction handler
-  const { writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
+  const { writeWithEstimateGas, setSubmitting } = useTransaction({
+    confirmationChainId: pendingExecution.current?.chainId,
     successMessage: "Execution successful",
     errorMessage: "Execution failed",
+    validateReceipt: (receipt) => {
+      const pending = pendingExecution.current;
+      const executed =
+        pending &&
+        parseEventLogs({ abi: diamondABI, eventName: "Tractor", logs: receipt.logs }).some(
+          (event) =>
+            event.address.toLowerCase() === pending.diamond.toLowerCase() &&
+            event.args.blueprintHash.toLowerCase() === pending.hash.toLowerCase(),
+        );
+      if (!executed) throw new Error("Transaction confirmed without executing this order. Resimulate before retrying.");
+    },
     successCallback: (receipt) => {
-      if (!receipt?.transactionHash) return;
-      setCompletedExecutions((prev) => new Set(prev).add(receipt.transactionHash));
+      const pending = pendingExecution.current;
+      if (!receipt || !pending) return;
+      pendingExecution.current = null;
+      setExecutingReq(null);
+      setCompletedExecutions((prev) => new Set(prev).add(pending.hash));
       refetchOrders?.();
       // A Tractor execution changes more than the order: Sow consumes Soil and
       // creates Pods, and both order types change deposits and operator balances.
-      void refreshAfterTractorExecution(queryClient, chainId, protocolAddress);
+      void refreshAfterTractorExecution(queryClient, pending.chainId, pending.diamond);
+    },
+    onError: (error) => {
+      failExecution(error);
+      return false;
     },
   });
 
@@ -211,9 +241,13 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
 
   // Simulate all orders
   const handleSimulateAll = useCallback(async () => {
-    if (!protocolAddress || !publicClient || simulatingAll) return;
+    if (!protocolAddress || !publicClient || !address || simulatingAll || simulatingReq || pendingExecution.current)
+      return;
     setSimulatingAll(true);
-    setHasExecutedOrder(false);
+    // An explicitly requested fresh pass can retry recurring orders next Season.
+    setCompletedExecutions(new Set());
+    setSuccessfulSimulations(new Set());
+    setGasEstimates(new Map());
 
     try {
       for (const order of filteredOrders) {
@@ -255,6 +289,7 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
           const prepared = prepareRequisitionForTxn(order.requisition);
 
           await publicClient.simulateContract({
+            account: address,
             address: protocolAddress,
             abi: diamondABI,
             functionName: "tractor",
@@ -262,6 +297,7 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
           });
 
           const gasEstimate = await publicClient.estimateContractGas({
+            account: address,
             address: protocolAddress,
             abi: diamondABI,
             functionName: "tractor",
@@ -296,12 +332,13 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
     } finally {
       setSimulatingAll(false);
     }
-  }, [protocolAddress, publicClient, filteredOrders, address]);
+  }, [protocolAddress, publicClient, filteredOrders, address, simulatingAll, simulatingReq]);
 
   // Simulate individual order
   const handleSimulate = useCallback(
     async (order: T) => {
-      if (!protocolAddress || !publicClient) return;
+      if (!protocolAddress || !publicClient || !address || simulatingAll || simulatingReq || pendingExecution.current)
+        return;
       setSimulatingReq(order.requisition.blueprintHash);
 
       // Clear previous states
@@ -330,6 +367,7 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
 
       try {
         await publicClient.simulateContract({
+          account: address,
           address: protocolAddress,
           abi: diamondABI,
           functionName: "tractor",
@@ -337,6 +375,7 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
         });
 
         const gasEstimate = await publicClient.estimateContractGas({
+          account: address,
           address: protocolAddress,
           abi: diamondABI,
           functionName: "tractor",
@@ -365,34 +404,49 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
         setSimulatingReq(null);
       }
     },
-    [protocolAddress, publicClient, address],
+    [protocolAddress, publicClient, address, simulatingAll, simulatingReq],
   );
 
   // Execute order
   const handleExecute = useCallback(
     async (order: T) => {
-      if (!protocolAddress) return;
+      if (!protocolAddress || !address || pendingExecution.current || simulatingAll || simulatingReq) return;
+      const pending = { hash: order.requisition.blueprintHash, chainId, diamond: protocolAddress };
+      pendingExecution.current = pending;
       setExecutingReq(order.requisition.blueprintHash);
       setSubmitting(true);
+      // Any execution can change shared Soil, deposits and prices. Other orders
+      // remain individually retryable, but must obtain a new preview first.
+      setSuccessfulSimulations(new Set());
+      setGasEstimates(new Map());
 
       const prepared = prepareRequisitionForTxn(order.requisition);
 
       try {
         await writeWithEstimateGas({
+          chainId: pending.chainId,
           address: protocolAddress,
           abi: diamondABI,
           functionName: "tractor",
           args: [prepared as never, "0x"] as const,
         });
-        setHasExecutedOrder(true);
       } catch (error) {
         console.error("Failed to execute order:", error);
-      } finally {
-        setExecutingReq(null);
+        if (pendingExecution.current === pending) failExecution(error);
         setSubmitting(false);
       }
+      // A transaction hash is not success. Receipt callbacks release the lock.
     },
-    [protocolAddress, writeWithEstimateGas, setSubmitting],
+    [
+      protocolAddress,
+      address,
+      chainId,
+      writeWithEstimateGas,
+      setSubmitting,
+      simulatingAll,
+      simulatingReq,
+      failExecution,
+    ],
   );
 
   const { loading: isLoading, setLoading } = useDelayedLoading(500, true);
@@ -463,24 +517,21 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
                       }
                     }}
                     disabled={
-                      simulatingReq === order.requisition.blueprintHash ||
-                      failedSimulations.has(order.requisition.blueprintHash) ||
-                      executingReq === order.requisition.blueprintHash ||
-                      completedExecutions.has(order.requisition.blueprintHash) ||
-                      (hasExecutedOrder && successfulSimulations.has(order.requisition.blueprintHash))
+                      !address ||
+                      !!simulatingReq ||
+                      simulatingAll ||
+                      !!executingReq ||
+                      completedExecutions.has(order.requisition.blueprintHash)
                     }
                     className={`
                       ${
                         successfulSimulations.has(order.requisition.blueprintHash) &&
-                        !completedExecutions.has(order.requisition.blueprintHash) &&
-                        !hasExecutedOrder
+                        !completedExecutions.has(order.requisition.blueprintHash)
                           ? "bg-pinto-green-4 text-white hover:bg-pinto-green-5"
-                          : completedExecutions.has(order.requisition.blueprintHash) ||
-                              (hasExecutedOrder && successfulSimulations.has(order.requisition.blueprintHash))
+                          : completedExecutions.has(order.requisition.blueprintHash)
                             ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                             : "text-pinto-gray-4 hover:text-pinto-gray-5"
                       } 
-                      ${failedSimulations.has(order.requisition.blueprintHash) ? "opacity-50 cursor-not-allowed" : ""}
                       px-2 py-0 text-xs min-w-[80px]
                     `}
                   >
@@ -489,14 +540,12 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
                       : executingReq === order.requisition.blueprintHash
                         ? "Executing..."
                         : failedSimulations.has(order.requisition.blueprintHash)
-                          ? "Reverted"
+                          ? "Resimulate"
                           : completedExecutions.has(order.requisition.blueprintHash)
                             ? "Executed"
-                            : hasExecutedOrder && successfulSimulations.has(order.requisition.blueprintHash)
-                              ? "Resimulate"
-                              : successfulSimulations.has(order.requisition.blueprintHash)
-                                ? "Execute"
-                                : "Simulate"}
+                            : successfulSimulations.has(order.requisition.blueprintHash)
+                              ? "Execute"
+                              : "Simulate"}
                   </Button>
                   {successfulSimulations.has(order.requisition.blueprintHash) && (
                     <div
@@ -589,7 +638,7 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
                 ? "bg-pinto-gray-2 text-pinto-gray-4"
                 : "bg-pinto-green-4 text-white"
             }`}
-            disabled={simulatingAll || sortedOrders.length === 0}
+            disabled={!address || simulatingAll || !!simulatingReq || !!executingReq || sortedOrders.length === 0}
             onClick={handleSimulateAll}
           >
             {simulatingAll ? (

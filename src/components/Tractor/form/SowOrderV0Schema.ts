@@ -1,5 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { MAIN_TOKEN } from "@/constants/tokens";
+import { SILO_HELPERS_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
+import { checkSowFunding, quoteSowCapacity, SOW_FORM_MAX_GROWN_STALK } from "@/lib/Tractor/sowOrder/sowCapacity";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { Blueprint, TractorTokenStrategy, createBlueprint, createSowTractorData } from "@/lib/Tractor";
@@ -249,6 +251,7 @@ export const useSowOrderV0State = () => {
   const client = usePublicClient();
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
+  const mainToken = useChainConstant(MAIN_TOKEN);
 
   const tokenMap = useTokenMap();
 
@@ -276,6 +279,15 @@ export const useSowOrderV0State = () => {
 
       try {
         const formData = form.getValues();
+        // Refresh before preparation; an old form quote is not funding evidence.
+        const capacity = await quoteSowCapacity(client, {
+          account: address, diamond: protocolAddress, pinto: mainToken.address,
+          siloHelpers: SILO_HELPERS_ADDRESS, tractorHelpers: TRACTOR_HELPERS_ADDRESS,
+          strategy: formData.selectedTokenStrategy,
+        });
+        if (!checkSowFunding(capacity.pintos, formData.totalAmount, formData.minSoil, formData.operatorTip)) {
+          throw new Error("Insufficient withdrawable Pinto including operator tips");
+        }
 
         // Decode referral code if provided and valid
         let referralAddress: `0x${string}` | undefined;
@@ -289,7 +301,7 @@ export const useSowOrderV0State = () => {
           minAmountPerSeason: formData.minSoil,
           maxAmountToSowPerSeason: formData.maxPerSeason,
           maxPodlineLength: formData.podLineLength,
-          maxGrownStalkPerBdv: "10000000000000000",
+          maxGrownStalkPerBdv: TokenValue.fromBigInt(SOW_FORM_MAX_GROWN_STALK, 6).toHuman(),
           runBlocksAfterSunrise: formData.morningAuction ? "0" : "300",
           operatorTip: formData.operatorTip,
           whitelistedOperators: [],
@@ -297,7 +309,8 @@ export const useSowOrderV0State = () => {
           publicClient: client,
           farmerDeposits: deposits,
           userAddress: deposits ? address : undefined,
-          protocolAddress: deposits ? protocolAddress : undefined,
+          // Release validation needs the Diamond even when Modify skips optimization.
+          protocolAddress,
           referralAddress, // Pass the decoded referral address
         });
 
@@ -339,7 +352,7 @@ export const useSowOrderV0State = () => {
         setIsLoading(false);
       }
     },
-    [client, address, protocolAddress, tokenMap],
+    [client, address, protocolAddress, tokenMap, mainToken.address],
   );
 
   return {

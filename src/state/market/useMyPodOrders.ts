@@ -21,12 +21,14 @@ export default function useMyPodOrders({ account }: UseMyPodOrdersProps) {
 
   const query = useQuery({
     queryKey,
-    queryFn: async () =>
-      request(subgraphs[chainId].beanstalk, MyPodOrdersDocument, {
-        account: account?.toLowerCase(),
+    queryFn: async () => {
+      if (!account) throw new Error("An account is required to load its Pod orders");
+      return request(subgraphs[chainId].beanstalk, MyPodOrdersDocument, {
+        account: account.toLowerCase(),
         first: 100,
         skip: 0,
-      }),
+      });
+    },
     enabled: !!account,
   });
 

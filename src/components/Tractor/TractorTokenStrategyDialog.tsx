@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
-import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
@@ -83,7 +82,6 @@ export default function TractorTokenStrategyDialog({
 }: ITractorTokenStrategyDialogProps) {
   const { whitelistedTokens } = useTokenData();
   const { mainToken } = useTokenData();
-  const tokenMap = useTokenMap();
 
   const selectedTokenAddresses = tokenStrategy && StrategyUtil.extractAddresses(tokenStrategy);
 
@@ -176,10 +174,14 @@ export default function TractorTokenStrategyDialog({
                   const deposit = farmerDeposits.get(token);
                   const amount = deposit?.amount || TokenValue.ZERO;
 
-                  // Calculate dollar value - use price for PINTO, swap results for LP tokens
+                  // Withdrawal quotes are in Pinto, not USD. Use the same price for both sources.
                   const pintoAmount = tokensEqual(token, mainToken)
-                    ? amount.mul(priceData.price)
-                    : swapResults.get(token.address) || TokenValue.ZERO;
+                    ? amount
+                    : amount.eq(0)
+                      ? TokenValue.ZERO
+                      : swapResults.get(token.address);
+                  const dollarValue =
+                    !priceData.loading && priceData.price.gt(0) ? pintoAmount?.mul(priceData.price) : undefined;
 
                   const isSelected = getIsTokenSelected(token);
 
@@ -210,7 +212,9 @@ export default function TractorTokenStrategyDialog({
                         {mode === "amount" ? (
                           <>
                             <div className="text-right text-xl font-medium">{formatter.token(amount, token)}</div>
-                            <div className="text-right text-gray-500 text-sm">${formatter.twoDec(pintoAmount)}</div>
+                            <div className="text-right text-gray-500 text-sm">
+                              {dollarValue ? `$${formatter.twoDec(dollarValue)}` : "USD value unavailable"}
+                            </div>
                           </>
                         ) : (
                           <div className="text-right text-xl font-medium">{formatter.pdv(deposit?.depositBDV)}</div>

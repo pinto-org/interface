@@ -24,6 +24,8 @@ import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert
 import { Blueprint, ExtendedTractorTokenStrategy } from "@/lib/Tractor/types";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import { formatter } from "@/utils/format";
+import { formatConvertSeedDifference } from "@/utils/tractorDisplay";
+import { refreshTractorOrders } from "@/utils/tractorQueryRefresh";
 import { postSanitizedSanitizedValue, stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
@@ -106,6 +108,7 @@ export default function ModifyConvertUpOrderReviewDialog({
     successMessage: "Order modified successfully",
     errorMessage: "Failed to modify order",
     successCallback: () => {
+      void refreshTractorOrders(queryClient);
       farmerOrders.refetch();
       onOpenChange(false);
       if (onSuccess) {
@@ -504,8 +507,15 @@ function getMapping(
     },
     slippageRatio: {
       label: "Slippage Tolerance",
-      prev: postSanitizedSanitizedValue(existing.convertUpParams.slippageRatio.toHuman(), 6).tv,
-      curr: postSanitizedSanitizedValue(orderData.slippageRatio, 6).tv,
+      // Decoded orders store a ratio; the editable form stores a percentage.
+      prev: `${existing.convertUpParams.slippageRatio.mul(100).toHuman()}%`,
+      curr: `${postSanitizedSanitizedValue(orderData.slippageRatio, 18).tv.toHuman()}%`,
+    },
+    seedDifference: {
+      label: "Seed difference check",
+      prev: formatConvertSeedDifference(existing.convertUpParams.seedDifference),
+      // orderData already contains the effective signed value (zero when unchecked).
+      curr: formatConvertSeedDifference(postSanitizedSanitizedValue(orderData.seedDifference, 6, true).tv),
     },
     lowStalkDeposits: {
       label: "Use Low Stalk Deposits",
@@ -544,7 +554,10 @@ function getDiffs(mapping: ReturnType<typeof getMapping>) {
           curr: curr,
         };
       }
-    } else if (typeof prev === "boolean" && typeof curr === "boolean") {
+    } else if (
+      (typeof prev === "boolean" && typeof curr === "boolean") ||
+      (typeof prev === "string" && typeof curr === "string")
+    ) {
       if (prev !== curr) {
         hasChanged = true;
         valueDiff = {

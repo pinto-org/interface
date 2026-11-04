@@ -32,7 +32,7 @@ export function isProtocolSeasonQuery(key: readonly unknown[], chainId: number, 
       )
     );
   }
-  if (["depositsWithLocks", "siloRedemption", "siloRedemptionQuote"].includes(String(key[0])))
+  if (["depositsWithLocks", "siloRedemption", "siloRedemptionQuote", "siloRoutedRedemption"].includes(String(key[0])))
     return key[1] === chainId && sameAddress(key[2]);
   // These existing event-query keys identify the configured protocol by chain.
   return (key[0] === "plantEvents" || key[0] === "depositEvents") && key[2] === chainId;

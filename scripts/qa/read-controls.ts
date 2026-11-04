@@ -4,7 +4,7 @@ import { qaDiamond } from "./transaction-policy";
 const depositSelectors = new Set([
   "getDepositsForAccount(address,address[])",
   "getTokenDepositsForAccount(address,address)",
-  "getAutoConvertOutputLock(address,int96)",
+  "grownStalkForDeposit(address,address,int96)",
 ].map(toFunctionSelector));
 const exitSelectors = new Set([
   "swapPintoDeposits(address,int96[],uint256[],uint256,uint256,uint8)",

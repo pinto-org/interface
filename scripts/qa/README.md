@@ -9,13 +9,1227 @@ Current main already contains Tractor order creation and 0x v2 AllowanceHolder
 routing. This port uses those implementations instead of transplanting the
 obsolete interface's transaction stack.
 
+## Convert bonus/capacity chart loading fix — October 30, 2026
+
+The public `https://graph.pinto.money/pintostalk` service returned HTTP 400
+`indexing_error` for both gauge history and `_meta` (reported indexed block
+47812470). The compact chart also incorrectly gave its never-loaded spinner
+priority over errors. Current bonus/capacity statistics below the charts were
+unaffected because they read contracts, not the subgraph.
+
+- Compact charts now show a real error/empty state, display valid zero values,
+  and refresh same-length datasets. Alignment no longer reverses cached input
+  arrays or discards an overlapping range when one series extends further.
+- The **optional local QA server only** replaces the gauge-history hook with
+  read-only Anvil observations: the release start block, real Sunrise blocks,
+  and the pinned latest block. Same-Season observations use the latest sample.
+  Block timestamps and hashes are retained; missing intervals are not fabricated.
+  This is sampled fork history, not a full Season-end production index.
+- The adapter refuses non-Anvil/non-1337 nodes, bounds the block/observation
+  window, rejects missing reads/reorgs, and exposes no transaction method or
+  caller-selected RPC target. Reads do not advance or reset the fork.
+- Both the chart heading and QA banner disclose limited local history. Week,
+  Month and All show only available observations within the requested range.
+  Production builds still use the real subgraph; repairing its indexing failure
+  is separate from this local UI change.
+
+Verified on the existing **18602 / 17855** rehearsal without chain writes:
+
+| Season | Block | Bonus Stalk / PDV | Maximum capacity (PDV) |
+| --- | --- | ---: | ---: |
+| 17017 | 53294787 | 0.1940949367 | 51.381879 |
+| 17018 | 53294798 | 0.1921539874 | 50 |
+| 17019 | 53294799 | 0.1921539874 | 50 |
+
+Evidence for this follow-up is `/tmp/pinto-chart-fix-20261030.pU6Gwc/`.
+The browser shows **0.1922** bonus Stalk/PDV and **50.00** maximum PDV capacity,
+including on the All tab (`charts-loaded.png`). The fork remains at block
+53294799 with its previously recorded hash (`observations.json`). All **390
+tests / 48 files**, TypeScript and the production Vite build pass; 21 tests are
+new chart/adapter regressions. The production bundle contains neither the QA
+endpoint nor its source marker. `git diff --check` passes. The scoped
+`autoreview --mode local --engine codex --model gpt-6.1-sol --thinking high
+--no-web-search` closeout returned no actionable findings; this is model review,
+not an independent human audit. Full command output is in `review.log`.
+This does not broaden the end-to-end coverage or production sign-off below.
+
+## Latest-release local end-to-end verification — October 30, 2026
+
+**The scoped local end-to-end pass is complete; production sign-off is not.**
+The new isolated release covers the six contract changes that made the preceding
+checkpoint stale. At closeout, all **303 project Solidity source hashes** still
+match `/Users/ash/pinto/protocol`. Browser tests use a mock EOA wallet and real
+transactions on a disposable Anvil child—not Base transactions or real funds.
+No protocol production source, commit, push or production deployment was made
+in this continuation. Other chats' later contract edits are not automatically
+covered by this result.
+
+### Exact release and isolation
+
+- Evidence/source snapshot: `/tmp/pinto-ui-latest-20261030.rgxyMO/`.
+- Base pin: **53294708**, hash
+  `0xe64502d9d48ba0921166a9e293d4d22f844c1661998b0fdab4a5cc65e94bb77e`.
+- Parent **18601 / chain 31337**, browser child **18602 / chain 1337**, UI
+  **http://127.0.0.1:17855/**. The two nodes save periodic state dumps.
+- Protected 18560/18561 and the preceding 18597/18598 remain at their recorded
+  heads. This new parent also remains unchanged throughout browser testing.
+- Clean compile: **386 Solidity files**. A copied obsolete Hardhat cache first
+  caused artifact cleanup failure; only that temporary cache was moved aside,
+  then the fully clean compilation passed. The initial failure logs are retained.
+- **79 deployable artifacts** pass size checks with ordinary EVM deployment and
+  transaction limits enabled. Largest runtime: `PintoFeeWellUpgradeable`,
+  **24,456 bytes**, only 120 below EIP-170. `SeasonFacet` is **24,325 bytes**.
+- Local direct-owner upgrade: **14,554,761 gas**. The intentional failed
+  initializer rolls back accounting, whitelist, Wells and selector topology.
+  This is not Safe-owner signing/broadcast rehearsal.
+- **67 release contracts + 10 helper contracts** pass exact runtime, linking and
+  immutable checks; **199 compiler source records** and **141 UI ABI entries**
+  match. Final proof: `final-runtime-parity.json`.
+- `WellPlan.sourceExhausted` is included in both generated plan getters. Two
+  independent wire-encoding regressions cover opposite boolean values across
+  adjacent Well tuples so the extra field cannot silently shift decoding.
+  The release includes the protocol's new **8-position** automatic batch limit.
+
+### Latest-release coverage and actual gas
+
+| Workflow | Observed result | Actual receipt gas |
+| --- | --- | ---: |
+| New Pinto deposit | 1 Pinto; wallet 50 → 49; deposited 50 → 51; fresh germinating crate | 674,484 |
+| Stable2 USDC-LP → deposited Pinto | 0.001 LP → **0.002707 Pinto**; exact Convert event reconciled | 3,040,723 |
+| New Convert Up publication | cbETH LP source, 1-PDV target, 0.2-Pinto tip, seed check disabled; signed calldata decodes seedDifference=0 and slippage=0.001 | 778,502 |
+| Independent Convert Up execution | **0.001812250575306377 cbETH LP → 1 Pinto**; publisher shows 1/1 completed | 5,535,092 |
+| New LP-funded Sow publication | cbETH LP source, 1 Pinto, 1% minimum Temperature, no Morning execution, 0.2-Pinto tip | 754,653 |
+| Independent Sow execution | 1 Pinto Sown at 4,750%; **48.5 Pods**; completed 1/1 and new plot visible | 2,592,759 |
+| Qualified LP → paired token exit | 0.001 cbETH LP → **0.000007230883293807 cbETH**, exact quoted output received | 793,216 |
+| Real Sunrise 17018 | Live header/Seeds refresh; new 1-Pinto crate still germinating | 3,170,585 |
+| Real Sunrise 17019 | Live header/Seeds refresh; same crate now mature, without page reload | 3,132,458 |
+
+There are **eight successful browser transactions**, including the initial
+46,365-gas Pinto approval, followed by **two fixture-driven real Sunrises**.
+The Sunrises only advance the local clock and call `sunrise()`; no oracle,
+deposit, token or protocol storage is fabricated. These two intervals have
+incomplete Auto Convert observations (all Wells initially invalid, cbETH still
+invalid in the second). Sunrise stays alive, but this does **not** establish a
+successful automatic activation or a full inventory migration. The UI fixture
+uses explicitly illustrative canary settings and a small indexed sample.
+
+Receipt/accounting evidence: `browser-evidence-53294799.json`, both
+`sunrise-*.json` files and `final-checkpoint.json`. Final child hash:
+`0x35ee52773274587e000c1835c55ffc8699318fcb5be8a208bfb03e418c1a6c70`.
+The three LP indexes reconcile their links, counts, amounts and BDV with actual
+deposits. The fresh 1-Pinto crate is unchanged by either Tractor execution;
+historical reads prove it is germinating in 17017/17018 and mature in 17019.
+Operator tips total exactly **0.4 Pinto**, and the owner's Pod balance is exactly
+**48.5 Pods**. Tiny test tips do not cover the displayed gas estimate; successful
+execution is not a claim of keeper profitability. Base L1 fees are additional.
+
+### Failures, stale state and final review fixes
+
+- Stable2 conversion: wrong-wallet-network state disables submission; restoring
+  the network preserves the request and refreshes the usable quote.
+- Qualified paired exit: hold the real gas estimate, switch accounts, then
+  release it. Submission is cancelled with a wallet/network/form-changed message.
+  The same test with a network switch also submits nothing.
+- Actual eligibility RPC failures remove the usable exit quote and disable
+  submission. Restoring reads and explicitly refreshing recovers the same
+  withdrawal, which then succeeds. No transaction is sent during either race or
+  the failed-read test.
+- The Convert Up creation summary incorrectly displayed a retained seed minimum
+  while its toggle was off. It now displays **Disabled**, matching the encoded
+  zero sentinel. Enabled positive/negative values retain one-atom precision.
+- Modify review now recognizes seed-only edits and derives its seed value from
+  the encoded struct, not retained form text. A negative constraint displays
+  **At most 2 Seeds lost per PDV**, not a required gain.
+- The existing slippage comparison mixed decoded ratios and form percentages.
+  Review data now derives from the encoded ratio and both sides display percent.
+  An unchanged order visibly says **No changes**, with signing disabled. A
+  seed-only edit shows only that change and retains **0.1%** slippage. These
+  browser review checks were discarded without signing/publishing replacements.
+  Existing order encoding/signature rules were not changed by these display fixes.
+
+**369 tests / 45 files**, TypeScript and production Vite build pass (existing
+dependency-annotation and bundle-size warnings remain). `git diff --check` is
+clean. Read-only model review used the autoreview skill with
+`--mode local --engine codex --model gpt-6.1-sol --thinking high --no-web-search`.
+It identified the raw-versus-effective modification seed value; that finding
+was fixed and preparation-hook regressions added. The final seed/slippage review
+exited 0 with no actionable findings (`seed-slippage-review.*`). The separate ABI
+review is also clean. This is model review, not independent security audit.
+
+### Coverage boundaries and production gates
+
+- **wstETH:** the prior October 30 browser pass proved withdrawal and conversion
+  out; the latest Silo still displays it alongside retired WETH/WSOL. Release
+  setting `VITE_PINTO_DEWHITELIST_WSTETH=true` prevents new deposits and conversion
+  destinations while preserving historical balances/metadata. Default false
+  preserves current live behavior until the matching release is installed.
+- Other approved flows—Pod Market create/fill/cancel, deposit transfers,
+  wrapping/unwrapping, Harvest, qualified Pinto exits, referral payout and
+  time-aligned 0x paths—have the prior pinned-release evidence below. They were
+  **not all re-executed on this newest child**. This pass reruns the central
+  deposit/convert/Tractor paths against the refreshed release and ABI.
+- Production historical order reconciliation across helper cutover and external
+  chart/subgraph availability remain **unverified**. The local adapter explicitly
+  indexes only newly published local orders. Historical chart spinners/unavailable
+  data are visible, and a new Pod plot does not invent a historical Temperature.
+- Real extension/Privy wallets, EIP-7702, mobile interaction and every 0x pair or
+  market-maker route are not certified by this mock-wallet fixture. The child-only
+  EOA setup and standard real-deposit transfers are recorded in fixture scripts.
+- Full ordered-index backfill, production policy approval, automatic activation/
+  recovery economics and a final Safe rehearsal remain separate release gates.
+  Fee-exempt Sow order creation is not an existing UI flow proved by ordinary Sow.
+- The modified-order screen still uses upstream coarse numeric formatting for
+  some non-seed/non-slippage fields (e.g. $0.001/$0.999 shown as 0/1 in its compact
+  summary). The preceding detailed review preserves the exact bounds. This pass
+  does not claim universal correctness of every historical display.
+
+Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/ui-latest-2026-10-30-rgxyMO.tgz`.
+It contains the frozen protocol, tested UI source/config/lockfile, manifests,
+node-state dumps, tests, receipts and screenshots; dependency installations,
+build caches, credentials and private repository notes are excluded. The original
+UI source contains one unrelated historical credential-shaped DevTools comment;
+that comment is redacted **only in the archive copy**, without changing executable
+code or the repository file. The prior
+archive is retained. Sections below are historical checkpoints, not the current
+status of bugs subsequently fixed.
+
+## Earlier resumed-release QA — October 30, 2026
+
+**Historical checkpoint; superseded by the latest-release pass above.** Browser control was restored.
+This run uses a frozen copy of protocol `79d4a5a` plus the then-current local
+changes, at `/tmp/pinto-ui-resume-20261030.cqndsI/protocol`. All 303 project
+Solidity files matched the working checkout immediately before browser testing.
+This does not imply that later edits in other chats are covered.
+
+The fresh Base pin is **53294708**, hash
+`0xe64502d9d48ba0921166a9e293d4d22f844c1661998b0fdab4a5cc65e94bb77e`.
+The isolated parent is **18597** (chain 31337), browser child **18598** (chain
+1337), and UI **17854**. Both nodes save periodic state dumps. Existing nodes
+18560/18561 and all older rehearsal evidence remain untouched. No Base write,
+push, commit, or production deployment occurred.
+
+The three-Well release (cbETH, cbBTC, USDC) compiled **386 Solidity files**.
+The local direct-owner cut used **14,554,761 gas**, below the enforced
+16,777,216 transaction cap; the intentional failing initializer rolled back
+the whitelist, reward parameters, facet map and Wells. Exact runtime/link/
+immutable checks passed for **67 release contracts and 10 helpers**, with
+**199 source records** and all **141 generated UI ABI entries** matching.
+Normal EVM deployment size limits were enforced. This is not a Safe signing
+rehearsal or a full index backfill/automatic-activation test. Startup uses the
+documented small illustrative canary caps, not newly approved production limits.
+
+### UI release changes and coordination
+
+- Generated Auto Convert/redemption bindings now match the frozen build.
+- Qualified LP exits can select Pinto **or the paired token**. The new paired
+  route checks both view/write selectors, shares the same maturity/age selection,
+  preserves the exact reviewed minimum/deadline, and revalidates/simulates before
+  submission. Its cache keys are route-specific; unsupported old deployments
+  remain unavailable rather than silently falling back to a different output.
+- Set **`VITE_PINTO_DEWHITELIST_WSTETH=true` with the matching protocol release**.
+  The default is false to preserve the still-live pre-upgrade whitelist. Invalid
+  values are rejected. The token/address/history stay present; wstETH uses the
+  same dewhitelisted display, withdrawal and supported conversion-out paths as
+  WETH/WSOL, but is excluded from new Silo deposits and conversion destinations.
+  Its underlying token is no longer marked as a whitelisted LP input. Existing
+  dewhitelisted empty/about copy no longer invites unsupported new deposits.
+  The local QA fixture verified the actual three-Well whitelist before enabling
+  this setting; do not enable it blindly against the old live deployment.
+
+### Current browser evidence (frozen release)
+
+| Check | Result at this checkpoint |
+| --- | --- |
+| New Pinto deposit | 1 Pinto deposited; 674,484 gas; wallet 50 → 49, deposited 50 → 51; new crate displays two-Season germination |
+| Qualified LP → paired token | 0.001 cbETH LP → 0.000007230868462674 cbETH; 809,502 gas; exact quoted output received and matching redemption event |
+| Rejected paired exit | No transaction submitted; same quote could subsequently complete |
+| Historical wstETH withdrawal | 0.001 LP withdrawn; 580,386 gas; successful receipt and remaining balance refresh |
+| Historical wstETH conversion out | 0.001 LP converted to deposited Pinto; 2,336,243 gas; no Deposit tab or wstETH conversion destination |
+| Unsupported wstETH fee-free exit | Shows “Fee-exempt exits are not enabled for this Well”; submission disabled; ordinary withdrawal/conversion remain available |
+| New Convert Up order | Published for 1 PDV, cbETH LP source, 0.2-Pinto tip; 778,514 gas; independent operator executed in 5,552,328 gas; publisher displays completed 1/1 |
+| New LP-funded Sow order | Published for 1 Pinto, cbETH LP source, 1% minimum Temperature, 0.2-Pinto tip; 754,653 gas; independent operator executed in 2,592,861 gas |
+| Sow receipt/display reconciliation | 1 Pinto Sown at 4,750%, 48.5 Pods; completed 1/1 order and 48.5-Pod plot visible; operator's two tips total 0.4 Pinto |
+| Funding-picker USD labels | Quotes in Pinto are multiplied by Pinto USD price, as are direct Pinto deposits; missing price/quote shows unavailable; PDV display unchanged |
+
+The wstETH test transferred 0.01 of a **real existing stem-0 deposit** from
+`0x9acc596e15d9ac657c3663eeb9cdc2b55f638a7c` to the disposable QA publisher,
+using standard transfer hooks on the child only. That setup transaction is
+recorded separately in `wsteth-fixture.json`; it is **not** a browser transaction.
+No synthetic token/oracle storage was injected. EOA wallet delegation was
+cleared only on the child as documented in the fixture; extension wallets,
+Privy and EIP-7702 remain outside this pass.
+
+Nine successful browser transactions span blocks **53294790–53294799**, excluding
+the fixture-only transfer at 53294793. Final child hash:
+`0xf7d3ec1f9901054dcfac59901e7e8b79f25f4b5eaa15cbe78d9284a0831a1054`.
+The Convert Up execution is
+`0xe1b0ab8fd3781823afb4ce83b1d92ff7aded14a4ecfd76b70adb1b1a9fba15fe`;
+Sow execution is
+`0xbec9ba5000e9e20b6ff61e85108e62f36e7937ea7b1dd742e871daf656710d1b`.
+These are **local fork hashes**, not Base transactions. The three enabled LP
+indexes reconcile with the stored deposits, totals and bidirectional links.
+The fresh germinating 1-Pinto deposit remains intact after both Tractor executions.
+This does not establish full production backfill coverage. Sow and Convert Up
+used the ordinary fee-paying route, not a fee-exempt Sow blueprint. Both tiny
+operator tips were below the displayed estimated execution cost; success here
+does not establish economic profitability.
+
+The browser exposed another instance of the approved funding-unit bug: LP
+withdrawal quotes were labeled as dollars, and the suggested source compared
+those Pinto quantities against a dollar-valued Pinto balance. Both now use
+consistent units. For example the cbBTC LP picker displays approximately **$139**,
+not a dollar-prefixed **4,217.61 Pinto**. Seven regressions cover the display,
+suggested source at below/above-peg prices, missing quotes/prices and unchanged
+PDV mode. This does not replace the conservative execution-capacity checks.
+
+**349 tests / 44 files**, TypeScript and the production build pass after the
+funding-unit follow-up (existing bundle warnings). Scoped read-only
+autoreviews used `--mode local --engine codex --model gpt-6.1-sol --thinking high
+--no-web-search` and the bundled CLI. The paired-exit integration, whitelist
+setting, and funding-unit/dewhitelisted-copy reviews each exited 0 with no
+actionable findings. This is model review, not independent audit.
+
+### What still prevents current-release sign-off
+
+Other protocol work continued after the source freeze. Six of the 303 sources
+now differ: `AutoConvertViewFacet`, `IAutoConvert`, `AutoConvertConstants`,
+`LibAutoConvertExecution`, `LibAutoConvertPriority`, and
+`LibAutoConvertWellSafety`. This includes the preview's new `sourceExhausted`
+field and automatic conversion sizing/direction behavior. **Do not pair this
+snapshot's generated ABI/evidence with those later artifacts and call it tested.**
+After the contract work stabilizes, compile a new frozen release, regenerate the
+bindings, verify actual deployed runtime/selectors, and rerun the affected UI
+and controller checks on a separate local fork. The preserved UI remains paired
+with the source/ABI it actually tested. `final-checkpoint.json` records the
+precise source hashes and preserved fork heads; `final-runtime-parity.json`
+records the final frozen-runtime verification.
+
+Production API history across the helper cutover, real extension/Privy wallets,
+EIP-7702 behavior, full mobile interaction, and historical charts/subgraphs are
+not certified by this loopback fixture. Some historical charts visibly report
+unavailable data, and the new Pod plot correctly declines to invent a historical
+Temperature. Eligible referral payout has prior pinned-release evidence below,
+but was not rerun in this snapshot. Fee-exempt Sow order creation is still a
+separate feature decision, not an existing UI path proved by ordinary Sow.
+
+Evidence directory: `/tmp/pinto-ui-resume-20261030.cqndsI/`; source pin,
+release/helper manifests, parity reports, receipts, tests and screenshots are
+kept together. Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/ui-resume-2026-10-30-cqndsI.tgz`.
+It includes frozen protocol source, local node state dumps, and the tested UI
+source/config/lockfile, excluding dependency installations, build caches,
+secrets and private repository notes. The older sections below are preserved historical checkpoints;
+their obsolete runtime/plugin blockers do not describe this resumed session.
+
 ## Post-commit continuation — October 29, 2026
 
 **QA is still incomplete.** The local checkpoints are protocol `c0f9a4e` and
 interface `d43d6581`, authored/committed as `fordpintomoney`; neither was pushed.
 Unrelated approved Pod Market changes remain outside the interface checkpoint.
-This continuation changes no production source or contract, sends no transaction,
-and does not replace either protected fork.
+The original continuation checks changed no production source or contract; the
+separately approved Sow UI fix below now changes only UI source. Neither replaces
+either protected fork. The Stable2 fault/recovery pass sent no transaction;
+the two LP-funded Sow passes below each sent only their two documented
+disposable-child transactions.
+
+### Latest-release isolated rehearsal checkpoint — October 29, 2026
+
+#### Current release-input gate — historical checkpoint is now stale
+
+The saved browser checkpoint below is **no longer the latest protocol source**.
+Subsequent work in the other protocol chats changed seven of its referenced
+sources: `AutoConvertConstants`, `IAutoConvert`, `LibAutoConvertExecution`,
+`LibAutoConvertStable2Policy`, `LibAutoConvertWellSafety`, `LibCases`, and
+`AutoConvertViewFacet`. The aggregate price-guard and Seed-ratio changes were
+still being validated when checked. This QA continuation does not edit or
+approve those contract changes or overwrite their artifacts.
+
+`release-input-preflight.mjs` now rejects changed/missing project sources,
+unsuccessful/incomplete saved parity evidence, and mismatched UI Auto Convert
+or Sow ABIs. It reads artifacts from the explicit protocol directory without
+loading Hardhat's cwd-dependent configuration, tasks or providers. It neither
+compiles nor makes an RPC call. Its result is explicitly **input freshness only**;
+a separate live runtime/selector/topology check is still required against the
+chosen fork, and both checks must be repeated after relevant edits.
+
+Before a new latest-release browser run, obtain a fresh successful parity report
+from the rebuilt isolated fixture, then run:
+
+```sh
+node scripts/qa/release-input-preflight.mjs PARITY_JSON PROTOCOL_ROOT UI_ROOT
+PINTO_QA_PARITY_REPORT=PARITY_JSON PINTO_QA_PROTOCOL_ROOT=PROTOCOL_ROOT \
+  PINTO_QA_RPC=http://127.0.0.1:NEW_ANVIL_PORT PINTO_QA_UI_PORT=NEW_UI_PORT \
+  PINTO_QA_START_BLOCK=NEW_START_BLOCK \
+  node scripts/qa/serve-redemptions.mjs NEW_FIXTURE_JSON
+```
+
+Replace the uppercase placeholders with the independently verified new fixture
+paths/ports/block; do not reuse old endpoints or manifests blindly. The optional
+legacy-fixture path remains available, but now prints an explicit warning that
+current-release source/ABI parity was **not** checked. Startup RPC checks have a
+15-second deadline instead of hanging indefinitely.
+
+The current guard **fails as expected** on the seven changed sources above.
+**336 tests / 42 files pass**, TypeScript and the production Vite build pass
+(existing bundle warnings), including 17 new guard tests. A real read-only smoke check from the interface working directory read
+all 11 required artifact ABIs without loading the Hardhat runtime. Browser
+instructions remain missing after the app-update recheck, and the fork/UI ports
+remain stopped. There is no new live-fork or browser success in this follow-up.
+Scoped autoreview (`--mode local --engine codex --model gpt-6.1-sol --thinking
+high --no-web-search`, explicit bundled CLI, three QA files) caught the
+cwd-dependent Hardhat load. After fixing and testing it, the final helper
+exited 0 with no actionable findings (`review-final.json`). This is model review.
+Evidence: `/tmp/pinto-release-input-gate.0KDbAk/`; durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/release-input-gate-2026-10-29.tgz`.
+
+#### Order access/loading follow-up and current environment
+
+The Field page now keeps **See all Tractor Orders** and its dialog mounted
+independently of the background history/forecast. Loading, empty results, an
+error, or a post-execution refresh cannot remove the entry point or unmount an
+open dialog. This does not bypass operator simulation or receipt validation.
+
+Publisher cards explicitly omit the historical Soil allocation pass they do
+not display. Forecast consumers retain the existing Soil query, fallback and
+tip-priority allocation. Empty result sets also skip the unnecessary query.
+History-only and forecast queries have distinct cache keys; a new regression
+test caught the missing discriminator in the initial patch, which is fixed.
+This removes a known dependency, **not all API/RPC loading delays**, and does
+not validate the existing fallback forecast or production indexer behavior.
+
+Validation: **319 tests / 41 files pass**, TypeScript passes, and the production
+Vite build passes with the existing bundle-size warnings. Ten new tests cover
+loading/empty/error access, dialog persistence, forecast opt-out/default behavior,
+completed-order filtering and cache isolation. A read-only comparison of all
+**194 contract source records** in the saved parity report found no changes
+since the successful browser rehearsal. It is not a new live-chain check.
+
+Scoped autoreview used `autoreview --mode local --engine codex --model
+gpt-6.1-sol --thinking high --no-web-search` with the bundled Codex CLI and
+an explicit seven-file scope. Its first finding matched the cache-isolation
+regression above. After that fix, the final helper exited 0 with no actionable
+findings (`review-final.json`). This is model review, not an independent audit.
+
+**The rehearsal is not currently running.** After interruption, ports 18591–18596
+and 17852–17853 have no listeners; the known active process sessions no longer
+exist. No fork was reset or overwritten in this follow-up. Saved receipts,
+screenshots, manifests and archives remain, but no full Anvil state dump was
+found in the latest fixture directory. The in-app browser skill's supplied
+`SKILL.md` is also missing. Consequently these latest loading changes have
+component/unit coverage, **not a new browser pass**. The block hashes below are
+last-verified historical checkpoints, not claims about a live fork today.
+
+New evidence: `/tmp/pinto-order-access.NBlk0K/`; durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/order-access-2026-10-29.tgz`.
+The earlier browser evidence and its archives below remain unchanged. QA is
+still incomplete; no deployment, commit, push or additional contract change
+occurred here.
+
+#### Tractor completion-state follow-up
+
+The approved Tractor UI cleanup now records **blueprint** completion only after
+the receipt contains a `Tractor` event from the expected Diamond for that
+blueprint. A transaction hash alone, or a successful wallet cancellation
+replacement without execution, does not count. Pending sends remain serialized
+until confirmation/error, and each send invalidates sibling gas/profit previews
+without preventing their individual resimulation. Explicitly resimulating all
+orders can retry recurring orders in a later Season; it still runs the contract
+simulation and does not assume an order is executable.
+
+The shared transaction hook gained two optional settings, used by this execution
+screen: operation-specific receipt validation and a captured confirmation-chain
+ID. Submission also passes that captured chain ID, so switching the wallet during
+gas estimation cannot silently retarget the write. Other callers do not opt into
+the Tractor event validator. The installed Wagmi receipt action already reports
+mined reverts as errors; its behavior was checked rather than replaced.
+
+Two additional browser-created, Pinto-deposit-funded Sow orders executed on
+**18595 / UI 17853**, using the independent operator:
+
+| Pass | Publication block / gas | Execution block / gas | Result |
+| --- | --- | --- | --- |
+| Initial completion fix | 53247831 / 65,468 | 53247832 / 1,881,395 | Operator row displayed Executed; another row could independently simulate and report same-Season replay rejection |
+| Final event-validated, chain-pinned fix | 53247833 / 65,480 | 53247834 / 1,881,407 | Matching Tractor event accepted; operator row displayed Executed with old gas/profit preview cleared |
+
+Final order:
+`0xaaed27488a2f1be93023504f1dca05f029d5aa5feae89e45b77b5396c2cb6186`.
+Each execution removed **1.2 mature deposited Pinto** at stem `2539971964`,
+Sowed 1 Pinto, credited **48.37 Pods**, and paid **0.2 Pinto** to the operator.
+Final on-chain totals are **145.11 publisher Pods** and **0.8 operator internal
+Pinto**. The final publisher view displayed **145.11 Pods**, all three Sow orders
+at **1/1 (100%)**, and the latest order Executed 1 time, without a post-execution
+reload. Both nonce/replay checks, signed helper/source/amount checks and all
+three LP index reconciliations pass. The newly germinating 1-Pinto crate remains
+untouched through block 53247834. Final gas limit was **3,130,305**, not the gas
+used, and still below the active transaction cap.
+
+No protected fork advanced. Latest disposable child head is **53247834**,
+`0x417f9471557185b141a75c1f87a77e3a017d67b2f517c87d3d6e646e604bb26b`.
+There were four additional status-1 browser transactions in this follow-up.
+Current release parity was rechecked at block 53247833: all 65 deployments,
+10 helpers, exact UI ABIs, selector topology and source/artifact freshness pass.
+No contract edits, new deployment, Base write, commit or push were made here.
+
+Validation: **309 tests / 38 files pass**, TypeScript passes, and the production
+Vite build passes with existing bundle-size warnings. Regression tests cover
+pending/instant receipts, preflight/signing/confirmation failures, missing or
+wrong execution events, cancellation/speed-up replacements, sibling previews,
+recurring retries, and network changes during and after submission. Wallet
+replacement and pending-network races are component/hook tests, **not real-wallet
+browser certification**. Scoped `autoreview --mode local --engine codex --model
+gpt-6.1-sol --thinking high --no-web-search` closeout (explicit bundled Codex CLI,
+four-file scope) accepted and fixed the receipt-event and chain-binding findings;
+the final helper exited 0 with no actionable findings. This is model review,
+not an independent audit.
+
+**Order loading remains a limitation.** The first new order appeared without a
+browser reload, but slowly. A separate read-only timing diagnostic used real
+historical Soil RPC (no synthetic data): new publication/cancellation/completion
+log reads took roughly **4–5 ms**, while the Soil log query from block 53204632
+timed out after **15 seconds**, delaying the loader until its existing fallback.
+This verifies one blocking dependency, not the entire cause of the longer
+browser delay or correctness of the fallback Soil estimate. Browser transport,
+Soil semantics and production indexer behavior were not changed to hide it.
+Development hot reloads during edits disconnected the disposable wallet; those
+reconnections are not evidence of seamless real-wallet session persistence.
+
+Evidence: `/tmp/pinto-tractor-completion.fzZR1J/`, including
+`completion-53247834.json`, `verify-completion.cjs`, `order-latency.json`,
+`executed-row-final.png`, tests/build logs and `review-closeout.json`; related
+receipt/core/parity reports remain in `/tmp/pinto-latest-ui-release.1kA0q2/`.
+Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/tractor-completion-2026-10-29.tgz`.
+The original broader coverage matrix and limits below still apply. The goal
+remains active; this follow-up does not certify every UI action.
+
+#### Browser continuation on this exact release
+
+The fresh browser child **18595 / UI 17853** has now executed the first core
+workflow pass, with no transaction on its protected parent. This section is
+incremental evidence, not production approval or a full-route certification.
+
+| Browser action | Block | Receipt gas | Verified result |
+| --- | ---: | ---: | --- |
+| Approve Pinto spending | 53247823 | 46,365 | Approval confirmed |
+| Deposit 1 wallet Pinto | 53247824 | 697,952 | Wallet 50→49; deposited 50→51; new germinating stem 77859021751 |
+| Convert 0.001 cbETH LP | 53247825 | 2,448,860 | 0.554299 deposited Pinto; 0.000693 Pinto fee burned |
+| Convert 0.01 Stable2 LP | 53247826 | 3,117,334 | 0.026934 deposited Pinto; 0.000068 Pinto fee burned |
+| Publish 1-PDV Convert Up order | 53247827 | 1,365,686 | Includes mature-Pinto deposit optimization; fresh germinating crate excluded |
+| Operator executes Convert Up | 53247828 | 9,049,086 | 1 deposited Pinto, 0.2-Pinto tip; completed 1/1 in UI; replay rejects |
+| Publish LP-funded 1-Pinto Sow order | 53247829 | 765,100 | Signed cbETH LP source; mature-Pinto optimization |
+| Operator executes LP-funded Sow | 53247830 | 2,672,109 | 1 Pinto Sown; 48.37 Pods; 0.2-Pinto tip; completed 1/1 in UI |
+
+Convert Up order
+`0xd7f3a7fc1b3f0296343d28e3a7889e72f0bc0eba9bb7e2cd23ff97a22858ce17`
+used the default **unchecked seed filter** without the old workaround. Decoding
+the published calldata verifies `seedDifference = 0` and
+`slippageRatio = 1000000000000000` (0.1%). Opening Modify showed 0.10%; changing
+the advanced field to 0.25% and canceling restored 0.10% and zero seed constraint.
+That edit check did not publish another order or alter the original signature.
+The execution consumed cbBTC LP, with 0.2 Pinto for its tip plus 1 Pinto for the
+conversion. Gas limit was 15,257,614, below the enabled 16,777,216 cap. The UI
+estimated 9,579,274 gas and negative operator profit before L1 fees; these
+fixture values are not a live Base gas-price quote.
+
+`record-browser.cjs` and `verify-browser-core.cjs` reconcile historical receipts,
+deposit amounts, signed targets/parameters, nonce/replay, operator payment and
+all three LP indexes. The fresh 1-Pinto germinating crate is unchanged at every
+checked block through 53247830. `release-parity-after-core.json` again passes
+65 release deployments, 10 helpers, source freshness, selectors and both UI ABIs.
+
+The Sow order is
+`0x5d7c73229d4c5f56d8df061366163144b6218e96b273e2d35eab80ba3ac336cc`.
+Publisher history eventually displayed it at 0/1, but Field orderbook loading
+remained delayed. A direct historical Soil-log read timed out; a separate,
+read-only diagnostic, bounding logs to local publication blocks and exercising
+the loader's existing Soil fallback, discovered this order with 1 Pinto of
+funding. That diagnostic is **not browser success**, does not validate historical
+Soil, and changed neither the UI transport nor chain state. An explicit browser
+reload/reconnection recovered the operator orderbook; no fork was reset. This
+is not proof of prompt automatic refresh or a proven explanation of the stale
+result. The completed publisher card subsequently refreshed to **1/1 (100%)**,
+**Executed 1 time**, with **48.37 Pods** displayed, without a second reload.
+
+Before executing Sow, the QA wallet deliberately rejected the first send.
+The child stayed at block 53247829 with the same hash, no tip and no Pods added.
+The row cleared its old gas/profit preview and exposed **Resimulate**. Individual
+resimulation restored a fresh 2,872,151 gas estimate; retry succeeded with gas
+limit 4,595,740. It consumed **0.002166528195291783 cbETH LP** from mature negative
+stem **-1401600973**, burned **0.003008 Pinto** in fees, and funded the 1-Pinto Sow
+plus its 0.2-Pinto operator tip. Soil decreased by exactly 1, total operator
+internal Pinto became 0.4, and nonce 1 rejects same-Season replay. The upstream
+Sow price-deviation tolerance remains 100%; this successful execution is not
+an endorsement of that tolerance or sandwich-resistance evidence.
+
+At the first core checkpoint, an operator-display issue was observed: after successful Sow, its
+execution row stayed visible with a disabled **Resimulate** label. Source review
+shows completion stores a transaction hash but row checks use the blueprint
+hash; the existing global post-execution flag also disables simulated rows.
+The publisher's final completion and chain receipts are correct. This pass did
+not change that state machine. The separately tested follow-up above now fixes it.
+
+Latest child head: **53247830**,
+`0x2d38d10786ccaa55b19ca6f66b96458de163d003497e4a0dacebc3323ac8f6c0`.
+`isolation-after-core.json` verifies both the prior parent/browser child and
+the new protected parent retain their recorded hashes. Only the new disposable
+child advanced, by **eight status-1 browser transactions**; rejection added none.
+The initial-flow window still has zero samples and is not ready. Browser/manual
+and Tractor conversion successes do not prove automatic recovery activation.
+
+| Acceptance area | Latest-release evidence | Still unverified / limited |
+| --- | --- | --- |
+| New deposit | Browser deposit, wallet balance and germinating crate match historical state | Two-Season progression is prior-fixture evidence, not repeated on this child |
+| Existing-deposit converts | CP2 and Stable2 LP→Pinto; exact output and fees reconciled | No new LP→LP/external-router or every-pair claim |
+| New Tractor creation/execution | Convert Up and LP-funded Sow; independent operator; signed target/parameters and counters checked | Fee-exempt Sow still lacks a creation UI; ordinary Sow tolerance remains unchanged |
+| Failure/recovery | Wallet rejection sends nothing; individual resimulation/retry succeeds; completed signatures reject replay | Not every transaction/failure class retested on this release |
+| Displayed state | Sampled wallet/deposit/Pods/Soil/Season/order progress and tips reconcile; operator completion-label fix verified in the follow-up above | Historical charts fail or load slowly; orderbook reload was needed in the initial pass and later passes still load slowly |
+| Code/ABI/isolation | 65 deployments + 10 helpers, source freshness, exact ABIs and selectors; protected hashes unchanged | No full inventory migration, successful flow activation, real-wallet/Privy/EIP-7702/mobile or production-indexer sign-off |
+
+Evidence is in `/tmp/pinto-latest-ui-release.1kA0q2/`, including
+`core-verification-53247830.json`, `order-discovery.json`, `order-read.log`,
+`deposit-confirmed.png`, `convert-edit-restored.png`,
+`convert-order-simulation.png`, `convert-order-completed.png`,
+`sow-rejected-resimulate.png` and `sow-order-completed-visible.png`.
+Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/latest-release-browser-core-2026-10-29.tgz`.
+Only QA documentation and local evidence scripts were added in this continuation;
+no production behavior, project commit, push or Base write was made.
+
+After separate approval, a new rehearsal was created at
+`/tmp/pinto-latest-ui-release.1kA0q2/`: parent **18594**, browser child **18595**,
+Sunrise child **18596**, UI **17853**. It uses the same Base **53247743** pin for
+comparison, not a claim to the latest Base block. The earlier forks were not
+reset or upgraded. The previous active browser child remains at 53247836 after
+the documented tests below; its parent remains at its original 53247820 hash.
+
+The deployment uses the explicit local-only startup configuration from the
+previous rehearsal: four Wells, quote-liquidity-weighted aggregation, the
+current compiled flow policy, bounded LP/value/loss limits, zero fixed reward
+and a 1-BDV position floor. These are not new approved production parameters.
+The Diamond cut enables the controller and initial flow gate atomically, but
+neither full inventory backfill nor successful flow activation is established.
+
+- **Valid cut: 14,682,059 gas**, transaction
+  `0x98a95a17f542352ef24f4d261d7644d180f35eda3f4c13d2675ac1ef37a1bded`.
+  The 16,777,216 transaction cap and normal EVM code/initcode limits remain enabled.
+- Deliberately invalid initializer: 13,846,215 gas, status 0, with Diamond map,
+  Well state and reward parameters unchanged. Accounting/supply/custody are
+  also unchanged by the successful cut; four Well fee/caller checks pass.
+- The first valid preflight returned a reason-less call failure. The unchanged
+  call then passed both with explicit gas and the original default request;
+  estimation was 16,272,769. The attempt was **resumed**, not reset/redeployed,
+  after verifying the exact rollback checkpoint and repeating topology, code,
+  owner and simulation checks. Its initial failure cause remains undetermined.
+- Exact parity passes for **65 release deployments and 10 helpers**, all
+  referenced project sources, the selector map, and both UI release ABIs.
+  The Auto Convert ABI now has **123 entries**: its only semantic addition is
+  the read-only `getAutoConvertFlowWindow()` summary. Deposit/withdraw ABIs and
+  the Sow helper ABI did not change. On both new children the getter returns
+  an empty, not-ready window.
+- Largest runtime remains SeasonFacet **23,909 bytes** (667 bytes below EIP-170);
+  Fee Well is 23,718, SiloFacet 23,290. These margins are not an audit or proof
+  that an arbitrarily larger future cut fits.
+- **238 local flow tests plus 2 explicitly enabled production-fork tests pass**.
+  The latter cover actual Well routes and illustrative allowance comparisons,
+  not flow-enabled Sunrise activation. ABI regression tests also pass.
+- Three separate-child Sunrises used **3,664,843 / 3,611,240 / 3,478,063 gas**.
+  All completed, but frozen production oracle data yielded no valid opening
+  baseline: zero activation credit, no ready flow window and no conversion.
+  No synthetic oracle rounds or trading flow were supplied. This is fail-closed
+  liveness evidence, not peg recovery or full-cohort conversion evidence.
+
+The browser child holds real transferred mature deposits and 50 wallet Pinto;
+only its disposable public-Anvil address's EIP-7702 delegation was cleared, as
+explicitly labeled EOA QA. Its initial block is **53247822**,
+`0x6e7e9d40b5ef9396f7113f08a9dc887d5141c2fa554af46d55d33dc3ef0accc7`.
+At this initial deployment checkpoint, the UI was connected but had **not yet
+rerun browser deposits/conversions/orders**. The continuation above now records
+that pass. Older browser evidence below belongs to the earlier pinned release. No project
+commit, push, Base broadcast or production deployment occurred.
+
+Key evidence: `release/report.json`, `release/rollback.json`,
+`release-parity-before-ui.json`, `isolation.json`, `flow-tests.log`,
+`flow-fork-tests.log`, `sunrise-smoke.json`, and the preserved failed/resumed logs.
+
+### Approved UI blockers and eligible-referral payout — October 29, 2026
+
+This section supersedes the pending status of these specific fixes in the
+historical entries below. It does **not** certify the entire interface or the
+latest contract release. The user separately approved the listed UI fixes and a
+new isolated latest-release rehearsal; every existing fork remains preserved.
+
+#### Eligible referral: real pinned-chain eligibility, no manufactured rewards
+
+On the existing browser child **18592 / UI 17852**, read-only discovery found
+`0xfb7c4c283e2b7d4b96cd2c5f4fed551907b3c66c` already eligible: 9,903.151399
+Pinto previously Sown versus the 1,000-Pinto threshold. Neither eligibility nor
+oracle storage was fabricated. The fixed form previewed **2.42 estimated bonus
+Pods** for a 1-Pinto Sow, using the current 5% referee percentage and available
+reward pool. Browser signing/publication and independent-operator execution
+succeeded for order
+`0x968ea61c1fe436f88bc5ba19b633ae309fb124a072060a6d447eb5cb1c921b15`.
+
+| Measured result | Amount |
+| --- | ---: |
+| Actual Pinto Sown | 1 |
+| Base Pods credited to publisher | 48.37 |
+| Additional referee Pods credited to publisher | 2.4185 |
+| Additional Pods credited to referrer | 4.837 |
+| Shared referral reward pool consumed | 7.2555 Pods |
+| Operator tip | 0.2 Pinto |
+| Publication gas, block 53247833 | 66,532 |
+| Execution gas, block 53247834 | 2,061,166 |
+
+The publisher's Pods rose from 96.74 to **147.5285**; the UI showed **147.53**
+and a completed 1/1 order. The signed target/referral, `SowReferral` event,
+historical account balances, shared reward counter and Soil decrement agree.
+Nonce is 1; replay rejects. The fresh germinating 1-Pinto crate remains untouched,
+and three LP indexes still reconcile with deposits and bidirectional links.
+The execution gas limit was 3,422,472. The UI estimate was 2,156,417 gas and
+−$0.023428 before L1 fees at fixture prices—not a current Base fee quote.
+
+Evidence: `/tmp/pinto-eligible-referral.ur37Nv/`, especially
+`eligible-verification.json`, the read-only scripts and before/after screenshots.
+Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/eligible-referral-2026-10-29.tgz`.
+This closes eligible-referral **Tractor payout** coverage on the pinned release;
+it does not add a fee-exempt Sow creation UI or certify live indexer history.
+
+#### Explicitly approved blocker fixes
+
+- Modify Sow always supplies the Diamond to release validation, including when
+  it intentionally skips deposit optimization; fresh funding checks remain.
+- An unchecked Convert Up seed filter encodes the contract's zero sentinel.
+  Existing one-atom constraints remain checked when edited. Edit hydration
+  converts slippage ratios to percentages, and canceled advanced edits restore
+  raw form units without another percentage conversion.
+- Shared transactions and the sibling Claim flow stop after estimation failure
+  or a zero estimate; neither sends using a fabricated fallback gas limit.
+  Failed Tractor attempts clear stale gas previews and allow individual
+  resimulation, including after wallet rejection. Simulations use the operator.
+- Publish success callbacks run on confirmation, not merely receipt of a hash.
+  Publish/modify/cancel refresh the actual nested Tractor query namespace;
+  publication also refreshes deposits affected by optimization.
+- Unavailable opening prices no longer divide by zero. Price-impact queries
+  are account/chain-specific and their clear operation matches their real keys.
+- Market select-all checkboxes use Radix's indeterminate state, and disconnected
+  account queries cannot manually refetch with an undefined owner.
+
+The browser modified the eligible referral order to 1.1 Pinto: atomic cancel
+and replacement publication used **466,654 gas**, block **53247835**,
+transaction `0x40eab5e445e3da9404e48767e99768510953e2355a3a9a00cebabf484cc03b0c`.
+Replacement `0xbb3ba1e57d893428a347ab96275635543e48f4d63099c05dca478eefcb5e8e96`
+appeared at 0/1.1 without reloading. A rejected cancellation sent nothing; retry
+canceled it in **71,101 gas**, block **53247836**, transaction
+`0xf1769c5b389a28a94dd9eeab59dafaed2af1824800bf940a93070f37a1aa8aec`.
+
+With a positive 0.001-USDC-LP conversion quote, reporting unsupported chain 1338
+now leaves the page intact, shows unavailable impact and disables Convert.
+Restoring 1337 recovers the quote without reload; no transaction was sent.
+The QA connector never sends outside loopback. This is not real-wallet coverage;
+other unsupported-network display artifacts, such as zero USD values, remain.
+
+Validation: **295 tests / 37 files pass; TypeScript and Vite build pass**.
+The scoped `autoreview --mode local --engine codex --model gpt-6.1-sol
+--thinking high --no-web-search` used a temporary pre-change snapshot and the
+bundled CLI. Its accepted retry finding was verified, fixed and covered by four
+component regressions. The final scoped review returned **no actionable
+findings**. A mistakenly targeted retry was stopped and is not the final review.
+Model review is not an independent audit. Evidence and logs are in
+`/tmp/pinto-ui-blockers.3TQT4g/`. No project commit, push or Base write occurred.
+Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/ui-blocker-fixes-2026-10-29.tgz`.
+
+### Pinned-release continuation and approved referral preview fix — October 29, 2026
+
+This continuation uses the existing **18592 / UI 17852** child, not another
+deployment. Parent 18591 and all earlier forks are preserved. Four new browser
+transactions succeeded; no Base writes or push occurred.
+
+**Source-parity caveat:** before these transactions, the fork still matched its
+release manifest and selector map, and all **ten helpers** matched current
+artifacts/source. However, the working tree/artifacts had advanced since the
+18:10 audit below: `AutoConvertViewFacet` executable code changed, five other
+release artifacts differed without executable changes, and three flow sources
+were newer than their build inputs. The UI Auto Convert ABI was still 122 entries
+versus 123 in current artifacts. Thus this is evidence for the **pinned release
+and unchanged Tractor helpers**, not validation of the latest flow edits. No
+recompilation, redeployment or generated-ABI update was performed in this pass.
+
+| Browser action | Verified result | Execution gas |
+| --- | --- | ---: |
+| Publish Convert Up | One-PDV total/min/max, least-Seeds source, explicit zero-seed workaround, 0.2-Pinto tip | 68,272 |
+| Execute Convert Up as separate operator | cbBTC LP → 1 deposited Pinto; 0.2-Pinto tip; completed | 9,036,064 |
+| Publish referral Sow | 1 Pinto total/min/max, pure-Pinto source, 4736% minimum, Morning off; includes optimizing 51.581233 mature Pinto | 766,184 |
+| Execute referral Sow as separate operator | 1 Pinto Sown; 48.37 normal Pods; **zero bonus Pods** for the ineligible referrer; completed | 1,898,955 |
+
+Convert Up order:
+`0xa5fbee2d0c5dd8a5d2cf2fb1e55e0ddc905ed4d31b3d19e691c3acff7ce06344`.
+Conversion consumed **3,282,138,256 cbBTC LP atoms / 0.201503 input BDV**;
+output is **1 Pinto / 1 BDV**. Tip funding separately consumed 656,429,276 LP
+atoms. Total Well fees burned were 0.003009 Pinto. Transaction gas limit was
+15,279,758, below the enabled 16,777,216 limit. The operator UI estimated
+9,583,617 gas and −$0.127883 profit before L1 fees at fixture prices; this is not
+a live Base fee quote. Default seed-toggle behavior remains an unresolved issue.
+
+Referral order:
+`0xdf17ff7d25d05577931c57bf8194bc044bb8d9e68ed55bf4cf8dc824b2c27297`.
+Its signed call targets the runtime-verified replacement `SowBlueprintReferral`.
+The referral address is the disposable operator, whose on-chain referral Sown
+amount is **0**, versus a **1,000-Pinto** eligibility threshold. Execution removed
+1.2 mature Pinto: 1 Sown and 0.2 tipped. The publisher's total Pods rose from
+48.37 to **96.74**. No `SowReferral` event or referral Pods were produced. The
+operator UI estimated 1,991,631 gas and −$0.021111 profit before L1 fees.
+This covers the ineligible-referral execution path, not a successful eligible
+referral payout. Order discovery took several minutes, and completed orders
+also appeared in the execution chooser; those existing UI issues are not fixed here.
+
+For both orders, nonce is 1 and read-only replay rejects. The fresh 1-Pinto
+germinating crate is unchanged. Three LP indexes reconcile with live deposits,
+forward/backward links and indexed-amount sums. The UI shows both orders
+completed. Final child block is **53247832**,
+`0xd27fdc3314dbc0e4a685e370745db496ca0c68a1e92d84088c875903f80b7a40`.
+
+#### Approved referral-only production UI fix
+
+The unpatched form called the ineligible address a valid referral and previewed
+**2.42 bonus Pods**, despite the actual zero bonus above. After explicit user
+approval, both regular Sow and Tractor Sow now:
+
+- Read eligibility, referee percentage, total rewards and reward cap at one block.
+- Use the current percentage, floor bonus Pinto first, and cap estimated referee
+  Pods at the remaining shared pool; no hard-coded 5% reward assumption.
+- Omit bonuses for ineligible/self/invalid referrals, missing data, failed reads,
+  refreshes and offline-paused refreshes, or unsupported/disconnected contexts.
+- Scope cached data to chain, Diamond, wallet and referrer; label bonuses as
+  estimates that can change before execution, rather than already-earned rewards.
+
+This changes **preview/validation text only**, not signed payloads, referral
+contract policy, execution rules, or fee exemptions. Ineligible codes can still
+be included in an order, and the contract can Sow normally without a bonus.
+The browser confirms the warning and absence of bonus in both affected forms.
+Eligible/partial-pool/error/network/account-change paths have automated coverage;
+an eligible-referral payout was not manufactured on the fork.
+
+Validation: **272 tests pass in 31 files**, including **13 referral regressions**;
+Vite production build passes. TypeScript still reports the same four pre-existing
+Pod Market errors, with none in this patch. The structured review found a real
+offline-paused-refresh gap; it was verified against TanStack Query and fixed with
+a regression. The final autoreview run is **clean, no actionable findings**
+(`referral-review-final.json`). It used `autoreview --mode local --engine codex
+--model gpt-6.1-sol --thinking high --no-web-search`, the bundled desktop CLI,
+and an isolated temporary repository containing only this scoped delta. This is
+model review, not an independent human audit. An initial review attempt rejected
+an invalid absolute-path finding; the same model was retried with valid paths.
+
+Evidence: `/tmp/pinto-ui-continuation.Ocfo1p/`, including
+`parity-before.json`, `order-verification.json`, the read-only discovery diagnostic,
+test/build/typecheck logs and before/after screenshots. Durable copy:
+`/Users/ash/.codex/state/pinto-release-evidence/ui-referral-continuation-2026-10-29.tgz`.
+The diagnostic bounds
+historical Soil logs and uses the existing funded-orders fallback; it is not
+production historical-event coverage. The actual browser tests used the unchanged
+QA server and its original event-query path. No contract storage or oracle state
+was fabricated for these browser checks.
+
+Remaining acceptance work includes latest-flow-release ABI/runtime parity,
+full migration and activation, eligible-referral payout, fee-exempt-Sow creation,
+the documented Modify Sow/seed/slippage/network/cache defects, and real-wallet,
+mobile and production-indexer checks. This remains **not production sign-off**.
+
+### Authorized current-release rehearsal — October 29, 2026, 18:10 UTC
+
+The user authorized a **separate local-only rehearsal**. This pass deployed and
+tested the current compiled release without upgrading or resetting the protected
+forks. It is **not production sign-off**, a full inventory migration, or a Safe
+execution rehearsal. Base was used only for reads. No push or Base broadcast occurred.
+
+Final evidence root: `/tmp/pinto-final-release-ui.RFQJvr/`. Local endpoints are
+parent **18591** (chain 31337), browser child **18592** (chain 1337), Sunrise child
+**18593** (chain 31337), and UI **17852**. All start from Base block **53247743**,
+hash `0x72d59e21e2aa264e19ab3d1fe29fb454c3ffde00ee3ba6346b53d6120718eca2`.
+This deliberately reuses the earlier production-state pin for comparison; it is
+not a claim to have used the latest block at the end of the pass.
+
+The final source/artifact/runtime check passes for **65 release deployments and
+10 helpers**, their links/immutables, the installed selector map, all referenced
+project sources, and the **122-entry** UI Auto Convert ABI plus Sow ABI. The final
+check is after the browser transactions. During an earlier attempt, three flow
+sources changed after compilation; that attempt is not the current-source proof.
+The final attempt rebuilt, pinned the source hashes, and verified they stayed unchanged.
+An initial nested-fork transport also timed out; the final parent reads Base directly.
+
+Startup uses the branch's current **1% liquidity / 0.1% market-valued supply /
+$10,000 minimum** flow policy and the current Weather liquidity × Pod Rate wait
+table. Separate **illustrative local configuration** is explicit in
+`release-config.json`: quote-liquidity-weighted aggregation; four Wells; maximum
+LP per Well equal to 0.1% of the pin's deposited LP; $100 value/Well and $0.10
+loss/execution ceilings; zero fixed reward; 1 BDV position floor. These test
+choices are not approval of production startup parameters. The controller starts
+with the initial flow gate enabled. Indexes are enabled but not fully backfilled.
+
+| Check / browser action | Result | Actual gas |
+| --- | --- | ---: |
+| Deliberately invalid initializer | Receipt status 0; facet map, Wells and reward settings unchanged | 13,821,755 |
+| Atomic release cut | Controller configured/active, flow gate enabled; supply, Silo globals and custody unchanged | 14,657,600 |
+| Approve Pinto spending | Local disposable publisher only | 46,365 |
+| Deposit 1 Pinto | Wallet 50 → 49; deposits 50 → 51; new crate visibly germinating | 697,952 |
+| CP2 convert | 0.001 cbETH LP → **0.554299 Pinto** | 2,448,860 |
+| Stable2 convert | 0.01 USDC LP → **0.026934 Pinto**; 0.000068 Pinto fee burned | 3,117,334 |
+| Publish new LP-funded Sow order | Includes UI optimization of 50.581233 mature Pinto, preserving its amount/BDV, then publication | 1,362,836 |
+| Separate operator executes Sow | 1 Pinto Sown; 48.37 Pods; 0.2 Pinto operator tip | 2,688,734 |
+
+All six browser transaction receipts succeeded. New Sow order:
+`0x26782653ab2018334de9361ecb22d8306e89e118377254b1fd350bdf7de00551`.
+Source is cbETH LP only, total/min/max 1 Pinto, minimum temperature 4736%,
+Morning off, no referral. Execution removed **0.002166528195291783 LP / 0.221891
+BDV** at stem **−1401600973**, received exactly 1.2 Pinto, and burned **0.003008
+Pinto** in Well fees. Nonce is 1, replay rejects with `Blueprint already executed
+this season`, and the publisher UI shows **1/1 (100%), Order Completed, 48.37 Pods**.
+Indexed amounts, individual deposits and both directions of the node links
+reconcile for all three LP assets held by this fixture. This is maintenance
+coverage, not proof that the entire historical index has been backfilled.
+
+Simulation estimated 2,889,040 gas and **−$0.033732 operator profit before L1
+fees**, using fixture prices/gas. This is not a live Base cost estimate or a
+recommendation for the tip. The upstream ordinary-Sow 100% slippage setting is
+unchanged; execution success is not sandwich-safety evidence. Publication again
+required a reload to appear in the operator orderbook, followed by a loading
+delay. The separate known cache issue is not fixed here.
+
+Three real Sunrises ran on the separate time-advanced child, without injected
+oracle rounds, fabricated flow, or price storage changes:
+
+| Season | Actual gas | Complete valid Well coverage | Flow / conversion result |
+| --- | ---: | --- | --- |
+| 16992 | 3,664,843 | None of four observations valid | Sunrise completes; no credit or conversion |
+| 16993 | 3,611,240 | cbBTC and USDC valid; cbETH/wstETH invalid | Sunrise completes; no credit or conversion |
+| 16994 | 3,478,063 | cbBTC and USDC valid; cbETH/wstETH invalid | Sunrise completes; no credit or conversion |
+
+The flow counter remains uninitialized with zero eligibility: no complete
+baseline is fabricated from this frozen-oracle scenario. This verifies liveness
+and the missing-data gate, **not successful activation, a full waiting period,
+or an automatically converted cohort**. Full-history/oracle and migration tests
+remain separate requirements. The largest runtime is SeasonFacet at **23,909
+bytes**, leaving **667 bytes** below EIP-170. Fee Well is 23,718 bytes and SiloFacet
+23,290 bytes. Normal EVM runtime/initcode and transaction-gas limits stayed enabled.
+
+Verification and scoped cleanup:
+
+- Hardhat compiled the updated snapshot successfully; final exact parity passed.
+- UI suite rerun: **259 passed**, 29 files. This pass does not imply a new full UI build.
+- Flow suite initially had **221 passes / 1 failure**: its 20,000-Pinto sale creates
+  $17,764.029785 adverse flow against a $19,069.841798 opening allowance, so the
+  old debit expectation was stale after the allowance increase.
+- **Test-only** cleanup retains that inside-allowance scenario and adds a
+  40,000-Pinto excessive-flow scenario. Both assert positive actual emitted flow,
+  the frozen opening allowance and the corresponding counter direction. The
+  rerun passed **223 tests**, zero failures/skips, with 256 fuzz runs. No
+  production policy or contract code was changed by this cleanup.
+- The autoreview skill's read-only `gpt-6.1-sol` review of this isolated test delta
+  returned no actionable findings. It is model review, not independent audit.
+  Command used `--mode local --engine codex --model gpt-6.1-sol --thinking high
+  --no-web-search` with the bundled desktop CLI and a temporary excerpt repository.
+
+The new parent remains at block **53247820**, hash
+`0x3fb65d611d1d7d9a90dd3cb9911c94ab9167f7a111108d5da45e20e6f4eb1caf`.
+Final browser child: **53247828**, recorded in `browser-evidence-53247828.json`.
+No writes/reset were sent to old **18584/18585**. The old child head was rechecked
+unchanged; the old parent timed out on the post-run read, so its final head was
+not independently reverified. Its last verified head remains in the earlier audit.
+
+Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/current-release-ui-rehearsal-2026-10-29.tgz`.
+Key files: `release/report.json`, `release-parity-final.json`, `source-pin.json`,
+`browser-evidence-53247828.json`, `order-verification.json`, `sunrise-observations.json`,
+`flow-tests-corrected.log`, `test-review.json`, and `sow-completed-visible.png`.
+
+**Still open:** the separately identified Modify Sow preparation bug, known
+network-switch/cache/seed/slippage issues, current-source Convert Up order
+execution, referral-order and fee-exempt-Sow UI coverage, full migration/activation
+rehearsal, and real-wallet/mobile/production-indexer checks. A compatible referral
+helper was deployed and runtime-verified, but no referral order was exercised.
+The successful sampled routes above do not establish universal UI correctness.
+
+### Earlier acceptance audit — October 29, 2026, 17:22 UTC
+
+**Not complete; no production sign-off.** A fresh read-only audit revalidated
+all **16 recorded browser receipts** from blocks **53247822–53247837**, including
+their status, block and gas. This is revalidation of earlier actions, not 16 new
+executions. All **65 core** and **nine helper** runtime hashes still match the
+preserved deployment manifests; the Diamond selector map also matches. Neither
+child **53247837** nor parent **53247819** changed during the audit.
+
+The current artifacts' referenced project Solidity sources are fresh, but their
+executable code differs from the preserved fork in **nine** contracts/libraries:
+`LibAutoConvertCurve`, `LibAutoConvertFlowOracle`, `LibAutoConvertFlowTransition`,
+`LibAutoConvertFlowActivation`, `SeasonFacet`, `LibAutoConvertStable2Policy`,
+`AutoConvertAdminFacet`, `AutoConvertViewFacet`, and `InitAutoConvertRelease`.
+There are no missing linked deployments in the comparison. This supersedes the
+earlier **two-executable-differences** observation below, not its saved evidence.
+The generated UI Auto Convert ABI remains **122 entries, semantically equal**
+to current artifacts, and the Sow entry-point ABI is also equal. ABI equality
+does not establish runtime-behavior equality.
+
+| Goal requirement | Evidence and current disposition | What remains |
+| --- | --- | --- |
+| Browser deposits and conversions | Pinto and LP deposit, CP2 and Stable2 conversion, exemptions and accounting have successful receipts on the preserved release | Rerun affected paths against a separately authorized current-code fixture; sampled pairs do not cover every route |
+| New Tractor creation/execution | Convert Up, Pinto-funded Sow and LP-funded Sow succeed with separate operators; corrected funding form's 1-Pinto order executes | Modify Sow preparation is blocked by the missing address below; known seed/slippage/preflight defects remain |
+| Balances, deposits, Seasons and orders | Sampled displayed values reconcile with historical state; two-Season maturity and output-lock evidence exists on older fixtures | New flow/Sunrise behavior is absent from this browser fixture; history/cache/chart findings remain |
+| Failure and stale-state behavior | Deposit-read failure/recovery, stale inventory atomic rollback, replay, account switches and rejection paths exercised | Network-switch crash and other documented UI defects await scoped fixes; QA connector is not real-wallet coverage |
+| Complete route/setup coverage | Explicit limitations retained in the historical matrix | Referral requires a compatible local helper; fee-exempt Sow lacks a creation UI; Privy/mobile and production-indexer reconciliation remain unverified |
+| Preservation and no live writes | Runtime/selector/receipt/head assertions pass, with no transactions in this audit | No fork was reset/upgraded, no deployment or Base write occurred, nothing pushed |
+
+Approvals are outstanding for the scoped Modify Sow fix and for a **separate
+local-only current-release rehearsal**. The latter must use explicit reviewed
+startup parameters, preserve existing forks, and must not infer authority for a
+Base deployment. Older requests for unrelated production fixes/setup remain
+separate; a passing sampled route does not waive them. The current preserved
+controller remains deliberately unconfigured/inactive, so this audit supplies
+no new flow-activation or automatic-conversion behavior evidence.
+
+Evidence: `/tmp/pinto-ui-acceptance-audit.gZjeH5/audit.json` and `abi.json`, with
+their read-only scripts. Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/ui-acceptance-audit-2026-10-29.tgz`.
+No production source was changed or compiled, no ABI was regenerated, and no
+test rerun is implied. Latest full UI test/build results remain the **259-test**
+pass below; the separate new Modify regression is intentionally red.
+
+### Approved Sow funding-unit fix — October 29, 2026
+
+The user approved the scoped upstream unit fix in both the new and modified
+Sow-order forms. They now compare Pinto with Pinto: a single-block read of the
+deployed Silo helper's eligible withdrawal inventory followed by each selected
+Well's fee-paying `getRemoveLiquidityOneTokenOut` quote. Pure Pinto uses its
+unlocked token amount. Wallet balances and LP dollar prices do not count as
+funding. The ordinary encoder's max-grown-Stalk filter is shared with the quote;
+ordinary germinating withdrawals remain allowed. This does not change Auto
+Convert eligibility, output locks, contracts, ABIs, or signed order structures.
+
+Account, chain, source strategy and configured helper addresses scope the query.
+Failed or pending refreshes cannot reuse successful funding approval. Preparation
+performs a fresh read. Validation reserves one operator tip for every minimum-sized
+fill, rounded upward; this is a conservative **current-state** check, not a promise
+of future price, Soil, available deposits or successful execution. Existing unsupported
+`MULTI_TOKENS` encoding is not added here; that selection fails closed.
+
+The same capacity calculation drives the amount slider. Both initial forms expose
+the tip editor before the funding gate so an excessive default can be lowered.
+Default minimum and maximum amounts retain all six token decimals, rather than
+display-rounding to two decimals. Inputs such as `.5` and `.2` remain accepted.
+
+| Check | Result |
+| --- | --- |
+| Current child cbETH inventory | **0.019254790211655960 LP → 10.664835 Pinto**, net of the Well fee |
+| New and modified LP-funded forms | **1 Pinto + 0.2 tip** reaches review; **11 Pinto** is rejected; neither order was signed/published in this pass |
+| Excessive tip recovery | A **20-Pinto** tip blocks funding but its first-step editor remains accessible; lowering to **0.2** restores Next |
+| Decimal/default boundary | `.5` accepted; **10.464835 + 0.2 = 10.664835** reaches review; editable min/max fields both retain **10.464835** |
+| Read-only helper plan for 1 + 0.2 | **0.002166527935135902 LP** across fresh and mature stems quotes exactly **1.200000 Pinto**; no execution was sent |
+| Empty operator account | Selected LP capacity is zero; external wallet balances do not substitute |
+| Existing Convert account switch | Switching publisher → operator clears the old positive Convert quote/input; returning does not revive it; no transaction |
+
+There are **21 focused tests**, including exact funding/tip boundaries, missing
+reads, source/account/network changes, late responses, and failed refreshes.
+Full current dirty-tree suite: **259/259 tests in 29 files pass**, including seven
+separate pre-existing Market tests. `vite build` passes with the existing chunk-size
+warning. `tsc --noEmit` still reports four unrelated upstream Market errors:
+`MyListingsTable.tsx:222`, `MyOrdersTable.tsx:236`, `useMyPodListings.ts:31`, and
+`useMyPodOrders.ts:26`. This is not a clean full TypeScript or production sign-off.
+
+Structured closeout used `autoreview --mode local --engine codex --model
+gpt-6.1-sol --thinking high --no-web-search` with the approved scoped prompt and
+bundled Codex binary. Four findings were verified and fixed: tip-editor reachability,
+multi-fill slider tips, rounded form defaults, and leading-dot inputs. The final
+run exited 0 with **no accepted/actionable findings**. This is model review, not
+an independent human audit.
+
+Both chain heads remained unchanged throughout these fix checks: child **53247835**
+and protected parent **53247819**, with the hashes recorded below. No deployment,
+push or new chain transaction occurred. Evidence: `/tmp/pinto-sow-capacity.1BddBq/`
+(read-only fork plan, screenshots/AX captures, test/build/typecheck logs and all
+structured review results). Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/sow-capacity-fix-2026-10-29.tgz`.
+Broader QA remains incomplete; the separate network-change crash and release
+identity qualification below still apply.
+
+### Corrected form: 1-Pinto LP-funded Sow executed end to end
+
+After the funding-unit fix, the previously rejected **1-Pinto** request was
+created, reviewed, signed and published in UI **17849**, then simulated and
+executed by the separate QA operator on disposable child **18585**. No helper
+or protocol upgrade was made; runtime hashes match the preserved manifests.
+Source was cbETH LP only, total/minimum/maximum **1 Pinto**, minimum temperature
+**4737%**, Morning OFF, tip **0.2 Pinto**, no referral. This is an ordinary
+fee-paying withdrawal/Sow, not Auto Convert or a fee-exempt redemption.
+
+Order: `0x26c568b33ff5b8aaf1559fd7641c74403633ba559ce0d62f8e43fa6ab9a13a2e`.
+
+| Browser action | Transaction | Block | Actual gas |
+| --- | --- | ---: | ---: |
+| Publish (no deposit optimization needed) | `0x0134129d28c735d7da73ef94dacfeb3a7f580159ae67885cd29a183914708d03` | 53247836 | 65,492 |
+| Separate operator executes | `0x930017e954fdb3470f01de57904f424bd45f93d43cf0fbb936e7d42ddd2ada9b` | 53247837 | 2,694,450 |
+
+Both receipts have status 1. Browser simulation estimated **3,009,742 gas** and
+**−$0.035429 operator profit before L1 fees**, at fixture gas/token prices.
+This is not a live Base cost estimate or an economically viable tip recommendation.
+The signed upstream **100% Sow slippage** remains unchanged; success is not
+sandwich-safety evidence.
+
+The execution withdrew **0.002166527935135902 cbETH LP / 0.790111 BDV**:
+all **0.001254790211655960 LP / 0.696733 BDV** at fresh stem **28480204044**,
+and **0.000911737723479942 LP / 0.093378 BDV** at mature stem **−1401600973**.
+It received **1.200000 Pinto**, sowed **1.000000 Pinto** for **48.370000 Pods**,
+and credited **0.200000 Pinto** to the operator's internal balance (**0.6 → 0.8**).
+The Well burned **0.003008 Pinto** in fees. Publisher external/internal Pinto
+stayed **48.555270 / 0**. Soil fell **265.328350 → 264.328350** and publisher
+Pods rose **53.207000 → 101.577000**.
+
+The fresh node was completely removed and the mature node partially withdrawn.
+Read-only assertions verify node count **2 → 1**, the remaining mature node's
+amount **0.017088262276520058 LP / 1.750136 BDV**, matching `getDeposit`, head
+equal to tail, zero previous/next links, and exactly **2166527935135902 LP atoms**
+removed from both indexed and total deposited balances. Index completeness
+remains false; this is maintenance coverage, not full migration certification.
+No execution `Convert` event occurred. Completion counter and nonce match;
+read-only replay reverts with `Blueprint already executed this season`.
+
+The publisher UI eventually displays **1/1 (100%), Order Completed, executed
+once**, and **101.58 Pods**. The new publication again required a reload to
+appear in the operator orderbook, and history had a visible loading delay.
+The operator panel retained the completed row with a disabled Resimulate button;
+these checks do not establish timely cache refresh.
+
+One separate upstream display/filter boundary was observed and left unchanged:
+`SoilOrderbook.tsx` uses strict `reqTemp < temperature.max` for its current-temperature
+summary and filter, although the contract accepts equality. The published
+**4737%** order was excluded from the summary at **4737%**, yet simulated and
+executed successfully. Those comparisons are unchanged from upstream `60f611d5`;
+this is outside the approved funding-unit fix.
+
+Final child: **53247837**,
+`0xb9ab81458a1bb1cd24a24de026fae7f950d2b25539da1dbc49b04c40f5eafce5`.
+Protected parent remains **53247819**,
+`0x5d806c26d0d416f7dae6d7e25aadcf8a4b16fdf481ebe8f6a9f6c92a191d1bac`.
+Evidence: `/tmp/pinto-sow-fixed-execution.NOinq6/` (read-only before/after
+assertions, signed parameters, receipts, browser simulation and completion).
+Durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/sow-fixed-execution-2026-10-29.tgz`.
+The preserved release still lacks the newer Auto Convert invariant-cache
+bytecode. No deployment, push, mainnet write or new production-source change
+was made in this follow-up.
+
+### Modify Sow: preparation blocker confirmed, separate fix awaiting approval
+
+A subsequent browser check opened Modify on completed local order
+`0x26c568b33ff5b8aaf1559fd7641c74403633ba559ce0d62f8e43fa6ab9a13a2e`,
+changed its total to **1.234567 Pinto** and retained the cbETH source and
+**0.2-Pinto** tip. Funding validation passed and the review displayed the exact
+six-decimal amount. **Submit did not advance to signing or replacement.** No
+signature, cancellation, publication or execution was sent in this pass.
+
+The cause is separate from the funding-unit fix:
+
+1. `ModifySowOrderDialog` calls `handleCreateBlueprint(form, undefined, ...)`,
+   intentionally omitting optional deposit-optimization inputs.
+2. The shared hook passes `protocolAddress: deposits ? protocolAddress : undefined`
+   to `createSowTractorData`, incorrectly treating protocol identity as optional
+   alongside optimization.
+3. The existing release guard immediately rejects a missing protocol address.
+   Both the conditional argument and the guard are present in committed `d43d6581`;
+   this is not introduced by the current funding-unit delta.
+
+An isolated mounted-hook regression executes both paths. The no-optimization
+Modify case **fails** its required-protocol-address assertion; the new-order case
+with optimization inputs **passes**. It uses mocked funding/encoding boundaries
+and does not claim full browser or onchain execution. It is kept outside the
+repository while the production fix awaits approval. The proposed change is to
+always pass the protocol address, keep optimization optional, and retain the
+release guard. No guard bypass or production change was made.
+
+Child **53247837** and protected parent **53247819** remain byte-for-byte at their
+previous heads. Source digests, no-write assertions, the failing regression and
+browser evidence are in `/tmp/pinto-modify-sow.LZeIlZ/`; durable archive:
+`/Users/ash/.codex/state/pinto-release-evidence/modify-sow-preparation-blocker-2026-10-29.tgz`.
+The two earlier unit/form and new-order execution passes do **not** prove the
+Modify signing/publication/execution path. Overall QA remains incomplete.
+
+### Current-fork LP-funded Sow, completion display and index accounting
+
+UI **17849**, child **18585**, Season **16991**: a new cbETH-LP-only Sow order
+was created, signed and published with the QA publisher, then simulated and
+executed by the separate QA operator. Total/minimum/maximum were **0.1 Pinto**,
+minimum temperature **4737%**, Morning OFF, tip **0.2 Pinto**, no referral.
+The deployed SowBlueprint runtime was checked against its existing manifest;
+no helper was deployed or upgraded for this check.
+
+Order: `0xf115b04816519c9ef584e621398a7b1a5ad010ec040292e32e69973f8c9a1f25`.
+
+| Browser action | Transaction | Block | Actual gas |
+| --- | --- | ---: | ---: |
+| Publish, including preparatory Pinto deposit combination | `0xa5f48cbdee48693c09576fa3bb4f73b561157a4c4d4827715eb9bdbae3422310` | 53247834 | 736,056 |
+| Independent operator executes | `0xc889b12867f14b55768d49ac9a053ef3013f70f07bd68f0c336a9ad26a03cfeb` | 53247835 | 2,636,977 |
+
+Both receipts have status 1. The operator simulation estimated **2,853,833 gas**
+and **−$0.033237 profit before L1 fees**, using the fixture's displayed 0.006-gwei
+gas price and token prices. This tiny test and its tip are not an economic
+recommendation or a current Base gas quote. The signed Sow tolerance remains
+the upstream hard-coded **100%**; success here does not validate sandwich safety.
+
+The execution withdrew **0.000541631638138314 cbETH LP / 0.300747 BDV** from
+fresh stem **28480204044**, returned **0.300000 Pinto**, sowed **0.100000 Pinto**
+for **4.837000 Pods**, and credited **0.200000 Pinto** to the operator's Farm
+Wallet (**0.4 → 0.6**). `PintoFeeBurned` records **0.000752 Pinto**. This is the
+ordinary fee-paying withdrawal/Sow route, not a qualified fee-exempt redemption.
+
+The default ordinary-Sow helper explicitly permits germinating withdrawals and
+prefers least-grown Stalk. It is therefore expected to use fresh LP before the
+mature crate. Auto Convert's separate two-Season eligibility rule is unchanged.
+The surviving fresh crate is **0.001254790211655960 LP / 0.696733 BDV**; mature
+stem **−1401600973** remains **0.018 LP / 1.843514 BDV**. No `Convert` event
+occurred in the execution itself. Publication separately combined mature Pinto
+deposits to stem **2556057491**; it did not withdraw LP.
+
+Read-only assertions check both current node amounts/BDVs against `getDeposit`,
+reciprocal next/previous links, zero endpoint links, unchanged node count **2**,
+and exactly **541631638138314 LP atoms** removed from both `indexedAmount` and
+total deposited LP. The index remains globally incomplete; this is partial
+withdrawal maintenance evidence, not migration certification. The completed
+order counter/nonce are checked, and a read-only replay rejects completion.
+
+| Display/check | Result |
+| --- | --- |
+| Publisher order history | After a visible loading delay, **0.1/0.1 (100%), Order Completed, executed once**, cbETH LP source and 0.2-Pinto tip |
+| Publisher Pods | **48.37 + 4.84 = 53.21** displayed; exact chain total **53.207000**; Plot temperature metadata unavailable |
+| Remaining LP | Silo shows **$0.37** total; fresh detail shows **0.70 recorded/current PDV**, zero grown Stalk, still germinating |
+| External publisher Pinto / internal Pinto | Exact unchanged **48.555270 / 0** during execution; wallet rounds external amount to **48.55** |
+| New publication refresh | Order initially absent from cached operator orderbook; reload recovered it; not timely-refresh sign-off |
+| Protected parent / read-only follow-up | Parent unchanged; no chain transactions during completion-display and index follow-up |
+
+**Original upstream unit mismatch (subsequently fixed with approval above):** asking to Sow **1 Pinto** from the
+selected cbETH LP disabled Next with “Total amount cannot exceed your available
+deposits.” The initial LP inventory was **0.019796421849794274**, valued by the
+form at about **$0.381983**. Its **0.018 mature LP alone quoted 9.969837 Pinto**
+through the fee-paying Well removal, ample for 1 Pinto plus the 0.2-Pinto tip.
+`SowOrderDialog.tsx` and `Tractor/form/SowOrderV0Fields.tsx` multiply LP amount
+by `tokenPrices.instant` (which `usePriceData.ts` supplies as USD/LP), then
+compare that USD value directly with requested Pinto. At discovery all three files
+were unchanged from upstream `60f611d5`. The successful 0.1-Pinto test exercised
+an accepted smaller input; it did not fix or disprove this defect. Approval was
+requested and subsequently granted for the separate scoped fix documented above.
+
+Final child: **53247835**,
+`0xdf5d9b1397674ac78871b18631228c182e2aca4f75d4c5e2144ca8a294d5eeb3`.
+Parent remains **53247819**,
+`0x5d806c26d0d416f7dae6d7e25aadcf8a4b16fdf481ebe8f6a9f6c92a191d1bac`.
+Evidence: `/tmp/pinto-ui-lp-sow.ccSNnF/`, including before/after receipts and
+state, read-only `index-proof.json`, the rejected 1-Pinto form, simulation,
+completed order, publisher Plots and remaining-deposit screenshots. Durable
+archive: `/Users/ash/.codex/state/pinto-release-evidence/lp-funded-sow-ui-2026-10-29.tgz`.
+The release-identity qualification below still applies: this preserved fork does
+not execute the newer Auto Convert invariant-cache bytecode. Overall QA remains
+incomplete; the network-change crash, unresolved upstream issues and explicitly
+unverified routes below are not waived by this successful transaction.
 
 ### Stable2 conversion fault/recovery matrix
 
@@ -53,15 +1267,16 @@ was inferred from the testing goal.
 
 ### Release identity qualification
 
-All **65 preserved core deployment hashes** still match their original manifest,
-and there are no missing linked deployments in the current comparison. The
+In the earlier post-commit comparison, all **65 preserved core deployment hashes**
+matched their original manifest and there were no missing linked deployments. The
 protocol checkpoint now includes invariant caching added after the browser
 release was created. Its `LibAutoConvertCurve` and `LibAutoConvertStable2Policy`
-executable runtimes differ from this fork. Other changed runtimes in the report
+executable runtimes differed from this fork. Other changed runtimes in that report
 differ only in Solidity metadata. Thus the earlier exact-current-artifact claim
 below is historical: this is still a valid preserved release fixture, **not**
 an execution rehearsal of the newly committed cache optimization. No silent
-upgrade, reset, or substitution was made to obtain a passing comparison.
+upgrade, reset, or substitution was made to obtain a passing comparison. The
+17:22 UTC acceptance audit above records the subsequent nine-contract drift.
 
 The commit-time checks separately passed 659 Auto Convert tests, 231 tests on
 the exact staged UI tree, both builds, and runtime/initcode limits for all 78
@@ -2336,6 +3551,12 @@ These commands do not cover the newly reproduced recovered-input bug or establis
 successful live 0x routing. No commit, push, deployment or production fix occurred.
 
 ## Outstanding release coverage
+
+**Historical list, superseded by the October 29/30 checkpoints at the top.**
+In particular eligible-referral payout, seed-toggle/edit-slippage handling,
+failed-estimate sending, receipt/cache refresh, and Market TypeScript issues
+were subsequently addressed and verified as recorded there. The bullets below
+retain the original investigation context; they are not all current blockers.
 
 - Successful referral creation/execution and a fee-exempt Sow route. Missing
   referral configuration now has browser rejection evidence, with the form and

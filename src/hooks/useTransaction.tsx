@@ -30,6 +30,8 @@ type WriteContractParams = Prettify<Omit<ConstrictedWriteContractParams, "accoun
 export interface UseTransactionParams {
   /** Keep confirmation tracking on the submission chain if the wallet switches. */
   confirmationChainId?: number;
+  /** Optional operation-specific receipt check (e.g. a wallet cancellation is not a Tractor execution). */
+  validateReceipt?: (receipt: NonNullable<TxnReceipt>) => void;
   /**
    * message to be shown on error. Overrides the error message from the error returned txn submissions.
    * If this is not provided, the error message from the error returned txn submissions will be used.
@@ -82,6 +84,7 @@ const sendErrorToast = (error: any, errMessage?: string) => {
 
 export default function useTransaction({
   confirmationChainId,
+  validateReceipt,
   errorMessage,
   successMessage,
   token,
@@ -147,10 +150,16 @@ export default function useTransaction({
   // biome-ignore lint/correctness/useExhaustiveDependencies: Run only when hash changes or txn was successful.
   useEffect(() => {
     if (receipt.isSuccess && exists(hash) && hashes.current?.has(hash)) {
-      successCallback?.(receipt.data);
       setSubmitting(false);
       hashes.current.delete(hash);
       toast.dismiss();
+      try {
+        if (receipt.data) validateReceipt?.(receipt.data);
+      } catch (error) {
+        if (!onError?.(error)) sendErrorToast(error, errorMessage);
+        return;
+      }
+      successCallback?.(receipt.data);
       const explorerLink = getExplorerLink(hash, confirmationChainId ?? chainId);
       toast.success(
         <div className="flex flex-row items-center gap-4">
@@ -177,7 +186,18 @@ export default function useTransaction({
         clearAllowances(token);
       }
     }
-  }, [chainId, confirmationChainId, receipt.isSuccess, hash, successCallback, token, clearAllowances]);
+  }, [
+    chainId,
+    confirmationChainId,
+    receipt.isSuccess,
+    hash,
+    successCallback,
+    validateReceipt,
+    onError,
+    errorMessage,
+    token,
+    clearAllowances,
+  ]);
 
   // on Error
   useEffect(() => {
@@ -209,15 +229,13 @@ export default function useTransaction({
           blockTag: "latest",
           chainId,
           stateOverride: getOverrideAllowanceStateOverride(chainId, token, account.address),
-        }).catch((e) => {
-          console.error("failed to estimate gas... using default of 20m gas", e);
-          return 0n;
         });
+        if (gas <= 0n) throw new Error("Gas estimation returned no usable estimate; transaction not sent");
 
         onEstimateGas?.(gas);
 
-        // fallback to 2m gas if estimateGas returns fails and returns 0n
-        const gasWithBuffer = gas === 0n ? 3_000_000n : (gas * 160n) / 100n;
+        // A revert or RPC failure must never turn into a blind fallback send.
+        const gasWithBuffer = (gas * 160n) / 100n;
 
         const value = args.value;
         const rest = { ...args } as any; // Not sure how to type this

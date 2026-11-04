@@ -133,6 +133,8 @@ type UseTractorSowOrderbookOptions<T> = {
    * If undefined, all orders will be returned
    */
   filterOutCompleted?: boolean;
+  /** Defaults to true; disable only for history views that do not display Soil forecasts. */
+  includeSoilForecast?: boolean;
   /**
    * If true, only fetch data from on-chain.
    */
@@ -192,6 +194,7 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
       chainId,
       diamond,
       address?.toLowerCase() ?? "all-publishers",
+      params.includeSoilForecast !== false,
     ],
     queryFn: async () => {
       if (temperature.max.lte(0) || !client) {

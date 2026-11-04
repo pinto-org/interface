@@ -5,12 +5,14 @@ import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useTransaction from "@/hooks/useTransaction";
 import { Blueprint, PublisherTractorExecution, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
 import { cn } from "@/utils/utils";
+import { refreshAfterTractorExecution } from "@/utils/tractorQueryRefresh";
+import { useQueryClient } from "@tanstack/react-query";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { Col, Row } from "./Container";
 import LoadingSpinner from "./LoadingSpinner";
 import { HighlightedCallData } from "./Tractor/HighlightedCallData";
@@ -64,6 +66,8 @@ export default function ReviewTractorOrderDialog({
   const [decodeAbi, setDecodeAbi] = useState(false);
   const protocolAddress = useProtocolAddress();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const chainId = useChainId();
 
   // Get order type configuration from registry
   // Memoize the order config to avoid re-rendering the component on every render
@@ -81,8 +85,12 @@ export default function ReviewTractorOrderDialog({
     successMessage: "Order published successfully",
     errorMessage: "Failed to publish order",
     successCallback: () => {
-      // Close the dialog after successful submission
+      // Only confirmation is publication. Optimization can also change deposits.
+      void refreshAfterTractorExecution(queryClient, chainId, protocolAddress);
       onOpenChange(false);
+      if (orderData.type === "sow") navigate("/field?tab=tractor");
+      onSuccess?.();
+      onOrderPublished?.();
     },
   });
 
@@ -148,26 +156,6 @@ export default function ReviewTractorOrderDialog({
         });
       }
 
-      // Success handling
-      toast.success("Order published successfully");
-
-      // Close the dialog
-      onOpenChange(false);
-
-      // Navigate to the Field page with tractor tab active
-      if (orderData.type === "sow") {
-        navigate("/field?tab=tractor");
-      }
-
-      // Call the parent success callback to refresh data
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      // Call the onOrderPublished callback if provided
-      if (onOrderPublished) {
-        onOrderPublished();
-      }
     } catch (error) {
       console.error("Error publishing requisition:", error);
     } finally {
