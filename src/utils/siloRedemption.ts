@@ -10,6 +10,9 @@ export const redemptionViews = parseAbi([
   "function tokens() view returns(address[])",
 ]);
 
+export const REDEMPTION_WARMUP_MESSAGE =
+  "Fee-free withdrawals are warming up after the upgrade. They will open once the protocol has updated its rates.";
+
 export type RedemptionDeposit = { stem: bigint; amount: bigint; bdv: bigint; available: bigint; eligible: boolean };
 export type RedemptionRequest = {
   account: Address;
@@ -23,6 +26,7 @@ export type RedemptionSnapshot = RedemptionRequest & {
   timestamp: bigint;
   supported: boolean;
   enabled: boolean;
+  warmingUp?: boolean;
   threshold: bigint;
   ema?: { meanScaled: bigint; activeSeasons: number; configuredSeasons: number; lastSeason: number };
   outputToken: Address;
@@ -81,7 +85,14 @@ export async function readRedemptionSnapshot(
     }),
   ]);
   const ema = { meanScaled, activeSeasons, configuredSeasons, lastSeason };
-  if (!enabled || threshold === 0n) return { ...base, supported: true, threshold, ema };
+  if (!enabled || threshold === 0n)
+    return {
+      ...base,
+      supported: true,
+      threshold,
+      ema,
+      warmingUp: enabled && threshold === 0n && meanScaled === 0n && configuredSeasons > 0,
+    };
   const token = request.kind === "pinto" ? request.pinto : request.well;
   const [crates, germinatingStem, tokens] = await Promise.all([
     readContract(client, {
@@ -180,7 +191,8 @@ export function redemptionMinimum(output: bigint, slippageBps: number): bigint {
 }
 
 export async function quoteRedemption(client: Client, snapshot: RedemptionSnapshot, selection: RedemptionSelection) {
-  if (!snapshot.supported || !snapshot.enabled) throw new Error("Fee-exempt exits are not enabled for this Well");
+  if (!snapshot.supported || !snapshot.enabled)
+    throw new Error(snapshot.warmingUp ? REDEMPTION_WARMUP_MESSAGE : "Fee-exempt exits are not enabled for this Well");
   const options = { address: snapshot.diamond, blockNumber: snapshot.blockNumber, abi: autoConvertABI };
   const args = [snapshot.account, snapshot.well, selection.stems, selection.amounts] as const;
   if (snapshot.kind === "lp")

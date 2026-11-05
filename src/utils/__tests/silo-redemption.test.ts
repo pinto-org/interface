@@ -13,6 +13,7 @@ import { test } from "vitest";
 import { autoConvertABI } from "../../constants/abi/autoConvertABI";
 import { guardedWalletConnector } from "../../utils/guardedWallet";
 import {
+  REDEMPTION_WARMUP_MESSAGE,
   type RedemptionDeposit,
   parseRedemptionAmount,
   quoteRedemption,
@@ -43,6 +44,8 @@ function mockChain(
     missingPairedSelector?: "quote" | "write";
     changedQuoteToken?: boolean;
     threshold?: bigint;
+    meanScaled?: bigint;
+    emaSeason?: number;
     grownAdjustment?: bigint;
   } = {},
 ) {
@@ -86,7 +89,7 @@ function mockChain(
               output = [[pinto, options.changedToken ? diamond : paired]];
               break;
             case "getSiloRedemptionEmaState":
-              output = [1_000_000_000_000_000_000n, 24, 36, 200];
+              output = [options.meanScaled ?? 1_000_000_000_000_000_000n, 24, 36, options.emaSeason ?? 200];
               break;
             case "grownStalkForDeposit":
               output = [(100n - (decoded.args![2] as bigint)) * 100n + (options.grownAdjustment ?? 0n)];
@@ -379,4 +382,24 @@ test("exact grown adjustments override stem age and a Sunrise threshold change i
     revalidateRedemption(mockChain({ threshold: 25n }).client, original, selected, 895n),
     /eligible|changed/,
   );
+});
+
+test("deferred initialization stays closed across gauge-skipped Seasons, then opens from the live threshold", async () => {
+  for (const emaSeason of [201, 202, 205]) {
+    const chain = mockChain({ threshold: 0n, meanScaled: 0n, emaSeason });
+    const waiting = await readRedemptionSnapshot(chain.client, request);
+    assert.equal(waiting.warmingUp, true);
+    assert.equal(waiting.enabled, false);
+    assert.equal(waiting.deposits.length, 0);
+    assert.equal(waiting.ema?.lastSeason, emaSeason);
+    assert.equal(chain.calls.includes("grownStalkForDeposit"), false);
+    await assert.rejects(quoteRedemption(chain.client, waiting, { stems: [-7n], amounts: [1n], amount: 1n }),
+      (error: Error) => error.message === REDEMPTION_WARMUP_MESSAGE);
+  }
+  const opened = await readRedemptionSnapshot(mockChain({ threshold: 24n, emaSeason: 206 }).client, request);
+  assert.equal(opened.enabled, true);
+  assert.equal(Boolean(opened.warmingUp), false);
+  assert.equal(opened.deposits.some((deposit) => deposit.eligible), true);
+  const disabled = await readRedemptionSnapshot(mockChain({ disabled: true, threshold: 0n, meanScaled: 0n }).client, request);
+  assert.equal(disabled.warmingUp, false, "a disabled Well is not a warming-up Well");
 });

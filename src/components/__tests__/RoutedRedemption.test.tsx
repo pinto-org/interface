@@ -16,6 +16,7 @@ const f = vi.hoisted(() => ({
     connector: { uid: "qa" },
   },
   accountChange: undefined as undefined | (() => void),
+  warmingUp: false,
   pools: [{ snapshot: { deposits: [{ eligible: true, available: 1000000n }] } }],
 }));
 const pinto = { address: "0x0000000000000000000000000000000000000002", symbol: "PINTO", decimals: 6, isMain: true };
@@ -56,7 +57,11 @@ vi.mock("@/state/useSunData", () => ({ useInvalidateSun: () => vi.fn() }));
 vi.mock("@/utils/guardedWallet", () => ({ guardedWalletConnector: (connector: unknown) => connector }));
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
-  useQuery: () => ({ data: f.pools, refetch: async () => ({ data: f.pools }), isError: false, isPending: false }),
+  useQuery: () => ({
+    data: { pools: f.warmingUp ? [] : f.pools, warmingUp: f.warmingUp },
+    refetch: async () => ({ data: { pools: f.warmingUp ? [] : f.pools, warmingUp: f.warmingUp } }),
+    isError: false, isPending: false,
+  }),
 }));
 vi.mock("viem/actions", () => ({ simulateContract: f.simulate, estimateContractGas: f.estimate }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
@@ -99,6 +104,7 @@ beforeEach(() => {
   (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
   f.account = { ...baseAccount };
   f.accountChange = undefined;
+  f.warmingUp = false;
   f.simulate.mockReset().mockResolvedValue({});
   f.estimate.mockReset().mockResolvedValue(1_000_000n);
   f.revalidate.mockReset().mockResolvedValue(undefined);
@@ -247,4 +253,22 @@ test("discards an in-flight estimate when the selected output changes", async ()
   expect(container.textContent).not.toContain("0.000555");
   expect(button("Withdraw to WETH").disabled).toBe(true);
   expect(f.write).not.toHaveBeenCalled();
+});
+
+test("warm-up explains delayed opening, blocks quoting and recovers on refreshed readiness", async () => {
+  vi.useFakeTimers();
+  f.warmingUp = true;
+  act(() => renderUnified("0.5"));
+  await act(async () => vi.advanceTimersByTimeAsync(600));
+  expect(container.textContent).toContain("Fee-free withdrawals are warming up");
+  expect(container.textContent).not.toContain("No fee-exempt exit pools are enabled");
+  expect(button("Withdraw to USDC").disabled).toBe(true);
+  expect(f.quote).not.toHaveBeenCalled();
+  expect(f.write).not.toHaveBeenCalled();
+  f.warmingUp = false;
+  act(() => renderUnified("0.5"));
+  await act(async () => vi.advanceTimersByTimeAsync(600));
+  expect(container.textContent).not.toContain("Fee-free withdrawals are warming up");
+  expect(f.quote).toHaveBeenCalledOnce();
+  expect(button("Withdraw to USDC").disabled).toBe(false);
 });

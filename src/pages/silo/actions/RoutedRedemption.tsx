@@ -10,7 +10,7 @@ import {
   assertRouteFresh,
   buildRoute,
   quoteRoute,
-  readRoutePools,
+  readRoutePoolState,
   revalidateRoute,
   routeABI,
 } from "@/lib/redemption/route";
@@ -21,7 +21,7 @@ import { usePriceData } from "@/state/usePriceData";
 import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { guardedWalletConnector } from "@/utils/guardedWallet";
-import { parseRedemptionAmount } from "@/utils/siloRedemption";
+import { REDEMPTION_WARMUP_MESSAGE, parseRedemptionAmount } from "@/utils/siloRedemption";
 import type { Token } from "@/utils/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAccount, watchAccount } from "@wagmi/core";
@@ -114,9 +114,9 @@ export default function RoutedRedemption({
     setError(undefined);
   }, [key]);
   const pools = useQuery({
-    queryKey: ["siloRoutedRedemption", chainId, diamond, account.address, siloToken.address, wells.join(","), kind],
+    queryKey: ["siloRoutedRedemption", chainId, diamond, "readiness", account.address, siloToken.address, wells.join(","), kind],
     queryFn: () =>
-      readRoutePools(client, {
+      readRoutePoolState(client, {
         account: account.address!,
         diamond,
         pinto: tokens.mainToken.address,
@@ -159,7 +159,8 @@ export default function RoutedRedemption({
       const parsed = parseRedemptionAmount(amount, siloToken.decimals);
       const fresh = await pools.refetch();
       if (fresh.error || !fresh.data) throw new Error("Could not verify deposit eligibility");
-      const result = await quoteRoute(client, fresh.data, parsed, outputAddress, chainId, bps, abort.signal);
+      if (fresh.data.warmingUp) throw new Error(REDEMPTION_WARMUP_MESSAGE);
+      const result = await quoteRoute(client, fresh.data.pools, parsed, outputAddress, chainId, bps, abort.signal);
       assertRouteFresh(result);
       if (mounted.current && currentKey.current === expectedKey && !abort.signal.aborted) {
         setNow(Date.now());
@@ -176,7 +177,7 @@ export default function RoutedRedemption({
   quoteAction.current = getQuote;
   let eligibleAmount = false;
   const available =
-    pools.data?.[0]?.snapshot.deposits.reduce(
+    pools.data?.pools[0]?.snapshot.deposits.reduce(
       (sum, deposit) => sum + (deposit.eligible ? deposit.available : 0n),
       0n,
     ) ?? 0n;
@@ -286,7 +287,7 @@ export default function RoutedRedemption({
           token={siloToken}
           amount={amount}
           setAmount={setAmount}
-          deposits={pools.data?.[0]?.snapshot.deposits ?? []}
+          deposits={pools.data?.pools[0]?.snapshot.deposits ?? []}
           disabled={busy}
           loading={pools.isPending || pools.isError}
         />
@@ -301,9 +302,9 @@ export default function RoutedRedemption({
                   Fee-free exit is applied automatically to eligible deposits. Other swap fees, price impact and gas
                   still apply. Swapped tokens arrive in your External Wallet.
                 </p>
-                {!pools.isPending && !pools.isError && Boolean(pools.data?.length) && (
+                {!pools.isPending && !pools.isError && Boolean(pools.data?.pools.length) && (
                   <p>
-                    {pools.data!.length} enabled pool(s).{" "}
+                    {pools.data!.pools.length} enabled pool(s).{" "}
                     {isPinto && "This reserve-weighted split is not a guarantee of the best overall execution price."}
                   </p>
                 )}
@@ -348,7 +349,7 @@ export default function RoutedRedemption({
           </Select>
         </div>
       </fieldset>
-      {unified && !eligibleAmount && (
+      {unified && !eligibleAmount && !pools.data?.warmingUp && (
         <p className="text-sm text-pinto-gray-5">
           {`Up to ${formatUnits(available, siloToken.decimals)} ${siloToken.symbol} qualifies. Deposits must be non-germinating and meet the grown Stalk requirement.`}
         </p>
@@ -361,11 +362,13 @@ export default function RoutedRedemption({
         <p role="alert">Could not verify eligibility. Refresh before withdrawing.</p>
       ) : pools.isPending ? (
         <p>Checking enabled pools and eligible deposits…</p>
-      ) : !pools.data?.length ? (
+      ) : pools.data?.warmingUp ? (
+        <p>{REDEMPTION_WARMUP_MESSAGE}</p>
+      ) : !pools.data?.pools.length ? (
         <p>No fee-exempt exit pools are enabled on this deployment.</p>
       ) : !unified ? (
         <p className="text-sm">
-          {pools.data.length} enabled pool(s).{" "}
+          {pools.data.pools.length} enabled pool(s).{" "}
           {isPinto && "This reserve-weighted split is not a guarantee of the best overall execution price."}
         </p>
       ) : null}

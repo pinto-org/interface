@@ -1,7 +1,7 @@
 # Auto Convert integration
 
 Protocol target: `pinto-org/protocol-audit`, `auto-convert` at
-`41c2c9a7` (November 3, 2026). This updates the current UI integration;
+`ab499d47` (November 4, 2026). This updates the current UI integration;
 the older interface `auto-convert` branch does not contain its routed exits.
 
 Generate and check against freshly compiled artifacts from that exact revision:
@@ -32,3 +32,11 @@ Before production cutover, rehearse this exact build on a fresh fork and verify
 redemptions across Sunrise, deposit consumption during review, signed new orders,
 and quotes at tiny input sizes (fee Wells reject zero-input/nonzero-output quotes).
 No production deployment or address changes are performed by these scripts.
+
+PR #20 defers release redemption initialization. A zero threshold with an initialized
+EMA keeps direct and routed exits closed and displays the warm-up state. Opening
+requires rates written by a post-release Seed Gauge step, normally sampled on the
+second Sunrise; skipped gauge steps extend this period. Sunrise refresh discovers
+the first nonzero threshold without a page reload. Ordinary same-token withdrawals
+remain available. Rebuild the unsigned bundle and rehearse the exact release again;
+the prior November 3 deployment evidence targets an older revision.

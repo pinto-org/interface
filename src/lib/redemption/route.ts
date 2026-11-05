@@ -238,27 +238,34 @@ async function fetchSwap(
   return validateRoutedSwap(await response.json(), sellToken, buyToken, amount, bps);
 }
 
-export async function readRoutePools(
+export async function readRoutePoolState(
   client: Client,
   request: { account: Address; diamond: Address; pinto: Address; wells: Address[]; kind: "pinto" | "lp-paired" | "lp" },
 ) {
   const block = await getBlock(client, { blockTag: "latest" });
-  const pools = await Promise.all(
-    request.wells.map(async (well) => {
-      const snapshot = await readRedemptionSnapshot(client, { ...request, well }, block.number);
-      if (!snapshot.enabled) return undefined;
-      const reserves = await readContract(client, {
-        address: well,
-        abi: routeABI,
-        functionName: "getReserves",
-        blockNumber: block.number,
-      });
-      if (reserves.length !== 2 || reserves[0] <= 0n || reserves[1] <= 0n)
-        throw new Error("An enabled pool has no liquidity");
-      return { snapshot, weight: reserves[0] };
-    }),
+  const snapshots = await Promise.all(
+    request.wells.map((well) => readRedemptionSnapshot(client, { ...request, well }, block.number)),
   );
-  return pools.filter((pool): pool is NonNullable<typeof pool> => Boolean(pool));
+  const pools = await Promise.all(
+    snapshots
+      .filter((snapshot) => snapshot.enabled)
+      .map(async (snapshot) => {
+        const reserves = await readContract(client, {
+          address: snapshot.well,
+          abi: routeABI,
+          functionName: "getReserves",
+          blockNumber: block.number,
+        });
+        if (reserves.length !== 2 || reserves[0] <= 0n || reserves[1] <= 0n)
+          throw new Error("An enabled pool has no liquidity");
+        return { snapshot, weight: reserves[0] };
+      }),
+  );
+  return { pools, warmingUp: pools.length === 0 && snapshots.some((snapshot) => snapshot.warmingUp) };
+}
+
+export async function readRoutePools(client: Client, request: Parameters<typeof readRoutePoolState>[1]) {
+  return (await readRoutePoolState(client, request)).pools;
 }
 
 export async function quoteRoute(

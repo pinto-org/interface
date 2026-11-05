@@ -12,6 +12,7 @@ import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { guardedWalletConnector } from "@/utils/guardedWallet";
 import {
+  REDEMPTION_WARMUP_MESSAGE,
   parseRedemptionAmount,
   quoteRedemption,
   readRedemptionSnapshot,
@@ -352,6 +353,8 @@ function DirectRedemption({ siloToken, onBusyChange }: { siloToken: Token; onBus
         <p role="alert">Could not verify eligibility. No transaction will be submitted.</p>
       ) : !snapshot.data?.supported ? (
         <p>This deployment does not support this fee-exempt deposit exit yet.</p>
+      ) : snapshot.data.warmingUp ? (
+        <p>{REDEMPTION_WARMUP_MESSAGE}</p>
       ) : !snapshot.data.enabled ? (
         <p>Fee-exempt exits are not enabled for this Well.</p>
       ) : null}
