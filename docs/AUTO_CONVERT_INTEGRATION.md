@@ -1,7 +1,7 @@
 # Auto Convert integration
 
 Protocol target: `pinto-org/protocol-audit`, `auto-convert` at
-`ab499d47` (November 4, 2026). This updates the current UI integration;
+`8e811489` (November 5, 2026). This updates the current UI integration;
 the older interface `auto-convert` branch does not contain its routed exits.
 
 Generate and check against freshly compiled artifacts from that exact revision:
@@ -33,10 +33,20 @@ redemptions across Sunrise, deposit consumption during review, signed new orders
 and quotes at tiny input sizes (fee Wells reject zero-input/nonzero-output quotes).
 No production deployment or address changes are performed by these scripts.
 
-PR #20 defers release redemption initialization. A zero threshold with an initialized
-EMA keeps direct and routed exits closed and displays the warm-up state. Opening
-requires rates written by a post-release Seed Gauge step, normally sampled on the
-second Sunrise; skipped gauge steps extend this period. Sunrise refresh discovers
-the first nonzero threshold without a page reload. Ordinary same-token withdrawals
-remain available. Rebuild the unsigned bundle and rehearse the exact release again;
-the prior November 3 deployment evidence targets an older revision.
+PR #22 supersedes PR #20's deferred initialization. The release seeds a nonzero
+threshold from the existing valid Seed rates and eligible deposits can redeem
+immediately, before the first Sunrise. Later rates blend into the EMA; a skipped
+gauge update does not close redemption. The zero-threshold warm-up path is a
+compatibility fallback for older intermediate builds, not a required release step.
+Ordinary same-token withdrawals remain available.
+
+PR #21 appends decision reason 15 (`NoPositionsSelected`): a funded child that
+selects nothing reports outcome 0 (`Skipped`) while retaining its selector, window,
+allowance and actual gas. Other child failures still report outcome 2. PR #23
+optimizes internal planning without changing public function/event shapes. PR #25
+restricts LP distribution gauge mutation to its scheduled Sunrise self-call; no
+frontend action invokes that hook. PR #26 adds standalone protocol tooling.
+
+Rebuild and rehearse the unsigned release from this revision. The November 4
+bundle and warm-up rehearsal are historical evidence for the superseded build;
+unchanged CREATE addresses do not establish unchanged runtime bytecode.

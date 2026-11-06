@@ -10,6 +10,7 @@ export const redemptionViews = parseAbi([
   "function tokens() view returns(address[])",
 ]);
 
+// Compatibility with deferred intermediate builds. Current releases seed a nonzero threshold.
 export const REDEMPTION_WARMUP_MESSAGE =
   "Fee-free withdrawals are warming up after the upgrade. They will open once the protocol has updated its rates.";
 

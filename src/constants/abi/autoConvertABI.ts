@@ -4114,5 +4114,10 @@ export const autoConvertABI = [
     ],
     "name": "AutoConvertNonCanonicalAmount",
     "type": "error"
+  },
+  {
+    "type": "error",
+    "name": "AutoConvertNoPositionsSelected",
+    "inputs": []
   }
 ] as const;

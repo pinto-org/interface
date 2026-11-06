@@ -384,7 +384,7 @@ test("exact grown adjustments override stem age and a Sunrise threshold change i
   );
 });
 
-test("deferred initialization stays closed across gauge-skipped Seasons, then opens from the live threshold", async () => {
+test("legacy deferred initialization stays closed across gauge-skipped Seasons, then opens from the live threshold", async () => {
   for (const emaSeason of [201, 202, 205]) {
     const chain = mockChain({ threshold: 0n, meanScaled: 0n, emaSeason });
     const waiting = await readRedemptionSnapshot(chain.client, request);
@@ -393,13 +393,35 @@ test("deferred initialization stays closed across gauge-skipped Seasons, then op
     assert.equal(waiting.deposits.length, 0);
     assert.equal(waiting.ema?.lastSeason, emaSeason);
     assert.equal(chain.calls.includes("grownStalkForDeposit"), false);
-    await assert.rejects(quoteRedemption(chain.client, waiting, { stems: [-7n], amounts: [1n], amount: 1n }),
-      (error: Error) => error.message === REDEMPTION_WARMUP_MESSAGE);
+    await assert.rejects(
+      quoteRedemption(chain.client, waiting, { stems: [-7n], amounts: [1n], amount: 1n }),
+      (error: Error) => error.message === REDEMPTION_WARMUP_MESSAGE,
+    );
   }
   const opened = await readRedemptionSnapshot(mockChain({ threshold: 24n, emaSeason: 206 }).client, request);
   assert.equal(opened.enabled, true);
   assert.equal(Boolean(opened.warmingUp), false);
-  assert.equal(opened.deposits.some((deposit) => deposit.eligible), true);
-  const disabled = await readRedemptionSnapshot(mockChain({ disabled: true, threshold: 0n, meanScaled: 0n }).client, request);
+  assert.equal(
+    opened.deposits.some((deposit) => deposit.eligible),
+    true,
+  );
+  const disabled = await readRedemptionSnapshot(
+    mockChain({ disabled: true, threshold: 0n, meanScaled: 0n }).client,
+    request,
+  );
   assert.equal(disabled.warmingUp, false, "a disabled Well is not a warming-up Well");
+});
+
+test("current release is spendable immediately and stays open across gauge-skipped Seasons", async () => {
+  for (const emaSeason of [200, 201, 202, 205]) {
+    const chain = mockChain({ threshold: 24n, emaSeason });
+    const snapshot = await readRedemptionSnapshot(chain.client, request);
+    assert.equal(snapshot.enabled, true);
+    assert.equal(Boolean(snapshot.warmingUp), false);
+    assert.equal(snapshot.ema?.lastSeason, emaSeason);
+    const selection = selectRedemptionDeposits(snapshot.deposits, 90n);
+    assert.equal(selection.amount, 90n);
+    assert.equal(await quoteRedemption(chain.client, snapshot, selection), 900n);
+    assert.equal(chain.calls.includes("grownStalkForDeposit"), true);
+  }
 });

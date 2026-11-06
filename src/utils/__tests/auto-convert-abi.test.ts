@@ -46,6 +46,11 @@ describe("current Auto Convert release ABI", () => {
       expect(functions).toContain(name);
   });
 
+  it("decodes the empty automatic selection selector without classifying it as a child failure", () => {
+    const data = toFunctionSelector("AutoConvertNoPositionsSelected()");
+    expect(decodeErrorResult({ abi: autoConvertABI, data }).errorName).toBe("AutoConvertNoPositionsSelected");
+  });
+
   it("decodes the new bounded-oracle gas error", () => {
     const data = toFunctionSelector("AutoConvertInsufficientOracleGas()");
     expect(decodeErrorResult({ abi: autoConvertABI, data }).errorName).toBe("AutoConvertInsufficientOracleGas");
