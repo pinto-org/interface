@@ -4,12 +4,16 @@ import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { marketEndpoint, qaMarketMiddleware } from "./market-orders.mjs";
-import { fixtureConfig, fixturePriceSource } from "./fixture-config.mjs";
+import { configureQaMining, fixtureConfig, fixturePriceSource } from "./fixture-config.mjs";
 import { keccak256 } from "viem";
 import { checkReleaseInputs } from "./release-input-preflight.mjs";
 import { createGaugeHistoryMiddleware } from "./gauge-history.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
+// Proprietary AMM price curves stop updating on a fork. Opt in explicitly when
+// exercising genuine public-AMM quotes; production routing is never changed.
+const qaExcludedSwapSources = process.env.PINTO_QA_EXCLUDED_SWAP_SOURCES;
+if (qaExcludedSwapSources) assert.match(qaExcludedSwapSources, /^[A-Za-z0-9_,]+$/);
 // Optional deterministic replay of genuine recorded 0x responses on a matching fork.
 // Exact request matching fails closed; production builds never import this harness.
 const qaQuoteRecords = process.env.PINTO_QA_QUOTE_RECORDS
@@ -39,6 +43,7 @@ async function request(method, params = []) {
 }
 assert.match(await request("web3_clientVersion"), /^anvil\//);
 assert.equal(await request("eth_chainId"), "0x539");
+await configureQaMining(request, process.env.PINTO_QA_INTERVAL_MINING_SECONDS);
 // This harness never falls back to Base or an environment-provided RPC.
 process.env.VITE_BASE_ENDPOINT = "pinto.money";
 process.env.VITE_CHAINS = "1337";
@@ -102,6 +107,11 @@ const server = await createServer({
       vite.middlewares.use(createGaugeHistoryMiddleware({ rpc, startBlock }));
     },
     transform(code, id) {
+      if (qaExcludedSwapSources && id === resolve(root, "src/lib/redemption/route.ts")) {
+        assert.ok(code.includes('excludedSources: "Pinto",'));
+        return code.replace('excludedSources: "Pinto",',
+          `excludedSources: ${JSON.stringify([...new Set(["Pinto", ...qaExcludedSwapSources.split(",")])].join(","))},`);
+      }
       if (qaQuoteRecords && id === resolve(root, "src/constants/endpoints.ts")) {
         assert.ok(code.includes('router: makeSubdomainURL("0x")'));
         return code.replace('router: makeSubdomainURL("0x")', 'router: "/__qa/0x"');
@@ -119,7 +129,7 @@ const server = await createServer({
       if (id === resolve(root, "scripts/qa/wallet.ts"))
         return code.replace('"http://127.0.0.1:18569"', JSON.stringify(rpc));
       if (id === resolve(root, "scripts/qa/main.tsx"))
-        return code.replaceAll("53178878", String(startBlock)).replace("LOCAL FORK QA", qaQuoteRecords ? "LOCAL FORK QA — RECORDED 0x QUOTES AT MATCHING FORK BLOCK" : "LOCAL FORK QA");
+        return code.replaceAll("53178878", String(startBlock)).replace("LOCAL FORK QA", qaQuoteRecords ? "LOCAL FORK QA — RECORDED 0x QUOTES AT MATCHING FORK BLOCK" : qaExcludedSwapSources ? `LOCAL FORK QA — SWAP SOURCES EXCLUDED: ${qaExcludedSwapSources}` : "LOCAL FORK QA");
       // Only these market reads use the event-backed local QA adapter. All production
       // source files, GraphQL documents, query keys and transaction encoders are unchanged.
       if (/\/src\/state\/market\/use(AllMarket|FarmerMarket|MyPodOrders|MyPodListings|PodOrders|PodListings)\.ts$/.test(id)) {
