@@ -72,11 +72,28 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const farmerTokenBalance = farmerBalances.balances.get(token);
   const balance = getBalanceFromMode(farmerTokenBalance, balanceFrom);
   const usingDeposits = source === "deposits";
+  const depositBalances = useMemo(
+    () => (usingDeposits ? new Map([[mainToken, depositedAmount ?? TV.ZERO]]) : undefined),
+    [usingDeposits, mainToken, depositedAmount],
+  );
   const amountInTV = useSafeTokenValue(amountIn, token);
 
   const amountExceedsDeposits = usingDeposits && amountInTV.gt(0) && amountInTV.gt(depositedAmount ?? 0n);
   const amountExceedsBalance = !usingDeposits && amountInTV.gt(0) && amountInTV.gt(balance ?? 0n);
   const exceedsBalance = usingDeposits ? amountExceedsDeposits : amountExceedsBalance;
+  const minimumSize = useReadContract({
+    address: siloToken.address,
+    abi: siloedPintoABI,
+    functionName: "minSize",
+    query: { enabled: tokenIsSiloWrappedToken },
+  });
+  const minimumShares = useReadContract({
+    address: siloToken.address,
+    abi: siloedPintoABI,
+    functionName: "previewDeposit",
+    args: [minimumSize.data ?? 0n],
+    query: { enabled: tokenIsSiloWrappedToken && !usingDeposits && minimumSize.data !== undefined },
+  });
 
   // Allowance. If wrapping deposits, we need to approve usage of silo deposits.
   const {
@@ -108,6 +125,22 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
   const amountOut = usingDeposits ? quote.data : swap.data?.buyAmount;
   const amountOutUSD = useSiloWrappedTokenToUSD(amountOut);
+  let minimumWrapError: string | undefined;
+  if (amountInTV.gt(0)) {
+    const directPinto = usingDeposits || tokensEqual(token, mainToken);
+    if (minimumSize.isError || (!directPinto && minimumShares.isError))
+      minimumWrapError = "Could not verify the minimum wrap amount. Try again.";
+    else if (minimumSize.data === undefined || (!directPinto && (minimumShares.data === undefined || !amountOut)))
+      minimumWrapError = "Checking the minimum wrap amount…";
+    else {
+      const minimum = TV.fromBigInt(minimumSize.data, mainToken.decimals);
+      const belowMinimum = directPinto
+        ? amountInTV.lt(minimum)
+        : amountOut!.lt(TV.fromBigInt(minimumShares.data!, siloToken.decimals));
+      if (belowMinimum)
+        minimumWrapError = `Wrapping requires at least ${formatter.token(minimum, mainToken)} ${mainToken.symbol} of underlying value.`;
+    }
+  }
 
   // Transaction hooks
   const onSuccess = useCallback(() => {
@@ -199,6 +232,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
       if (exceedsBalance) {
         throw new Error("Insufficient deposits");
       }
+      if (minimumWrapError) throw new Error(minimumWrapError);
       if (source === "deposits") {
         const amount = toSafeTVFromHuman(amountIn, mainToken);
         if (!deposits || !deposits.deposits.length) {
@@ -256,18 +290,20 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     account,
     swap.data,
     inputError,
+    minimumWrapError,
     buildSwap,
     writeWithEstimateGas,
     setSubmitting,
   ]);
 
   const handleButtonSubmit = useCallback(async () => {
+    if (minimumWrapError) throw new Error(minimumWrapError);
     if (needsDepositAllowanceIncrease) {
       return setAllowance(amountInTV);
     }
 
     return handleWrap();
-  }, [amountInTV, needsDepositAllowanceIncrease, setAllowance, handleWrap]);
+  }, [amountInTV, minimumWrapError, needsDepositAllowanceIncrease, setAllowance, handleWrap]);
 
   // Effects
   useEffect(() => {
@@ -305,6 +341,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     !isValidAmount ||
     exceedsBalance ||
     inputError ||
+    Boolean(minimumWrapError) ||
     disabledFromLoading ||
     !toModeSelected ||
     submitting;
@@ -333,6 +370,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           setError={setInputError}
           selectedToken={usingDeposits ? mainToken : token}
           customMaxAmount={usingDeposits ? depositedAmount : balance}
+          tokenAndBalanceMap={depositBalances}
           disabled={inputDisabled}
           disableButton={usingDeposits}
           disableInput={inputDisabled}
@@ -401,6 +439,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           <span className="text-pinto-primary font-medium">most recently wrapped Pinto.</span>
         </div>
       </Warning>
+      {minimumWrapError && <p role="alert">{minimumWrapError}</p>}
       <div className="flex-row gap-2 hidden sm:flex">
         <SmartSubmitButton
           submitFunction={handleButtonSubmit}

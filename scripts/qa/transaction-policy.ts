@@ -11,6 +11,7 @@ export const qaSiloedPinto = "0x00b174d66ada7d63789087f50a9b9e0e48446dc1";
 const approvalTokens = new Set([
   "0xb170000aeefa790fa61d6e837d1035906839a3c8",
   "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", // Base USDC, local buy-route QA only.
+  "0x4200000000000000000000000000000000000006", // Base WETH, local swap/unwrap QA only.
   "0x3e111115a82df6190e36adf0d552880663a4dbf1",
   "0x3e11226fe3d85142b734abce6e58918d5828d1b4",
   "0x3e1133ac082716ddc3114bbefeed8b1731ea9cb1",

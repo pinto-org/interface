@@ -461,7 +461,7 @@ export default function FillOrder({ selectedOrderId }: FillOrderProps) {
     return selectedOrders.some((order) => order.farmer.id === account.address?.toLowerCase());
   }, [selectedOrders, account.address]);
 
-  if (eligibleOrders.length === 0) {
+  if (eligibleOrders.length === 0 && !isOwnOrder) {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">

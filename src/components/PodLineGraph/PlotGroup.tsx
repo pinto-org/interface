@@ -62,7 +62,8 @@ function PlotGroupComponent({
     <div
       className="absolute inset-y-0"
       style={{
-        left: `${leftPercent}%`,
+        // Keep minimum-width markers inside the graph so newly Sown plots remain selectable.
+        left: `clamp(0px, ${leftPercent}%, calc(100% - max(${widthPercent}%, ${MIN_PLOT_WIDTH})))`,
         width: `${widthPercent}%`,
         minWidth: MIN_PLOT_WIDTH,
         zIndex: isActive ? Z_INDEX_ACTIVE : Z_INDEX_DEFAULT,
