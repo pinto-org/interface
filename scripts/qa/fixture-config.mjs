@@ -23,3 +23,19 @@ export function fixtureConfig(env = process.env) {
   assert.ok(Number.isSafeInteger(startBlock) && startBlock > 0, "Invalid QA start block");
   return { rpc: url.origin, port, startBlock, marketEndpoint: `http://127.0.0.1:${port}/__qa/market` };
 }
+
+// Anvil's interval is in SECONDS. Opt in only for live-quote browser rehearsals.
+// Keeping the head current prevents pending-block estimates from outliving a
+// deadline based on an idle fork's latest block.
+export async function configureQaMining(request, interval, now = Math.floor(Date.now() / 1000)) {
+  if (!interval) return;
+  const seconds = Number(interval);
+  assert.ok(Number.isInteger(seconds) && seconds >= 1 && seconds <= 10,
+    "QA mining interval must be 1-10 seconds");
+  const block = await request("eth_getBlockByNumber", ["latest", false]);
+  const timestamp = Number(BigInt(block.timestamp));
+  assert.ok(timestamp <= now + 30, "Live-quote QA requires a present-time fork, not future-season state");
+  await request("evm_setNextBlockTimestamp", [Math.max(now, timestamp + 1)]);
+  await request("evm_mine", []);
+  await request("evm_setIntervalMining", [seconds]);
+}

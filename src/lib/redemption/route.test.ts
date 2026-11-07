@@ -1,7 +1,7 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { autoConvertABI } from "@/constants/abi/autoConvertABI";
 import { PIPELINE_ADDRESS } from "@/constants/address";
-import { type Address, decodeFunctionData, encodeFunctionData, parseAbi } from "viem";
+import { type Address, type Hex, decodeFunctionData, encodeAbiParameters, encodeFunctionData, parseAbi } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import {
   ALLOWANCE_HOLDER,
@@ -168,6 +168,44 @@ describe("0x validation", () => {
   });
 });
 describe("atomic withdrawal encoding", () => {
+  it.each([999n, 1001n])(
+    "caps both swap permissions at the actual %s-unit proceeds instead of the 1000-unit quote",
+    (actual) => {
+      const route = routeFixture();
+      const execution = decodeFunctionData({ abi: routeABI, data: buildRoute(route)[3].callData });
+      if (execution.functionName !== "advancedPipe") throw new Error("wrong encoding");
+      const calls = execution.args[0];
+      expect(
+        decodeFunctionData({
+          abi: parseAbi(["function balanceOf(address) view returns(uint256)"]),
+          data: calls[0].callData,
+        }).args,
+      ).toEqual([PIPELINE_ADDRESS]);
+      // Resolve the encoded single-word clipboard as Pipeline does, using a balance
+      // that differs from the quote. This catches wrong source/argument offsets.
+      const resolve = (call: (typeof calls)[number]) => {
+        const packed = BigInt(call.clipboard);
+        const mask = (1n << 80n) - 1n;
+        const source = Number((packed >> 160n) & mask);
+        const copy = Number((packed >> 80n) & mask);
+        const paste = Number(packed & mask);
+        expect(source).toBe(0);
+        expect(copy).toBe(32);
+        const word = encodeAbiParameters([{ type: "uint256" }], [actual]).slice(2);
+        const offset = 2 + (paste - 32) * 2;
+        return `${call.callData.slice(0, offset)}${word}${call.callData.slice(offset + 64)}` as Hex;
+      };
+      expect(
+        decodeFunctionData({ abi: parseAbi(["function approve(address,uint256)"]), data: resolve(calls[2]) }).args,
+      ).toEqual([ALLOWANCE_HOLDER, actual]);
+      const swap = route.legs[0].swap;
+      if (!swap) throw new Error("missing swap fixture");
+      const original = decodeFunctionData({ abi: holderABI, data: swap.data });
+      const patched = decodeFunctionData({ abi: holderABI, data: resolve(calls[3]) });
+      expect(patched.args).toEqual([original.args[0], original.args[1], actual, original.args[3], original.args[4]]);
+      expect(route.minimum).toBe(2089n);
+    },
+  );
   it("withdraws into internal balance and transfers precisely the returned amount to Pipeline", () => {
     const route = routeFixture(),
       calls = buildRoute(route);
@@ -189,10 +227,10 @@ describe("atomic withdrawal encoding", () => {
     expect(calls).toHaveLength(7);
     const execution = decodeFunctionData({ abi: routeABI, data: calls[3].callData });
     if (execution.functionName !== "advancedPipe") throw new Error("wrong encoding");
-    expect(execution.args[0][2].target).toBe(ALLOWANCE_HOLDER);
+    expect(execution.args[0][3].target).toBe(ALLOWANCE_HOLDER);
     const erc = parseAbi(["function approve(address,uint256)"]);
-    expect(decodeFunctionData({ abi: erc, data: execution.args[0][3].callData }).args).toEqual([ALLOWANCE_HOLDER, 0n]);
-    expect(execution.args[0][5].clipboard).toBe(Clipboard.encodeSlot(4, 0, 1));
+    expect(decodeFunctionData({ abi: erc, data: execution.args[0][4].callData }).args).toEqual([ALLOWANCE_HOLDER, 0n]);
+    expect(execution.args[0][6].clipboard).toBe(Clipboard.encodeSlot(5, 0, 1));
     const settlement = decodeFunctionData({ abi: routeABI, data: calls[6].callData });
     if (settlement.functionName !== "advancedPipe") throw new Error("wrong encoding");
     expect(decodeFunctionData({ abi: routeABI, data: settlement.args[0][1].callData }).args).toEqual([0n, 2089n]);

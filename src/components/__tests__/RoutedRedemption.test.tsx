@@ -60,7 +60,8 @@ vi.mock("@tanstack/react-query", () => ({
   useQuery: () => ({
     data: { pools: f.warmingUp ? [] : f.pools, warmingUp: f.warmingUp },
     refetch: async () => ({ data: { pools: f.warmingUp ? [] : f.pools, warmingUp: f.warmingUp } }),
-    isError: false, isPending: false,
+    isError: false,
+    isPending: false,
   }),
 }));
 vi.mock("viem/actions", () => ({ simulateContract: f.simulate, estimateContractGas: f.estimate }));
@@ -225,6 +226,36 @@ test("automatically quotes a selected output after typing stops, without a manua
   expect(f.quote).toHaveBeenCalledOnce();
   expect(container.textContent).toContain("Estimated output1 USDC");
   expect(button("Withdraw to USDC").disabled).toBe(false);
+});
+test("keeps a unified simulation error visible until an explicit refresh without automatically replacing the review", async () => {
+  vi.useFakeTimers();
+  act(() => renderUnified("0.5"));
+  await act(async () => vi.advanceTimersByTimeAsync(600));
+  f.simulate.mockRejectedValue(new Error("simulation failed"));
+  await act(async () => button("Withdraw to USDC").click());
+  await act(async () => vi.advanceTimersByTimeAsync(1200));
+  expect(f.write).not.toHaveBeenCalled();
+  expect(f.quote).toHaveBeenCalledOnce();
+  expect(container.textContent).toContain("Get a fresh route or try a smaller amount");
+  await act(async () => button("Get fresh route").click());
+  await act(async () => vi.advanceTimersByTimeAsync(1200));
+  expect(f.quote).toHaveBeenCalledTimes(2);
+  expect(container.textContent).not.toContain("Get a fresh route or try a smaller amount");
+});
+test("shows a concise wallet rejection without dumping transaction calldata into the mobile form", async () => {
+  vi.useFakeTimers();
+  act(() => renderUnified("0.5"));
+  await act(async () => vi.advanceTimersByTimeAsync(600));
+  f.write.mockRejectedValue(
+    Object.assign(new Error("Request Arguments: data: 0xdeadbeef"), {
+      shortMessage: "User rejected the request.",
+    }),
+  );
+  await act(async () => button("Withdraw to USDC").click());
+  await act(async () => vi.advanceTimersByTimeAsync(1200));
+  expect(container.textContent).toContain("User rejected the request.");
+  expect(container.textContent).not.toContain("0xdeadbeef");
+  expect(f.quote).toHaveBeenCalledOnce();
 });
 test("does not quote amounts beyond eligibility or retain an old output estimate", async () => {
   vi.useFakeTimers();
