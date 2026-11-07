@@ -1,0 +1,825 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-6: Introduce Cultivation System and Crop Ratio Changes</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-807d-b343-c1eccf962d2e" class="page sans"><header><h1 class="page-title" dir="auto">PI-6: Introduce Cultivation System and Crop Ratio Changes</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="f76e4019-aad5-83f1-8390-013fac4011b5" class="" dir="auto">Executed on March 12, 2025 at 22:23 UTC.</p><h2 id="03de4019-aad5-83bf-8f7e-01ebfa92142c" class="" dir="auto">Summary</h2><ol type="1" id="d19e4019-aad5-8394-acc3-81048c935692" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.pinto.money/pinto-mechanics/field-the-most-innovative-lending-facility-in-crypto/the-cultivation-system-optimal-soil-issuance">Cultivation System</a></strong><strong>:</strong> Introduce the Cultivation System to dynamically issue <a href="https://docs.pinto.money/resources/glossary#soil">Soil</a> in line with demand for it.</li></ol><ol type="1" id="c2ce4019-aad5-8345-9c31-010bfea885f8" class="numbered-list" start="2" dir="auto"><li><strong>Minimum Soil Issuance:</strong> Create a parameter for the minimum number of Soil that can be issued when the time-weighted average and instantaneous Pinto supply deltas are nonpositive and their minimum absolute value is nonzero and set it to 50 Soil. Each delta measures the Pinto shortage or surplus relative to the $1 peg, using time-weighted average or instantaneous pool reserves. A negative value indicates a surplus.</li></ol><ol type="1" id="054e4019-aad5-8242-9ace-01968a0b9a54" class="numbered-list" start="3" dir="auto"><li><strong>Generalized Gauge System:</strong> Create a generalized gauge system such that any future state variable can be updated via a gauge upon the <code><a href="https://docs.pinto.money/resources/glossary#gm">gm</a></code> call with minimal development effort.</li></ol><ol type="1" id="0c2e4019-aad5-8241-9ca5-0131c34379c9" class="numbered-list" start="4" dir="auto"><li><strong>Maximum </strong><strong><a href="https://docs.pinto.money/resources/glossary#crop-ratio">Crop Ratio</a></strong><strong> Increase:</strong> Increase the Maximum Crop Ratio from 100% to 150%.</li></ol><ol type="1" id="2c3e4019-aad5-8384-b886-0156e46f6027" class="numbered-list" start="5" dir="auto"><li><strong>Crop Scalar Adjustments:</strong> Properly increase the magnitude of the Crop Scalar decreases from 1 to 2 percentage points per <a href="https://docs.pinto.money/resources/glossary#season">Season</a> when price is Reasonably High, the <a href="https://docs.pinto.money/resources/glossary#pod-rate">Pod Rate</a> is Reasonably or Excessively High and the <a href="https://docs.pinto.money/resources/glossary#liquidity-to-supply-ratio-l2sr">L2SR</a> is Reasonably Low as intended in PI-5 (detailed below).</li></ol><h2 id="476e4019-aad5-8374-9541-01084364efa5" class="" dir="auto">Links</h2><ul id="4aae4019-aad5-8392-86a7-81bdf9250299" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/8">Implementation PR</a></li></ul><ul id="d3ae4019-aad5-8230-858f-013952915bda" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <code><a href="https://github.com/pinto-org/protocol/commit/74fdaffaecac5d3c915c19e1542095eace3e6889">74fdaffaecac5d3c915c19e1542095eace3e6889</a></code></li></ul><ul id="2e6e4019-aad5-82d9-91dd-01eaa0aa8f04" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0x47edf70799fc82fae247c42b82a8e76f4b357546f8ceb27a28583af79ee2972c&amp;safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507">Safe Transaction</a></li></ul><ul id="fa3e4019-aad5-8263-ac01-013475a87ea8" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0xa7473e796229e91e36ba7fa270853937d9d61da3a42a1f975fc01ff15f79cb30">Diamond Cut Transaction</a></li></ul><h2 id="d21e4019-aad5-835e-bd56-81e3513a5835" class="" dir="auto">Problems</h2><h3 id="befe4019-aad5-837b-b5fa-81bb112dbd6f" class="" dir="auto">1. Cultivation System</h3><p id="d48e4019-aad5-83b5-b11d-01e4c47861fd" class="" dir="auto">When the protocol issues significant numbers of Soil that are not <a href="https://docs.pinto.money/resources/glossary#sow">Sown</a> into, it signals to the market that the protocol is not creditworthy. When the protocol issues less Soil than there is demand for, it is not borrowing efficiently. The protocol lacked a method to discover the optimal number of Soil to issue. </p><h3 id="921e4019-aad5-8337-a820-81701cd070e0" class="" dir="auto">2. Minimum Soil Issuance</h3><p id="703e4019-aad5-831a-8b03-81c279e5940b" class="" dir="auto">At particularly low numbers of Soil, demand for Soil cannot be accurately measured. With the introduction of the Cultivation System, which starts the number of Soil available at a very low number and then ramps it up to meet demand, the protocol may issue too little Soil to accurately measure demand.</p><h3 id="800e4019-aad5-828b-915c-818c5cf7d24b" class="" dir="auto">3. Generalized Gauge System</h3><p id="21ce4019-aad5-838a-92fe-01ee019af4aa" class="" dir="auto">There are potentially several state variables that could be adjusted at the beginning of each Season, but without a generalized mechanism to do so each variable required a bespoke implementation.</p><h3 id="ed8e4019-aad5-83f5-a6a8-015b88ba774f" class="" dir="auto">4. Maximum Crop Ratio Increase</h3><p id="aaae4019-aad5-8380-8de8-0146c623c8b9" class="" dir="auto">The Maximum Crop Ratio of 100% limited the ability of the protocol to create a sufficiently strong incentive to counter the preference demonstrated by the market to hold <a href="https://docs.pinto.money/resources/glossary#deposit">Deposited LP</a> over <a href="https://docs.pinto.money/resources/glossary#pinto">Deposited Pinto</a> when it is trying to incentivize LP -&gt; Pinto <a href="https://docs.pinto.money/resources/glossary#convert">Converts</a>.</p><h3 id="b99e4019-aad5-827c-9642-811a7e6c20f9" class="" dir="auto">5. Crop Scalar Adjustments</h3><p id="a19e4019-aad5-82f4-bab8-816d881781cc" class="" dir="auto">When price is Reasonably High, the Pod Rate is Reasonably or Excessively High and the L2SR is Reasonably Low, the Crop Scalar did not decrease quickly enough. PI-5 intended to increase the magnitude of the Crop Scalar adjustments in these instances, but an encoding error left the decreases at 1 percentage point per Season instead of the intended 2.</p><h2 id="36ce4019-aad5-83b0-b9fb-8173bdb3e403" class="" dir="auto">Solutions</h2><h3 id="7fce4019-aad5-8325-84f2-010b48f77c91" class="" dir="auto">1. Cultivation System</h3><p id="d47e4019-aad5-8240-b6fc-8131051b8fb6" class="" dir="auto">Introduce the Cultivation System, which uses a gauge to adjust the <a href="https://pinto.money/pinto.pdf#subsubsection.12.3.1">Cultivation Factor</a>, which acts as a scalar on Soil issuance relative to the maximum number of Soil the protocol would be willing to issue if there was infinite demand for Soil. </p><p id="9a9e4019-aad5-8382-b629-81162d8861a7" class="" dir="auto">The Cultivation Factor <span data-notion-inline-equation="\mathscr{p}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span></span> is updated as follows:</p><p id="d61e4019-aad5-8276-b32c-01af59855a3e" class="" dir="auto"><span data-notion-inline-equation="\mathscr{p}=\begin{cases}\min(1,\mathscr{p}+\Delta\mathscr{p}\,P_{\overline{t-1}})&amp;\text{if Soil sold out last Season}\\\max(0.01,\mathscr{p}-\frac{0.0001}{\Delta\mathscr{p}\,P_{\overline{t-1}}})&amp;\text{otherwise}\end{cases}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.038em;vertical-align:-1.269em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">{</span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.769em;"><span style="top:-3.769em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mop">min</span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">Δ</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.7222em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord overline mtight"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8894em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span><span style="top:-3.7914em;"><span class="pstrut" style="height:3em;"></span><span class="overline-line mtight" style="border-bottom-width:0.049em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.0833em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span><span style="top:-2.329em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mop">max</span><span class="mopen">(</span><span class="mord">0.01</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8451em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">Δ</span><span class="mord mathnormal mtight">p</span><span class="mspace mtight" style="margin-right:0.1952em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.7095em;margin-left:-0.1389em;margin-right:0.0714em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord overline mtight"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8894em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span><span style="top:-3.7914em;"><span class="pstrut" style="height:3em;"></span><span class="overline-line mtight" style="border-bottom-width:0.049em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.0833em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.35em;"><span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">0.0001</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.59em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.269em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.769em;"><span style="top:-3.769em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if Soil sold out last Season</span></span></span></span><span style="top:-2.329em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">otherwise</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.269em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p><p id="068e4019-aad5-826a-b221-01297d2f47da" class="" dir="auto">Where:</p><ul id="516e4019-aad5-82c4-bd90-0191ca05b892" class="bulleted-list" dir="auto"><li style="list-style-type:disc">p is the Cultivation Factor, initialized to 0.5 and bounded between 0.01 and 1.</li></ul><ul id="a57e4019-aad5-839e-9c73-01bdbbfad4de" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The adjustment coefficient is calculated below.</li></ul><ul id="cb0e4019-aad5-82d8-a863-81c7ec6395e1" class="bulleted-list" dir="auto"><li style="list-style-type:disc">P is the previous Season’s time-weighted average Pinto price in the <a href="https://docs.basin.exchange/components/well">Well</a> with the largest USD liquidity, capped at 1. A zero price skips the update.</li></ul><p id="c3ae4019-aad5-8350-bd4c-0105f5ec4d1d" class="" dir="auto"><span data-notion-inline-equation="\Delta\mathscr{p}=2\%-\frac{\max(\min(R^D,R^{D^{upper}})-R^{D^{lower}},0)}{R^{D^{upper}}-R^{D^{lower}}}\times1.5\%" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">Δ</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.0833em;"></span><span class="mord">2%</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.8987em;vertical-align:-0.5628em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3359em;"><span style="top:-2.4956em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8094em;"><span style="top:-2.8094em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5234em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7328em;"><span style="top:-2.8022em;margin-right:0.1em;"><span class="pstrut" style="height:2.5em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">pp</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.992em;"><span style="top:-2.992em;margin-right:0.0714em;"><span class="pstrut" style="height:2.706em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9884em;"><span style="top:-2.9884em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span><span class="mopen mtight">(</span><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9191em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span></span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0271em;"><span style="top:-3.0271em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5961em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8346em;"><span style="top:-2.904em;margin-right:0.1em;"><span class="pstrut" style="height:2.5em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">pp</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="mclose mtight">)</span><span class="mbin mtight">−</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.2156em;"><span style="top:-3.2156em;margin-right:0.0714em;"><span class="pstrut" style="height:2.7846em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0984em;"><span style="top:-3.0984em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight">0</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5628em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">1.5%</span></span></span></span></span></p><p id="cc6e4019-aad5-82b8-a6d9-0124dabecc58" class="" dir="auto">The adjustment coefficient decreases linearly from 2% to 0.5% as the Pod Rate rises from 3% to 25%, and is clamped outside those bounds. Rᴰ denotes the Pod Rate. Its lower and upper bounds are 3% and 25%, respectively.</p><h3 id="731e4019-aad5-82bf-949d-817bb5cd5a98" class="" dir="auto">2. Minimum Soil Issuance</h3><p id="da0e4019-aad5-826c-923b-016118117a48" class="" dir="auto">The Cultivation System includes a 50-Soil floor when the time-weighted average and instantaneous Pinto supply deltas are nonpositive and their minimum absolute value is nonzero to prevent instances where the protocol issues too little Soil to be able to accurately measure demand.</p><p id="49de4019-aad5-8295-a8ac-010a5535bb17" class="" dir="auto">Therefore, we define the Soil issued when the time-weighted average and instantaneous Pinto supply deltas are nonpositive to be:</p><figure id="475e4019-aad5-82e5-9b30-010f6792d044" class="equation" data-notion-equation="\mathrm{Soil}=\begin{cases}0 &amp; D=0\\ \max(D \times \frac{1-\min(R^{W},0.99)}{24} \times \mathscr{p},50) &amp; D&gt;0\end{cases}" dir="auto"><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathrm">Soil</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.0004em;vertical-align:-1.2502em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">{</span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.7502em;"><span style="top:-3.8705em;"><span class="pstrut" style="height:3.1284em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-2.3102em;"><span class="pstrut" style="height:3.1284em;"></span><span class="mord"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1284em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">24</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mbin mtight">−</span><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9191em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight">0.99</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">50</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2502em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.7502em;"><span style="top:-3.8705em;"><span class="pstrut" style="height:3.1284em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span></span></span><span style="top:-2.3102em;"><span class="pstrut" style="height:3.1284em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2502em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><p id="a8be4019-aad5-82de-ad18-819a5a161002" class="" dir="auto">
+</p><p id="6f7e4019-aad5-8233-947d-81501e09800e" class="" dir="auto">Where:</p><ul id="912e4019-aad5-8385-906d-014abf3e9295" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><em><span data-notion-inline-equation="D" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span></span></span></span></span></em> is the smaller absolute value of the time-weighted average and instantaneous Pinto supply deltas.</li></ul><ul id="a0ce4019-aad5-833f-af30-8100c3972b95" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><em><span data-notion-inline-equation="R^D" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span></span></span></span></span></span></span></span></span></span></span></span></em>  is the Pod Rate.</li></ul><ul id="749e4019-aad5-839e-a3bd-818814416c76" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><em><span data-notion-inline-equation="R^W" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span></span></span></span></span></em> is the L2SR.</li></ul><ul id="568e4019-aad5-8306-9581-815c1859318a" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><em><span data-notion-inline-equation="p" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span></span></em> is the Cultivation Factor, initialized to 0.5. When the time-weighted average Pinto supply delta is nonpositive but the instantaneous Pinto supply delta is positive, Soil instead equals 1% of the absolute time-weighted average Pinto supply delta times the Pod Rate coefficient, without the 50-Soil floor.</li></ul><ul id="b87e4019-aad5-8274-8c34-0198c13b0c26" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The divisor 24 represents the configured 86,400-second Soil distribution period in one-hour Seasons. These normalized equations omit sequential integer rounding. A Sow records sellout when remaining Soil is at most 1 Soil. The Cultivation Factor uses that recorded sellout from the previous Season.</li></ul><h3 id="f64e4019-aad5-821a-99b4-01ee0f2931c9" class="" dir="auto">3. Generalized Gauge System</h3><p id="52ee4019-aad5-832f-82b0-8146e75b3f5a" class="" dir="auto">Add the following to <code>AppStorage</code>:</p><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="1bde4019-aad5-83d3-8ad4-8146793e7e3d" class="code code-wrap"><code style="white-space:pre-wrap;word-break:break-all">struct GaugeData {
+    GaugeId[] gaugeIds;
+    mapping(GaugeId =&gt; Gauge) gauges;
+}
+
+enum GaugeId {
+    CULTIVATION_FACTOR
+}
+</code></pre><p id="16fe4019-aad5-827e-946e-81a11f1466ad" class="" dir="auto">Introduce a Gauge Implementation as:</p><pre id="c9ce4019-aad5-82ca-9da5-01178ed1e882" class="code code-wrap"><code style="white-space:pre-wrap;word-break:break-all">struct Gauge {
+    bytes value;
+    address target;
+    bytes4 selector;
+    bytes data;
+}
+</code></pre><p id="9e4e4019-aad5-835c-ad96-01025609d18c" class="" dir="auto">A gauge selector must adhere to the following function definition:</p><pre id="44ae4019-aad5-8272-b5e0-017c74cac287" class="code code-wrap"><code style="white-space:pre-wrap;word-break:break-all">foo(
+    bytes memory value,
+    bytes memory systemData,
+    bytes memory gaugeData
+) external view returns
+(
+    bytes memory,
+    bytes memory
+)
+</code></pre><p id="785e4019-aad5-8213-ba0c-01878a6ce89b" class="" dir="auto">The function must return the updated encoded value first and encoded gauge data second.</p><p id="7d5e4019-aad5-82eb-8bd3-81f36e7351e1" class="" dir="auto">Gauges have a <code>GaugeId</code> that is set upon adding a new Gauge. Gauges are called during the <code>gm</code> call, upon which each Gauge’s returned value and/or data are stored.</p><p id="f79e4019-aad5-82fe-942b-015180424df7" class="" dir="auto">The following new events are associated with the generalized gauge system:</p><pre id="e76e4019-aad5-823f-8e33-81ead53399cb" class="code code-wrap"><code style="white-space:pre-wrap;word-break:break-all">    event Engaged(GaugeId gaugeId, bytes value);
+    event AddedGauge(GaugeId gaugeId, Gauge gauge);
+    event RemovedGauge(GaugeId gaugeId);
+    event UpdatedGauge(GaugeId gaugeId, Gauge gauge);
+</code></pre><h3 id="e33e4019-aad5-8259-91e4-81a9a1a78b67" class="" dir="auto">4. Maximum Crop Ratio Increase</h3><p id="84ce4019-aad5-82ef-9aa7-81f2e7e216f0" class="" dir="auto">Update <code>s.sys.evaluationParameters.maxBeanMaxLpGpPerBdvRatio</code> from <code>100e18</code> to <code>150e18</code>. These 18-decimal fixed-point values represent 100% and 150%. In the code name, <code>Bean</code> denotes Pinto, <code>Bdv</code> denotes PDV, and <code>MaxLpGp</code> denotes maximum LP gauge points.</p><h3 id="22fe4019-aad5-8220-894e-01a7a3b43985" class="" dir="auto">5. Crop Scalar Adjustments</h3><p id="840e4019-aad5-828a-add1-81a34fd06da7" class="" dir="auto">Update s.sys.casesV2 to reflect the Crop Scalar decreases from 1 to 2 percentage points per Season for case IDs 57–59 and 66–68. These six cases cover Reasonably High price, Reasonably Low L2SR, and Reasonably or Excessively High Pod Rate across decreasing, steady, and increasing Soil demand. Their encoded adjustment changed from <code>−1e18</code> to <code>−2e18</code>.</p><figure id="9c588bc6-fe44-4fdf-9d4e-4120f6ac95b4" class="image" data-notion-image="PI-6%20Introduce%20Cultivation%20System%20and%20Crop%20Ratio%20C/pi6-cases.png" dir="ltr"><a href="pi6-cases.png"><img style="width:687.984375px" src="pi6-cases.png"/></a><figcaption>PI-6 as executed. Highlighted cells show the six Crop Scalar decreases from −0.01 to −0.02. Maximum Temperature adjustments were unchanged.</figcaption></figure><h2 id="bdce4019-aad5-82e0-a5c4-81779b3dcf99" class="" dir="auto">Rationale</h2><h3 id="dfde4019-aad5-824f-8d7e-01f85c0807d0" class="" dir="auto">1. Cultivation System</h3><p id="bfee4019-aad5-82a0-bfb3-01c19b40e475" class="" dir="auto">Starting with a very low number of Soil minimizes the instances where the protocol fails to find demand for Soil by a wide margin while the protocol is raising the <a href="https://docs.pinto.money/resources/glossary#maximum-temperature">Maximum Temperature</a> to discover the interest rate at which it can attract demand. Instead, the Cultivation System enables the protocol to ramp up available Soil once demand for Soil has been discovered. This should result in lower overall Maximum Temperatures necessary to reduce supply.</p><h3 id="8f1e4019-aad5-829a-9d50-01f699ec56e9" class="" dir="auto">2. Minimum Soil Issuance</h3><p id="8e9e4019-aad5-83f1-86e7-019e5270e392" class="" dir="auto">Setting a minimum Soil of 50 when the time-weighted average and instantaneous Pinto supply deltas are nonpositive and their minimum absolute value is nonzero helps ensure that the protocol can accurately measure demand for Soil even in instances where the Cultivation System would otherwise result in there being a de minimis number of Soil.</p><h3 id="3eae4019-aad5-82a0-b5e0-0103dd8edc43" class="" dir="auto">3. Generalized Gauge System</h3><p id="2a7e4019-aad5-83d2-8675-0128a0e1b0b9" class="" dir="auto">Previously, adding 1) State that updates on a <code>gm</code> call and 2) Logic that executes during the <code>gm</code> call required 1) significant technical understanding of the entire <code>gm</code> call, 2) an implicit understanding of the current ordering of actions within the <code>gm</code>, and 3) appending or manipulating the state stored on the Pinto Diamond Contract.  The Generalized Gauge System introduces a framework in which new features can be appended to the gm call that 1) isolates state and logic on a Gauge basis, and 2) Introduces explicit execution ordering (i.e., the order in which the Diamond State changes within a <code>gm</code> call), in a modular and composable fashion, such that iterating on Gauges requires minimal onboarding and minimal background knowledge of other Gauges, in a way that minimizes additional security risk per additional Gauge. </p><h3 id="67be4019-aad5-82fe-bdd5-0152487c2b84" class="" dir="auto">4. Maximum Crop Ratio Increase</h3><p id="05fe4019-aad5-83a7-ae63-8140c119d1cc" class="" dir="auto">Prior to this change, the Maximum Crop Ratio of 100% imposed an upper bound on the ratio of <a href="https://docs.pinto.money/resources/glossary#seeds">Seeds</a> per <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">PDV</a> of Deposited Pinto and the maximum Seeds per 1 PDV of LP Deposited of 1:1. The idea behind this limit was that at all times, the protocol should not express a preference to have Depositors hold Deposited Pinto over Deposited LP because it would mean that the protocol is not looking to preserve liquidity. </p><p id="ff5e4019-aad5-83e9-810b-815ac13da02b" class="" dir="auto">However, this failed to capture the fact that the market prefers to hold Deposited LP over Deposited Pinto, such that even if the protocol offers Deposited Pinto as many Seeds per PDV as the highest-rewarded Deposited LP token, the market may still prefer to hold LP. By setting the Maximum Crop Ratio too low, the protocol has therefore been unable to sufficiently incentivize Converts and return the price to its value target consistently when the price is too low.</p><h3 id="476e4019-aad5-83ee-973c-81d2d2658585" class="" dir="auto">5. Crop Scalar Adjustments</h3><p id="579e4019-aad5-8204-9239-016efd989a84" class="" dir="auto">When price is Reasonably High, the Pod Rate is Reasonably or Excessively High and the L2SR is Reasonably Low, the Crop Scalar should decrease more quickly to more aggressively encourage Converts from Pinto to LP tokens to preserve liquidity. In similar instances but where the L2SR is Excessively Low, the protocol already acts incredibly aggressively to preserve liquidity, but in instances where the L2SR is Reasonably Low, it does not act any more aggressively than when the L2SR is Reasonably or Excessively High. This change refines the Crop Scalar change to better factor in the fact that the L2SR is lower than optimal. </p><h2 id="3ace4019-aad5-8280-9a4b-8103f77cec7d" class="" dir="auto">Contract Changes</h2><h3 id="d59e4019-aad5-83b2-a172-0179bca2c326" class="" dir="auto">Initialization</h3><p id="fb1e4019-aad5-820d-9a5e-818fd76711d0" class="" dir="auto">Executed <code>InitPI6.init()</code> at <code><a href="https://basescan.org/address/0x43474d1dabd2213ff6c18b5ba69f8c847808c2c4#code">0x43474d1dabd2213ff6c18b5ba69f8c847808c2c4</a></code>. It registered the Cultivation Factor gauge at 0.5, set the Soil distribution period to 86,400 seconds (24 hours) and minimum Soil issuance to 50 Soil, installed the corrected Crop Scalar cases, increased the maximum Crop Ratio from 100% to 150%, and reset the Crop Scalar to 67%.</p><h3 id="424e4019-aad5-8342-a379-01012babafd0" class="" dir="auto">Facet Changes</h3><table id="a99e4019-aad5-8362-b5c5-81bf8a7a2b14" class="simple-table" dir="ltr"><tbody><tr id="1f9e4019-aad5-8387-8489-01c6105555ad" dir="ltr"><td id="Bx]}" class=""><strong>Facet</strong></td><td id="iUsS" class=""><strong>Action</strong></td><td id="]GcY" class=""><strong>Previous Implementation</strong></td><td id="kbaF" class=""><strong>New Implementation</strong></td></tr><tr id="3c6e4019-aad5-829a-b3cc-813844f18c30" dir="ltr"><td id="Bx]}" class=""><code>SeasonFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0xfc52fc3c8a29f74603006ff03915770014d9f049#code">0xfc52fc3c8a29f74603006ff03915770014d9f049</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0xa932cab249fc9ddd073cdb5d40bf304a50025cd6#code">0xa932cab249fc9ddd073cdb5d40bf304a50025cd6</a></code></td></tr><tr id="ee5e4019-aad5-8224-96de-81642b94a464" dir="ltr"><td id="Bx]}" class=""><code>SeasonGettersFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0xfa0093b9ca5d00c9e6623767eb09489d90abf150#code">0xfa0093b9ca5d00c9e6623767eb09489d90abf150</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0xf3d017981d0818274210661ba3cc85d143afa78e#code">0xf3d017981d0818274210661ba3cc85d143afa78e</a></code></td></tr><tr id="9b8e4019-aad5-82e7-81ca-819c75cd9ca7" dir="ltr"><td id="Bx]}" class=""><code>GaugeFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0x2a8827a73de0703b3f6e24895818a3e6d9f8eeba#code">0x2a8827a73de0703b3f6e24895818a3e6d9f8eeba</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0x25ce5e07e26b4140086f28834dea1c092fc10f90#code">0x25ce5e07e26b4140086f28834dea1c092fc10f90</a></code></td></tr><tr id="ba2e4019-aad5-83bd-a10f-0109f41ed3fb" dir="ltr"><td id="Bx]}" class=""><code>GaugeFacet</code></td><td id="iUsS" class="">Add</td><td id="]GcY" class="">N/A</td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0x25ce5e07e26b4140086f28834dea1c092fc10f90#code">0x25ce5e07e26b4140086f28834dea1c092fc10f90</a></code></td></tr><tr id="e1ee4019-aad5-8255-b636-818bb77a6a9d" dir="ltr"><td id="Bx]}" class=""><code>GaugeGettersFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0x04912d77f69bd03f8846a432b0abacfc028bea33#code">0x04912d77f69bd03f8846a432b0abacfc028bea33</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0xb1cb5aa3c2e91268aae9c97d59ad90d8df979da3#code">0xb1cb5aa3c2e91268aae9c97d59ad90d8df979da3</a></code></td></tr><tr id="af9e4019-aad5-8308-81a0-81fe454adf29" dir="ltr"><td id="Bx]}" class=""><code>ClaimFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0x28bcfb5ad84dd460f2fd080dfd706105b8fc21c6#code">0x28bcfb5ad84dd460f2fd080dfd706105b8fc21c6</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0xcbb67c0dadf1c2774215d8afd4fef34c7741474b#code">0xcbb67c0dadf1c2774215d8afd4fef34c7741474b</a></code></td></tr><tr id="647e4019-aad5-82a6-a0a3-8143e6a3743e" dir="ltr"><td id="Bx]}" class=""><code>PipelineConvertFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0x508320dcc2b4e9f79555bcae1478e6ce736b22ab#code">0x508320dcc2b4e9f79555bcae1478e6ce736b22ab</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0x1c3ecf2ae6bd491d112f5a2cea5927a231437437#code">0x1c3ecf2ae6bd491d112f5a2cea5927a231437437</a></code></td></tr><tr id="8fae4019-aad5-8360-b473-01bf276a3e43" dir="ltr"><td id="Bx]}" class=""><code>SiloGettersFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0x6c1dc649e93be43fff670a2407fa4edc4996bb95#code">0x6c1dc649e93be43fff670a2407fa4edc4996bb95</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0x48f040332c3ccccf620e3ed6bbab3d117c9238ca#code">0x48f040332c3ccccf620e3ed6bbab3d117c9238ca</a></code></td></tr><tr id="61ae4019-aad5-83d6-adff-01e0384f3dbe" dir="ltr"><td id="Bx]}" class=""><code>OracleFacet</code></td><td id="iUsS" class="">Replace</td><td id="]GcY" class=""><code><a href="https://basescan.org/address/0x755b6b8844faa8361d54cdee16b418770a412cb4#code">0x755b6b8844faa8361d54cdee16b418770a412cb4</a></code></td><td id="kbaF" class=""><code><a href="https://basescan.org/address/0x72827f9a9c3f4a0e36c7de20bb7b830abf385d2e#code">0x72827f9a9c3f4a0e36c7de20bb7b830abf385d2e</a></code></td></tr></tbody></table><h3 id="714e4019-aad5-82e7-bb52-01b7edc52d6b" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="842e4019-aad5-82da-92c7-81319c6b01d9" class="" dir="auto">Added <code>soilDistributionPeriod = 86400</code> seconds and <code>minSoilIssuance = 50e6</code> (50 Soil) to the evaluation parameters, replacing two reserved buffer slots. Initialized the Cultivation Factor to <code>50e6</code> (0.5), bounded by <code>1e6</code> (0.01) and <code>100e6</code> (1). Increased <code>maxBeanMaxLpGpPerBdvRatio</code> from <code>100e18</code> to <code>150e18</code> and reset <code>beanToMaxLpGpPerBdvRatio</code> to <code>67e18</code> (67%). Corrected the selected Crop Scalar decreases from 1 to 2 percentage points per Season.</p><p id="9dde4019-aad5-82cf-9038-81758db8507a" class="" dir="auto">The replacement facets linked the following library implementations:</p><p id="cdce4019-aad5-8334-b997-01dfea5872b9" class="" dir="auto">All ten listed library addresses changed. <code>ClaimFacet</code>, <code>PipelineConvertFacet</code>, <code>SiloGettersFacet</code>, and <code>OracleFacet</code> retained their own source files and interfaces despite their replacement. Shared-library behavior may still change.</p><table id="2a4e4019-aad5-8248-b7e7-01b60ec038ed" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="411e4019-aad5-8298-b1f1-8156764406e3" dir="ltr"><th id="hnWE" class="simple-table-header-color simple-table-header">Library</th><th id="TPam" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="hTPb" class="simple-table-header-color simple-table-header">New Implementation</th><th id="]VhX" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="8fee4019-aad5-8331-88bd-01ca419577df" dir="ltr"><td id="hnWE" class=""><code>LibEvaluate</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x69c7d1feb4b963ff9b8338a765c13bb5c3b19792#code">0x69c7d1feb4b963ff9b8338a765c13bb5c3b19792</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0xfad4e8659830d22ce9e4d87eaef52674bf805fdb#code">0xfad4e8659830d22ce9e4d87eaef52674bf805fdb</a></code></td><td id="]VhX" class=""><code>SeasonFacet</code></td></tr><tr id="175e4019-aad5-82dd-8981-01f38c5e2791" dir="ltr"><td id="hnWE" class=""><code>LibGauge</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x07b75f35e90eb114035d3c67ac7738f11fb70a26#code">0x07b75f35e90eb114035d3c67ac7738f11fb70a26</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0x573c652702091e7265688902ef63c82e21917b4f#code">0x573c652702091e7265688902ef63c82e21917b4f</a></code></td><td id="]VhX" class=""><code>SeasonFacet</code></td></tr><tr id="f79e4019-aad5-82ef-9433-815fcc00f92e" dir="ltr"><td id="hnWE" class=""><code>LibIncentive</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x4e5dae995c2e8eef23b44a95034064262326e703#code">0x4e5dae995c2e8eef23b44a95034064262326e703</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0x6fac8752c40475c83720acbad2f0c32476243350#code">0x6fac8752c40475c83720acbad2f0c32476243350</a></code></td><td id="]VhX" class=""><code>SeasonFacet</code></td></tr><tr id="e29e4019-aad5-8369-88e3-01ce5b295821" dir="ltr"><td id="hnWE" class=""><code>LibShipping</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x6ccdfc6fd7885a07e5d4ee5e998a66afe6a65705#code">0x6ccdfc6fd7885a07e5d4ee5e998a66afe6a65705</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0xab1d90c08dfa6d4c520dad967e97c5eee1d61af2#code">0xab1d90c08dfa6d4c520dad967e97c5eee1d61af2</a></code></td><td id="]VhX" class=""><code>SeasonFacet</code></td></tr><tr id="20de4019-aad5-82de-8fe3-01a450c7f1ee" dir="ltr"><td id="hnWE" class=""><code>LibWellMinting</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0xd972df7cfd286778951aa829a40e9ab7f7db1d5a#code">0xd972df7cfd286778951aa829a40e9ab7f7db1d5a</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0xa31576ac3be233a845e665b98bc384b51e1f4b78#code">0xa31576ac3be233a845e665b98bc384b51e1f4b78</a></code></td><td id="]VhX" class=""><code>SeasonFacet, SeasonGettersFacet</code></td></tr><tr id="077e4019-aad5-8381-a453-017299a83517" dir="ltr"><td id="hnWE" class=""><code>LibFlood</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x0b316cb760a677ed1c581041c7d2118bc66aa87c#code">0x0b316cb760a677ed1c581041c7d2118bc66aa87c</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0x8595c632071edec9ab2cd84350d8eef46f181577#code">0x8595c632071edec9ab2cd84350d8eef46f181577</a></code></td><td id="]VhX" class=""><code>SeasonFacet</code></td></tr><tr id="6a6e4019-aad5-828e-9ec2-818d48030dc9" dir="ltr"><td id="hnWE" class=""><code>LibGerminate</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x636234f909174c764d216ef9bd22175f01a107b2#code">0x636234f909174c764d216ef9bd22175f01a107b2</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0x30f89cd09b92938864b819a552471f2c8771c83d#code">0x30f89cd09b92938864b819a552471f2c8771c83d</a></code></td><td id="]VhX" class=""><code>SeasonFacet</code></td></tr><tr id="833e4019-aad5-82fd-bdee-013b30d28a93" dir="ltr"><td id="hnWE" class=""><code>LibSilo</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x5a686e6024d1d40994ae99979ceb63bf67724b04#code">0x5a686e6024d1d40994ae99979ceb63bf67724b04</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0x85e7554e3af2cfb5ec7a90b53b15b6730055905c#code">0x85e7554e3af2cfb5ec7a90b53b15b6730055905c</a></code></td><td id="]VhX" class=""><code>ClaimFacet, PipelineConvertFacet</code></td></tr><tr id="a21e4019-aad5-827f-abbf-81dd52124079" dir="ltr"><td id="hnWE" class=""><code>LibTokenSilo</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0x0da233676f46427c31928f5f85678d6737f4ec7e#code">0x0da233676f46427c31928f5f85678d6737f4ec7e</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0x31b1b337778948f2d5a1f70722cef7cca1b72e06#code">0x31b1b337778948f2d5a1f70722cef7cca1b72e06</a></code></td><td id="]VhX" class=""><code>ClaimFacet, PipelineConvertFacet</code></td></tr><tr id="022e4019-aad5-83ee-bbae-81014c94324c" dir="ltr"><td id="hnWE" class=""><code>LibPipelineConvert</code></td><td id="TPam" class=""><code><a href="https://basescan.org/address/0xb387ad744cc1a80ab629eea5ca15459076719a7a#code">0xb387ad744cc1a80ab629eea5ca15459076719a7a</a></code></td><td id="hTPb" class=""><code><a href="https://basescan.org/address/0xc7ed19335fcfc73552394dd911cdd56db1ac5e56#code">0xc7ed19335fcfc73552394dd911cdd56db1ac5e56</a></code></td><td id="]VhX" class=""><code>PipelineConvertFacet</code></td></tr></tbody></table><h3 id="0cfe4019-aad5-8250-967b-01bb440ed4fd" class="" dir="auto"><mark class="highlight-default" data-notion-highlight="default">Function Changes</mark></h3><div data-notion-highlight="gray" dir="auto"><ul id="cf5e4019-aad5-827e-aa8f-81fd07dfd37e" class="block-color-gray bulleted-list" data-notion-highlight="gray"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Added </mark><mark class="highlight-default" data-notion-highlight="default"><code>cultivationFactor(bytes,bytes,bytes)</code></mark><mark class="highlight-default" data-notion-highlight="default">, a view function that returns the encoded adjusted Cultivation Factor and unchanged gauge data. It does not store the factor itself. The adjustment uses the previous Season’s recorded Soil sellout, Pod Rate, and largest-USD-liquidity Well price.</mark></li></ul></div><ul id="4a3e4019-aad5-829d-a656-0138eeb522ae" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Added internal </mark><mark class="highlight-default" data-notion-highlight="default"><code>LibWell.getBeanUsdPriceForWell()</code></mark><mark class="highlight-default" data-notion-highlight="default"> and reused the calculated USD TWAP in </mark><mark class="highlight-default" data-notion-highlight="default"><code>LibEvaluate</code></mark><mark class="highlight-default" data-notion-highlight="default"> for price classification and Cultivation Factor evaluation. Extended </mark><mark class="highlight-default" data-notion-highlight="default"><code>BeanstalkState</code></mark><mark class="highlight-default" data-notion-highlight="default"> with </mark><mark class="highlight-default" data-notion-highlight="default"><code>largestLiquidWellTwapBeanPrice</code></mark><mark class="highlight-default" data-notion-highlight="default"> and </mark><mark class="highlight-default" data-notion-highlight="default"><code>twaDeltaB</code></mark><mark class="highlight-default" data-notion-highlight="default">. Updated the shared </mark><mark class="highlight-default" data-notion-highlight="default"><code>LibWell.getTokenBeanPriceFromTwaReserves()</code></mark><mark class="highlight-default" data-notion-highlight="default"> helper to return zero when either time-weighted reserve is at most 1, rather than only when it is zero.</mark></li></ul><ul id="f7fe4019-aad5-82c9-8fe5-0189df9b34c6" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Updated internal </mark><mark class="highlight-default" data-notion-highlight="default"><code>scaleSoilBelowPeg()</code></mark><mark class="highlight-default" data-notion-highlight="default"> to apply the 24-hour distribution period, Cultivation Factor, and qualified 50-Soil floor. </mark><mark class="highlight-default" data-notion-highlight="default"><code>setSoil()</code></mark><mark class="highlight-default" data-notion-highlight="default"> stores the resulting issuance. Updated </mark><mark class="highlight-default" data-notion-highlight="default"><code>getExtEvaluationParameters()</code></mark><mark class="highlight-default" data-notion-highlight="default"> to return </mark><mark class="highlight-default" data-notion-highlight="default"><code>soilDistributionPeriod</code></mark><mark class="highlight-default" data-notion-highlight="default"> and </mark><mark class="highlight-default" data-notion-highlight="default"><code>minSoilIssuance</code></mark><mark class="highlight-default" data-notion-highlight="default"> in two former buffer slots, reducing the remaining buffer from 63 to 61 entries without changing the selector.</mark></li></ul><ul id="b14e4019-aad5-833e-b922-015b05488d7c" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Updated the </mark><mark class="highlight-default" data-notion-highlight="default"><code>gm</code></mark><mark class="highlight-default" data-notion-highlight="default"> path through </mark><mark class="highlight-default" data-notion-highlight="default"><code>stepGauges()</code></mark><mark class="highlight-default" data-notion-highlight="default"> to run the existing Seed Gauge, engage the generalized gauges, and then calculate Soil. </mark><mark class="highlight-default" data-notion-highlight="default"><code>LibGaugeHelpers</code></mark><mark class="highlight-default" data-notion-highlight="default"> stores each returned value and gauge data. A failed </mark><mark class="highlight-default" data-notion-highlight="default"><code>staticcall</code></mark><mark class="highlight-default" data-notion-highlight="default"> or zero selector preserves the previous fields. A successful call with malformed return data can still revert during decoding.</mark></li></ul><ul id="ebce4019-aad5-832a-a12b-81c0ea274a90" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Added </mark><mark class="highlight-default" data-notion-highlight="default"><code>getGauge(GaugeId)</code></mark><mark class="highlight-default" data-notion-highlight="default">, which returns the Gauge configuration including value, target, selector, and data. Added </mark><mark class="highlight-default" data-notion-highlight="default"><code>getGaugeValue(GaugeId)</code></mark><mark class="highlight-default" data-notion-highlight="default">, which returns only the encoded gauge value. PI-6 did not enable public owner functions to add, remove, or update gauges.</mark></li></ul><ul id="813e4019-aad5-82af-b834-81396821420f" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Corrected the encoded </mark><mark class="highlight-default" data-notion-highlight="default"><code>LibCases</code></mark><mark class="highlight-default" data-notion-highlight="default"> values installed by </mark><mark class="highlight-default" data-notion-highlight="default"><code>InitPI6</code></mark><mark class="highlight-default" data-notion-highlight="default"> for Reasonably High price, Reasonably Low L2SR, and Reasonably or Excessively High Pod Rate, across all Soil-demand states. The existing </mark><mark class="highlight-default" data-notion-highlight="default"><code>getChangeFromCaseId()</code></mark><mark class="highlight-default" data-notion-highlight="default"> reads the corrected cases.</mark></li></ul><h3 id="3cde4019-aad5-82a8-8a0e-819b585f1924" class="" dir="auto"><mark class="highlight-default" data-notion-highlight="default">Event Changes</mark></h3><ul id="3dbe4019-aad5-83d8-a4eb-81727a0ad822" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Updated the Soil issuance calculation reported by the existing </mark><mark class="highlight-default" data-notion-highlight="default"><code>Soil(uint32,uint256)</code></mark><mark class="highlight-default" data-notion-highlight="default"> event. Its signature remained unchanged.</mark></li></ul><ul id="be7e4019-aad5-82b2-aaf8-013f55cda3ca" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><mark class="highlight-default" data-notion-highlight="default">Added </mark><mark class="highlight-default" data-notion-highlight="default"><code>AddedGauge(GaugeId,Gauge)</code></mark><mark class="highlight-default" data-notion-highlight="default">, emitted by initialization with the registered Cultivation Factor configuration, and </mark><mark class="highlight-default" data-notion-highlight="default"><code>Engaged(GaugeId,bytes)</code></mark><mark class="highlight-default" data-notion-highlight="default">, emitted after engagement with the stored encoded value, including the retained value after a failed call.</mark></li></ul><ul id="ccde4019-aad5-8278-be79-819546a56563" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The existing <code>BeanToMaxLpGpPerBdvRatioChange</code> event kept its signature. Its emitted adjustment reflects the corrected 2-percentage-point decreases, subject to the existing Crop Scalar bounds. <code>RemovedGauge</code> and <code>UpdatedGauge</code> were helper declarations, not newly enabled public mutation operations.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

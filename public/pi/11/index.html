@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-11: Update Convert Down Penalty Gauge and Dewhitelist Pools</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-8009-a9c7-d82396564538" class="page sans"><header><h1 class="page-title" dir="auto">PI-11: Update Convert Down Penalty Gauge and Dewhitelist Pools</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="357e4019-aad5-82c1-bc91-812b03fceae7" class="" dir="auto">Executed on July 31, 2025 at 15:34 UTC.</p><h2 id="bbee4019-aad5-82a5-81eb-019d96f68d15" class="" dir="auto">Summary</h2><ol type="1" id="82ce4019-aad5-8270-b144-81385941a2c7" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#dynamic-convert-down-penalty">Convert Down Penalty</a></strong><strong> Gauge V1.1:</strong> Update the Convert Down Penalty such that the Convert Down Penalty ratio is 100% during positive-<a href="https://docs.pinto.money/resources/glossary#deltap">TWAΔP</a> <a href="https://docs.pinto.money/resources/glossary#season">Seasons</a> while a minimum number of <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> has not yet been minted.</li></ol><ol type="1" id="a85e4019-aad5-83bc-b798-012c7d94aaf3" class="numbered-list" start="2" dir="auto"><li><strong>Pro-Rata Convert Down Penalty:</strong> Fix the application of the Convert Down Penalty in instances where the penalty should apply to only a portion of the <a href="https://docs.pinto.money/resources/glossary#deposit">Deposits</a> <a href="https://docs.pinto.money/resources/glossary#convert">Converted</a>.</li></ol><ol type="1" id="25be4019-aad5-8379-9338-8113d34fd749" class="numbered-list" start="3" dir="auto"><li><strong>Dewhitelist Pools:</strong> Dewhitelist the PINTO:WSOL and PINTO:WETH pools from the <a href="https://docs.pinto.money/resources/glossary#deposit-whitelist">Deposit Whitelist</a>.</li></ol><ol type="1" id="9d9e4019-aad5-83fd-b11e-8116d1a08dec" class="numbered-list" start="4" dir="auto"><li><strong>Optimal Deposited </strong><strong><a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">PDV</a></strong><strong>:</strong> Set the optimal percentage of Deposited PDV of PINTO:cbETH, PINTO:cbBTC and PINTO:USDC to 33.333333% each.</li></ol><h2 id="01fe4019-aad5-82cb-b1a0-817a7af544d7" class="" dir="auto">Links</h2><ul id="fbae4019-aad5-83b0-a31f-01556a77b111" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/136">Implementation PR</a></li></ul><ul id="25be4019-aad5-829a-b013-81d49ee8bd72" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0xa1029b873e5719b744bfac5dfa79533c390eab93b470d1067330259f8b47f95c&amp;safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507">Safe Transaction</a></li></ul><ul id="09ce4019-aad5-83be-85a0-0178ed2e8baf" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0x3a2e8a5b745422390c9c137c44cd6ceb404d42bc8687768bfd18cfc75ff81700">Diamond Cut Transaction</a></li></ul><ul id="285e4019-aad5-8242-b41e-81c5444e5c3c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/e08a5ea1a5aeb8ed5ae883b56c955da8035da20e">e08a5ea1a5aeb8ed5ae883b56c955da8035da20e</a></li></ul><h2 id="70ce4019-aad5-8314-9153-815bef717ae5" class="" dir="auto">Problems</h2><h3 id="a22e4019-aad5-821b-91a3-81ab7efab063" class="" dir="auto">1. Convert Down Penalty Gauge V1.1</h3><p id="be7e4019-aad5-8211-ba92-01852ec298db" class="" dir="auto">The Dynamic Convert Down Penalty had not resulted in the protocol spending significant time above its value target.</p><h3 id="d85e4019-aad5-82b5-986a-013a56a3b385" class="" dir="auto">2. Pro-Rata Convert Down Penalty</h3><p id="1a3e4019-aad5-837b-823d-8121a69b7953" class="" dir="auto">If a Pinto -&gt; LP Convert started with a price above the Excessively High Price threshold and resulted in a price below the Excessively High Price threshold, the protocol applied the penalty to all of the value Converted instead of only the portion below the threshold.</p><h3 id="f45e4019-aad5-8235-9f1b-01566652edd3" class="" dir="auto">3. Dewhitelist Pools</h3><p id="3f2e4019-aad5-83c9-8710-01540e9726fa" class="" dir="auto">Whitelisted LP tokens that contain an asset without liquidity on Base that is external to the <a href="https://docs.basin.exchange/components/well">Well</a> were unable to be Converted into other LP tokens on the Deposit Whitelist without incurring large slippage costs, creating friction for <a href="https://docs.pinto.money/resources/glossary#farmers">Farmers</a> to optimize their <a href="https://docs.pinto.money/resources/glossary#seeds">Seeds</a>. There was no external liquidity on Base for WSOL.</p><p id="8ece4019-aad5-837a-83a3-81b88fa57c24" class="" dir="auto">Fragmenting the ETH exposure of the protocol across two pools leads to greater slippage when interacting with the pools than if the liquidity were concentrated in a single pool. </p><h3 id="b9ce4019-aad5-8255-aba5-01111c23a375" class="" dir="auto">4. Optimal Deposited PDV</h3><p id="381e4019-aad5-8303-82eb-81aec8c7bce9" class="" dir="auto">The removal of the two assets from the Deposit Whitelist required resetting the optimal distribution for the remaining tokens. </p><h2 id="dcde4019-aad5-828b-9c24-817ab5166a33" class="" dir="auto">Solutions</h2><h3 id="8c9e4019-aad5-83f5-8581-018e2446300c" class="" dir="auto">1. Convert Down Penalty Gauge V1.1</h3><ul id="796e4019-aad5-83ef-8eee-01351a1d8cc4" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Introduce a new price, <code>penalty price</code>, and supply threshold <span data-notion-inline-equation="T_t*" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∗</span></span></span></span></span>, where Pinto -&gt; LP Converts face a penalty if the price after the Conversion is below the <code>penalty price</code>. The minting threshold delays normal penalty decay until tracked mints reach <span data-notion-inline-equation="T_t*" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∗</span></span></span></span></span>.</li></ul><ul id="a59e4019-aad5-8369-92a1-016e3dbcc2d1" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Increase the supply threshold as a function of the number of consecutive Seasons the protocol spends below the value target. Once the number of Pinto minted reaches the threshold, clear the threshold before decreasing the Convert Down Penalty dynamically in the same fashion as before the update. While positive TWAΔP Seasons remain below the minting threshold, the <a href="https://docs.pinto.money/resources/glossary">Blight Factor</a> (rolling counter) does not increase. Nonpositive TWAΔP Seasons can still decrease it. The clearing Season retains the previous penalty ratio and counter, with decay beginning in subsequent Seasons.</li></ul><ul id="d84e4019-aad5-82a0-b759-0169621c7f27" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Set the Convert Down Penalty ratio during positive-TWAΔP Seasons while tracked mints remain below the outstanding minting threshold to 100%.</li></ul><p id="719e4019-aad5-831a-adc0-01c8c4c991c0" class="" dir="auto">Every Season, update the Convert Down Penalty Minting Threshold <span data-notion-inline-equation="T_t*" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∗</span></span></span></span></span> based on TWAΔP. Each Season with TWAΔP &lt; 0 adds current supply × <span data-notion-inline-equation="b" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span> to the main threshold while unlocked, or to a running threshold while locked. The running threshold replaces the main threshold only when it exceeds it, then resets. Above-target Seasons reset the running threshold. Reaching the minting threshold clears the main threshold and tracked mints. At zero TWAΔP these thresholds remain unchanged.</p><p id="0a9e4019-aad5-83bf-851e-81759aa132d9" class="" dir="auto">For TWAΔP &lt; 0, add <span data-notion-inline-equation="\lfloor b \times S \rfloor" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌊</span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mclose">⌋</span></span></span></span></span> to the main threshold if unlocked, or to the running threshold if locked.</p><p id="2a1e4019-aad5-8325-b2c0-0182954d43f4" class="" dir="auto">If the running threshold exceeds the main threshold, replace the main threshold with it, reset the running threshold to zero and unlock the threshold. Tracked mints are not reset by this replacement.</p><p id="196e4019-aad5-8327-bf5a-8162a5195130" class="" dir="auto">Where:</p><ul id="f53e4019-aad5-834a-b26a-8172ef79abcc" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><span data-notion-inline-equation="b" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span> = supply scalar = 0.000416666666666667 (1%/24)</li></ul><ul id="e3ce4019-aad5-8248-98be-014665069139" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><span data-notion-inline-equation="S" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></span> = current supply</li></ul><h3 id="e89e4019-aad5-83fb-afbd-812de2e841ce" class="" dir="auto">2. Pro-Rata Convert Down Penalty</h3><ul id="738e4019-aad5-836e-b20a-01aef3aa49b4" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Apply the Convert Down Penalty ratio only to the proportion of Converted PDV below the $1.005 penalty price, subject to integer rounding. Retain the minimum <a href="https://docs.pinto.money/resources/glossary#grown-stalk">Grown Stalk</a> required for a <a href="https://docs.pinto.money/resources/glossary#germination">non-germinating</a> Deposit. Converts ending above the penalty price incur no Convert Down Penalty.</li></ul><h3 id="7d0e4019-aad5-83eb-abba-01cbc56aca4b" class="" dir="auto">3. Dewhitelist Pools</h3><ul id="f3de4019-aad5-823e-a781-016686057f78" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Remove PINTO:WSOL and PINTO:WETH from the Deposit Whitelist, which<br/>1) sets the Seed <a href="https://docs.pinto.money/resources/glossary#gauge-points">Gauge Points</a> for these assets to 0,<br/>2) disables Depositing these LP tokens and Converts into these pools. Retain the ability to Convert out of these previously whitelisted Wells. Reduce <code>stalkEarnedPerSeason</code> to its minimum nonzero raw value of 1 and retain <code>isSoppable</code> for claims on prior <a href="https://docs.pinto.money/resources/glossary#flood">Flood</a> rewards.</li></ul><h3 id="138e4019-aad5-82e8-9903-01d4a36e69ba" class="" dir="auto">4. Optimal Deposited PDV</h3><ul id="614e4019-aad5-833d-ba21-812e571f78f7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update the optimal percent of Deposited PDV for the remaining Whitelisted pools as follows:<ul id="ef4e4019-aad5-82ef-b8f6-01f78ade1e04" class="bulleted-list" dir="auto"><li style="list-style-type:circle">33.333333% PINTO:cbBTC</li></ul><ul id="170e4019-aad5-82e1-a730-01b15758349e" class="bulleted-list" dir="auto"><li style="list-style-type:circle">33.333333% PINTO:cbETH</li></ul><ul id="0fbe4019-aad5-839f-b4ea-81875a6b2438" class="bulleted-list" dir="auto"><li style="list-style-type:circle">33.333333% PINTO:USDC</li></ul></li></ul><h2 id="611e4019-aad5-82cb-b0d6-8142d9db5f43" class="" dir="auto">Rationale</h2><h3 id="7bfe4019-aad5-8308-8330-0179ceae1a36" class="" dir="auto">1. Convert Down Penalty Gauge V1.1</h3><p id="b96e4019-aad5-8336-8a8a-81a814caf363" class="" dir="auto">The Dynamic Convert Down Penalty started to decrease after the first Season in which the protocol logged a TWA∆P &gt; 0. Particularly after longer periods where the protocol has failed to log a TWA∆P &gt; 0, the protocol should highly discourage Pinto -&gt; LP Converts until either the protocol mints some number of Pinto or the price is significantly above the value target.</p><p id="e1ae4019-aad5-82b2-8aee-81c91a981bd7" class="" dir="auto">By increasing the number of Pinto minted required before the penalty can decrease the longer TWAΔP remains negative the protocol aims to ensure that it mints a healthy number of Pinto before Pinto -&gt; LP Converts return the price to its value target, where longer extended periods below the value target justify more minting once it returns to the value target. Once the minting threshold is cleared, subsequent positive-TWAΔP Seasons increase the Blight Factor so the protocol can gradually decrease the penalty until it reaches a level at which the protocol is able to oscillate across its value target. </p><h3 id="036e4019-aad5-82a3-a27b-81301a008893" class="" dir="auto">2. Pro-Rata Convert Down Penalty</h3><p id="9f9e4019-aad5-8224-921a-015f188c044a" class="" dir="auto">Applying the penalty only to the portion below the penalty price avoids penalizing the part of a Convert that maintains the price above that threshold.</p><h3 id="ec6e4019-aad5-8295-adf1-81e638892b28" class="" dir="auto">3. Dewhitelist Pools</h3><p id="8cbe4019-aad5-822f-a3ba-01bb74e02901" class="" dir="auto">There was no WSOL or SOL on Base other than in the PINTO:WSOL Well. The result was that any LP -&gt; LP Converts to and from the pool experienced a very high amount of slippage. This resulted in a loss of value for Convertors and the protocol, and created a high degree of friction for the <a href="https://docs.pinto.money/resources/glossary#seed-gauge-system">Seed Gauge System</a> to work effectively.</p><p id="125e4019-aad5-83d1-8e34-810f12c849f3" class="" dir="auto">By reducing the number of pools with ETH exposure and concentrating the exposure in cbETH, the protocol minimizes the slippage experienced by Convertors and traders in the system and increases the amount of yield received on its liquidity. The downside is that all remaining paired assets carry censorship risk from Circle/Coinbase. </p><h3 id="24ae4019-aad5-823f-af5b-819966c45d0e" class="" dir="auto">4. Optimal Deposited PDV</h3><p id="bb5e4019-aad5-82d2-91f4-01093baa5193" class="" dir="auto">Setting the optimal ratios of the remaining pools to be approximately 1/3 each is a reasonable distribution of liquidity, with approximately 2/3 of the target Deposited PDV exposed to the crypto market and 1/3 exposed to stablecoins.</p><h2 id="5a9e4019-aad5-83e0-80f1-01baf40f31e7" class="" dir="auto">Contract Changes</h2><h3 id="b74e4019-aad5-82b2-91da-01ccf08644a7" class="" dir="auto">Initialization</h3><p id="f14e4019-aad5-83a5-ad2d-011488bd9b6d" class="" dir="auto">Executed <code>InitPI11.init()</code> at <code><a href="https://basescan.org/address/0x35c229daa5e9028672137854b6342b57e058fb00#code">0x35c229daa5e9028672137854b6342b57e058fb00</a></code>. Reset the Convert Down Penalty ratio and rolling counter to 0. Initialized the locked minting threshold to 15,007,159.669041 Pinto, tracked mints and running threshold to 0, and the supply scalar to 0.000416666666666667 per negative-TWAΔP Season. Retained the counter rate of 1 and cap of 12. Set the independent penalty price to $1.005, dewhitelisted PINTO:WSOL and PINTO:WETH, and set the three remaining optimal Deposited PDV percentages to 33.333333% each.</p><h3 id="dd9e4019-aad5-82e8-83bf-81dfc6494359" class="" dir="auto">Facet Changes</h3><table id="81ce4019-aad5-8222-b9b4-8197d6a55dfc" class="simple-table" dir="ltr"><tbody><tr id="3c8e4019-aad5-828c-a2f3-01045ff8ac5f" dir="ltr"><td id="[FAO" class=""><strong>Facet</strong></td><td id="aY\M" class=""><strong>Action</strong></td><td id="TUJJ" class=""><strong>Previous Implementation</strong></td><td id="gYji" class=""><strong>New Implementation</strong></td></tr><tr id="2f8e4019-aad5-8272-b870-01d6d62f627f" dir="ltr"><td id="[FAO" class=""><code>ConvertFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0xdfa197784879926e2358a7c71c6a0bd487f919fd#code">0xdfa197784879926e2358a7c71c6a0bd487f919fd</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x9e090554525af3e39b7191bcefaed4a594bfdf24#code">0x9e090554525af3e39b7191bcefaed4a594bfdf24</a></code></td></tr><tr id="433e4019-aad5-82c5-a706-8195d17d1723" dir="ltr"><td id="[FAO" class=""><code>ConvertGettersFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0xe0b8fca80b1a7060fea44c6f823b221ec9d7217c#code">0xe0b8fca80b1a7060fea44c6f823b221ec9d7217c</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0xc2eddd1cfb0ac4aab93a6aaedc097b8ccc114710#code">0xc2eddd1cfb0ac4aab93a6aaedc097b8ccc114710</a></code></td></tr><tr id="2e3e4019-aad5-82f3-bb2b-81f4d77d6828" dir="ltr"><td id="[FAO" class=""><code>PipelineConvertFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0xc54cd71bfa5d0fe05d887eabbec4dbbc94cf74ba#code">0xc54cd71bfa5d0fe05d887eabbec4dbbc94cf74ba</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x68206dab632667e293589078800a9a7ccca39b63#code">0x68206dab632667e293589078800a9a7ccca39b63</a></code></td></tr><tr id="7bbe4019-aad5-83e0-8778-018498e4f832" dir="ltr"><td id="[FAO" class=""><code>GaugeFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0x046c76aee5d109fba8708ee58a50d76eea1f98dc#code">0x046c76aee5d109fba8708ee58a50d76eea1f98dc</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0xb054a1348d2a9fd5ba1eaa51ef1aee2d6ad402ed#code">0xb054a1348d2a9fd5ba1eaa51ef1aee2d6ad402ed</a></code></td></tr><tr id="ef9e4019-aad5-829b-bcdc-8152d9a9a07c" dir="ltr"><td id="[FAO" class=""><code>ApprovalFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0xa7c95ed70be8f91f8d8af91de193710fa7ab32bb#code">0xa7c95ed70be8f91f8d8af91de193710fa7ab32bb</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x463edf62ff627351518dcf0ac015c1e98562412f#code">0x463edf62ff627351518dcf0ac015c1e98562412f</a></code></td></tr><tr id="645e4019-aad5-8243-b538-81b1b3889e5f" dir="ltr"><td id="[FAO" class=""><code>SeasonFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0x9c74f623d22c4132211c9a8c605de7d2cda01700#code">0x9c74f623d22c4132211c9a8c605de7d2cda01700</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x0c5aa699e1979493e172d114193ee75c6a5afb39#code">0x0c5aa699e1979493e172d114193ee75c6a5afb39</a></code></td></tr><tr id="dbfe4019-aad5-8354-a018-0143ac6e4851" dir="ltr"><td id="[FAO" class=""><code>ClaimFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0xd38c3e61bf08734cd808aca15c944389968612e0#code">0xd38c3e61bf08734cd808aca15c944389968612e0</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x8bbcc20eaf03191f1970ed5d93567ab76034f44d#code">0x8bbcc20eaf03191f1970ed5d93567ab76034f44d</a></code></td></tr><tr id="712e4019-aad5-83eb-ad67-8155fb040970" dir="ltr"><td id="[FAO" class=""><code>SiloGettersFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0xadfd7fbe59ca2624cec1b04f9bc65c7f90efed36#code">0xadfd7fbe59ca2624cec1b04f9bc65c7f90efed36</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x954fba56a8356e7439f41a39579c7be59791d92f#code">0x954fba56a8356e7439f41a39579c7be59791d92f</a></code></td></tr><tr id="bfce4019-aad5-8347-a82d-017bf66c8ea8" dir="ltr"><td id="[FAO" class=""><code>GaugeGettersFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0x0f97cb8bb44d3d7a0afaeac24bbfe152215e3c5a#code">0x0f97cb8bb44d3d7a0afaeac24bbfe152215e3c5a</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x889d0183c752b89e8d6cd62870b4f8eb70d10893#code">0x889d0183c752b89e8d6cd62870b4f8eb70d10893</a></code></td></tr><tr id="b76e4019-aad5-837e-b561-81b7fd58047a" dir="ltr"><td id="[FAO" class=""><code>OracleFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0x7256fad9eb704173afe2185d1a44edf826ff6c86#code">0x7256fad9eb704173afe2185d1a44edf826ff6c86</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x5d8e457dd58f443237e105c2f27dc2c75133976c#code">0x5d8e457dd58f443237e105c2f27dc2c75133976c</a></code></td></tr><tr id="0e2e4019-aad5-836f-90db-81d154f1d14c" dir="ltr"><td id="[FAO" class=""><code>SeasonGettersFacet</code></td><td id="aY\M" class="">Replace</td><td id="TUJJ" class=""><code><a href="https://basescan.org/address/0xebaa2c95efc7f1cef1a57dfb5fe05f8935d7390e#code">0xebaa2c95efc7f1cef1a57dfb5fe05f8935d7390e</a></code></td><td id="gYji" class=""><code><a href="https://basescan.org/address/0x47246b05945031432f30becbf602d2d7dc6fece0#code">0x47246b05945031432f30becbf602d2d7dc6fece0</a></code></td></tr></tbody></table><p id="321e4019-aad5-8299-bc32-811bfdc50a4c" class="" dir="auto">The cut replaced 179 selectors, removed <code>downPenalizedGrownStalk(address,uint256,uint256)</code> (<code>0x527ec6ba</code>), and added its four-argument replacement and <code>getMaxAmountInAtRate(address,address,uint256)</code>. The seven supporting facets were redeployed without changes to their own source files. Replacement alone does not imply every getter changed.</p><h3 id="e02e4019-aad5-83d6-a5cd-81993ca8346f" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="f90e4019-aad5-820a-a0e8-01618de19e38" class="" dir="auto">The following externally linked libraries were redeployed. Only <code>LibConvert</code> and <code>LibPipelineConvert</code> changed their own source files relative to their previous deployments. Other library source files were unchanged, although some compiled dependencies changed.</p><table id="b15e4019-aad5-83f0-bdcb-01f0b8bdab0f" class="simple-table" dir="ltr"><tbody><tr id="70ce4019-aad5-822a-8949-814506b34172" dir="ltr"><td id="SA&lt;{" class=""><strong>Library</strong></td><td id="CQDk" class=""><strong>Previous Implementation</strong></td><td id="FJXn" class=""><strong>New Implementation</strong></td><td id="c]cs" class=""><strong>Used By</strong></td></tr><tr id="14fe4019-aad5-83d2-9206-019f29a35941" dir="ltr"><td id="SA&lt;{" class=""><code>LibConvert</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0x71e8ab0a025c0b96d64c34759880e6ba2ba0baa0#code">0x71e8ab0a025c0b96d64c34759880e6ba2ba0baa0</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x98b7efa3ceb5076a59aa54256657114dba4401a1#code">0x98b7efa3ceb5076a59aa54256657114dba4401a1</a></code></td><td id="c]cs" class=""><code>ConvertFacet</code></td></tr><tr id="a2de4019-aad5-83a4-9530-810459816401" dir="ltr"><td id="SA&lt;{" class=""><code>LibPipelineConvert</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0xa4a2d1e394faac3e60297a55cdceeb38c0b6ca18#code">0xa4a2d1e394faac3e60297a55cdceeb38c0b6ca18</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0xdd7f09a5c4ea7d742a6a2916509e968faffd22a5#code">0xdd7f09a5c4ea7d742a6a2916509e968faffd22a5</a></code></td><td id="c]cs" class=""><code>ConvertFacet, PipelineConvertFacet</code></td></tr><tr id="ea8e4019-aad5-82bd-a8bd-01d8ecf4603e" dir="ltr"><td id="SA&lt;{" class=""><code>LibSilo</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0xefa4e6492966228a7af3d5d9045bd9c9e5dc72bf#code">0xefa4e6492966228a7af3d5d9045bd9c9e5dc72bf</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0xb8d171d90bbcd178b594b69b7c3f510775eeaf46#code">0xb8d171d90bbcd178b594b69b7c3f510775eeaf46</a></code></td><td id="c]cs" class=""><code>ConvertFacet, PipelineConvertFacet, ClaimFacet</code></td></tr><tr id="769e4019-aad5-83af-a1eb-81bb99bf0650" dir="ltr"><td id="SA&lt;{" class=""><code>LibTokenSilo</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0xf2a0e7fb0e9b1189b14274418e4ac78ae449b4ed#code">0xf2a0e7fb0e9b1189b14274418e4ac78ae449b4ed</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x8013c1b3d6d63741c6fefb05b4106f330cf18118#code">0x8013c1b3d6d63741c6fefb05b4106f330cf18118</a></code></td><td id="c]cs" class=""><code>ConvertFacet, PipelineConvertFacet, ClaimFacet</code></td></tr><tr id="fe0e4019-aad5-8282-88f7-8105ca6e2120" dir="ltr"><td id="SA&lt;{" class=""><code>LibEvaluate</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0x1687f3eccced54e4ea4d98ffa13e2108954501e5#code">0x1687f3eccced54e4ea4d98ffa13e2108954501e5</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0xe3de9e4f8cfd5f52522e2a6ace70787c880dbf89#code">0xe3de9e4f8cfd5f52522e2a6ace70787c880dbf89</a></code></td><td id="c]cs" class=""><code>SeasonFacet</code></td></tr><tr id="065e4019-aad5-8224-be7b-819d610bdd29" dir="ltr"><td id="SA&lt;{" class=""><code>LibGauge</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0xfa27f1b255a02a929a7a4e668066ce76cadcc09c#code">0xfa27f1b255a02a929a7a4e668066ce76cadcc09c</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x72a5e9f867dda828473b19f1f9e5c2f0d72b99b2#code">0x72a5e9f867dda828473b19f1f9e5c2f0d72b99b2</a></code></td><td id="c]cs" class=""><code>SeasonFacet</code></td></tr><tr id="02ee4019-aad5-832f-8c76-81e57e69ac3d" dir="ltr"><td id="SA&lt;{" class=""><code>LibIncentive</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0xb3f71bf8362cbaafebb99e1e5fac02c85e1ecfcc#code">0xb3f71bf8362cbaafebb99e1e5fac02c85e1ecfcc</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x20ad7475af48004993a9b0da582155b0c15c6fba#code">0x20ad7475af48004993a9b0da582155b0c15c6fba</a></code></td><td id="c]cs" class=""><code>SeasonFacet</code></td></tr><tr id="398e4019-aad5-82ae-acef-8125c92fb453" dir="ltr"><td id="SA&lt;{" class=""><code>LibShipping</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0x166ab367e077e65f1a4f273f05d8c25a3c3ea398#code">0x166ab367e077e65f1a4f273f05d8c25a3c3ea398</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x3d71794eb70bea52681b8bce8e9c7af33fbdbad1#code">0x3d71794eb70bea52681b8bce8e9c7af33fbdbad1</a></code></td><td id="c]cs" class=""><code>SeasonFacet</code></td></tr><tr id="ee2e4019-aad5-8242-a81a-01729b25d424" dir="ltr"><td id="SA&lt;{" class=""><code>LibWellMinting</code></td><td id="CQDk" class=""><code>SeasonFacet: </code><code><a href="https://basescan.org/address/0xd76d2011647f57071cca0d182f0d524abeaee84e#code">0xd76d2011647f57071cca0d182f0d524abeaee84e</a></code><code>; SeasonGettersFacet: </code><code><a href="https://basescan.org/address/0x6dd836e7fe603bd73532bf6b5cbb188b7fcc7fa9#code">0x6dd836e7fe603bd73532bf6b5cbb188b7fcc7fa9</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x795381dfec56fda5a423080f6d7b446c3172974c#code">0x795381dfec56fda5a423080f6d7b446c3172974c</a></code></td><td id="c]cs" class=""><code>SeasonFacet, SeasonGettersFacet</code></td></tr><tr id="ff3e4019-aad5-8350-ae7d-0182e12d654c" dir="ltr"><td id="SA&lt;{" class=""><code>LibFlood</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0x20a9aeac56fee169dec4d8a5c454e818b55fa8af#code">0x20a9aeac56fee169dec4d8a5c454e818b55fa8af</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0xaba142b51d6684e5471537379cead55afe2f1202#code">0xaba142b51d6684e5471537379cead55afe2f1202</a></code></td><td id="c]cs" class=""><code>SeasonFacet</code></td></tr><tr id="088e4019-aad5-8345-818b-811af85b4011" dir="ltr"><td id="SA&lt;{" class=""><code>LibGerminate</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0xaedabcc13a7c44d612cb3776b6a2f3a81fd3d932#code">0xaedabcc13a7c44d612cb3776b6a2f3a81fd3d932</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x46a29a054861fa5eba24ed262c4215cc3e2365f1#code">0x46a29a054861fa5eba24ed262c4215cc3e2365f1</a></code></td><td id="c]cs" class=""><code>SeasonFacet</code></td></tr><tr id="064e4019-aad5-82c8-a013-01cdacd4a2e1" dir="ltr"><td id="SA&lt;{" class=""><code>LibWeather</code></td><td id="CQDk" class=""><code><a href="https://basescan.org/address/0x82e2cfe47cf2ddd23755f81abb1349bdd96b5bfe#code">0x82e2cfe47cf2ddd23755f81abb1349bdd96b5bfe</a></code></td><td id="FJXn" class=""><code><a href="https://basescan.org/address/0x9f0e6b3e54a91d677e30ce180dbe193cc65c388d#code">0x9f0e6b3e54a91d677e30ce180dbe193cc65c388d</a></code></td><td id="c]cs" class=""><code>SeasonFacet</code></td></tr></tbody></table><p id="3dde4019-aad5-8253-aed2-812d2f50ee11" class="" dir="auto">The old penalty used the $1.025 Excessively High Price threshold. PI-11 used a separate $1.005 <code>convertDownPenaltyRate</code> without changing the existing evaluation parameters. The new minting-threshold fields had no prior equivalents. Dewhitelisting set Gauge Points and optimal Deposited PDV percentages to 0, set <code>stalkEarnedPerSeason</code> to the minimum raw value of 1, and preserved <code>isSoppable</code> for previous Flood claims. Optimal Deposited PDV changed from 12.5% to 33.333333% for PINTO:cbETH, from 25% to 33.333333% each for PINTO:cbBTC and PINTO:USDC, from 12.5% to 0 for PINTO:WETH, and from 25% to 0 for PINTO:WSOL. The three remaining raw percentages sum to 99.999999%, with normalization in the Seed Gauge calculation.</p><h3 id="2fde4019-aad5-82ff-9192-01de62d523ea" class="" dir="auto">Function Changes</h3><ul id="c53e4019-aad5-8360-8bc6-01b3dcfa9698" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>convertDownPenaltyGauge()</code> to track minted Pinto and main/running thresholds. It retains the <code>bytes/bytes</code> return shape and two-field value, while its data expands from two fields to eight. The existing engagement path stores both returned values. For TWAΔP &gt; 0 with an outstanding threshold, it reset the running threshold and added TWAΔP to tracked mints. Below the minting threshold it returned a 100% ratio without changing the counter. Equality or excess cleared the threshold and tracked mints while retaining the prior ratio and counter for that Season. For TWAΔP &lt; 0 it added floor(current supply × scalar) to the unlocked main threshold or locked running threshold. A strictly greater running threshold replaced the main threshold and unlocked it. It preserved tracked mints when replacing the threshold. Nonpositive TWAΔP reduced the counter toward its lower bound of 0. Zero TWAΔP left the threshold fields unchanged. A zero <a href="https://docs.pinto.money/resources/glossary#liquidity-to-supply-ratio-l2sr">L2SR</a> retained the previous ratio after the counter update.</li></ul><ul id="c68e4019-aad5-839b-9f02-8132a980d204" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>convert()</code> and <code>pipelineConvert()</code> to pass the number of Pinto Converted into <code>LibConvert.downPenalizedGrownStalk()</code>. The shared helper calculated the penalized portion using instantaneous <a href="https://docs.basin.exchange/components/pump">Pump</a> reserves and <code>calcReserveAtRatioLiquidity()</code> at the configured rate. It prorated PDV, then Grown Stalk, then the penalty using floor division at each step, while retaining the non-germinating minimum. Deposits already below that minimum bypassed the penalty. The helper rejected zero PDV/input before bypass checks, rejected ratios above 100% after those checks, and checked the penalized-input bound when the ratio was nonzero. USD oracle failure reverted the call. A failed instantaneous Pump read also reverted when the returned empty reserve array was indexed.</li></ul><ul id="deee4019-aad5-83d9-acb9-01790643e856" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Replaced <code>downPenalizedGrownStalk(address,uint256,uint256)</code> with <code>downPenalizedGrownStalk(address,uint256,uint256,uint256)</code> (<code>0x01c74ef1</code>), adding <code>amountConverted</code>. It returns remaining and lost Grown Stalk from the revised helper.</li></ul><ul id="58ce4019-aad5-824a-b645-811ebb2adaa7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>getMaxAmountInAtRate(address,address,uint256)</code> (<code>0x9fb36a2b</code>) for Pinto → currently whitelisted Well LP quotes at a six-decimal rate. This quote uses current Well reserves and returns 0 when no Pinto can be added at the requested rate. A zero rate or failed USD oracle reverts. Other token directions revert. Rounding can leave the resulting price slightly below the requested rate. Added the shared internal <code>LibWell.getRatiosAndBeanIndexAtRate()</code> and generalized <code>LibWellConvert._beansToPegAtRate()</code>. Existing default-rate callers retained the $1 rate.</li></ul><ul id="fb5e4019-aad5-82a7-ac35-019e9bf92a9c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>pipelineConvert()</code>, the LP → Pinto conversion paths, <code>getMaxAmountIn()</code> and <code>getAmountOut()</code> to allow inputs from previously whitelisted Wells through <code>wellIsOrWasSoppable()</code>. Output Wells still had to be currently whitelisted. No new deposit path into dewhitelisted Wells was added.</li></ul><h3 id="3ade4019-aad5-83a9-ab88-81e0286b45fa" class="" dir="auto">Event Changes</h3><ul id="3b5e4019-aad5-8229-9059-01c5e1f609c2" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Emitted <code>UpdatedGauge</code> during initialization with the expanded Convert Down Penalty data and reset value. The event signature was unchanged. Normal gauge engagement retains <code>Engaged</code> and <code>EngagedData</code>, with <code>EngagedData</code> now carrying the expanded eight-field data and updated thresholds. Their signatures are unchanged.</li></ul><ul id="821e4019-aad5-839e-9f83-81192bb78c01" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Retained <code>ConvertDownPenalty</code> in both conversion paths, with lost and remaining Grown Stalk reflecting the revised pro-rata calculation. Its signature was unchanged.</li></ul><ul id="046e4019-aad5-82a1-9e59-81ddba6817e9" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Emitted <code>UpdateWhitelistStatus</code>, <code>UpdatedStalkPerBdvPerSeason</code> and <code>DewhitelistToken</code> for PINTO:WSOL and PINTO:WETH, and <code>UpdatedOptimalPercentDepositedBdvForToken</code> for the three remaining pools during initialization.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

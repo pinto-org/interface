@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-7: Dynamic Convert Down Penalty</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-8095-b7dd-d5c29a803f50" class="page sans"><header><h1 class="page-title" dir="auto">PI-7: Dynamic Convert Down Penalty</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="708e4019-aad5-83d0-877f-016c20e28298" class="" dir="auto">Executed on March 25, 2025 at 20:44 UTC.</p><h2 id="9e3e4019-aad5-83de-a8c9-01d7f6f65a63" class="" dir="auto">Summary</h2><p id="7a7e4019-aad5-82cf-a641-8112aa207da2" class="" dir="auto">Introduce a Dynamic <a href="https://docs.pinto.money/resources/glossary#stalk">Stalk</a> Penalty to <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> -&gt; LP <a href="https://docs.pinto.money/resources/glossary#convert">Converts</a> as a function of the <a href="https://docs.pinto.money/resources/glossary#liquidity-to-supply-ratio-l2sr">L2SR</a> and a bounded counter determined by whether previous <a href="https://docs.pinto.money/resources/glossary#season">Seasons</a> were spent above or below the value target.</p><p id="50de4019-aad5-832d-8a3e-013730c8dce7" class="" dir="auto">Decrease the Excessively High Price threshold (<span data-notion-inline-equation="P^{\mathrm{upper}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">upper</span></span></span></span></span></span></span></span></span></span></span></span></span></span>) to account for the higher volatility above the value target that this Dynamic Stalk Penalty potentially creates.</p><h2 id="826e4019-aad5-8390-b5e5-0101a8144b10" class="" dir="auto">Links</h2><ul id="8f7e4019-aad5-8343-86bb-81441de66a4e" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/33">Implementation PR</a></li></ul><ul id="6c0e4019-aad5-82d7-81d8-01f7e81d8742" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <code><a href="https://github.com/pinto-org/protocol/commit/4c3d94586f988dd944d6444fe492fff155962201">4c3d94586f988dd944d6444fe492fff155962201</a></code></li></ul><ul id="ce2e4019-aad5-823b-9be6-01595241dd45" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507&amp;id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0x144471837b224e09b6d809ed87bdaacd9d9ce313752c17015118552b5e5785d2">Safe Transaction</a></li></ul><ul id="394e4019-aad5-8234-afac-81fa6e901e20" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0x7b860fc2cb8e2ecfec5cad58e3e8a120d99023de7ef5a05f077700ff7200e5cc">Diamond Cut Transaction</a></li></ul><h2 id="02be4019-aad5-8214-b5a3-816e7b596e5f" class="" dir="auto">Problem</h2><p id="e8ce4019-aad5-831e-ad02-813132cc447f" class="" dir="auto">Previously, when the price of Pinto crossed above its value target, the Convert Down Penalty went from 100% (<em>i.e.</em>, loss of <a href="https://docs.pinto.money/resources/glossary#grown-stalk">Grown Stalk</a> above the <a href="https://docs.pinto.money/resources/glossary#germination">non-Germinating</a> minimum) to 0% (<em>i.e.</em>, no Penalty). Given the overwhelming preference demonstrated by Depositors to hold LP over Pinto in the <a href="https://docs.pinto.money/resources/glossary#silo">Silo</a>, as soon as the Convert Penalty went to 0, there were Pinto -&gt; LP Converts that returned the price to its value target. This had the effect of keeping the time the price spent above its value target to an absolute minimum. </p><p id="607e4019-aad5-8245-b755-01f5849c03e0" class="" dir="auto">While this minimized the amount of minting, which can minimize downside volatility, it also compromised the protocol’s ability to oscillate across the value target, and to spend comparable amounts of time above and below the value target, which decreases utility and therefore long-term demand.</p><p id="983e4019-aad5-83be-b6d9-0164cc7b84f3" class="" dir="auto">The binary between a 100% penalty and no penalty to Convert Down also favored users with automated execution, concentrating the distribution of LP <a href="https://docs.pinto.money/resources/glossary#deposit">Deposits</a> and therefore control of the ability to Convert Up when the price is below its value target. A widespread distribution of LP and Pinto ownership is healthier for the protocol than a concentrated one.</p><h2 id="870e4019-aad5-83ac-a536-011b239a20d9" class="" dir="auto">Solution</h2><p id="843e4019-aad5-8342-8813-8174ade9df8c" class="" dir="auto">Introduce a Dynamic Stalk Penalty for Pinto -&gt; LP Converts as a function of the L2SR and a counter from 0 to 12 that increases by 1 when a Season has <span data-notion-inline-equation="\mathrm{TWA}\Delta P&gt;0" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span> and decreases by 1 otherwise. The penalty ratio ranges from 0% to 100% of the Stalk accumulated from <a href="https://docs.pinto.money/resources/glossary#seeds">Seeds</a> of the Converted Deposit. The penalty preserves the minimum Grown Stalk required for the output Deposit to remain non-Germinating. </p><p id="bf6e4019-aad5-82dc-9b44-01ac5a4aac0d" class="" dir="auto">The Stalk Penalty Factor updates according to the counter rule below. </p><p id="90ee4019-aad5-83e3-8fda-01018ede91b4" class="" dir="auto">To implement this system, introduce a <code>CONVERT_DOWN_PENALTY</code> gauge system that updates the Dynamic Stalk Penalty incurred by Pinto -&gt; LP Converts.</p><p id="805e4019-aad5-8357-8a68-81a004bf1dfd" class="" dir="auto">We define the Stalk Penalty Factor in Season <span data-notion-inline-equation="t" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span></span> (<span data-notion-inline-equation="\mathfrak{G}_t" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8414em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>) for a given Season of PI-7 deployment (<span data-notion-inline-equation="t_0" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7651em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>), maximum Stalk Penalty Factor (<span data-notion-inline-equation="\mathfrak{G}^{\mathrm{max}},\text{ where}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">max</span></span></span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord"> where</span></span></span></span></span></span> <span data-notion-inline-equation="\mathfrak{G}^{\mathrm{max}}=12" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6914em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">max</span></span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">12</span></span></span></span></span>), and time-weighted average Pinto supply delta over the previous Season (<span data-notion-inline-equation="\mathrm{TWA}\Delta P_{t-1}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8917em;vertical-align:-0.2083em;"></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span></span>) as:</p><p id="1a5e4019-aad5-8390-90a5-014e387737da" class="" dir="auto"><span data-notion-inline-equation="\mathfrak{G}_t=\begin{cases}0&amp;\text{at initialization}\\\min(12,\mathfrak{G}_{t-1}+1)&amp;\text{if }\mathrm{TWA}\Delta P_{t-1}&gt;0\\\max(0,\mathfrak{G}_{t-1}-1)&amp;\text{if }\mathrm{TWA}\Delta P_{t-1}\le0\end{cases}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8414em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:4.32em;vertical-align:-1.91em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-2.2em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎩</span></span></span><span style="top:-2.192em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.316em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.8889em" height="0.316em" style="width:0.8889em" viewBox="0 0 888.89 316" preserveAspectRatio="xMinYMin"><path d="M384 0 H504 V316 H384z M384 0 H504 V316 H384z"/></svg></span></span><span style="top:-3.15em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎨</span></span></span><span style="top:-4.292em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.316em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.8889em" height="0.316em" style="width:0.8889em" viewBox="0 0 888.89 316" preserveAspectRatio="xMinYMin"><path d="M384 0 H504 V316 H384z M384 0 H504 V316 H384z"/></svg></span></span><span style="top:-4.6em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎧</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.41em;"><span style="top:-4.41em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-2.97em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mop">min</span><span class="mopen">(</span><span class="mord">12</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span><span style="top:-1.53em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mop">max</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.91em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.41em;"><span style="top:-4.41em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">at initialization</span></span></span></span><span style="top:-2.97em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span></span></span><span style="top:-1.53em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.91em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p><p id="704e4019-aad5-826c-ad89-818735d63217" class="" dir="auto">We define the Dynamic Stalk Penalty for Pinto -&gt; LP Converts (<span data-notion-inline-equation="g^*" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8831em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span></span>) for a given instantaneous <a href="https://docs.basin.exchange/components/pump">Pump</a>-reserve price of the output <a href="https://docs.basin.exchange/components/well">Well</a> <span data-notion-inline-equation="(P)" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mclose">)</span></span></span></span></span>, <span data-notion-inline-equation="P^{\mathrm{upper}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">upper</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span data-notion-inline-equation="\mathfrak{G}_t" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8414em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>, L2SR at the end of the previous Season (<span data-notion-inline-equation="R^W" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span></span></span></span></span>), optimal L2SR (<span data-notion-inline-equation="R^{W*}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="mord mtight">∗</span></span></span></span></span></span></span></span></span></span></span></span></span>), and <span data-notion-inline-equation="\mathfrak{G}^{\mathrm{max}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6914em;"></span><span class="mord"><span class="mord mathfrak">G</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">max</span></span></span></span></span></span></span></span></span></span></span></span></span></span> as:</p><p id="9eae4019-aad5-8213-9d58-01c9e04281d4" class="" dir="auto"><span data-notion-inline-equation="\begin{aligned}q_t&amp;=\begin{cases}q_{t-1}&amp;\text{if }R^W=0\\\min\!\left(1,\frac{R^W}{R^{W*}}\left(1-\frac{\log_2(\mathfrak G_t+1)}{\log_2(13)}\right)\right)&amp;\text{otherwise}\end{cases}\\g^*&amp;=\begin{cases}0&amp;\text{if }P&gt;P^{\mathrm{upper}}\\q_t&amp;\text{otherwise}\end{cases}\end{aligned}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:6.8401em;vertical-align:-3.17em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.67em;"><span style="top:-5.67em;"><span class="pstrut" style="height:3.87em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.87em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7387em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.17em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.67em;"><span style="top:-5.67em;"><span class="pstrut" style="height:3.87em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">{</span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.87em;"><span style="top:-4.012em;"><span class="pstrut" style="height:3.15em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.43em;"><span class="pstrut" style="height:3.15em;"></span><span class="mord"><span class="mop">min</span><span class="mspace" style="margin-right:-0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0374em;"><span style="top:-2.6481em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7741em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="mord mtight">∗</span></span></span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9191em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3519em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0211em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mop mtight"><span class="mtight">l</span><span class="mtight">o</span><span class="mtight" style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span style="top:-2.2341em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2659em;"><span></span></span></span></span></span></span><span class="mopen mtight">(</span><span class="mord mtight">13</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.4961em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mop mtight"><span class="mtight">l</span><span class="mtight">o</span><span class="mtight" style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span style="top:-2.2341em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2659em;"><span></span></span></span></span></span></span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathfrak mtight">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2963em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mbin mtight">+</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5311em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.37em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.87em;"><span style="top:-4.012em;"><span class="pstrut" style="height:3.15em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span></span></span><span style="top:-2.43em;"><span class="pstrut" style="height:3.15em;"></span><span class="mord"><span class="mord text"><span class="mord">otherwise</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.37em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.87em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">{</span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.69em;"><span style="top:-3.69em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.19em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.69em;"><span style="top:-3.69em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">if </span></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">upper</span></span></span></span></span></span></span></span></span></span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord text"><span class="mord">otherwise</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.19em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.17em;"><span></span></span></span></span></span></span></span></span></span></span></span></p><figure id="717e4019-aad5-832e-8f6c-01e94c07ba17" class="image" data-notion-image="https://hackmd.io/_uploads/rJAabSj2ke.png" dir="ltr"><a href="https://hackmd.io/_uploads/rJAabSj2ke.png"><img src="https://hackmd.io/_uploads/rJAabSj2ke.png"/></a></figure><p id="5b7e4019-aad5-82be-adeb-019dfe324e19" class="" dir="auto">The stored penalty ratio <span data-notion-inline-equation="q_t" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span> is initialized to 0. These normalized equations omit fixed-point rounding. The applied loss is rounded upward and capped to preserve the non-Germinating minimum. If supplied Grown Stalk is already below that minimum, this helper leaves it unchanged and applies no additional loss. The chart shows the decaying Dynamic Stalk Penalty as Seasons are spent above the value target:</p><ul id="20fe4019-aad5-839a-92e8-01939387ef63" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The blue line shows the penalty when <span data-notion-inline-equation="R^W" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span></span></span></span></span> is equal to 40%.</li></ul><ul id="04de4019-aad5-8353-a177-819f7e076556" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The purple line shows the penalty when <span data-notion-inline-equation="R^W" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span></span></span></span></span> is equal to 20%.</li></ul><ul id="30ee4019-aad5-825c-bb87-8126fb9ebd94" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The green line shows the penalty when <span data-notion-inline-equation="R^W" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span></span></span></span></span></span></span></span> is equal to 10%.</li></ul><p id="4a0e4019-aad5-8222-96bc-81961497d55d" class="" dir="auto">Decrease <span data-notion-inline-equation="P^{\mathrm{upper}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">upper</span></span></span></span></span></span></span></span></span></span></span></span></span></span> (<code>excessivePriceThreshold</code>) from $1.05 to $1.025.</p><h2 id="43be4019-aad5-8213-a778-81fac191b374" class="" dir="auto">Rationale</h2><p id="eefe4019-aad5-8302-a3b9-01f300251d78" class="" dir="auto">With the introduction of a Dynamic Stalk Penalty for Pinto -&gt; LP Converts that uses a gauge that increases by 1 each Season the protocol logs a <span data-notion-inline-equation="\mathrm{TWA}\Delta P&gt;0" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span> and decreases by 1 each Season the protocol logs a <span data-notion-inline-equation="\mathrm{TWA}\Delta P\le0" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8193em;vertical-align:-0.136em;"></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span>, from 0-12, the protocol can discover the Stalk Penalty at which Converts are disincentivized sufficiently to enable the protocol to keep the price above the value target and then oscillate the penalty above and below this penalty % to incentivize the protocol to alternate each Season above and below the value target. This should lead to more oscillations across the value target, and therefore utility for Pinto.</p><p id="a29e4019-aad5-833f-b674-014a57786250" class="" dir="auto">The logarithmic factor falls most sharply when the counter first increases from zero, then falls more slowly with each additional increase. This favors reaching a Season with a <span data-notion-inline-equation="\mathrm{TWA}\Delta P&gt;0" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span> after an extended period where <span data-notion-inline-equation="\mathrm{TWA}\Delta P&lt;0" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord"><span class="mord mathrm">TWA</span></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span> for multiple Seasons. The aim is to let the price move above its target after a prolonged period below it, while making smaller adjustments when the price is already alternating around the target. </p><p id="418e4019-aad5-83fe-a1b5-01880ebd0105" class="" dir="auto">The L2SR is factored into the Penalty because at higher liquidity levels the protocol is more comfortable spending more time above the value target and printing more Pinto, so it should further disincentivize Converts in those instances than when it has lower liquidity.</p><p id="c24e4019-aad5-8256-bfa5-81d1aa03c103" class="" dir="auto">The Excessively High Price threshold (<span data-notion-inline-equation="P^{\mathrm{upper}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">upper</span></span></span></span></span></span></span></span></span></span></span></span></span></span>) is lowered from $1.05 to $1.025 so Pinto-to-LP Converts can bypass the Dynamic Stalk Penalty once the output Well’s price exceeds $1.025. Allowing them to bypass the penalty at a lower price helps limit how far and how long the price stays above the target, reducing the risk of excessive minting.</p><h2 id="417e4019-aad5-82ee-a253-81306795c70d" class="" dir="auto">Contract Changes</h2><h3 id="d29e4019-aad5-83e9-838d-81d37ca9ee58" class="" dir="auto">Initialization</h3><p id="18de4019-aad5-8299-ae4e-01e3faf9532d" class="" dir="auto"><code>InitPI7.init()</code> at <code><a href="https://basescan.org/address/0xd44375790b7ef3d2b0d9b0b96cac0476fcdee568#code">0xd44375790b7ef3d2b0d9b0b96cac0476fcdee568</a></code> lowered <code>excessivePriceThreshold</code> from <code>1.05e6</code> ($1.05) to <code>1.025e6</code> ($1.025). It added the <code>CONVERT_DOWN_PENALTY</code> gauge with penalty ratio 0, counter 0, a counter step of 1 per Season, and a counter cap of 12.</p><h3 id="505e4019-aad5-83ae-bd74-817e90b3967c" class="" dir="auto">Facet Changes</h3><table id="c93e4019-aad5-8319-83c2-812d36705214" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="702e4019-aad5-825c-b430-810dc6f3a391" dir="ltr"><th id="i&lt;md" class="simple-table-header-color simple-table-header">Facet</th><th id="ypv~" class="simple-table-header-color simple-table-header">Action</th><th id=";P|h" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="YTBG" class="simple-table-header-color simple-table-header">New Implementation</th></tr></thead><tbody><tr id="563e4019-aad5-8318-b16d-01238cd21d70" dir="ltr"><td id="i&lt;md" class=""><code>ConvertFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0x7Bab1D09727BE8F0427c6DD1d503b3D4BA697D93#code">0x7Bab1D09727BE8F0427c6DD1d503b3D4BA697D93</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x1F421eC312C60f9f6E9f6F79e0E56f496aE27e4e#code">0x1F421eC312C60f9f6E9f6F79e0E56f496aE27e4e</a></code></td></tr><tr id="1fbe4019-aad5-8314-9b0f-81c8cf80d9a3" dir="ltr"><td id="i&lt;md" class=""><code>ConvertGettersFacet</code></td><td id="ypv~" class="">Add / Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0x115E83Bcb217A06D13210009e7CD8b44cE1af509#code">0x115E83Bcb217A06D13210009e7CD8b44cE1af509</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0xfBaD01D4C722B0850444DD63dc273aD2c1C0d321#code">0xfBaD01D4C722B0850444DD63dc273aD2c1C0d321</a></code></td></tr><tr id="014e4019-aad5-8214-8a85-01426026b98b" dir="ltr"><td id="i&lt;md" class=""><code>PipelineConvertFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0x1C3ecf2ae6bD491d112F5A2CEa5927A231437437#code">0x1C3ecf2ae6bD491d112F5A2CEa5927A231437437</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x7a28DFd0e5BBf281e0a853BFEb4609FF093D0BD1#code">0x7a28DFd0e5BBf281e0a853BFEb4609FF093D0BD1</a></code></td></tr><tr id="b73e4019-aad5-827a-9caf-81ca88695e60" dir="ltr"><td id="i&lt;md" class=""><code>GaugeFacet</code></td><td id="ypv~" class="">Add / Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0x25cE5E07e26b4140086F28834DEA1c092Fc10f90#code">0x25cE5E07e26b4140086F28834DEA1c092Fc10f90</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x55C0e1643e70f9Fb7eEb8c640A303ad9DE263302#code">0x55C0e1643e70f9Fb7eEb8c640A303ad9DE263302</a></code></td></tr><tr id="cb3e4019-aad5-83cb-a6c6-811fc998c61d" dir="ltr"><td id="i&lt;md" class=""><code>SeasonFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0xa932CaB249fc9ddd073cdB5d40Bf304a50025CD6#code">0xa932CaB249fc9ddd073cdB5d40Bf304a50025CD6</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x5D1f0c38835A0fb55B5Df11341ae217F1f8a01DA#code">0x5D1f0c38835A0fb55B5Df11341ae217F1f8a01DA</a></code></td></tr><tr id="88ae4019-aad5-8269-9bea-8193145e088e" dir="ltr"><td id="i&lt;md" class=""><code>ApprovalFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0xA7DF4372b0404Cd468703451950e2af8615996b2#code">0xA7DF4372b0404Cd468703451950e2af8615996b2</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x65d67f299A4Ad1CfF49a6C77A2Fb463A86643Ab4#code">0x65d67f299A4Ad1CfF49a6C77A2Fb463A86643Ab4</a></code></td></tr><tr id="716e4019-aad5-83e1-a3e2-814d2440aa1e" dir="ltr"><td id="i&lt;md" class=""><code>SeasonGettersFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0xF3D017981D0818274210661BA3cc85D143aFA78E#code">0xF3D017981D0818274210661BA3cc85D143aFA78E</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0xab2a1bC987e64C4bE13fFB090b01A5888a345C9e#code">0xab2a1bC987e64C4bE13fFB090b01A5888a345C9e</a></code></td></tr><tr id="3a9e4019-aad5-8293-b363-81ea2822a19b" dir="ltr"><td id="i&lt;md" class=""><code>ClaimFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0xcbb67C0dADf1c2774215d8AFd4fEF34C7741474B#code">0xcbb67C0dADf1c2774215d8AFd4fEF34C7741474B</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x8738F66d4a0431B084b7fF8f59097312A5B5531F#code">0x8738F66d4a0431B084b7fF8f59097312A5B5531F</a></code></td></tr><tr id="698e4019-aad5-823f-8305-0102d62867e0" dir="ltr"><td id="i&lt;md" class=""><code>SiloGettersFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0x48F040332c3CcCcF620E3Ed6bBab3d117c9238Ca#code">0x48F040332c3CcCcF620E3Ed6bBab3d117c9238Ca</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0xa66113Be17098B2594aBA1614055fCc31B3abd67#code">0xa66113Be17098B2594aBA1614055fCc31B3abd67</a></code></td></tr><tr id="d75e4019-aad5-83cf-856c-0120410fe27a" dir="ltr"><td id="i&lt;md" class=""><code>GaugeGettersFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0xB1Cb5aA3c2e91268aAe9C97d59AD90D8DF979DA3#code">0xB1Cb5aA3c2e91268aAe9C97d59AD90D8DF979DA3</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x07d6EDB2E4afad408beadAAf30bC21b8F804d1F7#code">0x07d6EDB2E4afad408beadAAf30bC21b8F804d1F7</a></code></td></tr><tr id="67ce4019-aad5-83c7-979d-01fc03f7833a" dir="ltr"><td id="i&lt;md" class=""><code>OracleFacet</code></td><td id="ypv~" class="">Replace</td><td id=";P|h" class=""><code><a href="https://basescan.org/address/0x72827F9a9C3F4A0e36C7DE20BB7B830ABF385D2E#code">0x72827F9a9C3F4A0e36C7DE20BB7B830ABF385D2E</a></code></td><td id="YTBG" class=""><code><a href="https://basescan.org/address/0x7256FAd9Eb704173aFE2185D1A44EDF826FF6C86#code">0x7256FAd9Eb704173aFE2185D1A44EDF826FF6C86</a></code></td></tr></tbody></table><h3 id="de7e4019-aad5-83d6-bff4-017beff15d82" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="9bfe4019-aad5-82a1-8c3b-0121c5684154" class="" dir="auto"><code>ApprovalFacet</code>, <code>SeasonGettersFacet</code>, <code>ClaimFacet</code>, <code>SiloGettersFacet</code>, <code>GaugeGettersFacet</code>, and <code>OracleFacet</code> retained their own source files and interfaces. <code>SeasonFacet</code> changed only a comment in its own source. Shared dependencies can still change. The externally linked libraries below were redeployed. A changed deployment address does not imply every library function changed. <code>ConvertGettersFacet</code>, <code>GaugeFacet</code>, <code>ApprovalFacet</code>, <code>SiloGettersFacet</code>, <code>GaugeGettersFacet</code>, and <code>OracleFacet</code> have no externally linked libraries in their new deployed metadata.</p><table id="cfee4019-aad5-825b-a18a-012589ebea0a" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="58be4019-aad5-82f6-892e-81411533dcc2" dir="ltr"><th id="XaQ_" class="simple-table-header-color simple-table-header">Library</th><th id="jl]@" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="yPJT" class="simple-table-header-color simple-table-header">New Implementation</th><th id="UpMb" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="995e4019-aad5-8378-b4e5-01fbca4d0299" dir="ltr"><td id="XaQ_" class=""><code>LibEvaluate</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0xfad4e8659830d22ce9e4d87eaef52674bf805fdb#code">0xfad4e8659830d22ce9e4d87eaef52674bf805fdb</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0x9a2848cbde1d2fcaeebb712fd8f1eb65a4bda874#code">0x9a2848cbde1d2fcaeebb712fd8f1eb65a4bda874</a></code></td><td id="UpMb" class=""><code>SeasonFacet</code></td></tr><tr id="f00e4019-aad5-8240-b612-01fd8722facb" dir="ltr"><td id="XaQ_" class=""><code>LibGauge</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0x573c652702091e7265688902ef63c82e21917b4f#code">0x573c652702091e7265688902ef63c82e21917b4f</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0xd749370071c7fe42bbe7b81dfa85ba8ec24864b0#code">0xd749370071c7fe42bbe7b81dfa85ba8ec24864b0</a></code></td><td id="UpMb" class=""><code>SeasonFacet</code></td></tr><tr id="ae0e4019-aad5-826d-a594-0153f57f694b" dir="ltr"><td id="XaQ_" class=""><code>LibIncentive</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0x6fac8752c40475c83720acbad2f0c32476243350#code">0x6fac8752c40475c83720acbad2f0c32476243350</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0x5630463e432cbd8ddb870d646213011da9166889#code">0x5630463e432cbd8ddb870d646213011da9166889</a></code></td><td id="UpMb" class=""><code>SeasonFacet</code></td></tr><tr id="b37e4019-aad5-8272-813a-8148c29a3f35" dir="ltr"><td id="XaQ_" class=""><code>LibShipping</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0xab1d90c08dfa6d4c520dad967e97c5eee1d61af2#code">0xab1d90c08dfa6d4c520dad967e97c5eee1d61af2</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0xd8a274fcabe2a5cfc1c18b1f844f7fb2941d38f5#code">0xd8a274fcabe2a5cfc1c18b1f844f7fb2941d38f5</a></code></td><td id="UpMb" class=""><code>SeasonFacet</code></td></tr><tr id="09ce4019-aad5-8285-ac9e-816e406519d8" dir="ltr"><td id="XaQ_" class=""><code>LibWellMinting</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0xa31576ac3be233a845e665b98bc384b51e1f4b78#code">0xa31576ac3be233a845e665b98bc384b51e1f4b78</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0x9500f6e8742ecb924af9c97922851d648b613d07#code">0x9500f6e8742ecb924af9c97922851d648b613d07</a></code></td><td id="UpMb" class=""><code>SeasonFacet, SeasonGettersFacet</code></td></tr><tr id="daae4019-aad5-8338-b554-0194cccd85bb" dir="ltr"><td id="XaQ_" class=""><code>LibFlood</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0x8595c632071edec9ab2cd84350d8eef46f181577#code">0x8595c632071edec9ab2cd84350d8eef46f181577</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0xc4667d3a3c7c0c42a5bf351f98861963b2597f51#code">0xc4667d3a3c7c0c42a5bf351f98861963b2597f51</a></code></td><td id="UpMb" class=""><code>SeasonFacet</code></td></tr><tr id="67de4019-aad5-82b8-a52e-8102b9cbacbf" dir="ltr"><td id="XaQ_" class=""><code>LibGerminate</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0x30f89cd09b92938864b819a552471f2c8771c83d#code">0x30f89cd09b92938864b819a552471f2c8771c83d</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0xc6f5423a60acd02f0c8d8d6d5281caa00899b0f9#code">0xc6f5423a60acd02f0c8d8d6d5281caa00899b0f9</a></code></td><td id="UpMb" class=""><code>SeasonFacet</code></td></tr><tr id="061e4019-aad5-8260-9c9e-01c2bbb37ab1" dir="ltr"><td id="XaQ_" class=""><code>LibConvert</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0xcce6631b13ee44ad9d8146241b20f10c1a803aa2#code">0xcce6631b13ee44ad9d8146241b20f10c1a803aa2</a></code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0x812d9a79aea7db58bc3b0a149ba2694ef37fd1dd#code">0x812d9a79aea7db58bc3b0a149ba2694ef37fd1dd</a></code></td><td id="UpMb" class=""><code>ConvertFacet</code></td></tr><tr id="f80e4019-aad5-8374-8dcd-813fe251d4af" dir="ltr"><td id="XaQ_" class=""><code>LibPipelineConvert</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0xb387ad744cc1a80ab629eea5ca15459076719a7a#code">0xb387ad744cc1a80ab629eea5ca15459076719a7a</a></code><code> (ConvertFacet); </code><code><a href="https://basescan.org/address/0xc7ed19335fcfc73552394dd911cdd56db1ac5e56#code">0xc7ed19335fcfc73552394dd911cdd56db1ac5e56</a></code><code> (PipelineConvertFacet)</code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0xad2f28b08ff993ee8faaeb20235234ade0773022#code">0xad2f28b08ff993ee8faaeb20235234ade0773022</a></code></td><td id="UpMb" class=""><code>ConvertFacet, PipelineConvertFacet</code></td></tr><tr id="83de4019-aad5-82b2-9864-81cb0d1c5be9" dir="ltr"><td id="XaQ_" class=""><code>LibSilo</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0x5a686e6024d1d40994ae99979ceb63bf67724b04#code">0x5a686e6024d1d40994ae99979ceb63bf67724b04</a></code><code> (ConvertFacet); </code><code><a href="https://basescan.org/address/0x85e7554e3af2cfb5ec7a90b53b15b6730055905c#code">0x85e7554e3af2cfb5ec7a90b53b15b6730055905c</a></code><code> (PipelineConvertFacet, ClaimFacet)</code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0xf5daf4e2ca77cf48f4ec17d10f0b48a8c2ca9e5c#code">0xf5daf4e2ca77cf48f4ec17d10f0b48a8c2ca9e5c</a></code></td><td id="UpMb" class=""><code>ClaimFacet, ConvertFacet, PipelineConvertFacet</code></td></tr><tr id="5eae4019-aad5-839a-a105-0185895b2b1b" dir="ltr"><td id="XaQ_" class=""><code>LibTokenSilo</code></td><td id="jl]@" class=""><code><a href="https://basescan.org/address/0x0da233676f46427c31928f5f85678d6737f4ec7e#code">0x0da233676f46427c31928f5f85678d6737f4ec7e</a></code><code> (ConvertFacet); </code><code><a href="https://basescan.org/address/0x31b1b337778948f2d5a1f70722cef7cca1b72e06#code">0x31b1b337778948f2d5a1f70722cef7cca1b72e06</a></code><code> (PipelineConvertFacet, ClaimFacet)</code></td><td id="yPJT" class=""><code><a href="https://basescan.org/address/0xecc6509f71b74c9b14f035d35fb9113519f88bb5#code">0xecc6509f71b74c9b14f035d35fb9113519f88bb5</a></code></td><td id="UpMb" class=""><code>ClaimFacet, ConvertFacet, PipelineConvertFacet</code></td></tr></tbody></table><h3 id="d6de4019-aad5-8319-9317-81976c2018df" class="" dir="auto">Function Changes</h3><ul id="64ae4019-aad5-823f-90b7-016bf856510f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>convert()</code> and <code>pipelineConvert()</code> to apply the Dynamic Stalk Penalty to Pinto-to-LP Converts before redepositing. The shared internal <code>LibConvert.downPenalizedGrownStalk()</code> rounds the calculated loss upward and preserves the minimum Grown Stalk required for a non-Germinating output Deposit. If the supplied Grown Stalk is below that minimum, it returns the input unchanged and zero loss. This additional penalty is applied after the existing conversion calculations and does not replace their penalties.</li></ul><ul id="c09e4019-aad5-82ff-b34d-01e91dea594a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>ConvertGettersFacet.downPenalizedGrownStalk()</code>, which returns the remaining and lost Grown Stalk for the supplied Well, <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">PDV</a>, and Grown Stalk. This preview excludes other changes made during a Convert.</li></ul><ul id="84ae4019-aad5-8236-9857-0190fec42373" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>convertDownPenaltyGauge(bytes,bytes,bytes)</code>, which returns an encoded penalty ratio and updated counter, followed by unchanged gauge data. The counter increases by 1 when the time-weighted Pinto supply delta is positive and decreases by 1 otherwise, bounded between 0 and 12. A zero computed L2SR retains the previous ratio while updating the counter. The existing gauge engagement path stores the returned values.</li></ul><ul id="4bae4019-aad5-82a7-9af5-01bbfa18ded4" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>getGaugeData(GaugeId)</code>, which returns the gauge’s encoded configuration data.</li></ul><ul id="d8be4019-aad5-835b-92cf-8115bd6c2bc6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added an instantaneous output-Well price check in <code>LibConvert</code>. A price strictly above $1.025 bypasses the penalty. The check uses instantaneous Pump reserves and requires a successful USD oracle lookup. Added <code>LibDeltaB.instantReserves()</code>, which returns an empty array if the Pump read reverts. An empty instantaneous reserve result causes the penalty price-check path to revert. The shared capped-reserve path interprets an empty result from the separate capped-reserve helper as zero delta rather than falling back to old reserves.</li></ul><h3 id="5a0e4019-aad5-83db-b070-816dfdc7df50" class="" dir="auto">Event Changes</h3><ul id="0dce4019-aad5-83f8-9059-81d144e41bf3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>ConvertDownPenalty(uint256 stalkLost)</code>, emitted by both Pinto-to-LP conversion routes with the Grown Stalk lost to this penalty, including when the loss is zero.</li></ul><ul id="395e4019-aad5-836a-be9a-016dc6873a4a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Initialization emitted the existing <code>AddedGauge</code> event for the new <code>CONVERT_DOWN_PENALTY</code> gauge. The existing <code>Engaged(GaugeId,bytes)</code> event reports this gauge’s encoded stored ratio and counter when the gauge is engaged.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
