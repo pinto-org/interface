@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-8: Misc. Efficiency Improvements</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-806a-87a1-dd6b9b9b5d94" class="page sans"><header><h1 class="page-title" dir="auto">PI-8: Misc. Efficiency Improvements</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="e8de4019-aad5-8242-ab42-012e4a2392d3" class="" dir="auto">Executed on April 17, 2025 at 19:23 UTC.</p><h2 id="937e4019-aad5-83d6-9942-01bbf7d7750c" class="" dir="auto">Summary</h2><ol type="1" id="ac7e4019-aad5-83c9-aed1-013537bd5cad" class="numbered-list" start="1" dir="auto"><li><strong>Maximum </strong><strong><a href="https://docs.pinto.money/resources/glossary#crop-ratio">Crop Ratio</a></strong><strong> Increase:</strong> Increase the Maximum Crop Ratio from 150% to 200%.</li></ol><ol type="1" id="659e4019-aad5-83ee-a79a-81c15bd2882a" class="numbered-list" start="2" dir="auto"><li><strong>Extremely High </strong><strong><a href="https://docs.pinto.money/resources/glossary#pod-rate">Pod Rate</a></strong><strong> Level:</strong> Introduce a new Extremely High Pod Rate level, set the threshold above which the Pod Rate is considered Extremely High to 100%, and set the <a href="https://docs.pinto.money/resources/glossary#maximum-temperature">Maximum Temperature</a> adjustments for the Extremely High Pod Rate cases.</li></ol><ol type="1" id="1e4e4019-aad5-8277-aab1-015c5c1ed814" class="numbered-list" start="3" dir="auto"><li><strong>Demand for </strong><strong><a href="https://docs.pinto.money/resources/glossary#soil">Soil</a></strong><strong> Measurement Update:</strong> Update the mechanism for measuring demand for Soil when Soil is sold out over the previous two <a href="https://docs.pinto.money/resources/glossary#season">Seasons</a>.</li></ol><ol type="1" id="90de4019-aad5-8294-8c57-01ce0512c2d9" class="numbered-list" start="4" dir="auto"><li><strong>Demand for Soil Measurement Threshold:</strong> Add a minimum threshold of 25 <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> for how much Soil must be <a href="https://docs.pinto.money/resources/glossary#sow">Sown</a> in order to measure demand for Soil.</li></ol><ol type="1" id="962e4019-aad5-8384-b4e3-013f66d5e19a" class="numbered-list" start="5" dir="auto"><li><strong>On-Chain </strong><strong><a href="https://docs.pinto.money/resources/glossary#deposit">Deposit</a></strong><strong> Sorting:</strong> Add helper functions for sorting Deposits on-chain.</li></ol><ol type="1" id="02de4019-aad5-829e-9a88-816d813bdaad" class="numbered-list" start="6" dir="auto"><li><strong><a href="https://docs.pinto.money/pinto-mechanics/toolshed/tractor-automating-the-farm">Tractor</a></strong><strong> Helper Functions:</strong> Add Tractor execution helpers, caller-context views and operator controls to support more expressive <a href="https://docs.pinto.money/pinto-mechanics/toolshed/tractor-automating-the-farm#enter-tractor">Blueprints</a>.</li></ol><ol type="1" id="a41e4019-aad5-83c5-aff4-81c6f091cc7e" class="numbered-list" start="7" dir="auto"><li><strong>Interface and Event Updates:</strong> Update parameter-setting compatibility and conversion-penalty event data for integrations.</li></ol><h2 id="89de4019-aad5-830b-81b9-01c7705704de" class="" dir="auto">Links</h2><ul id="88de4019-aad5-827f-8639-81f7f3710403" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/47">Implementation PR</a></li></ul><ul id="4fee4019-aad5-8345-94fa-81b812fb5883" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/fe38496fb4700f42f11ed4a2e9000ca57aa7feb4">fe38496fb4700f42f11ed4a2e9000ca57aa7feb4</a></li></ul><ul id="85ce4019-aad5-8289-b92a-810e9076bc92" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507&amp;id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0x1610c66366303e1e3803187aa22bdddc2def39d7073b2753557d5b6d89bd0df9">Safe Transaction</a></li></ul><ul id="4e8e4019-aad5-83f9-9279-017e3e3229a5" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0x3793034ceb10ad2beb2d4ef9f0591e2c84e3355c217b2e2d15e5017843a30644">Diamond Cut Transaction</a></li></ul><h2 id="bd9e4019-aad5-8330-92e3-01b1bdeb10ab" class="" dir="auto">Problems</h2><h3 id="ef2e4019-aad5-82ad-86cd-0175906f3d9e" class="" dir="auto">1. Maximum Crop Ratio Increase</h3><p id="b86e4019-aad5-823a-99de-81ceed6d9107" class="" dir="auto">The recent increase of the Maximum Crop Ratio from 100% to 150% did not sufficiently change the ability for the protocol to incentivize Depositors to <a href="https://docs.pinto.money/resources/glossary#convert">Convert</a> LP to Pinto.</p><h3 id="9f2e4019-aad5-8383-ba42-81bda0402f00" class="" dir="auto">2. Extremely High Pod Rate Level</h3><p id="552e4019-aad5-8390-b5c2-8189d3f40e8b" class="" dir="auto">The protocol did not have a way to distinguish how it changes the Maximum Temperature when the protocol has a Pod Rate that is high but not so high that it is a potential threat to the long term health of the protocol, and when it is.</p><h3 id="71ce4019-aad5-8290-a61a-81b26653efd4" class="" dir="auto">3. Demand for Soil Measurement Update</h3><p id="f00e4019-aad5-82bd-9397-813b650a540e" class="" dir="auto">With the introduction of the <a href="https://docs.pinto.money/pinto-mechanics/field-the-most-innovative-lending-facility-in-crypto/the-cultivation-system-optimal-soil-issuance">Cultivation System</a>, the protocol regularly was in the circumstance where the number of Soil issued from Season to Season was very different, such that the existing method to measure changes in demand for Soil in instances where the Soil sold out last Season no longer worked.</p><h3 id="74be4019-aad5-83a8-bddf-819c2fd9fcf2" class="" dir="auto">4. Demand for Soil Measurement Threshold</h3><p id="dc8e4019-aad5-833f-8431-013b3945e2f0" class="" dir="auto">Demand for Soil was highly manipulable with very little capital due to the lack of a minimum number of Pinto that must be Sown in order to measure demand.</p><h3 id="125e4019-aad5-82b3-8f5e-812d812898c6" class="" dir="auto">5. On-Chain Deposit Sorting</h3><p id="e53e4019-aad5-8357-b937-81c8a9721525" class="" dir="auto">The inability to sort a user&#x27;s Deposits on-chain led to inefficient execution when <a href="https://docs.pinto.money/resources/glossary#withdraw">Withdrawing</a> a user&#x27;s Deposits with the lowest <a href="https://docs.pinto.money/resources/glossary#mow">Mown</a> <a href="https://docs.pinto.money/resources/glossary#stalk">Stalk</a> per <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">PDV</a> for Tractor operations.</p><h3 id="1bee4019-aad5-835d-8a34-0134f8386eed" class="" dir="auto">6. Tractor Helper Functions</h3><p id="d0fe4019-aad5-8364-b5a9-817a4af1e5ab" class="" dir="auto">Expressive Blueprints were difficult to implement given the existing set of view functions and events for Tractor metadata.</p><h3 id="3dfe4019-aad5-82ae-9457-81ebc52d6ffe" class="" dir="auto">7. Interface and Event Updates</h3><p id="d29e4019-aad5-821a-ba2c-8120b4173be0" class="" dir="auto">The parameter-setting interface used an older tuple signature that omitted the existing rain-related <a href="https://docs.pinto.money/responding-to-state/crop-ratio-changes">Crop Scalar</a> setting. Conversion-penalty events reported only the Stalk lost, without identifying the account or the <a href="https://docs.pinto.money/resources/glossary#grown-stalk">Grown Stalk</a> retained.</p><h2 id="2f8e4019-aad5-82fb-8767-01c8ce75c7f8" class="" dir="auto">Solutions</h2><h3 id="dc8e4019-aad5-826c-89e8-81009e2eca9f" class="" dir="auto">1. Maximum Crop Ratio Increase</h3><p id="b9ae4019-aad5-8354-8e5e-81006599dd89" class="" dir="auto">Update <code>s.sys.evaluationParameters.maxBeanMaxLpGpPerBdvRatio</code> from <code>150e18</code> to <code>200e18</code>.</p><h3 id="970e4019-aad5-831a-9db2-818b8bf699b9" class="" dir="auto">2. Extremely High Pod Rate Level</h3><p id="5f4e4019-aad5-82f6-a652-016369da7c14" class="" dir="auto">Create a new Extremely High Pod Rate threshold and set it to 100%. Apply the new Extremely High Pod Rate Maximum Temperature adjustments only when the Pod Rate exceeds 100% and <a href="https://docs.pinto.money/resources/glossary#deltap">TWAΔP</a> &lt; 0. </p><figure id="879e4019-aad5-8328-b67d-019a2bbc6af5" class="image" data-notion-image="https://hackmd.io/_uploads/HJThsAy1ee.png" dir="ltr"><a href="https://hackmd.io/_uploads/HJThsAy1ee.png"><img src="https://hackmd.io/_uploads/HJThsAy1ee.png"/></a></figure><h3 id="d8be4019-aad5-8240-8bc7-015d02afed73" class="" dir="auto">3. Demand for Soil Measurement Update</h3><p id="d91e4019-aad5-8311-b2bc-816759912d01" class="" dir="auto">Update the method to measure changing demand for Soil as follows.</p><p id="147e4019-aad5-8207-9b72-8109b8600ef0" class="" dir="auto">After the 25-Pinto minimum is met, a sellout in less than 20 minutes, more than 5 minutes faster than the prior sellout, or following a Season without a sellout means increasing demand. Otherwise, sellouts within 5 minutes of the prior sellout mean increasing demand if at least 5% more Soil was Sown, and steady demand otherwise. A sellout more than 5 minutes slower uses the change in number of Soil Sown. Seasons without a sellout also use that comparison of the number of Soil Sown. </p><p id="d84e4019-aad5-839b-973d-01d2e161eb91" class="" dir="auto">The diagram below assumes consecutive sellouts, at least 25 Pinto Sown, and a sellout time of at least 20 minutes. Its time boundaries are 5 minutes faster or slower, and its quantity boundaries are 95% and 105% of the prior Season’s Soil Sown.</p><figure id="09fe4019-aad5-837e-a4eb-8180d810800f" class="image" data-notion-image="PI-8%20Misc%20Efficiency%20Improvements/image.png" dir="ltr"><a href="image.png"><img style="width:646.9921875px" src="image.png"/></a></figure><p id="e19e4019-aad5-8274-bee9-814bc41af700" class="" dir="auto">If Soil did not sell out last Season but sold out the Season prior, the protocol compares the number of Soil sold across the two previous Seasons.</p><h3 id="0b6e4019-aad5-8309-a1b9-01f070dcfc1a" class="" dir="auto">4. Demand for Soil Measurement Threshold</h3><p id="c41e4019-aad5-82d6-914d-0127362eae83" class="" dir="auto">Set the minimum number of Pinto that must be Sown in a Season in order for demand for Soil to be measured – and thus not considered decreasing – to 25.</p><h3 id="0c3e4019-aad5-8233-8a4d-819e6a72ba4c" class="" dir="auto">5. On-Chain Deposit Sorting</h3><p id="8d8e4019-aad5-8233-a2ab-01c0f0fb049b" class="" dir="auto">Add a function that allows anyone to validate and store a <a href="https://docs.pinto.money/resources/glossary#farmers">Farmer</a>&#x27;s supplied Deposit ordering for one token (<code>depositIdList</code>) in ascending Stem order (descending Mown Stalk per PDV) (<em>i.e.</em>, the Deposit with the lowest Mown Stalk per PDV is at the last index in the list).</p><h3 id="3ace4019-aad5-830e-9531-813cc3eded37" class="" dir="auto">6. Tractor Helper Functions</h3><p id="057e4019-aad5-829b-a447-81e73aaa5b2d" class="" dir="auto">Add external contracts to support the Tractor ecosystem. <code>TractorHelpers</code> provides <code>getSortedDeposits</code> (descending Stem) and <code>getSortedWhitelistedTokensBySeeds</code> (descending Seeds). Their deployment addresses are listed under <a href="/pi/8/">Other Contract / Parameter Changes</a>.</p><p id="20be4019-aad5-82d8-bb8e-81968b4801f3" class="" dir="auto">Egis reviewed the Sow Blueprint and supporting <code>SiloHelpers</code>, <code>PriceManipulation</code>, <code>PerFunctionPausable</code> and <code>OperatorWhitelist</code> contracts (final audit report <a href="https://arweave.net/W7cfGzLVsTAEb65AR4wYfFLOl5Nm3EMy0Sg3Dk7C7e0">here</a>). The report identifies review commit <a href="https://github.com/pinto-org/protocol/commit/c9eb6ff25dd0ae87d454ab4e5b719af3ca402f72">c9eb6ff25dd0ae87d454ab4e5b719af3ca402f72</a> and resolution commit <a href="https://github.com/pinto-org/protocol/commit/378c67ea1dcfdd184a227c24a42dc81f8ff136cb">378c67ea1dcfdd184a227c24a42dc81f8ff136cb</a>. It does not include <code>BeanstalkPrice</code> or attest to the exact deployed bytecode listed here.</p><h3 id="7cce4019-aad5-8277-a8e6-81a4d0b2cde0" class="" dir="auto">7. Interface and Event Updates</h3><p id="850e4019-aad5-836d-8a63-01ae9ebda383" class="" dir="auto">Update the parameter-setting interface to include the existing rain-related Crop Scalar setting. Expand conversion-penalty events to identify the account and report both Grown Stalk lost and Grown Stalk retained.</p><h2 id="5b6e4019-aad5-8268-a717-0174a8fbc9ac" class="" dir="auto">Rationale</h2><h3 id="86de4019-aad5-82e9-8f1e-81560e596a46" class="" dir="auto">1. Maximum Crop Ratio Increase</h3><p id="a86e4019-aad5-837e-a6f2-01bbfdb6e22a" class="" dir="auto">The protocol can incentivize LP -&gt; Pinto Converts by awarding more <a href="https://docs.pinto.money/resources/glossary#seeds">Seeds</a> to Pinto Deposits. The recent change of the Maximum Crop Ratio from 100% to 150% marked the first time the protocol was willing to offer more Seeds to Pinto Deposits than to any LP Deposit. However, this change was insufficient to incentivize enough LP -&gt; Pinto Converts to consistently return the Pinto price to its value target. Increasing the Maximum Crop Ratio further to 200% may improve the ability of the protocol to return the Pinto price to its value target.</p><h3 id="020e4019-aad5-82b4-ac58-812a8a59986e" class="" dir="auto">2. Extremely High Pod Rate Level</h3><p id="d73e4019-aad5-822d-9ec2-01fbdcde9c14" class="" dir="auto">Before PI-8, the protocol had an Excessively High Pod Rate threshold, above which the protocol treated all Pod Rates the same. However, given the fact that the Excessively High Pod Rate threshold is still generally at a low and healthy Pod Rate, it is suboptimal for the protocol to treat all Pod Rates above that threshold identically. Introducing an Extremely High Pod Rate threshold solves this problem.</p><p id="abde4019-aad5-828e-9793-0181a9fe7ce9" class="" dir="auto">Setting the Extremely High Pod Rate threshold at 100% is a sufficiently high Pod Rate such that when the protocol has a higher Pod Rate, it should act more conservatively with respect to changes in the Maximum Temperature.</p><h3 id="6d3e4019-aad5-837a-956d-81de306bc37b" class="" dir="auto">3. Demand for Soil Measurement Update</h3><p id="314e4019-aad5-829a-afe3-0140036fdb97" class="" dir="auto">The examples below assume at least 25 Pinto were Sown and the sellout took at least 20 minutes. Similar sellout times are within 5 minutes of one another. A similar number of Soil means at least 95% but less than 105% of the prior Season’s number. </p><p id="3e8e4019-aad5-834c-9420-012ee85bda4e" class="" dir="auto">If Soil sold out in consecutive Seasons and sold out more than 5 minutes faster the second Season, demand for Soil should be considered increasing. </p><p id="d5fe4019-aad5-831c-81b8-01bca1f33d95" class="" dir="auto">If Soil sold out in consecutive Seasons and at least 5% more Soil was sold the second Season, demand for Soil should be considered increasing.</p><p id="1dce4019-aad5-8325-9803-01ea33b9fa2d" class="" dir="auto">If Soil sold out in consecutive Seasons and the time it took to sell out was similar and the number of Soil sold was similar, demand for Soil should be considered steady.</p><p id="43ae4019-aad5-82c1-8efd-01b5cdbd877a" class="" dir="auto">If Soil sold out in consecutive Seasons and the time it took to sell out was similar but the number of Soil sold out was less, demand for Soil should be considered steady because the number of Soil sold being less was a function of the protocol being willing to issue less Soil due to a significant change in TWA∆P, not there necessarily being less demand for Soil. Thus, time is a better proxy for changing demand for Soil than number of Soil sold.</p><p id="f24e4019-aad5-8379-9935-81189a0cc82d" class="" dir="auto">If Soil sold out in consecutive Seasons and it took longer to sell out and there was a similar number of Soil sold, demand for Soil should be considered steady. This is because even though Soil took longer to sell out the second Season, if the same number of Soil was sold but Soil didn&#x27;t sell out, demand for Soil would be considered steady. It would be incoherent for the protocol to consider demand for Soil to be decreasing if it sold out, but steady if it didn&#x27;t sell out given the same amount of time and number of Soil sold.</p><p id="c87e4019-aad5-8378-a410-019c7bc6734a" class="" dir="auto">If Soil sold out in consecutive Seasons and it took more than 5 minutes longer to sell out and more than 5% less Soil was sold, demand for Soil should be considered decreasing. </p><p id="666e4019-aad5-83e4-8fde-815eb7db5e93" class="" dir="auto">If Soil sold out two Seasons ago but did not sell out last Season, it makes sense for the protocol only to consider the number of Soil sown because it is possible that more Soil was sown but it didn&#x27;t sell out because the increase in the <a href="https://docs.pinto.money/pinto-mechanics/field-the-most-innovative-lending-facility-in-crypto/the-cultivation-system-optimal-soil-issuance">Cultivation Factor</a> resulted in a significant increase in the number of Soil available. By checking the number of Soil sown the protocol can accurately measure changing demand over the previous two Seasons.</p><h3 id="4bee4019-aad5-8397-94dd-819f2934607e" class="" dir="auto">4. Demand for Soil Measurement Threshold</h3><p id="99de4019-aad5-82e3-8791-01e34696cb58" class="" dir="auto">The introduction of a minimum threshold below which demand for Soil is always decreasing raises the minimum number of Pinto required to influence the demand for Soil measurement. Previously, the measurement could be influenced essentially for the cost of gas. The new threshold requires at least 25 Pinto to be Sown before demand can be steady or increasing.</p><h3 id="b9ee4019-aad5-83d7-bbc6-810cb24669ba" class="" dir="auto">5. On-Chain Deposit Sorting</h3><p id="4eae4019-aad5-82b4-9bd3-01821a750e9a" class="" dir="auto">Pinto stores a list of Deposits that the farmer owns on chain. An on chain list allows Smart Contracts to access the value a given farmer owns, without using indexing services. The Deposit list does not enforce any sorting rules when adding/removing entries. By having an optional function that allows anyone to validate and store a supplied ordering in descending order in terms of Mown Stalk per PDV in a permissionless fashion (which in PI-8 updated the ordered array but not its index mapping), smart contracts can more easily find the Deposits with the lowest Mown Stalk per PDV in a gas efficient fashion.  </p><p id="e21e4019-aad5-8243-9ca1-81c123a84142" class="" dir="auto"><code>TractorHelpers</code> traverses the stored Deposit list backward in order to use the Deposits with the lowest Mown Stalk per PDV in the Sow Orderbook. This ordering depends on the stored list being sorted in ascending Stem order. </p><h3 id="0b3e4019-aad5-820d-ac15-81d98e2585f5" class="" dir="auto">6. Tractor Helper Functions</h3><p id="d1ce4019-aad5-8392-840c-01d1e90c72ef" class="" dir="auto">Shared withdrawal-planning and caller-context helpers let Blueprints coordinate Deposits, operators and token transfers without duplicating that logic. Explicit execution metadata also makes Tractor activity easier for integrations to identify.</p><h3 id="379e4019-aad5-83c9-8714-810ac37dbc88" class="" dir="auto">7. Interface and Event Updates</h3><p id="81de4019-aad5-82a7-a3c8-81fe64273f56" class="" dir="auto">Including the existing rain-related setting in the parameter tuple keeps the administrative interface aligned with stored configuration. Identifying the account and retained Grown Stalk in conversion-penalty events gives indexers the context needed to interpret each penalty.</p><h2 id="a67e4019-aad5-8209-a2bb-81822c0ae180" class="" dir="auto">Contract Changes</h2><h3 id="fbfe4019-aad5-8375-a148-0171aa8027a8" class="" dir="auto">Initialization</h3><p id="032e4019-aad5-83ab-a69f-81ed08250ccd" class="" dir="auto"><code>InitPI8.init()</code> at <code><a href="https://basescan.org/address/0xeb393ee29335d6f75cbadbddbd115553e275bb3c#code">0xeb393ee29335d6f75cbadbddbd115553e275bb3c</a></code> set <code>minSoilSownDemand</code> from <code>0</code> to <code>25e6</code> (25 Pinto per Season) and <code>maxBeanMaxLpGpPerBdvRatio</code> from <code>150e18</code> to <code>200e18</code> (150% to 200%). It rescaled the existing Crop Scalar to approximately preserve the Crop Ratio, then rounded the scalar down to whole percentage points.</p><h3 id="ca7e4019-aad5-83b4-84a5-818884c5961a" class="" dir="auto">Facet Changes</h3><p id="080e4019-aad5-82b6-92ee-81bf6745117d" class="" dir="auto">The executed diamond cut replaced 17 facets, added eight selectors and removed the prior <code>updateSeedGaugeSettings</code> selector. Replacing a facet does not mean every function in that facet changed.</p><table id="bd4e4019-aad5-836b-9260-0178cf5906b5" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="bfbe4019-aad5-837d-a6b7-01a26f12c5a3" dir="ltr"><th id="LG~t" class="simple-table-header-color simple-table-header">Facet</th><th id="{WGc" class="simple-table-header-color simple-table-header">Action</th><th id="}?qh" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="HD;V" class="simple-table-header-color simple-table-header">New Implementation</th></tr></thead><tbody><tr id="009e4019-aad5-82d8-9a36-81bb9eb3c0ae" dir="ltr"><td id="LG~t" class=""><code>SiloFacet</code></td><td id="{WGc" class="">Add / Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0xd2d3d44edbbc66ef90b29627dfd0a06d3ca0cad4#code">0xd2d3d44edbbc66ef90b29627dfd0a06d3ca0cad4</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0xd954a3245a868ab3e991786d4e5e71892099a19d#code">0xd954a3245a868ab3e991786d4e5e71892099a19d</a></code></td></tr><tr id="314e4019-aad5-824f-b31b-81cd9efc3374" dir="ltr"><td id="LG~t" class=""><code>SiloGettersFacet</code></td><td id="{WGc" class="">Add / Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0xa66113be17098b2594aba1614055fcc31b3abd67#code">0xa66113be17098b2594aba1614055fcc31b3abd67</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x6f9a49560a1db78cd32f1332e15fcaedc77aa66b#code">0x6f9a49560a1db78cd32f1332e15fcaedc77aa66b</a></code></td></tr><tr id="d94e4019-aad5-82ab-9830-81f95f0a0706" dir="ltr"><td id="LG~t" class=""><code>ConvertFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x1f421ec312c60f9f6e9f6f79e0e56f496ae27e4e#code">0x1f421ec312c60f9f6e9f6f79e0e56f496ae27e4e</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x1af9097b043e26f41d082c5adb89cd606528e526#code">0x1af9097b043e26f41d082c5adb89cd606528e526</a></code></td></tr><tr id="6a7e4019-aad5-82a7-b2bd-01c7b725380b" dir="ltr"><td id="LG~t" class=""><code>PipelineConvertFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x7a28dfd0e5bbf281e0a853bfeb4609ff093d0bd1#code">0x7a28dfd0e5bbf281e0a853bfeb4609ff093d0bd1</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0xf26ab0c4a354f12c9e8fa86c423f463e2c72ddd8#code">0xf26ab0c4a354f12c9e8fa86c423f463e2c72ddd8</a></code></td></tr><tr id="67de4019-aad5-8224-89d3-01a7d3a04cdc" dir="ltr"><td id="LG~t" class=""><code>TractorFacet</code></td><td id="{WGc" class="">Add / Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0xd06128e88b7b84c214c400b86ca17770813567cf#code">0xd06128e88b7b84c214c400b86ca17770813567cf</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x007a0b3bf5a9efc922e83bf0ebe7bf27fc2103bf#code">0x007a0b3bf5a9efc922e83bf0ebe7bf27fc2103bf</a></code></td></tr><tr id="a0ce4019-aad5-821b-824c-8170c979b66e" dir="ltr"><td id="LG~t" class=""><code>FieldFacet</code></td><td id="{WGc" class="">Add / Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x8906b9131b7c6354f3e14b8656b546cfcfc9edf1#code">0x8906b9131b7c6354f3e14b8656b546cfcfc9edf1</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x0b5888a4c6fb90d26fb4d5f782d45c9e86dcc974#code">0x0b5888a4c6fb90d26fb4d5f782d45c9e86dcc974</a></code></td></tr><tr id="4eee4019-aad5-8368-8114-01cdaea32e21" dir="ltr"><td id="LG~t" class=""><code>ApprovalFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x65d67f299a4ad1cff49a6c77a2fb463a86643ab4#code">0x65d67f299a4ad1cff49a6c77a2fb463a86643ab4</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x61b9a20a5fc4a9965c2309c2feff56b5ebe855cd#code">0x61b9a20a5fc4a9965c2309c2feff56b5ebe855cd</a></code></td></tr><tr id="f22e4019-aad5-8367-8f2e-01535360bcf2" dir="ltr"><td id="LG~t" class=""><code>ConvertGettersFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0xfbad01d4c722b0850444dd63dc273ad2c1c0d321#code">0xfbad01d4c722b0850444dd63dc273ad2c1c0d321</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0xe0b8fca80b1a7060fea44c6f823b221ec9d7217c#code">0xe0b8fca80b1a7060fea44c6f823b221ec9d7217c</a></code></td></tr><tr id="192e4019-aad5-838e-a9e7-0158a9495165" dir="ltr"><td id="LG~t" class=""><code>GaugeFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x55c0e1643e70f9fb7eeb8c640a303ad9de263302#code">0x55c0e1643e70f9fb7eeb8c640a303ad9de263302</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x42575b2f01d18cf3ed670c9fe82ee90332739d03#code">0x42575b2f01d18cf3ed670c9fe82ee90332739d03</a></code></td></tr><tr id="f44e4019-aad5-8363-9788-0133735999e6" dir="ltr"><td id="LG~t" class=""><code>GaugeGettersFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x07d6edb2e4afad408beadaaf30bc21b8f804d1f7#code">0x07d6edb2e4afad408beadaaf30bc21b8f804d1f7</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x0f97cb8bb44d3d7a0afaeac24bbfe152215e3c5a#code">0x0f97cb8bb44d3d7a0afaeac24bbfe152215e3c5a</a></code></td></tr><tr id="357e4019-aad5-822a-b930-818ac2d5ea00" dir="ltr"><td id="LG~t" class=""><code>SeasonFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x5d1f0c38835a0fb55b5df11341ae217f1f8a01da#code">0x5d1f0c38835a0fb55b5df11341ae217f1f8a01da</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x5545a4ab5cd3f6e7db0883e73ea4805f6e1270a9#code">0x5545a4ab5cd3f6e7db0883e73ea4805f6e1270a9</a></code></td></tr><tr id="605e4019-aad5-8295-904e-010348b3e1b3" dir="ltr"><td id="LG~t" class=""><code>SeasonGettersFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0xab2a1bc987e64c4be13ffb090b01a5888a345c9e#code">0xab2a1bc987e64c4be13ffb090b01a5888a345c9e</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0xebaa2c95efc7f1cef1a57dfb5fe05f8935d7390e#code">0xebaa2c95efc7f1cef1a57dfb5fe05f8935d7390e</a></code></td></tr><tr id="0a9e4019-aad5-8287-87e9-011808c33c8e" dir="ltr"><td id="LG~t" class=""><code>TokenFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x8ab92619de059d8777822e022baaf546a614753d#code">0x8ab92619de059d8777822e022baaf546a614753d</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x7f492edcd56335b2d2aee29dfe39df33bbe43bb8#code">0x7f492edcd56335b2d2aee29dfe39df33bbe43bb8</a></code></td></tr><tr id="d22e4019-aad5-8296-8118-014e66cdc58b" dir="ltr"><td id="LG~t" class=""><code>TokenSupportFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0xd2d6808a2b669723abc669ba5b5d79a871734415#code">0xd2d6808a2b669723abc669ba5b5d79a871734415</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x9d214daf535396d515d93831fc7fe5fa137b4f30#code">0x9d214daf535396d515d93831fc7fe5fa137b4f30</a></code></td></tr><tr id="ebee4019-aad5-829b-89c8-81b0b0035339" dir="ltr"><td id="LG~t" class=""><code>MarketplaceFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x1fbdebc461857d5d8306a64b199ff84975dfc6f8#code">0x1fbdebc461857d5d8306a64b199ff84975dfc6f8</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x1f4504295c5bd57cdbd8caf4df9ab13381cb0ad4#code">0x1f4504295c5bd57cdbd8caf4df9ab13381cb0ad4</a></code></td></tr><tr id="ba9e4019-aad5-8381-beaa-81cbdfd82719" dir="ltr"><td id="LG~t" class=""><code>ClaimFacet</code></td><td id="{WGc" class="">Replace</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x8738f66d4a0431b084b7ff8f59097312a5b5531f#code">0x8738f66d4a0431b084b7ff8f59097312a5b5531f</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0x44df048857445cd8cba3b8cc26132816d827ff14#code">0x44df048857445cd8cba3b8cc26132816d827ff14</a></code></td></tr><tr id="038e4019-aad5-8303-b3ca-810f10d45d80" dir="ltr"><td id="LG~t" class=""><code>WhitelistFacet</code></td><td id="{WGc" class="">Add / Replace / Remove</td><td id="}?qh" class=""><code><a href="https://basescan.org/address/0x45ee6286468f2b1406915446913b744db5a4c5d2#code">0x45ee6286468f2b1406915446913b744db5a4c5d2</a></code></td><td id="HD;V" class=""><code><a href="https://basescan.org/address/0xaaca4a18ddad39fb3a2441ff279afde06bd61b62#code">0xaaca4a18ddad39fb3a2441ff279afde06bd61b62</a></code></td></tr></tbody></table><h3 id="6f3e4019-aad5-82b2-944d-81eeb82f7d74" class="" dir="auto">Other Contract / Parameter Changes</h3><table id="a92e4019-aad5-82c1-8811-813966ec2432" class="simple-table" dir="ltr"><tbody><tr id="927e4019-aad5-822d-882b-81c0fe70fc07" dir="ltr"><td id="|^VL" class="">Supporting Contract</td><td id="fn]n" class="">New Deployment</td></tr><tr id="572e4019-aad5-831f-ac8c-01c381762981" dir="ltr"><td id="|^VL" class=""><code>BeanstalkPrice</code></td><td id="fn]n" class=""><code><a href="https://basescan.org/address/0x13D25ABCB6a19948d35654715c729c6501230b49#code">0x13D25ABCB6a19948d35654715c729c6501230b49</a></code></td></tr><tr id="ad7e4019-aad5-8345-bc80-0102be9479d7" dir="ltr"><td id="|^VL" class=""><code>PriceManipulation</code></td><td id="fn]n" class=""><code><a href="https://basescan.org/address/0x774c111F471FBa61B13D63C9B585882e3c6cf7A6#code">0x774c111F471FBa61B13D63C9B585882e3c6cf7A6</a></code></td></tr><tr id="505e4019-aad5-820f-978c-8120c19bf637" dir="ltr"><td id="|^VL" class=""><code>OperatorWhitelist</code></td><td id="fn]n" class=""><code><a href="https://basescan.org/address/0xF4ee12763976C3025194ef0E272a8390164Cc18f#code">0xF4ee12763976C3025194ef0E272a8390164Cc18f</a></code></td></tr><tr id="364e4019-aad5-8362-a50f-815989263c7d" dir="ltr"><td id="|^VL" class=""><code>TractorHelpers</code></td><td id="fn]n" class=""><code><a href="https://basescan.org/address/0x2808b14d287F8CA77eb25B16575aF187d5A05119#code">0x2808b14d287F8CA77eb25B16575aF187d5A05119</a></code></td></tr><tr id="118e4019-aad5-83ca-bf3a-817ab8024059" dir="ltr"><td id="|^VL" class=""><code>SowBlueprintv0</code></td><td id="fn]n" class=""><code><a href="https://basescan.org/address/0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B#code">0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B</a></code></td></tr></tbody></table><p id="f89e4019-aad5-82b7-bca7-81f3b2012e15" class="" dir="auto">The table below lists the externally linked libraries recorded in the previous and new deployed facet metadata. Shared dependencies are deduplicated. <code>LibSilo</code> and <code>LibTokenSilo</code> each had two previous deployments, identified by their consuming facets. The other replaced facets had no externally linked library dependencies. Address changes do not imply that every library function changed. The final row records the additional library linked by the supporting <code>TractorHelpers</code> deployment.</p><table id="1a5e4019-aad5-8336-b0ad-8148b92eb9dc" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="39ce4019-aad5-83ed-b0dc-81ed6ff285b6" dir="ltr"><th id="Q|w&gt;" class="simple-table-header-color simple-table-header">Library</th><th id="bBvQ" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="@hG?" class="simple-table-header-color simple-table-header">New Implementation</th><th id="jcoD" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="deee4019-aad5-837f-97bf-01d657d29c48" dir="ltr"><td id="Q|w&gt;" class=""><code>LibSilo</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0x5a686e6024d1d40994ae99979ceb63bf67724b04#code">0x5a686e6024d1d40994ae99979ceb63bf67724b04</a></code> (<code>SiloFacet</code>)<br/><code><a href="https://basescan.org/address/0xf5daf4e2ca77cf48f4ec17d10f0b48a8c2ca9e5c#code">0xf5daf4e2ca77cf48f4ec17d10f0b48a8c2ca9e5c</a></code> (<code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>ClaimFacet</code>)</td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x49bfc93e96d467d79fc809c8f6da466f8ebb8975#code">0x49bfc93e96d467d79fc809c8f6da466f8ebb8975</a></code></td><td id="jcoD" class=""><code>SiloFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>ClaimFacet</code></td></tr><tr id="73fe4019-aad5-83cf-ae8f-01c8efd41c34" dir="ltr"><td id="Q|w&gt;" class=""><code>LibTokenSilo</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0x0da233676f46427c31928f5f85678d6737f4ec7e#code">0x0da233676f46427c31928f5f85678d6737f4ec7e</a></code> (<code>SiloFacet</code>)<br/><code><a href="https://basescan.org/address/0xecc6509f71b74c9b14f035d35fb9113519f88bb5#code">0xecc6509f71b74c9b14f035d35fb9113519f88bb5</a></code> (<code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>ClaimFacet</code>)</td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0xe47c1d275ceb1554ce802a0755cc679294f1ae81#code">0xe47c1d275ceb1554ce802a0755cc679294f1ae81</a></code></td><td id="jcoD" class=""><code>SiloFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>ClaimFacet</code></td></tr><tr id="6ebe4019-aad5-822a-860e-818fc7f5c3bb" dir="ltr"><td id="Q|w&gt;" class=""><code>LibConvert</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0x812d9a79aea7db58bc3b0a149ba2694ef37fd1dd#code">0x812d9a79aea7db58bc3b0a149ba2694ef37fd1dd</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0xd10b907e2f8f452c4d43848a4f632a00eff9530b#code">0xd10b907e2f8f452c4d43848a4f632a00eff9530b</a></code></td><td id="jcoD" class=""><code>ConvertFacet</code></td></tr><tr id="23ae4019-aad5-8281-85aa-01010f19191c" dir="ltr"><td id="Q|w&gt;" class=""><code>LibPipelineConvert</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0xad2f28b08ff993ee8faaeb20235234ade0773022#code">0xad2f28b08ff993ee8faaeb20235234ade0773022</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x9b42c78bd19fdf3cf3b3c16c9184e1169bf2c7aa#code">0x9b42c78bd19fdf3cf3b3c16c9184e1169bf2c7aa</a></code></td><td id="jcoD" class=""><code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="2a5e4019-aad5-834f-a4ce-81856cc2687d" dir="ltr"><td id="Q|w&gt;" class=""><code>LibEvaluate</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0x9a2848cbde1d2fcaeebb712fd8f1eb65a4bda874#code">0x9a2848cbde1d2fcaeebb712fd8f1eb65a4bda874</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x311877f9ffbaf12b905df3e1f8c3b5f3c5527bd4#code">0x311877f9ffbaf12b905df3e1f8c3b5f3c5527bd4</a></code></td><td id="jcoD" class=""><code>SeasonFacet</code></td></tr><tr id="4b9e4019-aad5-83c4-b9de-01c3e0b3d5e2" dir="ltr"><td id="Q|w&gt;" class=""><code>LibGauge</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0xd749370071c7fe42bbe7b81dfa85ba8ec24864b0#code">0xd749370071c7fe42bbe7b81dfa85ba8ec24864b0</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x28d436b9bbbe755dea4db747483f693d71847984#code">0x28d436b9bbbe755dea4db747483f693d71847984</a></code></td><td id="jcoD" class=""><code>SeasonFacet</code></td></tr><tr id="b95e4019-aad5-820d-a350-814745693fea" dir="ltr"><td id="Q|w&gt;" class=""><code>LibIncentive</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0x5630463e432cbd8ddb870d646213011da9166889#code">0x5630463e432cbd8ddb870d646213011da9166889</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x09240a6c83350caaf110d9de6e23a659625d5476#code">0x09240a6c83350caaf110d9de6e23a659625d5476</a></code></td><td id="jcoD" class=""><code>SeasonFacet</code></td></tr><tr id="1c8e4019-aad5-8345-8754-0110282bcfa6" dir="ltr"><td id="Q|w&gt;" class=""><code>LibShipping</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0xd8a274fcabe2a5cfc1c18b1f844f7fb2941d38f5#code">0xd8a274fcabe2a5cfc1c18b1f844f7fb2941d38f5</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x3e3442a75ed4dd47e64e4522da625701049d6477#code">0x3e3442a75ed4dd47e64e4522da625701049d6477</a></code></td><td id="jcoD" class=""><code>SeasonFacet</code></td></tr><tr id="3f6e4019-aad5-839c-8184-81dabcb0eb99" dir="ltr"><td id="Q|w&gt;" class=""><code>LibWellMinting</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0x9500f6e8742ecb924af9c97922851d648b613d07#code">0x9500f6e8742ecb924af9c97922851d648b613d07</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x6dd836e7fe603bd73532bf6b5cbb188b7fcc7fa9#code">0x6dd836e7fe603bd73532bf6b5cbb188b7fcc7fa9</a></code></td><td id="jcoD" class=""><code>SeasonFacet</code>, <code>SeasonGettersFacet</code></td></tr><tr id="316e4019-aad5-838b-a7da-0174cf4a2397" dir="ltr"><td id="Q|w&gt;" class=""><code>LibFlood</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0xc4667d3a3c7c0c42a5bf351f98861963b2597f51#code">0xc4667d3a3c7c0c42a5bf351f98861963b2597f51</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0xff823fbb0ae114b8e41c0529c7d87702cc5d06a8#code">0xff823fbb0ae114b8e41c0529c7d87702cc5d06a8</a></code></td><td id="jcoD" class=""><code>SeasonFacet</code></td></tr><tr id="787e4019-aad5-8323-960f-815f2e21be74" dir="ltr"><td id="Q|w&gt;" class=""><code>LibGerminate</code></td><td id="bBvQ" class=""><code><a href="https://basescan.org/address/0xc6f5423a60acd02f0c8d8d6d5281caa00899b0f9#code">0xc6f5423a60acd02f0c8d8d6d5281caa00899b0f9</a></code></td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0x74f0910564523a9a9a0b4db23505f653af20548c#code">0x74f0910564523a9a9a0b4db23505f653af20548c</a></code></td><td id="jcoD" class=""><code>SeasonFacet</code></td></tr><tr id="e95e4019-aad5-82be-b91e-011d256c8d12" dir="ltr"><td id="Q|w&gt;" class=""><code>LibTractorHelpers</code></td><td id="bBvQ" class="">Not applicable — new supporting dependency</td><td id="@hG?" class=""><code><a href="https://basescan.org/address/0xcc035410d5570f2c5e841091c87d5d051761e569#code">0xcc035410d5570f2c5e841091c87d5d051761e569</a></code></td><td id="jcoD" class=""><code>TractorHelpers</code></td></tr></tbody></table><h3 id="756e4019-aad5-8371-a17e-014f917e8e7f" class="" dir="auto">Function Changes</h3><ul id="b56e4019-aad5-83fe-bbfb-01cc6840b4e6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>Weather.updateTemperatureAndBeanToMaxLpGpPerBdvRatio()</code> to apply Maximum Temperature changes of +0.5, 0 and −1 percentage points for decreasing, steady and increasing demand, respectively, only when the Pod Rate is strictly above 100% and TWA delta is negative. The existing rule resets Temperature to 1% if a decrease meets or exceeds the current Temperature.</li></ul><ul id="c97e4019-aad5-83f0-b3b8-01b9720cb181" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibEvaluate.calcDeltaPodDemand()</code> and added internal <code>getDemand()</code>. After the minimum is met, fast sellouts indicate increasing demand. Similar-time sellouts retain a steady-demand floor. Slower sellouts and Seasons without a sellout use the ratio of Pinto Sown to the previous Season: below 95% is decreasing, from 95% to below 105% is steady, and at least 105% is increasing. A zero prior number with a positive current number indicates increasing demand.</li></ul><ul id="241e4019-aad5-82f9-a188-816e50441c1f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the <code>minSoilSownDemand</code> check before the other demand rules. Fewer than 25 Pinto Sown returns zero demand. The calculation carries the current sellout time into the previous-Season field and resets the current sellout time to <code>type(uint32).max</code>. Updated <code>SeasonGettersFacet.getExtEvaluationParameters()</code> to return the new <code>minSoilSownDemand</code> field. The tuple now contains seven <code>uint256</code> fields and <code>bytes32[60]</code>, replacing six <code>uint256</code> fields and <code>bytes32[61]</code>. Its selector is unchanged.</li></ul><ul id="239e4019-aad5-827c-90a0-812caa4a0249" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>updateSortedDepositIds(address,address,uint256[])</code> to validate a nonempty, complete ordering of the account’s existing Deposit IDs for one token, requiring strictly ascending Stems, then store that ordering through <code>LibSilo._setSortedDepositIds()</code>. PI-8 updates the array but does not update the separate <code>idIndex</code> mapping. PI-9 subsequently corrects that omission.</li></ul><ul id="4c1e4019-aad5-824b-b807-812c20c988ff" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>TractorHelpers.getSortedDeposits()</code> (descending Stem order) and <code>getSortedWhitelistedTokensBySeeds()</code> (descending Seeds). Withdrawal-planning helpers select Deposits and token quantities for Pinto withdrawals, including plans that exclude quantities already allocated to another plan. These view helpers are distinct from the ascending-Stem storage validator. Added <code>getTokensAscendingSeeds()</code> and <code>getTokensAscendingPrice()</code> for source-token strategies, plus highest/lowest-Seed and Deposit-availability views. <code>getDepositStemsAndAmountsToWithdraw()</code> walks the stored Deposit IDs backward and filters by minimum Stem. It does not sort that list, so lowest-Mown-Stalk-first selection relies on an ascending-Stem stored ordering. <code>combineWithdrawalPlans()</code> aggregates overlapping allocations through the externally linked <code>LibTractorHelpers</code>.</li></ul><ul id="60ae4019-aad5-8317-bc89-8104fa59059e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>tractor()</code> and <code>LibTractor</code> to store the executing Blueprint hash and operator during execution and reset them afterward to <code>bytes32(uint256(1))</code> and <code>address(1)</code>. Added <code>getCurrentBlueprintHash()</code>, <code>operator()</code> and <code>tractorUser()</code>. The latter returns the active publisher during Tractor execution or the caller otherwise. <code>publishRequisition()</code> now rejects a Blueprint whose nonce has reached <code>maxNonce</code>.</li></ul><ul id="1e6e4019-aad5-82e9-8c33-012ae01ca0f4" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>sendTokenToInternalBalance()</code> to transfer ERC-20 tokens from the actual caller’s external balance to a recipient’s internal balance. It uses <code>msg.sender</code>, not the substituted Blueprint publisher.</li></ul><ul id="db6e4019-aad5-83cc-80b5-01466dcbccf2" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>TractorHelpers.withdrawBeansFromSources()</code> to execute a withdrawal plan. Pinto Deposits are withdrawn directly. LP Deposits are checked against current-versus-instantaneous pricing, withdrawn and removed for Pinto before crediting the requested balance.</li></ul><ul id="e5fe4019-aad5-8293-9f9b-81c823eb5f15" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>TractorHelpers.tip()</code> for signed operator rewards. A positive tip pays the selected tip address. A negative tip transfers from that address to the publisher.</li></ul><ul id="4bee4019-aad5-82b2-a458-8114cb19f5ff" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>harvest()</code> to return the number of Pinto harvested. </li></ul><ul id="91ce4019-aad5-8269-b01f-81f46d33fc77" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>totalUnharvestableForActive</code><code><a href="https://docs.pinto.money/resources/glossary#field">Field</a></code><code>()</code> for outstanding <a href="https://docs.pinto.money/resources/glossary#pods">Pods</a> in the active Field and <code>getBeanToken()</code> for the Pinto token address.</li></ul><ul id="0eee4019-aad5-82bb-9db2-0106300db77e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the supporting <code>SowBlueprintv0</code> execution and validation helpers. <code>sowBlueprintv0()</code> coordinates withdrawals, tips and Sowing within the publisher’s configured per-Season limits, Temperature, <a href="https://docs.pinto.money/resources/glossary#pod-line">Pod Line</a>, delay, slippage and Grown Stalk constraints. It tracks each Blueprint’s remaining order and last executed Season. The validation views return execution quantities and a withdrawal plan.</li></ul><ul id="8cde4019-aad5-82b3-97c2-8169249f28de" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added owner-restricted <code>OperatorWhitelist.addOperator()</code> and <code>removeOperator()</code>, with membership and enumeration views. <code>TractorHelpers.isOperatorWhitelisted()</code> checks the current operator against the Blueprint’s configured allowlist. An empty list permits any operator. Entries can name operators directly or allowlist contracts. Failed contract checks are skipped.</li></ul><ul id="af7e4019-aad5-8324-a1de-8128e6dc7383" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added owner-restricted <code>pauseFunction()</code> and <code>unpauseFunction()</code>, plus a public <code>functionPaused()</code> view, through <code>PerFunctionPausable</code>. The pause check guards <code>TractorHelpers.withdrawBeansFromSources()</code> and <code>SowBlueprintv0.sowBlueprintv0()</code>. It does not pause every helper automatically.</li></ul><ul id="6aae4019-aad5-8386-8924-817c95a6f2e9" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>PriceManipulation.isValidSlippage()</code> to sync a <a href="https://docs.basin.exchange/components/well">Well</a> and compare its current Pinto-per-token rate with the <a href="https://docs.basin.exchange/components/pump">Pump</a>’s instantaneous rate using the supplied tolerance. Zero rates return <code>false</code>. The Sow Blueprint defaults an unspecified tolerance to 1%.</li></ul><ul id="1d4e4019-aad5-831f-922a-017f2d4ebde5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>PriceManipulation.aggregatePintoPerUsdc()</code> to aggregate instantaneous-reserve pricing across whitelisted Wells and <code>price()</code> to combine that result with the <a href="https://docs.pinto.money/pinto-mechanics/toolshed/spinto-composing-pinto-with-defi">sPinto</a> redemption rate for a 24-decimal sPinto/USDC oracle output.</li></ul><ul id="9aee4019-aad5-820b-9867-0157b1900ab1" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>BeanstalkPrice</code> with reserve-type overloads for <code>price()</code>, <code>priceForWells()</code> and <code>poolPrice()</code>. The original overloads remain available. The inherited <code>getWell()</code> also gained a reserve-type overload. The selected current, instantaneous or capped reserves feed balances and reserve-dependent calculations, but the Pinto price quote still calls the Well’s current <code>getSwapOut()</code>. USD conversion now uses <code>getMillionUsdPrice()</code>, and non-Pinto liquidity multiplies before division to reduce truncation.</li></ul><ul id="33fe4019-aad5-8203-b44f-810d7475fef0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Replaced the <code>updateSeedGaugeSettings</code> selector <code>0x2444561c</code> with <code>0x79325704</code>. Its <code>EvaluationParameters</code> tuple now includes <code>rainingMinBeanMaxLpGpPerBdvRatio</code>. The function remains owner-restricted.</li></ul><h3 id="3ece4019-aad5-83bf-9213-0155444746be" class="" dir="auto">Event Changes</h3><ul id="ca0e4019-aad5-8284-93f9-01997fff5221" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The initializer emitted <code>UpdatedEvaluationParameters</code> for the Maximum Crop Ratio update and <code>BeanToMaxLpGpPerBdvRatioChange</code> for the Crop Scalar adjustment, using <code>type(uint256).max</code> as the initializer’s case ID. This initializer’s <code>UpdatedEvaluationParameters</code> event includes an indexed Season followed by the parameter tuple.</li></ul><ul id="462e4019-aad5-8364-89cb-8152f95f6f56" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated weather processing to add <code>1000</code> to the case ID when the Pod Rate is strictly above 100%, including when TWA delta is nonnegative. This identifies the extreme Pod Rate in Temperature and Crop Scalar change events independently of whether the negative-TWA-delta Temperature override applies.</li></ul><ul id="b86e4019-aad5-836c-8084-81cfc364c0a5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">The initializer emitted <code>UpdatedExtEvaluationParameters</code> for the new minimum demand threshold.</li></ul><ul id="256e4019-aad5-836c-8da6-0163abb6bc62" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>TractorExecutionBegan</code> before nonce increment and execution. Expanded <code>Tractor</code> and moved its emission after publisher reset. Both include indexed operator, publisher and Blueprint hash, the pre-increment nonce and remaining gas. <code>CancelBlueprint</code> now indexes its Blueprint hash. The new <code>sendTokenToInternalBalance()</code> path also emits the existing <code>InternalBalanceChanged</code> and <code>TokenTransferred</code> events.</li></ul><ul id="5e0e4019-aad5-83d9-92eb-0131b577e4b4" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>SowOrderComplete</code> in <code>SowBlueprintv0</code> when an order finishes or its remaining Pinto is below the permitted minimum. Its indexed fields are <code>blueprintHash</code> and <code>publisher</code>. The other fields are <code>totalAmountSown</code> and <code>amountUnfulfilled</code>. On full completion, <code>totalAmountSown</code> reports the final execution’s quantity. On the below-minimum remainder branch, it reports the cumulative filled quantity.</li></ul><ul id="f08e4019-aad5-824a-b1d7-012aa48f6ae7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>OperatorReward</code> in <code>TractorHelpers.tip()</code>, carrying reward type, indexed publisher and recipient, token and signed tip. </li></ul><ul id="07be4019-aad5-8328-992d-0123f9b07e50" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><code>OperatorWhitelist</code> emits <code>OperatorAdded</code> and <code>OperatorRemoved</code> with the operator indexed.</li></ul><ul id="ba9e4019-aad5-82e7-a7e0-8190ab49737a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>FunctionPaused(bytes4 indexed functionSelector, bool isPaused)</code> to the pausable helpers. Their owner controls emit it for pause and unpause actions. The owner-controlled supporting contracts also inherit <code>OwnershipTransferred</code>.</li></ul><ul id="fede4019-aad5-834e-9c9f-01db2ee1ac1b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated the <code>WhitelistFacet</code> owner-update event <code>UpdatedEvaluationParameters</code> to include <code>rainingMinBeanMaxLpGpPerBdvRatio</code> in its tuple, changing the event signature. Unlike the initializer event of the same name, this event has only the parameter tuple and no Season argument.</li></ul><ul id="d58e4019-aad5-82ea-bf58-81aa7af35739" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Expanded <code>ConvertDownPenalty</code> from one value to <code>(address account, uint256 grownStalkLost, uint256 grownStalkKept)</code> in both conversion paths. The final value is the Grown Stalk retained after applying the penalty.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

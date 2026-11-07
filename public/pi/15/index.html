@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-15: Beanstalk Repayments and Bug Fixes</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-80bc-9dbe-c140c636c8a2" class="page sans"><header><h1 class="page-title" dir="auto">PI-15: Beanstalk Repayments and Bug Fixes</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="a32e4019-aad5-8222-8578-0192f9768387" class="" dir="auto">Executed on March 6, 2026 at 16:58 UTC.</p><h2 id="f85e4019-aad5-8266-99c8-01a80f8868f4" class="" dir="auto">Summary</h2><ol type="1" id="ebde4019-aad5-83f5-a5ca-81ba2a7ed29e" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.bean.money/">Beanstalk</a></strong><strong> Repayments:</strong> Add separate repayment routes for Beanstalk&#x27;s <a href="https://docs.pinto.money/resources/glossary#field">Field</a>, <a href="https://docs.pinto.money/resources/glossary#silo">Silo</a> and <a href="https://docs.bean.money/almanac/farm/barn">Barn</a> obligations, with transferable positions, contract-account claims and accounting hooks for <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> shipments and <a href="https://docs.pinto.money/resources/glossary#farm-assets">Internal Balance</a> transfers.</li></ol><ol type="1" id="20de4019-aad5-8375-90be-81e8a58a8f6d" class="numbered-list" start="2" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#convert-1">Convert</a></strong><strong> Accounting and Penalties:</strong> Fix capacity double-counting and normalize the <a href="https://docs.pinto.money/resources/glossary#grown-stalk">Grown Stalk</a> penalty to simulated liquidity impact.</li></ol><ol type="1" id="aa0e4019-aad5-834a-8ebc-81a3c8750517" class="numbered-list" start="3" dir="auto"><li><strong>Referral Eligibility:</strong> Preserve a former delegate&#x27;s independently earned eligibility when referral delegation changes, and reject delegation to the zero address.</li></ol><ol type="1" id="2ade4019-aad5-82e9-b89e-81b15fee1791" class="numbered-list" start="4" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#plot">Plot</a></strong><strong> Management:</strong> Add bounded queries of Plot indexes and combine adjacent Plots to simplify position management.</li></ol><h2 id="f2de4019-aad5-8264-a7ee-01e406b6d9e9" class="" dir="auto">Links</h2><ul id="815e4019-aad5-82b8-92af-01b43ba8112d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Original Reference: <a href="https://app.notion.com/p/2f5b42e896f380cea1cbd1a8f47e8821?pvs=21">PI-15 Github writeup</a>.</li></ul><ul id="280e4019-aad5-8380-ab66-8129dd11b079" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation PR: <a href="https://github.com/pinto-org/protocol/pull/175">PR #175</a>.</li></ul><ul id="928e4019-aad5-821a-a378-81b6c14d94c0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Diamond Cut Transaction: <a href="https://basescan.org/tx/0xb4eb77d2544c1e3f6d4f5cb3fb1033fae0887e7663d738aede7c17a9d69b7d46">Base execution</a>.</li></ul><ul id="713e4019-aad5-8352-aa35-01e6abe469ce" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/7b63656a0653ede85a72111a6967c01e6127895a">7b63656a0653ede85a72111a6967c01e6127895a</a>.</li></ul><h2 id="3d8e4019-aad5-8368-bf24-81a15ebb3cf9" class="" dir="auto">Background</h2><p id="5bee4019-aad5-8219-b2b9-0193b7f56c14" class="" dir="auto">Pinto committed at launch to start repaying Beanstalk’s obligations after supply exceeds 1 billion Pinto. The <a href="https://app.notion.com/p/2f5b42e896f380cea1cbd1a8f47e8821?pvs=21">original writeup</a> specifies Arbitrum block 276160746 for the holder snapshot, with Silo allocations based on fully recapitalized <a href="https://docs.bean.money/almanac/protocol/glossary">Unripe</a> value, equivalent Field positions and Barn <a href="https://docs.bean.money/almanac/protocol/glossary">Fertilizer</a> balances.</p><h2 id="f0fe4019-aad5-83cb-88b8-81064c8905e8" class="" dir="auto">Problems</h2><h3 id="24de4019-aad5-82d1-9226-01a803baa39d" class="" dir="auto">1. Beanstalk Repayments</h3><p id="6d2e4019-aad5-8379-87a0-81cd78b470d8" class="" dir="auto">The contracts and accounting needed to repay Beanstalk’s obligations had not yet been implemented.</p><h3 id="dabe4019-aad5-8353-9c8e-01ad1a631dcd" class="" dir="auto">2. Convert Accounting and Penalties</h3><p id="f6be4019-aad5-83c8-9fda-01269d562146" class="" dir="auto">The per-block Convert capacity used to calculate Grown Stalk penalties tracks movement toward peg across all Wells and within each Well. Its accounting counted earlier Converts again with each new Convert in the same block, overstating capacity usage. </p><p id="589e4019-aad5-8365-ad2f-01ef9d34367a" class="" dir="auto">Grown Stalk penalties had two calculation problems. Overall movement toward or away from peg was measured from the spot reserve imbalance immediately before the Convert, making the result sensitive to preceding trades. The resulting penalty amount was then treated directly as <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">Pinto Denominated Value (PDV)</a> subject to Grown Stalk removal, rather than scaled to the Convert’s size and simulated effect on pool liquidity.</p><h3 id="3e5e4019-aad5-820d-86aa-819ebfcf12dd" class="" dir="auto">3. Referral Eligibility</h3><p id="6aee4019-aad5-82f8-b0c3-015cc1139307" class="" dir="auto">Removing delegation from an account cleared the former delegate&#x27;s eligibility, even when that account had independently Sown enough Pinto to qualify. The function also permitted delegation to the zero address.</p><h3 id="3d8e4019-aad5-8253-b3fa-8190407adb7d" class="" dir="auto">4. Plot Management</h3><p id="461e4019-aad5-8211-b6cc-01a31044e08e" class="" dir="auto">The Field interface lacked bounded queries for positions in an account&#x27;s Plot-index list and a way to combine adjacent Plots.</p><h2 id="ab7e4019-aad5-83f8-b6f6-01f9ac3536a4" class="" dir="auto">Solutions</h2><h3 id="aa5e4019-aad5-8343-bb07-01be05f9a574" class="" dir="auto">1. Beanstalk Repayments</h3><p id="ed2e4019-aad5-8211-8a33-819dd1a502ba" class="" dir="auto">Add separate repayment positions for Beanstalk’s Field, Silo and Barn obligations, with transfers and claims on Base.</p><p id="d42e4019-aad5-8384-b939-8167eac438db" class="" dir="auto">Under the normal allocation, 48.5% of newly minted Pinto goes to the regular Silo and 48.5% to the regular Field. The remaining 3% shifts from the budget to Beanstalk repayments as supply crosses 1 billion Pinto: initially 1% each to the repayment Field, Silo and Barn. Once the Barn is repaid, the repayment Field and Silo each receive 1.5%; once the Silo is repaid, the repayment Field receives 3%. </p><ul id="18fb1056-a792-4595-a175-2efce03b98de" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Field:</strong> Represent claims as transferable Plots in a separate repayment Field. Holders can transfer their positions and harvest Pinto as their Pods become harvestable.</li></ul><ul id="48f16ca6-4d4d-4555-9748-f2ef547bbb98" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Silo:</strong> Represent claims as transferable <code>urBDV</code> tokens, which earn Pinto repayments whether held in a wallet or Internal Balance. Earned Pinto stays with the account that earned it when tokens are transferred; future repayments follow the tokens. Claims can be paid to a chosen recipient’s wallet or Internal Balance. Holders must retain a positive <code>urBDV</code> balance to claim, so they should claim earned Pinto before transferring their entire balance.</li></ul><ul id="c1eb552b-b091-430b-a223-5775f2ca15aa" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Barn:</strong> Represent claims as transferable Fertilizer positions. Holders can claim repaid Pinto to their wallet or Internal Balance. Before Fertilizer moves, any accrued Pinto rewards for the sender and recipient are paid to each person’s own Internal Balance. The Fertilizer position and its future repayment rights then pass to the recipient.</li></ul><ul id="b381012c-ed0f-4de7-9943-e967cff8b698" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Contract accounts:</strong> Eligible contracts that can act from their own address on Base can claim directly and choose where to receive their positions. At launch, contracts that needed to choose a receiver from Ethereum could not do so: the messenger targeted the wrong Base address. A separate upgrade is planned to restore that route. A contract receiving Fertilizer must support ERC-1155 transfers.</li></ul><h3 id="a8fe4019-aad5-832e-a2cc-81b99f0d6356" class="" dir="auto">2. Convert Accounting and Penalties</h3><p id="1b0e4019-aad5-8231-8433-81717b45eb51" class="" dir="auto">Count each Convert’s use of the per-block, overall and per-Well capacity once, preserving the correct remaining capacity for later Converts in the same block. This capacity governs Grown Stalk penalties and is separate from Convert Up bonus capacity.</p><p id="a161722f-9028-4d64-833f-a38d7c8d4e31" class="" dir="auto">Make the overall penalty less sensitive to trades immediately before a Convert by measuring its effect against a reserve baseline that limits sudden changes. Individual Well checks still use spot reserves.</p><p id="98ee4019-aad5-82a0-9d9f-01666ad65120" class="" dir="auto">Scale Grown Stalk penalties to the proportion of a Convert that moves away from peg or exceeds remaining capacity. The penalty reflects the Convert’s size and expected liquidity impact, rather than treating the raw reserve imbalance as an amount of deposit value to penalize. At most 100% of the output <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">PDV</a> is subject to this penalty.</p><p id="222e4019-aad5-82f4-9673-01196bc290ce" class="" dir="auto">Apply these changes to ordinary and batch Pinto ↔ <a href="https://docs.basin.exchange/components/well">Well</a> LP Converts and <a href="https://docs.pinto.money/resources/glossary#pipeline">Pipeline</a> Converts. Same-token Converts receive no penalty from this calculation. Existing Grown Stalk minimums, directional bonuses or penalties, and slippage protections still apply; invalid reserve or oracle data can prevent a Convert.</p><h3 id="bf6e4019-aad5-825b-a5a5-81faf52df00c" class="" dir="auto">3. Referral Eligibility</h3><p id="d73e4019-aad5-8294-a8c6-81bae8edd13d" class="" dir="auto">When changing a delegate, clear the former delegate&#x27;s eligibility only if their own recorded Sowing is below the eligibility threshold. Reject a zero-address delegate.</p><h3 id="54fe4019-aad5-8380-9a0a-810f3c0e0001" class="" dir="auto">4. Plot Management</h3><p id="11ae4019-aad5-8358-aafe-015c8401637f" class="" dir="auto">Add getters for Plot-index list length, a Plot&#x27;s stored reverse index, selected array positions and half-open index ranges. Position queries preserve the requested order. Range queries require a nonempty range within the list bounds.</p><p id="b16e4019-aad5-8270-b11c-0120220ac9ae" class="" dir="auto">Add <code>combinePlots</code> for at least two positive caller-owned Plots supplied in ascending, exactly adjacent <a href="https://docs.pinto.money/resources/glossary#pod-line">Pod Line</a> order. Aggregate their Pods into the first Plot, remove later Plots from account indexing, and cancel listings for those later Plots. The first Plot&#x27;s listing remains. Index removal uses swap-and-pop, so account-list order is not preserved.</p><h2 id="121e4019-aad5-8359-bb57-01146d210814" class="" dir="auto">Rationale</h2><h3 id="004e4019-aad5-8325-8909-816f7908f778" class="" dir="auto">1. Beanstalk Repayments</h3><p id="0b4e4019-aad5-82a4-9433-014d4d8e9061" class="" dir="auto">Give Beanstalk holders a way to receive the repayments Pinto committed to at launch. Transferable positions let holders pass future repayment rights to someone else, while keeping track of Pinto already earned. Separate Field, Silo and Barn positions preserve the different claims holders had in Beanstalk. Repayment limits prevent paying more than is owed or using more newly minted Pinto than allocated.</p><h3 id="851e4019-aad5-836b-879d-81516aa4eaff" class="" dir="auto">2. Convert Accounting and Penalties</h3><p id="c89e4019-aad5-8253-88ee-012b45a80d8b" class="" dir="auto">Later Converts should not face higher Grown Stalk penalties because earlier Converts were counted more than once. Correcting that accounting preserves the capacity actually available in each block.</p><p id="687e4019-aad5-824f-bf80-01fb4f25b48d" class="" dir="auto">Penalties should reflect how much a Convert moves Pinto away from peg or exceeds available capacity. Making the calculation less sensitive to preceding trades and scaling it to the Convert’s size makes the penalty better reflect that Convert’s effect.</p><h3 id="37ee4019-aad5-8330-a372-01206e41b23a" class="" dir="auto">3. Referral Eligibility</h3><p id="471e4019-aad5-83d4-a1e3-01640bb7ec12" class="" dir="auto">Delegation changes should preserve eligibility earned through an account’s own Sowing. Rejecting the zero address prevents assigning it referral eligibility.</p><h3 id="e05e4019-aad5-82ac-8845-015046d0de21" class="" dir="auto">4. Plot Management</h3><p id="c21e4019-aad5-83ac-a5b6-012cfac412f2" class="" dir="auto">Combining Plots simplifies management without moving their Pod Line position or creating Pods.</p><h2 id="ed6e4019-aad5-82cc-ac22-01ff7df1c9cd" class="" dir="auto">Contract Changes</h2><p id="cb0e4019-aad5-827f-8422-818ae4e92a83" class="" dir="auto">At Base block 43,013,477, the cut added 14 selectors, replaced 197 and removed three. The source merged March 10, after execution. This inventory excludes standalone Blueprint deployments in that merge.</p><h3 id="7ede4019-aad5-83b9-871c-81ad45b3cec8" class="" dir="auto">Initialization</h3><p id="d0be4019-aad5-83c6-a766-81e0384ad588" class="" dir="auto">Executed <code><a href="https://basescan.org/address/0x0730c4ff5823ee749f497e50fcbb6d62633cb250#code">InitBeanstalkShipments</a></code> through <code>init(ShipmentRoute[],address)</code>. It replaced shipment routes, called <code>addField</code>, set Field 1&#x27;s <code>pods</code> to <code>919768387056514</code> raw units (919,768,387.056514 Pods at six decimals), and registered the supplied <code>SiloPayback</code>&#x27;s <code>protocolUpdate(address,address,uint256)</code> hook with encoding type <code>0x00</code>. It assumes the newly added Field is Field 1. It does not explicitly reset <code>harvestable</code> or <code>harvested</code>, and account Plot population is separate.</p><p id="2ece4019-aad5-8230-accd-813fd47953c8" class="" dir="auto">Removed the three temporary population selectors. The populator-only <code>initializeRepaymentPlots</code> wrote quantities and index mappings in batches without guarding against repeated entries. Historical receipts confirm that 62 successful batches populated all 7,598 Plots exactly once, matching the <a href="https://github.com/pinto-org/protocol-audit/blob/7b63656a0653ede85a72111a6967c01e6127895a/scripts/beanstalkShipments/data/beanstalkPlots.json">population dataset</a>. Two repeated attempts reverted.</p><h3 id="274e4019-aad5-83b1-84cf-8147259bc39a" class="" dir="auto">Facet Changes</h3><p id="ca6e4019-aad5-82e6-a858-01756db3a583" class="" dir="auto">The previous implementations below are verified against historical routing at <a href="https://basescan.org/block/43013476">Base block 43,013,476</a>, immediately before PI-15. All 197 replaced selectors match the listed addresses, all 14 added selectors were absent, and the three removed selectors pointed to <code>TempRepaymentFieldFacet</code>. PI-15 was the only Diamond upgrade in its execution block.</p><table id="daae4019-aad5-8320-ba06-01a2f3fa0018" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="078e4019-aad5-822c-ac2f-81ca0eb15f8d" dir="ltr"><th id="Xo:O" class="simple-table-header-color simple-table-header">Facet</th><th id=":jR?" class="simple-table-header-color simple-table-header">Action</th><th id="R_bw" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="[Pkb" class="simple-table-header-color simple-table-header">New Implementation</th></tr></thead><tbody><tr id="cbfe4019-aad5-830e-9d48-012ff29db09b" dir="ltr"><td id="Xo:O" class=""><code>SeasonFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x4aeee50b11c3682605dceca1feacd96349383cd2#code">0x4aeee50b11c3682605dceca1feacd96349383cd2</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x0dbb045a6cb0a2d8a7320c40f57bbaa1325eb509#code">0x0dbb045a6cb0a2d8a7320c40f57bbaa1325eb509</a></code></td></tr><tr id="437e4019-aad5-83b7-ab6b-01183a8d44a5" dir="ltr"><td id="Xo:O" class=""><code>SeasonGettersFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x87e626e6187bc0df123cf6441ccc9f31a46f178e#code">0x87e626e6187bc0df123cf6441ccc9f31a46f178e</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x66fb2def6075067cd83ef17cd17e78389c2130fe#code">0x66fb2def6075067cd83ef17cd17e78389c2130fe</a></code></td></tr><tr id="b63e4019-aad5-82cd-8d6a-017a2e57433f" dir="ltr"><td id="Xo:O" class=""><code>TokenHookFacet</code></td><td id=":jR?" class="">Add</td><td id="R_bw" class="">Not applicable: new selectors</td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x59479226df7b0f9aa0baf8c20a37c59d3dfdf590#code">0x59479226df7b0f9aa0baf8c20a37c59d3dfdf590</a></code></td></tr><tr id="3a5e4019-aad5-837a-9a71-819f39e9c89d" dir="ltr"><td id="Xo:O" class=""><code>ShipmentPlannerFacet</code></td><td id=":jR?" class="">Add</td><td id="R_bw" class="">Not applicable: new selectors</td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xf0e6e13c39d6dffcac002b722ce3b27460678b88#code">0xf0e6e13c39d6dffcac002b722ce3b27460678b88</a></code></td></tr><tr id="c04e4019-aad5-82ff-9a54-016b9d82b7a1" dir="ltr"><td id="Xo:O" class=""><code>FieldFacet</code></td><td id=":jR?" class="">Add / Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0xae94197e16b31443fe1c333a32eda30eb3c1a942#code">0xae94197e16b31443fe1c333a32eda30eb3c1a942</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xa0e75d184e4cbd9ee4bcff1e4241644a4f40520e#code">0xa0e75d184e4cbd9ee4bcff1e4241644a4f40520e</a></code></td></tr><tr id="43fe4019-aad5-82ba-8ccf-8196298fce79" dir="ltr"><td id="Xo:O" class=""><code>TokenFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0xd29e38e4a803feac3503fd7402181bba79d3d3f0#code">0xd29e38e4a803feac3503fd7402181bba79d3d3f0</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x72c3b15c61c75231722f299b743d04b6e6cb1e5d#code">0x72c3b15c61c75231722f299b743d04b6e6cb1e5d</a></code></td></tr><tr id="cf0e4019-aad5-83db-a2fb-01b53a0fd585" dir="ltr"><td id="Xo:O" class=""><code>TractorFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0xc8706ff2a0da6b3367aa506dcbb608ccf96148de#code">0xc8706ff2a0da6b3367aa506dcbb608ccf96148de</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x31e42c360092ac719a02b2b67b6ed8586c856824#code">0x31e42c360092ac719a02b2b67b6ed8586c856824</a></code></td></tr><tr id="bf3e4019-aad5-8392-b7c7-01f7c14b0752" dir="ltr"><td id="Xo:O" class=""><code>MarketplaceFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x85436279a52537ef03864e268d73d3ba37e169ec#code">0x85436279a52537ef03864e268d73d3ba37e169ec</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xeb0433332dad2cf2bececa144602ccc4d15e474e#code">0xeb0433332dad2cf2bececa144602ccc4d15e474e</a></code></td></tr><tr id="b8ee4019-aad5-8344-a00c-81e76ee69f48" dir="ltr"><td id="Xo:O" class=""><code>MarketplaceBatchFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x40e42f3d568faf47c539a7d2a61e24629819bad4#code">0x40e42f3d568faf47c539a7d2a61e24629819bad4</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x5da1e415f6aad25bd27859de1b6001d0596b43c3#code">0x5da1e415f6aad25bd27859de1b6001d0596b43c3</a></code></td></tr><tr id="132e4019-aad5-83ef-86cd-01567c251fe9" dir="ltr"><td id="Xo:O" class=""><code>ClaimFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0xfc4499f812014bebaf9686ce0312a77cca65137a#code">0xfc4499f812014bebaf9686ce0312a77cca65137a</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xab86a40c4aeb2af5e739bfdb66f21fd4ca9e7098#code">0xab86a40c4aeb2af5e739bfdb66f21fd4ca9e7098</a></code></td></tr><tr id="267e4019-aad5-835c-9eab-01f0aa79bb86" dir="ltr"><td id="Xo:O" class=""><code>SiloFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x8646649c0f80db8665358f4548ae0d1ecc3910a5#code">0x8646649c0f80db8665358f4548ae0d1ecc3910a5</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x051b60dad9c5a87355ffc5fb795c00e95c849a2a#code">0x051b60dad9c5a87355ffc5fb795c00e95c849a2a</a></code></td></tr><tr id="1a5e4019-aad5-8309-802a-81effcd11875" dir="ltr"><td id="Xo:O" class=""><code>GaugeFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0xf9f1d9c6ef1ca5ec0897c266d7b4e016e955d916#code">0xf9f1d9c6ef1ca5ec0897c266d7b4e016e955d916</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xe7ec22cb41db7935aea4b4d7a418c1a52d37239f#code">0xe7ec22cb41db7935aea4b4d7a418c1a52d37239f</a></code></td></tr><tr id="b45e4019-aad5-83f1-9e82-819a400b235e" dir="ltr"><td id="Xo:O" class=""><code>ConvertFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0xdc37f26363b305affc93c564ee879a265bcbff4d#code">0xdc37f26363b305affc93c564ee879a265bcbff4d</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0x978ec1c303999e0a4eb4928dc3a4b39f0e9b7fa0#code">0x978ec1c303999e0a4eb4928dc3a4b39f0e9b7fa0</a></code></td></tr><tr id="3fae4019-aad5-83e7-a002-81b4822df5cd" dir="ltr"><td id="Xo:O" class=""><code>ConvertBatchFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x923a7096f7338660e60b4dc0ae21d2413e399739#code">0x923a7096f7338660e60b4dc0ae21d2413e399739</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xbc27599d5345c082dd0bd258a8d92c416e2dd4e1#code">0xbc27599d5345c082dd0bd258a8d92c416e2dd4e1</a></code></td></tr><tr id="c96e4019-aad5-826b-a31c-01ae454696c0" dir="ltr"><td id="Xo:O" class=""><code>ConvertGettersFacet</code></td><td id=":jR?" class="">Add / Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x334a110ad41fd417d4c8c3f82d9c85a3850192be#code">0x334a110ad41fd417d4c8c3f82d9c85a3850192be</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xfd29acd8b38c85ca6b88ed776b06ad059599dca4#code">0xfd29acd8b38c85ca6b88ed776b06ad059599dca4</a></code></td></tr><tr id="a84e4019-aad5-8273-99b3-01ae9608c5ba" dir="ltr"><td id="Xo:O" class=""><code>PipelineConvertFacet</code></td><td id=":jR?" class="">Replace</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0xa66460626d1f8845085b1cdd5e527db1db998b1b#code">0xa66460626d1f8845085b1cdd5e527db1db998b1b</a></code></td><td id="[Pkb" class=""><code><a href="https://basescan.org/address/0xdedf1678bee92b4759b8efd20e918df27a7ff21d#code">0xdedf1678bee92b4759b8efd20e918df27a7ff21d</a></code></td></tr><tr id="6d11c3f9-011b-445f-9bea-65eb9aa8484b" dir="ltr"><td id="Xo:O" class=""><code>TempRepaymentFieldFacet</code></td><td id=":jR?" class="">Remove</td><td id="R_bw" class=""><code><a href="https://basescan.org/address/0x2b467c15188058ed1c91091dd53805a816c278f7#code">0x2b467c15188058ed1c91091dd53805a816c278f7</a></code></td><td id="[Pkb" class="">Not applicable: removed selectors</td></tr></tbody></table><p id="38fe4019-aad5-8203-8ee5-8130b3bbd500" class="" dir="auto"><code>ConvertGettersFacet</code> adds the new penalty overload and replaces 15 other selectors. This cut leaves the prior penalty selector untouched.</p><h3 id="7cbe4019-aad5-83ef-9649-81df47212ad5" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="6f2e4019-aad5-82ab-89c5-81da89b8979e" class="" dir="auto">Runtime link offsets verify these libraries, including indirect <code>LibTokenSilo</code>. <code>PipelineConvertFacet</code> uses the new libraries despite stale compiler settings. Previous dependencies belong to the previous facets verified against pre-PI-15 routing.</p><table id="65ee4019-aad5-82a2-b878-8117f62b32e4" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="14be4019-aad5-8215-a9da-81442fced6b5" dir="ltr"><th id="&gt;w|T" class="simple-table-header-color simple-table-header">Library</th><th id="FSd&lt;" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="=kQf" class="simple-table-header-color simple-table-header">New Implementation</th><th id="QKrv" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="aede4019-aad5-8363-9ce1-01f336c05ffa" dir="ltr"><td id="&gt;w|T" class=""><code>LibEvaluate</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0x1105414b01a6d2214d1c33a1f756dea2e5e87259#code">0x1105414b01a6d2214d1c33a1f756dea2e5e87259</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0x6353f809bdb71c2c646f6336fa5b63deba466967#code">0x6353f809bdb71c2c646f6336fa5b63deba466967</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code></td></tr><tr id="d12e4019-aad5-826f-b10e-017e7efa74d3" dir="ltr"><td id="&gt;w|T" class=""><code>LibShipping</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0xf528edef6598d1907eef6e7ad1a8b87e54c736a9#code">0xf528edef6598d1907eef6e7ad1a8b87e54c736a9</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0xf6b8ff56917c18953e6a95c3bbcae51d64be6e83#code">0xf6b8ff56917c18953e6a95c3bbcae51d64be6e83</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code></td></tr><tr id="d92e4019-aad5-8200-9f57-01cfb0785bf9" dir="ltr"><td id="&gt;w|T" class=""><code>LibIncentive</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0x735aab105c222bee6aaf520adc4cf3128fdcc6db#code">0x735aab105c222bee6aaf520adc4cf3128fdcc6db</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0xc00bdb284e2d0ddf528633554a7d82d5089918cb#code">0xc00bdb284e2d0ddf528633554a7d82d5089918cb</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code></td></tr><tr id="beee4019-aad5-82fa-8c02-014f999c5c99" dir="ltr"><td id="&gt;w|T" class=""><code>LibFlood</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0xef75cae236476bfedc5207d57e5ea7ea315a8c12#code">0xef75cae236476bfedc5207d57e5ea7ea315a8c12</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0xa6217c08de815e91ef8d3f1738d5a911beb7e7a2#code">0xa6217c08de815e91ef8d3f1738d5a911beb7e7a2</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code></td></tr><tr id="786e4019-aad5-827c-8885-81d37b262662" dir="ltr"><td id="&gt;w|T" class=""><code>LibWeather</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0xf8569d0f4aa794ea4c9ca5efadda38433ad52bbb#code">0xf8569d0f4aa794ea4c9ca5efadda38433ad52bbb</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0x98f56c080a2c6214241f456d92e9fb3491be2bc7#code">0x98f56c080a2c6214241f456d92e9fb3491be2bc7</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code></td></tr><tr id="bb8e4019-aad5-8212-82a8-81c0edeb5107" dir="ltr"><td id="&gt;w|T" class=""><code>LibGerminate</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0x752f502897667c6ba438d35b39439c84210dad06#code">0x752f502897667c6ba438d35b39439c84210dad06</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0xd91dc083a764f8d1ad391cbe055e110ef0a87247#code">0xd91dc083a764f8d1ad391cbe055e110ef0a87247</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code></td></tr><tr id="650e4019-aad5-8230-a3b7-81b87dc46f38" dir="ltr"><td id="&gt;w|T" class=""><code>LibSeedGauge</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0xbcc581f0d70a033e21b31ea695fd3c2978503146#code">0xbcc581f0d70a033e21b31ea695fd3c2978503146</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0x19c469e8516bdc38cb5f9957154a11f987796b03#code">0x19c469e8516bdc38cb5f9957154a11f987796b03</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code></td></tr><tr id="3f0e4019-aad5-839d-ac1a-811ebe40c7cd" dir="ltr"><td id="&gt;w|T" class=""><code>LibWellMinting</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0xcfceea3eeaeccb8dcda9cbc37d72523c10855c62#code">0xcfceea3eeaeccb8dcda9cbc37d72523c10855c62</a></code> (<code>SeasonFacet</code>) / <code><a href="https://basescan.org/address/0x7cbd0b120a1ee1cdac1ed245ee23a80b37c7a6f9#code">0x7cbd0b120a1ee1cdac1ed245ee23a80b37c7a6f9</a></code> (<code>SeasonGettersFacet</code>)</td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0xf4b01d96cdb6ef6fa80635e28b64ad6b1c8ede18#code">0xf4b01d96cdb6ef6fa80635e28b64ad6b1c8ede18</a></code></td><td id="QKrv" class=""><code>SeasonFacet</code>, <code>SeasonGettersFacet</code></td></tr><tr id="7a7e4019-aad5-8217-aa84-81dce7abccf4" dir="ltr"><td id="&gt;w|T" class=""><code>LibSilo</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0x648a2ab1358bf9df357772e2fd5d4ceec824ecfa#code">0x648a2ab1358bf9df357772e2fd5d4ceec824ecfa</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0x273815fac17fb44679df4cb04b41a14d5e18db47#code">0x273815fac17fb44679df4cb04b41a14d5e18db47</a></code></td><td id="QKrv" class=""><code>ClaimFacet</code>, <code>ConvertBatchFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>SiloFacet</code></td></tr><tr id="961e4019-aad5-82c6-a9b3-81f7e008b0f9" dir="ltr"><td id="&gt;w|T" class=""><code>LibTokenSilo</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0xff684446076ebc98cb2998a219dac957eb66b0ae#code">0xff684446076ebc98cb2998a219dac957eb66b0ae</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0x3622bc9e648d9569212a91cb3de0453923623f4d#code">0x3622bc9e648d9569212a91cb3de0453923623f4d</a></code></td><td id="QKrv" class=""><code>ClaimFacet</code>, <code>LibConvert</code>, <code>SiloFacet</code></td></tr><tr id="647e4019-aad5-8289-b9dc-816fae55c847" dir="ltr"><td id="&gt;w|T" class=""><code>LibConvert</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0x7665b799e4e05c2ddc4306826322e9d0729965f7#code">0x7665b799e4e05c2ddc4306826322e9d0729965f7</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0xa40fe465001f914b9b2508e6be695951e564bb6e#code">0xa40fe465001f914b9b2508e6be695951e564bb6e</a></code></td><td id="QKrv" class=""><code>ConvertBatchFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="5f4e4019-aad5-822b-bab5-01fb52e0d230" dir="ltr"><td id="&gt;w|T" class=""><code>LibPipelineConvert</code></td><td id="FSd&lt;" class=""><code><a href="https://basescan.org/address/0x249be8f283471f2d4f08a4dae1108c632c650d6b#code">0x249be8f283471f2d4f08a4dae1108c632c650d6b</a></code></td><td id="=kQf" class=""><code><a href="https://basescan.org/address/0xbc9e24ced57ffa5d46632c2ff0e50f14f29350bf#code">0xbc9e24ced57ffa5d46632c2ff0e50f14f29350bf</a></code></td><td id="QKrv" class=""><code>ConvertBatchFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr></tbody></table><p id="ae8e4019-aad5-834f-bc23-81ed2762e3d6" class="" dir="auto"><code>LibReceiving</code> is internal to the shipping path, not a separate external link.</p><p id="c71e4019-aad5-829e-9e70-017e75121021" class="" dir="auto"><strong>Repayment deployment sets.</strong> Constructor records verify initial implementations and administrators, not proxy storage or application ownership at execution.</p><table id="538e4019-aad5-8228-b07c-01549b3b9336" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="722e4019-aad5-83bc-bc19-01eee496c2eb" dir="ltr"><th id=";qWP" class="simple-table-header-color simple-table-header">Set and contract</th><th id="[R\|" class="simple-table-header-color simple-table-header">Deployed address</th><th id="~nDC" class="simple-table-header-color simple-table-header">Initial implementation</th><th id="{&lt;I:" class="simple-table-header-color simple-table-header">Initial proxy admin</th><th id="nL@^" class="simple-table-header-color simple-table-header">Deployment block</th></tr></thead><tbody><tr id="c7de4019-aad5-82c4-a133-81d183e33848" dir="ltr"><td id=";qWP" class="">PR Silo</td><td id="[R\|" class=""><code><a href="https://basescan.org/address/0xBa0534B16017E861bA15f1587D8A060e15F7f336#code">0xBa0534B16017E861bA15f1587D8A060e15F7f336</a></code></td><td id="~nDC" class=""><code><a href="https://basescan.org/address/0xCebbDb437330a2f9049A4882918762Bc1A5fB582#code">0xCebbDb437330a2f9049A4882918762Bc1A5fB582</a></code></td><td id="{&lt;I:" class=""><code><a href="https://basescan.org/address/0xf71f4d69d8ad7eb6dcfb1c8ac36fdda3d057500d#code">0xf71f4d69d8ad7eb6dcfb1c8ac36fdda3d057500d</a></code></td><td id="nL@^" class="">42043042</td></tr><tr id="6e7e4019-aad5-8202-af9b-81a658f95384" dir="ltr"><td id=";qWP" class="">PR Barn</td><td id="[R\|" class=""><code><a href="https://basescan.org/address/0x724c87b9A6Ea6BA7A7CF3bfc0309DE778fB28027#code">0x724c87b9A6Ea6BA7A7CF3bfc0309DE778fB28027</a></code></td><td id="~nDC" class=""><code><a href="https://basescan.org/address/0xd5a8E2FF523Cb3dB614A669c4044E908Ebaad041#code">0xd5a8E2FF523Cb3dB614A669c4044E908Ebaad041</a></code></td><td id="{&lt;I:" class=""><code><a href="https://basescan.org/address/0xf71f4d69d8ad7eb6dcfb1c8ac36fdda3d057500d#code">0xf71f4d69d8ad7eb6dcfb1c8ac36fdda3d057500d</a></code></td><td id="nL@^" class="">42043046</td></tr><tr id="555e4019-aad5-83e5-99b6-012794913fc7" dir="ltr"><td id=";qWP" class="">PR distributor</td><td id="[R\|" class=""><code><a href="https://basescan.org/address/0xB0e3DC9066C7aFC90065008e8d7a3c6Cb1F66B37#code">0xB0e3DC9066C7aFC90065008e8d7a3c6Cb1F66B37</a></code></td><td id="~nDC" class="">Not applicable: direct deployment</td><td id="{&lt;I:" class="">Not applicable</td><td id="nL@^" class="">42043050</td></tr><tr id="390e4019-aad5-82db-8081-0180310d47fe" dir="ltr"><td id=";qWP" class="">Executed-route Silo</td><td id="[R\|" class=""><code><a href="https://basescan.org/address/0x525C94754C51946a7a3B72580Ce0DF36922E1E64#code">0x525C94754C51946a7a3B72580Ce0DF36922E1E64</a></code></td><td id="~nDC" class=""><code><a href="https://basescan.org/address/0xDbb10C0cE795FFd3A4003CF0EcC849b25a788EB1#code">0xDbb10C0cE795FFd3A4003CF0EcC849b25a788EB1</a></code></td><td id="{&lt;I:" class=""><code><a href="https://basescan.org/address/0xE5A707d49968937C860762fB256CE9dC7B1370F0#code">0xE5A707d49968937C860762fB256CE9dC7B1370F0</a></code></td><td id="nL@^" class="">42062562</td></tr><tr id="ea3e4019-aad5-8397-9d37-01e34dda1a7c" dir="ltr"><td id=";qWP" class="">Executed-route Barn</td><td id="[R\|" class=""><code><a href="https://basescan.org/address/0x68bDbb0402a3Ca89C7C4af8e41C021635102d158#code">0x68bDbb0402a3Ca89C7C4af8e41C021635102d158</a></code></td><td id="~nDC" class=""><code><a href="https://basescan.org/address/0x5bb2b891496F9f4db1467755eDc240329EA08E2C#code">0x5bb2b891496F9f4db1467755eDc240329EA08E2C</a></code></td><td id="{&lt;I:" class=""><code><a href="https://basescan.org/address/0xE5A707d49968937C860762fB256CE9dC7B1370F0#code">0xE5A707d49968937C860762fB256CE9dC7B1370F0</a></code></td><td id="nL@^" class="">42062570</td></tr><tr id="de5e4019-aad5-83d3-9627-01885ccfa569" dir="ltr"><td id=";qWP" class="">Executed-route set distributor</td><td id="[R\|" class=""><code><a href="https://basescan.org/address/0xbA941Af3292c49b585f4EC5C8164c1dfc893EEdC#code">0xbA941Af3292c49b585f4EC5C8164c1dfc893EEdC</a></code></td><td id="~nDC" class=""><code><a href="https://basescan.org/address/0xED3Ead9D8b6E57f666E60ccf833f3ed1Be2Dd4c0#code">0xED3Ead9D8b6E57f666E60ccf833f3ed1Be2Dd4c0</a></code></td><td id="{&lt;I:" class=""><code><a href="https://basescan.org/address/0xE5A707d49968937C860762fB256CE9dC7B1370F0#code">0xE5A707d49968937C860762fB256CE9dC7B1370F0</a></code></td><td id="nL@^" class="">42062579</td></tr></tbody></table><p id="330e4019-aad5-82b6-8c73-019bc49fa2ac" class="" dir="auto">The reference lists <code><a href="https://etherscan.io/address/0xd2abd9a7e7f10e3bf4376fb03a07fca729a55b6f#code">L1ContractMessenger</a></code> at <code><a href="https://etherscan.io/address/0xd2abd9a7e7f10e3bf4376fb03a07fca729a55b6f#code">0xD2abd9a7E7F10e3bF4376fb03A07fca729A55b6f</a></code>. Its deployed bytecode matches the source, with 50 fixed whitelisted callers. Its immutable Base destination, <code><a href="https://basescan.org/address/0x1152691c30aad82eb9bae7e32d662b19391e34db">0x1152691C30aAd82eB9baE7e32d662B19391e34Db</a></code>, had no contract code at PI-15 execution and differs from the distributor above. This messenger therefore could not register a receiver in the PI-15 distributor as configured.</p><h3 id="c0de4019-aad5-83a6-98d7-01ca8a3e4b11" class="" dir="auto">Function Changes</h3><ul id="e78e4019-aad5-839e-be8f-0148dbdb77a0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added separate repayment plan getters returning <code>(points,cap)</code>. Updated <code>setShipmentRoutes</code> to normalize zero planner addresses to the Diamond before storage and <code>ShipmentRoutesSet</code> emission. Added Silo/Barn receiving callbacks. A callback failure skips its transfer, while a later token-transfer failure or an invalid Field receipt can revert the outer operation.</li></ul><ul id="c70e4019-aad5-8250-8cd0-01e91607c22d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>SiloPayback</code> receipt, reward-checkpoint, claim and balance getters. Added Barn repayment and Fertilizer claim/transfer accounting. Explicit Silo and Barn claims use the active <a href="https://github.com/pinto-org/protocol/blob/7b63656a0653ede85a72111a6967c01e6127895a/contracts/ecosystem/abstract/TractorEnabled.sol">Tractor</a> publisher when present, otherwise the caller. Added direct contract-account claims and authenticated L1 receiver-record assignment. Receiver assignment requires caller <code>0x4200000000000000000000000000000000000007</code> and cross-domain sender <code>0xD2abd9a7E7F10e3bF4376fb03A07fca729A55b6f</code>. It can overwrite the receiver’s record and requires a separate claim.</li></ul><ul id="16ee4019-aad5-8290-b872-811753b810a2" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added pre-transfer hook registration/encoding/call helpers and <code>hasTokenHook</code>/<code>getTokenHook</code> getters. Registration requires nonzero token, target and selector values, deployed target code and a successful test call with zero-valued arguments. The production facet&#x27;s external hook-administration methods are commented out.</li></ul><ul id="f67e4019-aad5-8276-a98c-81660e2bb208" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated shared capacity and penalty logic for ordinary, batch and Pipeline Converts through the new linked implementations. Added a <code>calculateStalkPenalty</code> overload with final <code>fromAmount</code> argument, selector <code>0x9752afb3</code>. The old selector <code>0xb325d2ef</code> is not removed or replaced by this cut. Historical routing confirms the old selector remained at <code>0x334a110ad41fd417d4c8c3f82d9c85a3850192be</code> immediately before and after PI-15. The six-signed-integer input tuple retains its types and order. Its final two entries now represent capped and shadow overall deltaB. Of the four unchanged return types, the last three report current-call capacity deltas. The new simulation requires both initial and resulting Pinto reserves to be at least 10 Pinto, valid USD-oracle ratios at lookback zero, and successful Well Function calls.</li></ul><ul id="ac2e4019-aad5-83eb-a398-81a48df2affe" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>delegateReferralRewards</code> to preserve independently earned former-delegate eligibility and reject zero-address delegation. The threshold is unchanged.</li></ul><ul id="2f5e4019-aad5-825c-b568-0137abeefc26" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the four Plot-index query helpers and <code>combinePlots</code>. Moved Plot insertion into internal <code>LibDibbler.insertPlot</code> for shared use. A raw reverse-index lookup is not an existence check, and removed indexes receive <code>type(uint256).max</code>.</li></ul><h3 id="978e4019-aad5-8313-b811-01aebd3aa2ce" class="" dir="auto">Event Changes</h3><ul id="2f3e4019-aad5-8220-a16b-8163ac6f79ec" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added repayment-position minting and reward events, including <code>UnripeBdvTokenMinted</code>, <code>SiloPaybackRewardsReceived, BarnPaybackRewardsReceived</code> and <code>SiloPaybackRewardsClaimed</code>. Earlier population transactions emitted one <code>RepaymentPlotAdded</code> event for each of the 7,598 Plots. Fertilizer claims use <code>ClaimFertilizer</code>, and its transfers use ERC-1155 events. Each owner Fertilizer mint emits two <code>TransferSingle</code> logs, from the helper and caller, for one mint.</li></ul><ul id="f18e4019-aad5-82ec-b0ed-01aa464f3b84" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>AddedTokenHook</code> and <code>TokenHookCalled</code> on registration and successful calls. The internal removal helper emits <code>RemovedTokenHook</code> if called. The PI-15 finalization transaction emitted no such event. Existing <code>Receipt</code> uses the new Silo/Barn recipient values. <code>Shipped</code> records the shipping input, not a verified sum of every recipient&#x27;s successful receipts.</li></ul><ul id="42ce4019-aad5-8366-bb60-816132f849df" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>PlotsCombined(account,fieldId,plotIndexes,totalPods)</code>. Canceling later Plot listings retains the existing cancellation events. No new Convert-capacity event or referral event is added by the reviewed source changes.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

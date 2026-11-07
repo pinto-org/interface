@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-1: Convert Newly Earned Pinto and Misc. Bug Fixes</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-8027-ae95-fbcf08188101" class="page sans"><header><h1 class="page-title" dir="auto">PI-1: Convert Newly Earned Pinto and Misc. Bug Fixes</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="a00e4019-aad5-83b4-9e8d-8145bd8f1a9c" class="" dir="auto">Executed on November 27, 2024 at 05:52 UTC.</p><h2 id="b2de4019-aad5-82a2-9b86-81f6cf3a2180" class="" dir="auto">Summary</h2><ol type="1" id="4cce4019-aad5-8354-ae23-81aab1c9a75e" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#germination">Germination</a></strong><strong> of </strong><strong><a href="https://docs.pinto.money/resources/glossary#earned-pinto">Earned Pinto</a></strong><strong>:</strong> Eliminate the Germination Period for Earned Pinto, enabling <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> → LP <a href="https://docs.pinto.money/resources/glossary#convert">Converts</a> immediately after a <a href="https://docs.pinto.money/resources/glossary#farmers">Farmer</a> <a href="https://docs.pinto.money/resources/glossary#plant">Plants</a> their Earned Pinto.</li></ol><ol type="1" id="4ade4019-aad5-8319-ab0f-81b00d8a8e0e" class="numbered-list" start="2" dir="auto"><li><strong>Re-germination of Converted </strong><strong><a href="https://docs.pinto.money/resources/glossary#deposit">Deposit</a></strong><strong>s:</strong> Eliminate a bug where Converts can erroneously cause a Deposit to Germinate again.</li></ol><ol type="1" id="5dde4019-aad5-834f-9a1f-0145bd36ec92" class="numbered-list" start="3" dir="auto"><li><strong>Minimum </strong><strong><a href="https://docs.pinto.money/resources/glossary#crop-ratio">Crop Ratio</a></strong><strong> During </strong><strong><a href="https://docs.pinto.money/resources/glossary#rain">Rain</a></strong><strong>:</strong> Add a distinct Minimum Crop Ratio while the system is Raining.</li></ol><ol type="1" id="55de4019-aad5-825e-b144-01ddac0e999d" class="numbered-list" start="4" dir="auto"><li><strong>Initial </strong><strong><a href="https://docs.pinto.money/resources/glossary#soil">Soil</a></strong><strong> Supply:</strong> Add <code>initialSoil</code> to expose the remaining Soil supply before <a href="https://docs.pinto.money/resources/glossary#morning">Morning</a> Auction scaling.</li></ol><ol type="1" id="e8fe4019-aad5-8341-83b9-0155bac88151" class="numbered-list" start="5" dir="auto"><li><strong>Event and Rain Data Fixes:</strong> Correct the number of Pinto emitted by the <code><a href="https://docs.pinto.money/resources/glossary#sow">Sow</a></code> event and <code>startRain</code>’s emitted Crop Ratio change.</li></ol><ol type="1" id="2e9e4019-aad5-827a-8402-015b2449880d" class="numbered-list" start="6" dir="auto"><li><strong><a href="https://docs.pinto.money/responding-to-state/flood">Plenty</a></strong><strong> Claim Return Values:</strong> Return the number of tokens claimed as Plenty from <code>claimPlenty</code> and the token addresses and numbers of tokens claimed from <code>claimAllPlenty</code>.</li></ol><h2 id="f7ae4019-aad5-826a-b0e4-81410d1dd13f" class="" dir="auto">Links</h2><ul id="492e4019-aad5-8348-bf61-01ef2662cfe5" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/2">Implementation PR</a></li></ul><ul id="607e4019-aad5-834f-8f1a-812ef66d5e41" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/d3d412c3d5af2d8cf654f72d378d3c826675c5fd">d3d412c3d5af2d8cf654f72d378d3c826675c5fd</a></li></ul><ul id="515e4019-aad5-83eb-ae53-81d1c367d5c8" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0x47d5574f7472ed3bc3940640747935b3f4c2fe8ee2ad2484f9c42f4a8549595c">Diamond Cut Transaction</a></li></ul><h2 id="7dae4019-aad5-83f4-85ac-014b024d3ccc" class="" dir="auto">Problems</h2><h3 id="bbee4019-aad5-8329-8578-0193b2c5de70" class="" dir="auto">1. Germination of Earned Pinto</h3><p id="88de4019-aad5-8211-bd37-81e458eadc4d" class="" dir="auto">Earned Pinto Deposits should be able to be used in a Pinto → LP Convert immediately upon distribution (<em>i.e.</em>, they should not Germinate). However, when a Farmer Planted their Earned Pinto, they were not able to Convert their new Pinto Deposit to an LP token Deposit until 2 <a href="https://docs.pinto.money/resources/glossary#season">Seasons</a> elapsed. This inability to Convert immediately after Planting was a significant inefficiency with respect to peg maintenance because users that just Planted their Earned Pinto needed to wait until the Germination Period ended and then return to the <a href="https://docs.pinto.money/resources/glossary#farm">Farm</a> to Convert their Pinto for peg maintenance. </p><h3 id="eb1e4019-aad5-8306-82b7-01cef372b262" class="" dir="auto">2. Re-germination of Converted Deposits</h3><p id="569e4019-aad5-823e-abd8-011414d3b76a" class="" dir="auto">When a Farmer Converted a Pinto Deposit that had recently finished Germinating to an LP token Deposit (or vice versa), the output Deposit became Germinating again. In this case the then Germinating Deposit lost its <a href="https://docs.pinto.money/resources/glossary#stalk">Stalk</a>, and instead was issued Germinating Stalk (<em>i.e.</em>, a claim on Stalk after the Germination Period ends). Germinating Stalk is ineligible for mints or <a href="https://docs.pinto.money/resources/glossary#flood">Flood</a> rewards. Thus, a user was disincentivized to Convert during times of large mints and Floods because they would lose 2 Seasons of mints and eliminate their share of subsequent Flood distributions during the current Rain associated with the Converted Deposits.</p><h3 id="e4ee4019-aad5-8398-9e42-81c4620ffb3d" class="" dir="auto">3. Minimum Crop Ratio During Rain</h3><p id="affe4019-aad5-836c-8c03-01aa6fb7ed00" class="" dir="auto">When the system is Raining, the minimum Crop Ratio should be lowered to increase the incentive to Convert from Deposited Pinto to the Deposited LP token with the most <a href="https://docs.pinto.money/resources/glossary#seeds">Seeds</a>.</p><h3 id="605e4019-aad5-82ba-b04a-815c81e67248" class="" dir="auto">4. Initial Soil Supply</h3><p id="efbe4019-aad5-83c2-b268-81d85545e9d6" class="" dir="auto">There was no on-chain function that returned the remaining Soil supply before Morning Auction scaling, so the UI had to make excessive RPC calls to reconstruct it.</p><h3 id="49ae4019-aad5-82e7-b9ed-0195fda4a399" class="" dir="auto">5. Event and Rain Data Fixes</h3><p id="1efe4019-aad5-829d-bbdf-8192a06d50bb" class="" dir="auto">The <code>Sow</code> event emitted an incorrect number of Pinto, and <code>startRain</code> did not correctly emit the change in <code>BeanToMaxLpGpPerBdvRatio</code>, resulting in incorrect data in the subgraph.</p><h3 id="642e4019-aad5-8286-9868-81fe8ac5e2d5" class="" dir="auto">6. Plenty Claim Return Values</h3><p id="479e4019-aad5-8323-92fa-0116f96b6bca" class="" dir="auto">The <code>claimPlenty</code> and <code>claimAllPlenty</code> functions did not return sufficient data to easily compose transactions together in the UI.</p><h2 id="942e4019-aad5-8202-99ed-814b6efab4b0" class="" dir="auto">Solutions</h2><h3 id="341e4019-aad5-8353-8b28-8147181d9add" class="" dir="auto">1. Germination of Earned Pinto</h3><p id="de6e4019-aad5-8348-825a-81c7e308e368" class="" dir="auto">Update the <code>plant</code> function to issue a non-Germinating Pinto Deposit crediting it with the <a href="https://docs.pinto.money/resources/glossary#grown-stalk">Grown Stalk</a> it would have earned at the previous Season&#x27;s Seeds per <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">PDV</a> for Pinto, plus an additional 1 micro Seed.</p><h3 id="248e4019-aad5-8361-9e0e-814f1eb763c6" class="" dir="auto">2. Re-germination of Converted Deposits</h3><p id="ad0e4019-aad5-8231-aa14-01a362b90ffa" class="" dir="auto">Update the <code>convert</code> function to issue a non-Germinating token Deposit for Pinto ↔ LP Converts if the value being Converted was not Germinating. If the resulting Deposit would otherwise have a Germinating Stem, top up Grown Stalk to the non-Germinating minimum based on the previous Season&#x27;s Seeds per PDV of the output token, plus an additional 1 micro Seed.</p><h3 id="e19e4019-aad5-8371-a1ab-81fa88c8ee98" class="" dir="auto">3. Minimum Crop Ratio During Rain</h3><p id="d54e4019-aad5-828f-bcad-81c83a0e8391" class="" dir="auto">Add <code>rainingMinBeanMaxLpGpPerBdvRatio</code> to the <code>EvaluationParameters</code> struct in storage and initialize the value to <code>33333333333333333333</code> (approximately 33.33%), and update <code>getBeanToMaxLpGpPerBdvRatioScaled</code> to use <code>rainingMinBeanMaxLpGpPerBdvRatio</code> instead of <code>minBeanMaxLpGpPerBdvRatio</code> when the system is Raining. </p><h3 id="e84e4019-aad5-8301-8dd6-81251f0ce302" class="" dir="auto">4. Initial Soil Supply</h3><p id="acee4019-aad5-8301-b854-81228721c735" class="" dir="auto">Add the <code>initialSoil</code> function, which returns <code>s.sys.soil</code>.</p><h3 id="49ce4019-aad5-82a8-be8f-018f1f4cb05d" class="" dir="auto">5. Event and Rain Data Fixes</h3><p id="cc0e4019-aad5-82f0-a363-01af64b69a6f" class="" dir="auto">Update the <code>Sow</code> event to properly emit the number of Pinto that were used to Sow, rather than the number of Soil deducted from <code>s.sys.soil</code>.</p><p id="1cde4019-aad5-83c3-ab30-011db711d44b" class="" dir="auto">Update the <code>startRain</code> function in <code>LibFlood.sol</code> to properly emit the change in <code>BeanToMaxLpGpPerBdvRatio</code>.</p><h3 id="5ace4019-aad5-8399-b238-815b37c27a7b" class="" dir="auto">6. Plenty Claim Return Values</h3><p id="8b5e4019-aad5-834b-af1b-81127a7ed8a8" class="" dir="auto">Update the <code>claimPlenty</code> function to return the number of tokens claimed. Update <code>claimAllPlenty</code> to return the token addresses and numbers of tokens claimed.</p><h2 id="09fe4019-aad5-8306-a528-01f0fff332cb" class="" dir="auto">Rationale</h2><h3 id="b39e4019-aad5-82b2-9f6d-819a5ebe5d55" class="" dir="auto">1. Germination of Earned Pinto</h3><p id="c4ee4019-aad5-821f-9585-0142065e7b54" class="" dir="auto">There is no reason to enforce a Germination Period for newly Planted Earned Pinto Deposits. The Germination Period prevents a specific manipulation. Without it, a user could Deposit value in the <a href="https://docs.pinto.money/resources/glossary#silo">Silo</a> to receive Stalk, call the <code><a href="https://docs.pinto.money/resources/glossary#gm">gm</a></code> (which triggers the <a href="https://docs.pinto.money/pinto-mechanics/sun-the-source-of-life-on-the-farm">Sunrise</a>), and then immediately withdraw the Deposit plus the yield from that Sunrise, all without holding exposure to the price of Pinto. Earned Pinto already accrued from a Deposit that completed Germination, so exempting it does not enable the manipulation described above. </p><p id="5dee4019-aad5-839b-863b-815879ed223e" class="" dir="auto">The inability to Convert newly Planted Pinto to Deposited LP tokens is a significant inefficiency with respect to peg maintenance because it creates a lag between when Farmers Plant their Pinto and when they can Convert them. This lag may delay the effect of mint distributions on peg maintenance with respect to the value that stays in the protocol (<em>i.e.</em>, wasn’t sold) by at least one Season, because delayed Converts can delay the peg recovery and lead to more Pinto being minted.</p><h3 id="a6be4019-aad5-82d4-be66-01596b592a17" class="" dir="auto">2. Re-germination of Converted Deposits</h3><p id="d3be4019-aad5-8299-afbd-814ce8c5bce4" class="" dir="auto">Once value that was Deposited in the Silo has completed its Germination Period, there is no reason to make it Germinate again upon a Convert because the value will have already been in the Silo for a sufficient period of time, ensuring that it is not taking advantage of a Pinto mint without holding exposure to the Pinto price. </p><p id="4e9e4019-aad5-82c1-bea3-01f969ac1e50" class="" dir="auto">The ability to Convert a non-Germinating Pinto Deposit into a Germinating LP token Deposit creates a disincentive to Convert, which can lead to excess mints because holders that would otherwise have Converted do not. </p><h3 id="f0de4019-aad5-8221-b41f-0156af33b039" class="" dir="auto">3. Minimum Crop Ratio During Rain</h3><p id="c3de4019-aad5-8370-9017-81e5fd436a2a" class="" dir="auto">When it&#x27;s Raining, Pinto should be very aggressive in incentivizing Converts from Pinto Deposits to LP token Deposits. During a Flood, the protocol should be minimizing how much it mints because when the Flood ends it will almost certainly experience heavy outflows. Accordingly, lowering the Crop Ratio to an exceptionally low value – below the Minimum Crop Ratio – will create a stronger incentive for Depositors to Convert their Deposited Pinto to LP token Deposits and minimize excessive minting.</p><h3 id="565e4019-aad5-8388-ba97-8104736c436d" class="" dir="auto">4. Initial Soil Supply</h3><p id="f9de4019-aad5-8307-99a4-81cba2524096" class="" dir="auto">Exposing the remaining unscaled Soil directly lets the UI read the protocol’s current value without reconstructing it through multiple RPC calls.</p><h3 id="a0fe4019-aad5-8335-8c90-81912d0b21a3" class="" dir="auto">5. Event and Rain Data Fixes</h3><p id="fdbe4019-aad5-8272-b01f-8103c3011226" class="" dir="auto">Emitting the Pinto actually Sown and emitting the Crop Ratio change allows the subgraph and UI to process the protocol’s state changes accurately.</p><h3 id="7fce4019-aad5-8222-8d33-018493b7fdba" class="" dir="auto">6. Plenty Claim Return Values</h3><p id="622e4019-aad5-82fa-935b-013c06d1190e" class="" dir="auto">Returning the claimed token addresses and numbers of tokens lets the UI use claim results when composing subsequent actions in the same transaction.</p><h2 id="b6de4019-aad5-8211-b2ee-01b26636767f" class="" dir="auto">Contract Changes</h2><h3 id="1d8e4019-aad5-8304-bf41-81a0a10320b6" class="" dir="auto">Initialization</h3><p id="09de4019-aad5-82e0-b8e4-812b702457bf" class="" dir="auto"><code>InitPI1.init()</code> was called at <code><a href="https://basescan.org/address/0x4cbD1A8ff8E3dcE759dC9049417DeeBC3Ac24ddA#code">0x4cbD1A8ff8E3dcE759dC9049417DeeBC3Ac24ddA</a></code> to initialize <code>rainingMinBeanMaxLpGpPerBdvRatio</code> to <code>33333333333333333333</code> (approximately 33.33%).</p><h3 id="0d8e4019-aad5-8240-a790-0194416ec8dd" class="" dir="auto">Facet Changes</h3><table id="c4de4019-aad5-82da-87d3-014d57d33b8c" class="simple-table" dir="ltr"><tbody><tr id="899e4019-aad5-82c4-86ca-814a3850f835" dir="ltr"><td id="hXG=" class=""><strong>Facet</strong></td><td id="cW^?" class=""><strong>Action</strong></td><td id="@bGp" class=""><strong>Previous Implementation</strong></td><td id="aCop" class=""><strong>New Implementation</strong></td></tr><tr id="034e4019-aad5-82f9-bdc8-015ff30b8eaa" dir="ltr"><td id="hXG=" class=""><code>ClaimFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x85495A065bEc462d76Fbfa1E344C06f64308Af91#code">0x85495A065bEc462d76Fbfa1E344C06f64308Af91</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0xEa0Aad388e2dF06F90A218cA2eDa199294fBAaDB#code">0xEa0Aad388e2dF06F90A218cA2eDa199294fBAaDB</a></code></td></tr><tr id="69be4019-aad5-8258-8074-819308062728" dir="ltr"><td id="hXG=" class=""><code>ApprovalFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x77e228C03277e38FcfF8FC21106afDc22389e85c#code">0x77e228C03277e38FcfF8FC21106afDc22389e85c</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0x540e776e8F0eaC5dFA82110b827CB6ceA6705669#code">0x540e776e8F0eaC5dFA82110b827CB6ceA6705669</a></code></td></tr><tr id="ebde4019-aad5-8254-9f8a-814592621311" dir="ltr"><td id="hXG=" class=""><code>ConvertFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x0FAf9BBDDD27647bA9972672aee4E638B364E249#code">0x0FAf9BBDDD27647bA9972672aee4E638B364E249</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0x379D2d7FF9907F127f1226a9024BCF0789619734#code">0x379D2d7FF9907F127f1226a9024BCF0789619734</a></code></td></tr><tr id="eb6e4019-aad5-8233-a3bf-81f3aca74004" dir="ltr"><td id="hXG=" class=""><code>ConvertGettersFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0xF0f2e61939DE4daf29d894B466b51798C5c54A1d#code">0xF0f2e61939DE4daf29d894B466b51798C5c54A1d</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0xfE55E1e7f3FdAef6b1E6E3d6D53f84a374151817#code">0xfE55E1e7f3FdAef6b1E6E3d6D53f84a374151817</a></code></td></tr><tr id="ddbe4019-aad5-8295-ac75-012a0c1eeba5" dir="ltr"><td id="hXG=" class=""><code>SiloFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x8A42a986DDB3612437f8445bB199FDb14714fa42#code">0x8A42a986DDB3612437f8445bB199FDb14714fa42</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0x3235540bb01Ef11e4208a9B99c2F2Dd9860E721a#code">0x3235540bb01Ef11e4208a9B99c2F2Dd9860E721a</a></code></td></tr><tr id="678e4019-aad5-8361-ba68-8139992cf931" dir="ltr"><td id="hXG=" class=""><code>SiloGettersFacet</code></td><td id="cW^?" class="">Replace + Add selectors</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x12b94E41697AC173d619CecCcAAd1C2C21A2a66C#code">0x12b94E41697AC173d619CecCcAAd1C2C21A2a66C</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0x039Ec53Bb37F8fe240798E3591d9439C68e72B7b#code">0x039Ec53Bb37F8fe240798E3591d9439C68e72B7b</a></code></td></tr><tr id="578e4019-aad5-82a2-8cb7-8173889cc984" dir="ltr"><td id="hXG=" class=""><code>PipelineConvertFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x032CAe4820C7379B1419Af64a3e2a4Ce4861Ab0a#code">0x032CAe4820C7379B1419Af64a3e2a4Ce4861Ab0a</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0x9d108e7f673C773Ac196bDE4bEBC6758088D2e59#code">0x9d108e7f673C773Ac196bDE4bEBC6758088D2e59</a></code></td></tr><tr id="4dce4019-aad5-8333-bb56-0168efe31aa4" dir="ltr"><td id="hXG=" class=""><code>SeasonFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x03fbe88B58FceA841A749FF2e93E4e56D2f42C06#code">0x03fbe88B58FceA841A749FF2e93E4e56D2f42C06</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0x269C8386bE50C176f03355c7C7925356fdEF9F84#code">0x269C8386bE50C176f03355c7C7925356fdEF9F84</a></code></td></tr><tr id="ad2e4019-aad5-8382-bb6c-014a6d181dfd" dir="ltr"><td id="hXG=" class=""><code>GaugeGettersFacet</code></td><td id="cW^?" class="">Replace</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0xABcBa236f57a807084F7884B3eEdD25C077595Ba#code">0xABcBa236f57a807084F7884B3eEdD25C077595Ba</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0xD26a44C9F7C58864c2ea938BE9E2f0Ae25954bc2#code">0xD26a44C9F7C58864c2ea938BE9E2f0Ae25954bc2</a></code></td></tr><tr id="c79e4019-aad5-838b-9a47-017fed52b8cb" dir="ltr"><td id="hXG=" class=""><code>FieldFacet</code></td><td id="cW^?" class="">Replace + Add selector</td><td id="@bGp" class=""><code><a href="https://basescan.org/address/0x34d5239E92720773C2E7a5A93Db8587a3af6Bb04#code">0x34d5239E92720773C2E7a5A93Db8587a3af6Bb04</a></code></td><td id="aCop" class=""><code><a href="https://basescan.org/address/0x6430F859a3b8825D25382Ebc7941fCD719635797#code">0x6430F859a3b8825D25382Ebc7941fCD719635797</a></code></td></tr></tbody></table><h3 id="f22e4019-aad5-8241-b5cb-816bc2145031" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="d71e4019-aad5-8324-a793-01dda7032464" class="" dir="auto">Introduced a separate minimum Crop Ratio during Rain of approximately 33.33%, using <code>rainingMinBeanMaxLpGpPerBdvRatio</code>. Outside Rain, <code>getBeanToMaxLpGpPerBdvRatioScaled</code> continues to use <code>minBeanMaxLpGpPerBdvRatio</code>. Previously, the 50% minimum also applied during Rain. The minimum remains 50% outside Rain. Ratios use 18 decimal places per percentage point (<code>100e18 = 100%</code>).</p><p id="6b2e4019-aad5-8271-97c3-01c53169648a" class="" dir="auto">Externally linked library deployments changed as follows (previous → new). These address changes do not by themselves imply changes to each library’s behavior.</p><table id="ed2e4019-aad5-82e0-8cc1-81871bc2f8a7" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="2c0e4019-aad5-8298-8fda-816d48c4520e" dir="ltr"><th id=";io&gt;" class="simple-table-header-color simple-table-header">Library</th><th id="Wxbz" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="xzH[" class="simple-table-header-color simple-table-header">New Implementation</th><th id="Q`I&lt;" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="642e4019-aad5-8363-b01f-01fb94a271d8" dir="ltr"><td id=";io&gt;" class=""><code>LibSilo</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x6a634f53d185298ad84a51e2c6fac8b5256d0165#code">0x6a634f53d185298ad84a51e2c6fac8b5256d0165</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x351ca256f86c10b01f2640f22ca379cf1e74d8e2#code">0x351ca256f86c10b01f2640f22ca379cf1e74d8e2</a></code></td><td id="Q`I&lt;" class=""><code>ClaimFacet</code>, <code>ConvertFacet</code>, <code>SiloFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="e6ae4019-aad5-8263-a914-813d04b81032" dir="ltr"><td id=";io&gt;" class=""><code>LibTokenSilo</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0xa565840bc1a3d3b24fb36c02472aa495259477b6#code">0xa565840bc1a3d3b24fb36c02472aa495259477b6</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0xbbe1d3e7bb0b50d1999f631674efd5446881612a#code">0xbbe1d3e7bb0b50d1999f631674efd5446881612a</a></code></td><td id="Q`I&lt;" class=""><code>ClaimFacet</code>, <code>ConvertFacet</code>, <code>SiloFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="dd0e4019-aad5-83ad-8dd6-01f81c77e586" dir="ltr"><td id=";io&gt;" class=""><code>LibConvert</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0xad4a3b66c5e672acc952d9f4b728b4c845f8cb7a#code">0xad4a3b66c5e672acc952d9f4b728b4c845f8cb7a</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x3dedd64cfbf6db642cf6a22ce747fdfb9f17b570#code">0x3dedd64cfbf6db642cf6a22ce747fdfb9f17b570</a></code></td><td id="Q`I&lt;" class=""><code>ConvertFacet</code></td></tr><tr id="8fde4019-aad5-8344-be34-0164bd3d69fb" dir="ltr"><td id=";io&gt;" class=""><code>LibPipelineConvert</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x9b0943584aa2bd99cefd82004dfe859d369e4326#code">0x9b0943584aa2bd99cefd82004dfe859d369e4326</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x4917dcbafc47b57b9ec004424a44ccdc5834d054#code">0x4917dcbafc47b57b9ec004424a44ccdc5834d054</a></code></td><td id="Q`I&lt;" class=""><code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="ea9e4019-aad5-82d8-9d81-01c3c3f72f92" dir="ltr"><td id=";io&gt;" class=""><code>LibEvaluate</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x34ebbb2b16cf20964b6819cef921dd10599f117c#code">0x34ebbb2b16cf20964b6819cef921dd10599f117c</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x7f1770fa1b43abdbe8095295ecae37c00d4ba7f8#code">0x7f1770fa1b43abdbe8095295ecae37c00d4ba7f8</a></code></td><td id="Q`I&lt;" class=""><code>SeasonFacet</code></td></tr><tr id="f8fe4019-aad5-8240-8888-8128699fb3bf" dir="ltr"><td id=";io&gt;" class=""><code>LibGauge</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0xc3ccf1a9cff074fd572c9ab7d55486ef003fd427#code">0xc3ccf1a9cff074fd572c9ab7d55486ef003fd427</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0xcd376159cfa7ff6c60a3b6d55e2ce75cec515669#code">0xcd376159cfa7ff6c60a3b6d55e2ce75cec515669</a></code></td><td id="Q`I&lt;" class=""><code>SeasonFacet</code></td></tr><tr id="e4ce4019-aad5-83a5-9998-01930b4678ce" dir="ltr"><td id=";io&gt;" class=""><code>LibIncentive</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x7b160137d1298e3b71285ea6a260cb2248176d82#code">0x7b160137d1298e3b71285ea6a260cb2248176d82</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x86da3aba20454a441eceae9d5b960564abd0cba1#code">0x86da3aba20454a441eceae9d5b960564abd0cba1</a></code></td><td id="Q`I&lt;" class=""><code>SeasonFacet</code></td></tr><tr id="98ae4019-aad5-83f4-b040-818af9c43905" dir="ltr"><td id=";io&gt;" class=""><code>LibShipping</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x1fa93c17cfe8a33d9a195e904031e26232591571#code">0x1fa93c17cfe8a33d9a195e904031e26232591571</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x2b6a87195446b28c404cd5d78351998a1e8b31f9#code">0x2b6a87195446b28c404cd5d78351998a1e8b31f9</a></code></td><td id="Q`I&lt;" class=""><code>SeasonFacet</code></td></tr><tr id="8e2e4019-aad5-827b-ade1-014145588fac" dir="ltr"><td id=";io&gt;" class=""><code>LibWellMinting</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x4910f9a342c79ea50a4395477cfdb11f36a010ad#code">0x4910f9a342c79ea50a4395477cfdb11f36a010ad</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x78e2a41721b97f33e13a383d15726b1ac96c2a19#code">0x78e2a41721b97f33e13a383d15726b1ac96c2a19</a></code></td><td id="Q`I&lt;" class=""><code>SeasonFacet</code></td></tr><tr id="2c6e4019-aad5-8344-a32c-01c239635b9f" dir="ltr"><td id=";io&gt;" class=""><code>LibFlood</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x2174762d93abebd7c4317104c26b6961d6cb3f10#code">0x2174762d93abebd7c4317104c26b6961d6cb3f10</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0xd668ecc7df030202ee50f9c465db7f7da7581a48#code">0xd668ecc7df030202ee50f9c465db7f7da7581a48</a></code></td><td id="Q`I&lt;" class=""><code>SeasonFacet</code></td></tr><tr id="d30e4019-aad5-82c5-8add-013d692009fd" dir="ltr"><td id=";io&gt;" class=""><code>LibGerminate</code></td><td id="Wxbz" class=""><code><a href="https://basescan.org/address/0x74f409bf422e33bc34d909a1233516307adb6daa#code">0x74f409bf422e33bc34d909a1233516307adb6daa</a></code></td><td id="xzH[" class=""><code><a href="https://basescan.org/address/0x06cc9fb93b3cefa5dc6bb5f418c7358cd3ea0a85#code">0x06cc9fb93b3cefa5dc6bb5f418c7358cd3ea0a85</a></code></td><td id="Q`I&lt;" class=""><code>SeasonFacet</code></td></tr></tbody></table><p id="1a2e4019-aad5-831b-bcb0-815d3f98bb25" class="" dir="auto"><code>ApprovalFacet</code>, <code>ConvertGettersFacet</code>, <code>SiloGettersFacet</code>, <code>GaugeGettersFacet</code>, and <code>FieldFacet</code> have no externally linked libraries.</p><h3 id="4d6e4019-aad5-8364-aa32-81acc0b83e93" class="" dir="auto">Function Changes</h3><ul id="d8ce4019-aad5-8221-a987-01b88dc655a9" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>plant</code> and Pinto ↔ LP <code>convert</code> behavior to produce non-Germinating Deposits. <code>plant</code> now returns the non-Germinating Stem instead of the current Stem tip.</li></ul><ul id="859e4019-aad5-8235-a8af-81748f378cab" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>getHighestNonGerminatingStem(address)</code> and <code>getHighestNonGerminatingStems(address[])</code> to expose the highest non-Germinating Stem for one or more tokens.</li></ul><ul id="964e4019-aad5-823a-9a80-014e23c5087d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Removed obsolete special handling for Earned Pinto in withdrawal and transfer accounting in <code>TokenSilo</code> and <code>LibSilo</code>, consistent with Planted Deposits now receiving a non-Germinating Stem.</li></ul><ul id="980e4019-aad5-82b6-a486-81b071578b55" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added internal helpers in <code>LibGerminate</code>, <code>LibTokenSilo</code>, and <code>LibConvert</code> to calculate the highest non-Germinating Stem and the minimum Grown Stalk needed to prevent re-germination.</li></ul><ul id="be0e4019-aad5-829c-b02d-015bb4ffbcf3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibTokenSilo.calculateStalkFromStemAndBdv</code> to return <code>uint256</code> and perform the BDV multiplication as unsigned 256-bit arithmetic.</li></ul><ul id="92de4019-aad5-83c3-b06d-01c866255854" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibGauge.getBeanToMaxLpGpPerBdvRatioScaled</code> to use the Rain-specific minimum Crop Ratio while Raining.</li></ul><ul id="362e4019-aad5-83db-9ad1-819bb413eb9b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>initialSoil()</code> to return <code>s.sys.soil</code>. </li></ul><ul id="ee1e4019-aad5-834c-b908-017761413c16" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>claimPlenty</code> to return the number of tokens claimed and <code>claimAllPlenty</code> to return an array of token addresses and numbers of tokens claimed.</li></ul><h3 id="de7e4019-aad5-82f9-bd63-01c971ec1dd9" class="" dir="auto">Event Changes</h3><ul id="70ae4019-aad5-8351-b947-019e33b39ea5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added a <code>StalkBalanceChanged</code> emission when <code>plant</code> mints the Grown Stalk credited to the newly Planted Deposit, reporting the additional active Stalk and Roots.</li></ul><ul id="07ae4019-aad5-8300-b59a-01057f89fd5b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Corrected the number of Pinto emitted by <code>Sow</code> to reflect the number of Pinto Sown rather than the scaled Soil deducted.</li></ul><ul id="592e4019-aad5-8383-823b-81d871513e85" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Corrected the Crop Ratio change emitted by <code>startRain</code>. Emitted <code>BeanToMaxLpGpPerBdvRatioChange</code> before resetting the stored ratio to zero.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

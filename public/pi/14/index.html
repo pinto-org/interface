@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-14: wstETH Liquidity, Pod Referrals and Batched Operations</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-80f5-a965-e9a10685fcef" class="page sans"><header><h1 class="page-title" dir="auto">PI-14: wstETH Liquidity, Pod Referrals and Batched Operations</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="937e4019-aad5-831e-aa12-01b0d0a7e942" class="" dir="auto">Executed on January 20, 2026 at 01:14 UTC.</p><h2 id="f95e4019-aad5-83a1-98c7-81649bac1fc4" class="" dir="auto">Summary</h2><ol type="1" id="a32e4019-aad5-8255-bb70-81340e7c52d1" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.lido.fi/guides/lido-tokens-integration-guide#wsteth">wstETH</a></strong><strong> Liquidity:</strong> Whitelist the Pinto-wstETH <a href="https://github.com/BeanstalkFarms/Basin-Docs/blob/main/components/well.md">Well</a> to decentralize the assets providing liquidity against <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a>.</li></ol><ol type="1" id="55de4019-aad5-8305-9cae-01b2cef84cd4" class="numbered-list" start="2" dir="auto"><li><strong>Dynamic LP Distribution:</strong> Add a dynamic LP Distribution Gauge to shift the optimal <a href="https://docs.pinto.money/resources/glossary#deposit">Deposited</a> LP distribution from Pinto-cbETH to Pinto-wstETH over 360 successful scheduled updates.</li></ol><ol type="1" id="b9fe4019-aad5-822d-a5f4-81f85f0ac83c" class="numbered-list" start="3" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#pods">Pod</a></strong><strong> Referrals:</strong> Introduce Pod referrals to reward eligible <a href="https://docs.pinto.money/resources/glossary#farmers">Farmers</a> for attracting <a href="https://docs.pinto.money/resources/glossary#sow">Sowing</a>, and adjust above-peg <a href="https://docs.pinto.money/resources/glossary#soil">Soil</a> issuance for the additional Pods.</li></ol><ol type="1" id="2cee4019-aad5-828a-ac30-8185b04b4755" class="numbered-list" start="4" dir="auto"><li><strong><a href="https://docs.pinto.money/pinto-mechanics/toolshed/tractor-automating-the-farm">Tractor</a></strong><strong> Dynamic Data:</strong> Add dynamic operator data and compressed-data publication to Tractor.</li></ol><ol type="1" id="304e4019-aad5-8298-bc92-81dd1edf4fd0" class="numbered-list" start="5" dir="auto"><li><strong>Batch </strong><strong><a href="https://docs.pinto.money/resources/glossary#convert-1">Converts</a></strong><strong>:</strong> Add batch Converts, including multiple Anti-Lambda-Lambda Converts, to reduce repeated transaction overhead.</li></ol><ol type="1" id="0bee4019-aad5-82cf-b4fc-81571526568a" class="numbered-list" start="6" dir="auto"><li><strong>Batch Pod Marketplace Operations:</strong> Add batch creation, filling and cancellation of <a href="https://docs.pinto.money/resources/glossary#pod-listing">Pod Listings</a> and <a href="https://docs.pinto.money/resources/glossary#pod-order">Pod Orders</a>.</li></ol><h2 id="970e4019-aad5-839d-95fd-01aea789b657" class="" dir="auto">Links</h2><ul id="ffee4019-aad5-8322-939e-81c3c11c3dd5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation PR: <a href="https://github.com/pinto-org/protocol/pull/164">PR #164</a></li></ul><ul id="c65e4019-aad5-82be-b59d-8187ca01258e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/2fcb63cc421b22c766c92e7d10115217baa9bf98">2fcb63cc421b22c766c92e7d10115217baa9bf98</a></li></ul><ul id="c1fe4019-aad5-82cc-8770-018febeb23ef" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Diamond Cut Transaction: <a href="https://basescan.org/tx/0x7db9dd06d7f805663da3cedcae5b4201f7db5f57e36fc5f354d9c50f7cc8a93e">0x7db9dd06d7f805663da3cedcae5b4201f7db5f57e36fc5f354d9c50f7cc8a93e</a></li></ul><h2 id="bf4e4019-aad5-82dd-8d3f-01793e13bcda" class="" dir="auto">Problems</h2><h3 id="afae4019-aad5-8236-adae-01db0b65dd6d" class="" dir="auto">1. wstETH Liquidity</h3><p id="0a4e4019-aad5-8379-a318-81d061b24bb1" class="" dir="auto">Pinto exclusively incentivized liquidity that was issues by Coinbase/Circle. Concentrated exposure to a single (set) of entities goes directly against Pinto’s value proposition as a censorship resistant currency. </p><h3 id="64fe4019-aad5-8264-aea5-01c422d666a1" class="" dir="auto">2. Dynamic LP Distribution</h3><p id="f9de4019-aad5-8241-abd8-011ed9fcaf60" class="" dir="auto">Optimal LP distribution targets were fixed until updated. Prior to this upgrade changes in distribution targets happened all at once, not gradually over time.</p><h3 id="b61e4019-aad5-8312-86b1-01c0c603b897" class="" dir="auto">3. Pod Referrals</h3><p id="892e4019-aad5-8398-8211-0103b88a5571" class="" dir="auto">Farmers did not receive a protocol referral bonus for attracting another Farmer to Sow. </p><h3 id="03ee4019-aad5-8264-a94e-818125f87a63" class="" dir="auto">4. Tractor Dynamic Data</h3><p id="846e4019-aad5-8345-a3c3-01a51e54b302" class="" dir="auto">Tractor’s existing operator paste instructions filled specified locations in signed Blueprint calldata. They did not provide a separate key-value channel through which Blueprint contracts could read arbitrary-length operator data during execution. Publishing a Requisition also required emitting its full structured data.</p><h3 id="dafe4019-aad5-82da-b210-01500230c9f1" class="" dir="auto">5. Batch Converts</h3><p id="0bde4019-aad5-82c0-8553-01f200ea3ace" class="" dir="auto">Multiple Convert operations required separate calls, including repeated checks around each call. Each Anti-Lambda-Lambda Convert could update only one Deposit, so updating several Deposits required several operations even when bundled through <code>farm</code> or <code>advancedFarm</code>.</p><h3 id="2f7e4019-aad5-831e-b093-01cfdeda7e96" class="" dir="auto">6. Batch Pod Marketplace Operations</h3><p id="283e4019-aad5-83bc-9f66-8122c72b36c6" class="" dir="auto">Creating, filling or cancelling several Pod Listings or Pod Orders required individual calls. Combining calls through <code>farm</code> or <code>advancedFarm</code> still repeated the checks around each marketplace action.</p><h2 id="a07e4019-aad5-82d8-abdd-01c683564325" class="" dir="auto">Solutions</h2><h3 id="0dfe4019-aad5-82c6-b93f-015ba8536c54" class="" dir="auto">1. wstETH Liquidity</h3><p id="2e9e4019-aad5-8215-8a6a-81c0395a02c6" class="" dir="auto">Deploy and whitelist an upgradeable Constant Product 2 Pinto-wstETH Well. wstETH is the non-rebasing wrapped representation of Lido’s stETH. Its value reflects the underlying staking position rather than an automatically increasing token balance. The Base deployment introduces a different staking-provider exposure alongside Pinto’s existing assets.</p><p id="905e4019-aad5-8316-afc3-01c444f7a0e6" class="" dir="auto">Configure the Well with the <a href="https://basin.exchange/multi-flow-pump.pdf">Multi Flow Pump</a>, the existing default Gauge Point and liquidity-weight implementations, and a composed Chainlink oracle using ETH/USD and wstETH/ETH feeds. Start its optimal Deposited LP share and <a href="https://docs.pinto.money/resources/glossary#gauge-points">Gauge Points</a> at zero, with an initial <a href="https://docs.pinto.money/resources/glossary#stalk">Stalk</a> growth rate of 1 raw unit per <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">PDV</a> per <a href="https://docs.pinto.money/resources/glossary#season">Season</a>.</p><h3 id="f37e4019-aad5-83e3-b2cf-01dfed13bff6" class="" dir="auto">2. Dynamic LP Distribution</h3><p id="fcde4019-aad5-82ee-944a-015e180a0dbd" class="" dir="auto">Add a stateful LP Distribution Gauge with two configured entries. Decrease Pinto-cbETH’s optimal share from 33.333333% to 0% and increase Pinto-wstETH’s share from 0% to 33.333333%. Each scheduled update changes the two targets by 0.092593 percentage points in opposite directions, clamping the final step to the target. Starting from these values, the targets are reached on update 360. A subsequent successful update disables the Gauge after finding both targets already reached.</p><p id="9b2e4019-aad5-8211-8684-01bb54309120" class="" dir="auto">During Sunrise, the existing <a href="https://docs.pinto.money/resources/glossary#seed-gauge-system">Seed Gauge</a> runs before the generalized Gauges. The new optimal shares therefore affect subsequent Seed Gauge calculations. Changing these targets adjusts incentives. It does not transfer liquidity or move Farmers’ Deposits automatically.</p><p id="1b3e4019-aad5-8366-84be-01ed2133c8fd" class="" dir="auto">Each distribution entry can optionally supply a function that recalculates its signed change. Neither initial entry configures such a function. A failed optional call or unsupported encoding retains that entry’s prior change. A failed outer Gauge call retains its stored value and data and rolls back changes made within that call. If a Gauge call succeeds but returns incorrectly encoded data, decoding that data reverts the entire Sunrise transaction.</p><p id="697e4019-aad5-8287-b3d7-01e70f52950d" class="" dir="auto">The 360-update progression describes the configured Sunrise path. The deployed <code>lpDistributionUpdateGauge</code> entry point also accepts caller-supplied Gauge data without an owner-only or self-call restriction. The implementation therefore does not enforce an exclusive once-per-Season schedule for all calls to that entry point.</p><h3 id="0c3e4019-aad5-8288-861b-8111e2076202" class="" dir="auto">3. Pod Referrals</h3><p id="ff4e4019-aad5-8229-9ecc-0110f18f206f" class="" dir="auto">Add <code>sowWithReferral</code>, allowing a Farmer to specify a referrer while retaining <code>sowWithMin</code>’s minimum acceptable Temperature, minimum Soil requirement and choice of balance source. An eligible, nonzero referrer distinct from the Sowing Farmer receives a nominal 10% bonus, and the referred Farmer receives a nominal 5% bonus. These rates apply to rounded portions of the Pinto actually Sown and are converted into Pods using the same Sowing calculation. </p><p id="001e4019-aad5-83bd-9196-011e4341d22a" class="" dir="auto">Issue the ordinary <a href="https://docs.pinto.money/resources/glossary#plot">Plot</a> first, then the referred Farmer’s bonus Plot, then the referrer’s bonus Plot. Bonus Pods consume no additional Soil and burn no additional Pinto. Both bonus allocations count toward one protocol-wide limit of 2,000,000 Pods. When approaching the limit, the referred Farmer’s bonus is allocated first, and the referrer receives only the remaining budget. Referral bonuses stop when the shared limit is reached. Invalid referrals leave ordinary Sowing intact with zero referral bonuses. </p><p id="111e4019-aad5-83f2-89dd-81c94455846a" class="" dir="auto">Track Pinto Sown for referral eligibility. A Farmer qualifies after Sowing at least 1,000 Pinto, including the historical values loaded at initialization. An eligible Farmer who meets this Sowing threshold can designate an otherwise ineligible address as a delegate, change that delegate, or clear it. This grants eligibility to the specified address. Bonuses are paid to the eligible address passed as the referral, rather than automatically redirected from the original Farmer’s address.</p><p id="e52e4019-aad5-83b0-ad18-0164bff445a8" class="" dir="auto">Adjust the above-peg Soil calculation by multiplying its Temperature-based debt denominator by <code>1 + referrerPercentage + refereePercentage</code>, with the percentages normalized to their six-decimal representation. At the initialized rates this factor is 1.15 before the existing <a href="https://docs.pinto.money/resources/glossary#pod-rate">Pod Rate</a> and cultivation adjustments. The implemented formula uses the configured percentages even when no valid referral is used or the bonus budget has been exhausted. It does not check <code>isReferralSystemEnabled()</code>. Below-peg Soil issuance is not changed by this formula. The configured percentages continue to reduce calculated Soil after the cap is exhausted until a subsequent change alters the implementation or parameters.</p><h3 id="5c0e4019-aad5-8332-a50d-812944307d80" class="" dir="auto">4. Tractor Dynamic Data</h3><p id="d94e4019-aad5-83d7-b977-016da0f86f0f" class="" dir="auto">Add <code>tractorDynamicData</code>, which accepts the existing signed Requisition and static operator data plus an array of numeric keys and arbitrary byte values. Blueprint contracts can read these values through <code>getTractorData(key)</code> during execution. The function clears the supplied keys after the Tractor calls complete, and transient storage is also cleared at transaction end. Missing or cleared keys return empty bytes.</p><p id="325e4019-aad5-8357-a173-012e98f462e7" class="" dir="auto">Preserve Requisition verification, Blueprint execution limits and the existing execution-result array. Add <code>publishData(bytes)</code>, which emits the supplied bytes for off-chain distribution. It does not decompress the data or verify a Requisition. Keep <code>publishRequisition</code> as the separate verified structured-publication path.</p><h3 id="976e4019-aad5-8306-bf59-81136351e689" class="" dir="auto">5. Batch Converts</h3><p id="b75e4019-aad5-8270-9f4c-01d83cda1f99" class="" dir="auto">Add <code>batchConvert</code>, which processes a nonempty array of Convert requests in order using shared Convert logic. Each request supplies its encoded Convert type, Deposit stems, token counts and signed <a href="https://docs.pinto.money/resources/glossary#grown-stalk">Grown Stalk</a> slippage tolerance. The result array returns the Convert kind, resulting Stem, input and output token counts, and input and output PDV for each operation (the ABI retains the <code>fromBdv</code> and <code>toBdv</code> field names).</p><p id="d3be4019-aad5-83af-aa5c-815815dc8a0f" class="" dir="auto">Each Anti-Lambda-Lambda item still updates only one Deposit. Several such items can appear in one batch. Each operation sees the state left by earlier operations, including consumed Convert capacity. If any operation or the enclosing checks revert, the entire batch reverts.</p><h3 id="4d0e4019-aad5-8247-8631-01228462fc15" class="" dir="auto">6. Batch Pod Marketplace Operations</h3><p id="6dee4019-aad5-820c-9540-81de6355aedf" class="" dir="auto">Add batch functions to create, fill and cancel Pod Listings and Pod Orders. Preserve the existing ownership, listing/order validation, transfer and allowance rules through the shared helpers. Each batch runs in order and is atomic if an operation reverts.</p><p id="97ee4019-aad5-82c9-a826-816a1bd0673b" class="" dir="auto">Listing fills use one payer balance mode for the batch while preserving each Listing’s receiving mode. Order creation makes one aggregate token-receipt call for the requested Pinto and returns an array of Order IDs. Order fills and cancellations use one receiving mode per batch. The existing single-operation entry points remain available.</p><h2 id="e90e4019-aad5-834d-bc6a-018cf736b689" class="" dir="auto">Rationale</h2><h3 id="b0ce4019-aad5-8329-a17a-01e7b97bba66" class="" dir="auto">1. wstETH Liquidity</h3><p id="8fae4019-aad5-8329-88d3-01f21521dc94" class="" dir="auto">Adding a Lido-based staking asset diversifies provider exposure away from Coinbase/Circle to support the protocol’s censorship-resistance objective.</p><h3 id="949e4019-aad5-8257-99fe-81d1308b2fb6" class="" dir="auto">2. Dynamic LP Distribution</h3><p id="0e6e4019-aad5-8274-815d-0145900d830c" class="" dir="auto">A gradual change gives Farmers time to respond to changing <a href="https://docs.pinto.money/resources/glossary#seeds">Seed</a> incentives while preserving the combined configured optimal share of the two ETH-linked Wells. The generalized mechanism eliminates the need for repeated manual target updates. </p><h3 id="3eee4019-aad5-828b-a64c-8137eb675f77" class="" dir="auto">3. Pod Referrals</h3><p id="9d1e4019-aad5-82c1-9dea-813e3030e1fa" class="" dir="auto">The referral incentive rewards attracting additional Sowing while bounding the total bonus debt. The tradeoff is more Pods for the same number of Pinto burned. The proposal favored that additional cost to attract Sowing. The eligibility threshold ties access to prior participation to create a cost for self-referrals, while delegation supports a separate referral address designed to preserve on-chain privacy.</p><p id="e06e4019-aad5-820e-82bc-0141d07ca9cf" class="" dir="auto">The revised above-peg denominator accounts for full referral participation when setting Soil. When participation is lower or the bonus cap is met, realized bonus issuance can be lower than this assumption. </p><h3 id="630e4019-aad5-82ae-8384-01fff4c61408" class="" dir="auto">4. Tractor Dynamic Data</h3><p id="990e4019-aad5-8263-81be-81656da4d1fd" class="" dir="auto">A transient key-value channel lets Blueprint contracts consume variable-length information without forcing it into fixed paste locations in signed calldata. Explicit cleanup limits the lifetime to the Tractor call on the successful path, while <a href="https://eips.ethereum.org/EIPS/eip-1153">EIP-1153</a> supplies transaction-level cleanup. Compressed-data publication provides an off-chain distribution option without changing what constitutes a valid signed Requisition.</p><h3 id="e52e4019-aad5-828a-b120-81eacd71888d" class="" dir="auto">5. Batch Converts</h3><p id="13de4019-aad5-8338-9d7e-8190bc4f4f77" class="" dir="auto">Batch Converts apply asset-backing and Pinto-supply checks, together with reentrancy protection, once around the entire batch. Each Convert retains its own accounting, slippage enforcement and events. This reduces repeated overhead and allows multiple Deposit valuation updates in one transaction. If any Convert fails, the entire batch reverts.  </p><h3 id="2c4e4019-aad5-8304-807d-01316cfade28" class="" dir="auto">6. Batch Pod Marketplace Operations</h3><p id="baee4019-aad5-8392-aa6a-8116f720a382" class="" dir="auto">Batching reduces repeated checks and, for Order creation, repeated token receipts. It simplifies submitting several related operations while retaining individual marketplace events. </p><h2 id="d37e4019-aad5-8207-9353-81e8ffd12a9e" class="" dir="auto">Contract Changes</h2><h3 id="143e4019-aad5-8268-a331-8190e611e52b" class="" dir="auto">Initialization</h3><p id="c95e4019-aad5-82a6-a689-011f475aeeff" class="" dir="auto">Executed <code>InitPI14.init(address,uint256)</code> at <code><a href="https://basescan.org/address/0xc1d6cfc744fd017ebc989e63d89374bee1e5a1fc#code">0xc1d6cfc744fd017ebc989e63d89374bee1e5a1fc</a></code>, passing helper storage <code><a href="https://basescan.org/address/0xbe95c6806ab4eefc10ac9e96938c3a222964dd91#code">0xbe95c6806ab4eefc10ac9e96938c3a222964dd91</a></code> and key <code>1</code>.</p><p id="a0be4019-aad5-83b2-83e5-81b8bca67ae0" class="" dir="auto">The initializer deployed and whitelisted the Pinto-wstETH Well, configured the stateful LP Distribution Gauge, and loaded historical referral eligibility data from the helper. Execution events confirmed the 10% referrer rate, 5% referee rate, 2,000,000-Pod budget and 1,000-Pinto eligibility threshold. The initializer did not update Tractor’s version. Historical before/after calls both returned <code>1.0.0</code>.</p><p id="726e4019-aad5-83bf-9501-012eecd27e3f" class="" dir="auto">The storage update moved <code>s.sys.initialSoil</code> to the upper half of its slot and used the lower half for the referral eligibility threshold. It did not migrate the previous starting-Soil value. At the execution block, <code>getSoilSoldOutThreshold()</code> and <code>getSoilMostlySoldOutThreshold()</code> returned zero, down from 20.497512 and 57.393033 Soil respectively in the preceding block. <code>Sun.setSoil</code> populates the relocated field at the next successful Sunrise. The public <code>initialSoil()</code> getter still returns remaining <code>s.sys.soil</code>.</p><h3 id="c0fe4019-aad5-8301-b50b-01f3e5f31338" class="" dir="auto">Facet Changes</h3><p id="eb1e4019-aad5-82bc-a3b7-013f0272cc57" class="" dir="auto">Replaced 228 selectors and added 22 selectors across 19 facet implementations. No selectors were removed. Add / Replace denotes facets receiving both new and existing selectors. Replacement alone does not mean every function in a facet changed.</p><table id="947e4019-aad5-83ef-8d1d-01aa9b239e19" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="06fe4019-aad5-82b9-935c-814fbd0d714d" dir="ltr"><th id="ss^T" class="simple-table-header-color simple-table-header">Facet</th><th id="H_jC" class="simple-table-header-color simple-table-header">Action</th><th id="aV\I" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="N{h\" class="simple-table-header-color simple-table-header">New Implementation</th></tr></thead><tbody><tr id="659e4019-aad5-8366-8b2e-812cdafb4e77" dir="ltr"><td id="ss^T" class=""><code>GaugeFacet</code></td><td id="H_jC" class="">Add / Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0xa98400591c72ce2a2bde3b170f5a6a1b070ee4ea#code">0xa98400591c72ce2a2bde3b170f5a6a1b070ee4ea</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xf9f1d9c6ef1ca5ec0897c266d7b4e016e955d916#code">0xf9f1d9c6ef1ca5ec0897c266d7b4e016e955d916</a></code></td></tr><tr id="2dbe4019-aad5-8336-9fdb-812af35483a5" dir="ltr"><td id="ss^T" class=""><code>GaugeGettersFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x7d5b807202b8ae3dfb4b6d988d85622590b22862#code">0x7d5b807202b8ae3dfb4b6d988d85622590b22862</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xc0b381741820808b6407cdc8b03e8561259f8e5d#code">0xc0b381741820808b6407cdc8b03e8561259f8e5d</a></code></td></tr><tr id="9f5e4019-aad5-83aa-ba53-81f236284d36" dir="ltr"><td id="ss^T" class=""><code>SeasonFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0xb9d1c6e65a8934ec86d70f358028943e63ee0793#code">0xb9d1c6e65a8934ec86d70f358028943e63ee0793</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x4aeee50b11c3682605dceca1feacd96349383cd2#code">0x4aeee50b11c3682605dceca1feacd96349383cd2</a></code></td></tr><tr id="b46e4019-aad5-82f7-9a7c-0167a02fb356" dir="ltr"><td id="ss^T" class=""><code>FieldFacet</code></td><td id="H_jC" class="">Add / Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x32124b4da9b23659c1ad4b8be4fc2d274701c3d1#code">0x32124b4da9b23659c1ad4b8be4fc2d274701c3d1</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xae94197e16b31443fe1c333a32eda30eb3c1a942#code">0xae94197e16b31443fe1c333a32eda30eb3c1a942</a></code></td></tr><tr id="2e7e4019-aad5-8392-bded-01f51b1d68c5" dir="ltr"><td id="ss^T" class=""><code>TractorFacet</code></td><td id="H_jC" class="">Add / Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0xc2fc7963f76205dc57842e1a90c3e487bd16a556#code">0xc2fc7963f76205dc57842e1a90c3e487bd16a556</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xc8706ff2a0da6b3367aa506dcbb608ccf96148de#code">0xc8706ff2a0da6b3367aa506dcbb608ccf96148de</a></code></td></tr><tr id="93ae4019-aad5-82da-9f61-01434e687187" dir="ltr"><td id="ss^T" class=""><code>MarketplaceFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x5aeb7c0a256b167bae026056d32818539b1734b4#code">0x5aeb7c0a256b167bae026056d32818539b1734b4</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x85436279a52537ef03864e268d73d3ba37e169ec#code">0x85436279a52537ef03864e268d73d3ba37e169ec</a></code></td></tr><tr id="663e4019-aad5-83b5-8e50-81119802a31c" dir="ltr"><td id="ss^T" class=""><code>MarketplaceBatchFacet</code></td><td id="H_jC" class="">Add</td><td id="aV\I" class="">Not applicable — new facet</td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x40e42f3d568faf47c539a7d2a61e24629819bad4#code">0x40e42f3d568faf47c539a7d2a61e24629819bad4</a></code></td></tr><tr id="dffe4019-aad5-825c-8025-8149335b0281" dir="ltr"><td id="ss^T" class=""><code>ConvertFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x508900b00970af419c915c921ecc81d7e0a7ebcb#code">0x508900b00970af419c915c921ecc81d7e0a7ebcb</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xdc37f26363b305affc93c564ee879a265bcbff4d#code">0xdc37f26363b305affc93c564ee879a265bcbff4d</a></code></td></tr><tr id="d13e4019-aad5-82b8-bb34-81e3fa87af3e" dir="ltr"><td id="ss^T" class=""><code>ConvertGettersFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x32a036190967a11280ecd944d90b85d86f43e24f#code">0x32a036190967a11280ecd944d90b85d86f43e24f</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x334a110ad41fd417d4c8c3f82d9c85a3850192be#code">0x334a110ad41fd417d4c8c3f82d9c85a3850192be</a></code></td></tr><tr id="e1ae4019-aad5-827e-be7f-01939d02e102" dir="ltr"><td id="ss^T" class=""><code>ConvertBatchFacet</code></td><td id="H_jC" class="">Add</td><td id="aV\I" class="">Not applicable — new facet</td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x923a7096f7338660e60b4dc0ae21d2413e399739#code">0x923a7096f7338660e60b4dc0ae21d2413e399739</a></code></td></tr><tr id="a17e4019-aad5-82e5-a97f-81e400661002" dir="ltr"><td id="ss^T" class=""><code>ClaimFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x5e71bf027203bcbc9b1bd22504720d8e8be30cf7#code">0x5e71bf027203bcbc9b1bd22504720d8e8be30cf7</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xfc4499f812014bebaf9686ce0312a77cca65137a#code">0xfc4499f812014bebaf9686ce0312a77cca65137a</a></code></td></tr><tr id="493e4019-aad5-8327-ac71-01b8a25d259d" dir="ltr"><td id="ss^T" class=""><code>PipelineConvertFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x51b9fca1c4900584861efc794458dfa47775dd4b#code">0x51b9fca1c4900584861efc794458dfa47775dd4b</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xa66460626d1f8845085b1cdd5e527db1db998b1b#code">0xa66460626d1f8845085b1cdd5e527db1db998b1b</a></code></td></tr><tr id="7ece4019-aad5-82d7-a8a2-0125dfd0a224" dir="ltr"><td id="ss^T" class=""><code>SiloFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0xf4e60ecdc7ddd4037f1b9aa7d27a30d367871ca5#code">0xf4e60ecdc7ddd4037f1b9aa7d27a30d367871ca5</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x8646649c0f80db8665358f4548ae0d1ecc3910a5#code">0x8646649c0f80db8665358f4548ae0d1ecc3910a5</a></code></td></tr><tr id="fc7e4019-aad5-8312-b11e-01e6663fc170" dir="ltr"><td id="ss^T" class=""><code>SiloGettersFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0xa9f983f26828a99146f7f119a358ad930edbf420#code">0xa9f983f26828a99146f7f119a358ad930edbf420</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x92a2ddc9d6bcde63fb4473033ef8beea4145d0fd#code">0x92a2ddc9d6bcde63fb4473033ef8beea4145d0fd</a></code></td></tr><tr id="00be4019-aad5-83f9-8bca-814028bc84b7" dir="ltr"><td id="ss^T" class=""><code>MetadataFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0xf6506176a027ed4d5cdbab23d9dfcdec2b35b2a8#code">0xf6506176a027ed4d5cdbab23d9dfcdec2b35b2a8</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xced0ea96c44341343c13dc671c22e858e21675e0#code">0xced0ea96c44341343c13dc671c22e858e21675e0</a></code></td></tr><tr id="3d6e4019-aad5-821e-a861-019622f0b31a" dir="ltr"><td id="ss^T" class=""><code>ApprovalFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0xa456002541ffdd0cf4c8cdd273210581f2bf0314#code">0xa456002541ffdd0cf4c8cdd273210581f2bf0314</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x596050ccbbe49966a29be8663b2ed6a1f5dc1870#code">0x596050ccbbe49966a29be8663b2ed6a1f5dc1870</a></code></td></tr><tr id="45ee4019-aad5-82cf-8750-816183040fdb" dir="ltr"><td id="ss^T" class=""><code>TokenFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x7f492edcd56335b2d2aee29dfe39df33bbe43bb8#code">0x7f492edcd56335b2d2aee29dfe39df33bbe43bb8</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0xd29e38e4a803feac3503fd7402181bba79d3d3f0#code">0xd29e38e4a803feac3503fd7402181bba79d3d3f0</a></code></td></tr><tr id="664e4019-aad5-83a4-9e6f-81cfd477565f" dir="ltr"><td id="ss^T" class=""><code>TokenSupportFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x9d214daf535396d515d93831fc7fe5fa137b4f30#code">0x9d214daf535396d515d93831fc7fe5fa137b4f30</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x7f1bb9f51c636012cfaadc9e2db124edd21a7b92#code">0x7f1bb9f51c636012cfaadc9e2db124edd21a7b92</a></code></td></tr><tr id="6d8e4019-aad5-820f-97b1-81b5848325f7" dir="ltr"><td id="ss^T" class=""><code>FarmFacet</code></td><td id="H_jC" class="">Replace</td><td id="aV\I" class=""><code><a href="https://basescan.org/address/0x39322b0448a7c7b6abf980d204fa0c45df1886dc#code">0x39322b0448a7c7b6abf980d204fa0c45df1886dc</a></code></td><td id="N{h\" class=""><code><a href="https://basescan.org/address/0x16d28e43e43c6d5b2e95140f2f3000dcf87eb1d9#code">0x16d28e43e43c6d5b2e95140f2f3000dcf87eb1d9</a></code></td></tr></tbody></table><h3 id="65ae4019-aad5-83e9-955c-0149c60964ec" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="ee1e4019-aad5-82fa-9df9-810dc118dddc" class="" dir="auto">Deployed the Pinto-wstETH Well proxy at <code><a href="https://basescan.org/address/0x3e1155245ff9a6a019bc35827e801c6ed2ce91b9#code">0x3e1155245ff9a6a019bc35827e801c6ed2ce91b9</a></code>, with the Well implementation instance at <code><a href="https://basescan.org/address/0x3e11afd88f9987df06557ee84d8a38879b0503b0#code">0x3e11afd88f9987df06557ee84d8a38879b0503b0</a></code>. The Base wstETH token is <code><a href="https://basescan.org/address/0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452#code">0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452</a></code>.</p><p id="fdbe4019-aad5-82fd-8e22-01cb31bf44da" class="" dir="auto">Configured the existing <code>LSDChainlinkOracle</code> at <code><a href="https://basescan.org/address/0x3ca165997a12863eb63e4418d2e97aca3cdcdadc#code">0x3ca165997a12863eb63e4418d2e97aca3cdcdadc</a></code> with ETH/USD feed <code><a href="https://basescan.org/address/0x71041dddad3595f9ced3dccfbe3d1f4b0a16bb70#code">0x71041dddad3595f9ced3dccfbe3d1f4b0a16bb70</a></code> and a 3,600-second timeout, and wstETH/ETH feed <code><a href="https://basescan.org/address/0x43a5c292a453a3bf3606fa856197f09d7b74251a#code">0x43a5c292a453a3bf3606fa856197f09d7b74251a</a></code> and a 129,600-second timeout. The new asset uses <code>wellBdv</code>, issues <code>1e10</code> raw Stalk units per PDV, and starts with <code>stalkEarnedPerSeason = 1</code>, zero Gauge Points and zero optimal share.</p><p id="b25e4019-aad5-82e4-8a84-01d750e72c6c" class="" dir="auto">The Well uses Aquifer <code><a href="https://basescan.org/address/0xba51aa60b3b8d9a36cc748a62aa56801060183f8#code">0xba51aa60b3b8d9a36cc748a62aa56801060183f8</a></code>, base Well implementation <code><a href="https://basescan.org/address/0xba510990a720725ab1f9a0d231f045fc906909f4#code">0xba510990a720725ab1f9a0d231f045fc906909f4</a></code>, Constant Product 2 at <code><a href="https://basescan.org/address/0xba510c289fd067ebba41335afa11f0591940d6fe#code">0xba510c289fd067ebba41335afa11f0591940d6fe</a></code> and Multi Flow Pump at <code><a href="https://basescan.org/address/0xba51aaaa66dab6c236b356ad713f759c206dcb93#code">0xba51aaaa66dab6c236b356ad713f759c206dcb93</a></code>. These configured components were not new PI-14 component deployments.</p><p id="164e4019-aad5-8316-871f-01b10720dc88" class="" dir="auto">The <a href="/pi/14/">linked-library inventory below</a> lists the external dependencies of the added or replaced facets. It also identifies <code>LibConvert</code> as a consumer of <code>LibTokenSilo</code>. <code>LibSeedGauge</code> is the renamed successor to <code>LibGauge</code>, shown in the previous-implementation column. All listed deployments changed. A changed address does not imply a changed economic rule in that library’s own source.</p><table id="2a6e4019-aad5-83a0-8bb5-01b1db3f9081" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="602e4019-aad5-8304-be38-81d21c6c7517" dir="ltr"><th id="BlOc" class="simple-table-header-color simple-table-header">Library</th><th id="iK:`" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="Vdh&gt;" class="simple-table-header-color simple-table-header">New Implementation</th><th id="~;cQ" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="937e4019-aad5-8284-b015-016d4dadf175" dir="ltr"><td id="BlOc" class=""><code>LibEvaluate</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0xbff46c34d49b976d9c133fafb0529cff6704138b#code">0xbff46c34d49b976d9c133fafb0529cff6704138b</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0x1105414b01a6d2214d1c33a1f756dea2e5e87259#code">0x1105414b01a6d2214d1c33a1f756dea2e5e87259</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="74be4019-aad5-83a5-b8a6-819d0bfd3f5b" dir="ltr"><td id="BlOc" class=""><code>LibFlood</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0x3bd60d6c0df87fdd90c510d1de5c1a089f4e6b25#code">0x3bd60d6c0df87fdd90c510d1de5c1a089f4e6b25</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0xef75cae236476bfedc5207d57e5ea7ea315a8c12#code">0xef75cae236476bfedc5207d57e5ea7ea315a8c12</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="ad9e4019-aad5-838b-8d71-81700fb0856a" dir="ltr"><td id="BlOc" class=""><code>LibGerminate</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0xbcf22afbbda11ac84ea001451d8ae60b424b0b97#code">0xbcf22afbbda11ac84ea001451d8ae60b424b0b97</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0x752f502897667c6ba438d35b39439c84210dad06#code">0x752f502897667c6ba438d35b39439c84210dad06</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="b0ce4019-aad5-82e4-b928-81c6fc50de85" dir="ltr"><td id="BlOc" class=""><code>LibIncentive</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0x31046cd4b22c6af8a677f641f4d706ccce1ca570#code">0x31046cd4b22c6af8a677f641f4d706ccce1ca570</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0x735aab105c222bee6aaf520adc4cf3128fdcc6db#code">0x735aab105c222bee6aaf520adc4cf3128fdcc6db</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="289e4019-aad5-83c6-a8b7-81a9800df212" dir="ltr"><td id="BlOc" class=""><code>LibSeedGauge</code> (formerly <code>LibGauge</code>)</td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0x35a71bc019539dda1e04e549609c6f620644e2c7#code">0x35a71bc019539dda1e04e549609c6f620644e2c7</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0xbcc581f0d70a033e21b31ea695fd3c2978503146#code">0xbcc581f0d70a033e21b31ea695fd3c2978503146</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="190e4019-aad5-821b-8211-01d8a9264f7c" dir="ltr"><td id="BlOc" class=""><code>LibShipping</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0x71a9f8e8a9082381ba7352d5b82e5e0849c6ddf2#code">0x71a9f8e8a9082381ba7352d5b82e5e0849c6ddf2</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0xf528edef6598d1907eef6e7ad1a8b87e54c736a9#code">0xf528edef6598d1907eef6e7ad1a8b87e54c736a9</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="d5ae4019-aad5-836c-ba65-01d19dcd2fd4" dir="ltr"><td id="BlOc" class=""><code>LibWeather</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0xed46c5936939d4ffd25284b4825e14f02e4bb90d#code">0xed46c5936939d4ffd25284b4825e14f02e4bb90d</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0xf8569d0f4aa794ea4c9ca5efadda38433ad52bbb#code">0xf8569d0f4aa794ea4c9ca5efadda38433ad52bbb</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="c14e4019-aad5-83af-86e6-017004b8bbaf" dir="ltr"><td id="BlOc" class=""><code>LibWellMinting</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0x7cbd0b120a1ee1cdac1ed245ee23a80b37c7a6f9#code">0x7cbd0b120a1ee1cdac1ed245ee23a80b37c7a6f9</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0xcfceea3eeaeccb8dcda9cbc37d72523c10855c62#code">0xcfceea3eeaeccb8dcda9cbc37d72523c10855c62</a></code></td><td id="~;cQ" class=""><code>SeasonFacet</code></td></tr><tr id="f1ee4019-aad5-82d1-b399-01da4322e774" dir="ltr"><td id="BlOc" class=""><code>LibConvert</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0xb3626b534ff81442579913de1f31c51a045b5261#code">0xb3626b534ff81442579913de1f31c51a045b5261</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0x7665b799e4e05c2ddc4306826322e9d0729965f7#code">0x7665b799e4e05c2ddc4306826322e9d0729965f7</a></code></td><td id="~;cQ" class=""><code>ConvertBatchFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="a85e4019-aad5-833e-84dc-816e424f3039" dir="ltr"><td id="BlOc" class=""><code>LibPipelineConvert</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0xfc537aa415b89def06d97e23c04baf4039e8bbcb#code">0xfc537aa415b89def06d97e23c04baf4039e8bbcb</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0x249be8f283471f2d4f08a4dae1108c632c650d6b#code">0x249be8f283471f2d4f08a4dae1108c632c650d6b</a></code></td><td id="~;cQ" class=""><code>ConvertBatchFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="724e4019-aad5-835f-a60e-013701bacd36" dir="ltr"><td id="BlOc" class=""><code>LibSilo</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0x9f327f1f6810aaf5a4ab0704b62b4ed6bb0ea334#code">0x9f327f1f6810aaf5a4ab0704b62b4ed6bb0ea334</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0x648a2ab1358bf9df357772e2fd5d4ceec824ecfa#code">0x648a2ab1358bf9df357772e2fd5d4ceec824ecfa</a></code></td><td id="~;cQ" class=""><code>ClaimFacet</code>, <code>ConvertBatchFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>SiloFacet</code></td></tr><tr id="0dbe4019-aad5-8254-a966-816c850bcb9c" dir="ltr"><td id="BlOc" class=""><code>LibTokenSilo</code></td><td id="iK:`" class=""><code><a href="https://basescan.org/address/0xe97ee5afcb656126c6a89b72d8617061213f9f4d#code">0xe97ee5afcb656126c6a89b72d8617061213f9f4d</a></code></td><td id="Vdh&gt;" class=""><code><a href="https://basescan.org/address/0xff684446076ebc98cb2998a219dac957eb66b0ae#code">0xff684446076ebc98cb2998a219dac957eb66b0ae</a></code></td><td id="~;cQ" class=""><code>ClaimFacet</code>, <code>LibConvert</code>, <code>SiloFacet</code></td></tr></tbody></table><h3 id="62de4019-aad5-8285-8dc9-0172c234aa08" class="" dir="auto">Function Changes</h3><ul id="b78e4019-aad5-82b6-94f5-012009c632a0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the initialization path that deploys the upgradeable Well and registers its asset settings and composed price oracle. It configured the two opposite LP-target changes <a href="/pi/14/">as described above</a>.</li></ul><ul id="a75e4019-aad5-82d7-9d0d-015b985573a6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>lpDistributionUpdateGauge(bytes,bytes,bytes)</code> and the internal <code>LibGaugeLogic</code> / <code>LibLpDistributionGauge</code> update path. It returns an empty Gauge value and updated encoded Gauge data while writing optimal shares. Added stateful Gauge dispatch through ordinary calls alongside stateless dispatch through static calls. The public result getters remain stateless and do not apply the stateful update. Renamed <code>LibGauge.stepGauge</code> to <code>LibSeedGauge.stepSeedGauge</code> without changing the Seed Gauge algorithm itself.</li></ul><ul id="a11e4019-aad5-83d4-a876-0150c054a96f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>sowWithReferral</code>, returning ordinary Pods, referrer bonus Pods and referee bonus Pods separately. Updated the shared <code>LibDibbler</code> Sowing path to track eligibility and issue capped bonuses. Existing <code>sow</code> and <code>sowWithMin</code> still return ordinary Pods and pass no referral.</li></ul><ul id="aa4e4019-aad5-824f-9e42-816cd8c87f90" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>delegateReferralRewards</code> and referral getters for percentages, eligibility threshold, eligibility, tracked Sowing, delegate, target, total issued and enabled status. Delegation requires the caller’s own tracked Sowing to meet the threshold and forbids self-delegation or selecting an already eligible delegate. Replacing a delegate clears the former delegate’s eligibility flag. The current delegate’s flag is cleared before the eligibility check, so reselecting the same delegate succeeds.</li></ul><ul id="599e4019-aad5-8274-a170-8107f333f91c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>Sun.setSoilAbovePeg</code> to use the referral-adjusted debt denominator. The existing Pod Rate and cultivation adjustments remain downstream. The calculation does not condition this adjustment on remaining referral budget.</li></ul><ul id="64de4019-aad5-8237-98f3-0178dedc6d70" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>tractorDynamicData</code> and <code>getTractorData</code>. Moved the shared Tractor execution path into <code>LibTractor</code>, retaining signature verification, operator pasting, per-call results, nonce handling and cleanup. Added internal transient-storage helpers for the dynamic byte values. The existing persistent Tractor storage slot and field order were retained.</li></ul><ul id="4d1e4019-aad5-83e4-8a17-8186d4788dba" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>publishData(bytes)</code> as an event-only publication function. Removed the funds, net-flow, supply and reentrancy modifiers from <code>publishRequisition</code> and <code>cancelBlueprint</code>, while retaining Requisition verification and their existing nonce or publisher checks. This does not make <code>publishData</code> a verified Requisition publication.</li></ul><ul id="2a4e4019-aad5-8394-9dd7-81a1c883fce0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>ConvertBatchFacet.batchConvert</code> and moved the existing Convert core into <code>ConvertBase._convert</code>, shared with <code>ConvertFacet</code>. Retained the one-Deposit restriction per Anti-Lambda-Lambda operation, Grown Stalk slippage checks, capacity updates, PDV accounting and non-<a href="https://docs.pinto.money/resources/glossary#germination">Germinating</a> minimum logic. The batch returns an array of structured results and rejects an empty input array.</li></ul><ul id="94ce4019-aad5-82dd-93e3-81791598225e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>batchCreatePodListing</code>, <code>batchFillPodListing</code>, <code>batchCancelPodListing</code>, <code>batchCreatePodOrder</code>, <code>batchFillPodOrder</code> and <code>batchCancelPodOrder</code>. Only batch Order creation returns Order IDs. Unlike single Order creation, the batch records the requested quantities without adjusting them to the actual receipt returned by <code>receiveToken</code>. Moved the existing Pod allowance getter into <code>MarketplaceFacet</code> and shared allowance checking through <code>_checkAndDecrementAllowance</code>, preserving the public getter signature and the unlimited-allowance exemption.</li></ul><h3 id="d51e4019-aad5-83af-a1bd-01be4fa4a886" class="" dir="auto">Event Changes</h3><ul id="e2ce4019-aad5-8356-8465-811e7b1bd161" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Emitted the existing Well deployment, proxy initialization and whitelist configuration events for the new asset, including <code>UpdateWhitelistStatus</code>, <code>WhitelistToken</code>, <code>UpdatedOracleImplementationForToken</code>, <code>UpdatedGaugePointImplementationForToken</code> and <code>UpdatedLiquidityWeightImplementationForToken</code>.</li></ul><ul id="ddfe4019-aad5-8397-b1ed-0109b183c0d3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>AddedStatefulGauge</code> alongside the existing <code>AddedGauge</code> during LP Distribution Gauge initialization. Successful Gauge dispatch continues to emit <code>Engaged</code> and <code>EngagedData</code>, including retained results after a failed low-level Gauge call.</li></ul><ul id="987e4019-aad5-8240-abd0-01c04cfdbee3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the initialization events <code>ReferralPercentageChanged</code>, <code>RefereePercentageChanged</code>, <code>TargetReferralPodsChanged</code> and <code>BeanSownEligibilityThresholdChanged</code>, carrying the configured integer values. Referral percentages use six-decimal precision, despite an inaccurate source comment referring to eighteen decimals.</li></ul><ul id="fabe4019-aad5-83a0-bbf4-01ce40cf0b18" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>SowReferral</code>, identifying the referrer and referee, their bonus Plot indexes and the number of bonus Pods. The shared Sowing path also emits the existing <code>Sow</code> event for each issued bonus Plot with zero Pinto burned. Ordinary Sowing still emits its own <code>Sow</code>. An invalid referral does not emit <code>SowReferral</code>. Moved the Soil-demand timing check before Plot creation, so <code>SoilMostlySoldOut</code> or <code>SoilSoldOut</code>, when emitted, precedes the corresponding <code>Sow</code>.</li></ul><ul id="366e4019-aad5-82ea-b01e-01f39d0bb149" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>PublishData(bytes)</code> to emit the submitted payload. Existing Requisition, Blueprint cancellation and Tractor execution event interfaces were retained.</li></ul><ul id="0cee4019-aad5-830a-b898-817c08ad7784" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Batch Converts emit the existing per-operation <code>Convert</code> events and applicable shared accounting/bonus/penalty events. No separate aggregate batch event was added.</li></ul><ul id="c9fe4019-aad5-83a3-808e-81992c25f68f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Batch marketplace operations emit the existing per-item Listing, Order and Plot events through their shared helpers. No separate aggregate marketplace batch event was added.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
