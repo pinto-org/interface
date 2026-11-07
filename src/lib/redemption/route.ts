@@ -402,9 +402,13 @@ export function buildRoute(route: RedemptionRoute): FarmCall[] {
     if (leg.swap) {
       const swap = leg.swap;
       const calls: PipeCall[] = [
+        // A favorable reserve move can return more than the quoted sell amount.
+        // Cleanup above makes this balance exactly this leg's proceeds; keep both
+        // spending caps aligned with sellEntireBalance without granting an unlimited approval.
+        erc(swap.sellToken, "balanceOf", [PIPELINE_ADDRESS]),
         erc(swap.sellToken, "approve", [ALLOWANCE_HOLDER, 0n]),
-        erc(swap.sellToken, "approve", [ALLOWANCE_HOLDER, swap.sellAmount]),
-        { target: ALLOWANCE_HOLDER, callData: swap.data, clipboard: empty },
+        erc(swap.sellToken, "approve", [ALLOWANCE_HOLDER, 0n], Clipboard.encodeSlot(0, 0, 1)),
+        { target: ALLOWANCE_HOLDER, callData: swap.data, clipboard: Clipboard.encodeSlot(0, 0, 2) },
         erc(swap.sellToken, "approve", [ALLOWANCE_HOLDER, 0n]),
       ];
       // sellEntireBalance must consume the whole leg; otherwise revert instead of stranding a paired asset.
