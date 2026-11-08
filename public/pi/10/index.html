@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-10: Fix Cultivation Gauge and Revise Parameters</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-80f0-b07d-ca698be9855a" class="page sans"><header><h1 class="page-title" dir="auto">PI-10: Fix Cultivation Gauge and Revise Parameters</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="5d3e4019-aad5-837e-951a-01b8fa812fb3" class="" dir="auto">Executed on June 19, 2025 at 03:57 UTC. </p><h2 id="1c0e4019-aad5-823d-b86c-01b3f59a86a2" class="" dir="auto">Summary</h2><ol type="1" id="f85e4019-aad5-8204-8e3f-81f27b6baed7" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#cultivation-system">Cultivation System</a></strong><strong>:</strong> Upgrade the Cultivation System to handle two edge cases.</li></ol><ol type="1" id="c15e4019-aad5-8383-b6a3-81d2666ff4a6" class="numbered-list" start="2" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#soil">Soil</a></strong><strong> Sold Out Threshold:</strong> Upgrade the mechanism that determines if Soil sells out to be more manipulation resistant.</li></ol><ol type="1" id="663e4019-aad5-8281-9452-01d891147130" class="numbered-list" start="3" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#dynamic-convert-down-penalty">Convert Down Penalty</a></strong><strong>:</strong> Update the Convert Down Penalty Gauge to issue the penalty as a function of <span data-notion-inline-equation="R^{W^{lower}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0119em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0119em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.927em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span> instead of <span data-notion-inline-equation="R^{W^{*}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8973em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8973em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7633em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">∗</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>.</li></ol><ol type="1" id="d45e4019-aad5-820c-99d0-018029ce6986" class="numbered-list" start="4" dir="auto"><li><strong>Batch </strong><strong><a href="https://docs.pinto.money/resources/glossary#plot">Plot</a></strong><strong> Transfers:</strong> Restore batch Plot transfers with correct allowance checks.</li></ol><ol type="1" id="883e4019-aad5-8209-899a-8168bc2901bb" class="numbered-list" start="5" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#pod-listing">Plot Listing</a></strong><strong> Payments:</strong> Prevent Plot Listings from being filled with zero <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> and correct the rounding boundary.</li></ol><h2 id="278e4019-aad5-83d7-8917-01aa38e91e6a" class="" dir="auto">Links</h2><ul id="44ee4019-aad5-827b-a53e-019305fcba85" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/114">Implementation PR</a></li></ul><ul id="9fbe4019-aad5-823b-ac28-816ef1555848" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507&amp;id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0xa705e9bf0130cbdef2b13fe2d7dcee6b358255e9c9b00707027bff1fdb98fc84">Safe Transaction</a></li></ul><ul id="8fde4019-aad5-83fe-9033-01f075b858e8" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0x0abe8f162161a2c321fd6b81425c48754a306badc36ffb003502f178eafba68b">Diamond Cut Transaction</a></li></ul><ul id="06ce4019-aad5-8207-9a9d-01e5a8482687" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/04d7dba2e3094b65826a563ad1b4bf733f678e3d">04d7dba2e3094b65826a563ad1b4bf733f678e3d</a></li></ul><h2 id="a88e4019-aad5-83b5-8c78-814e41ede1f0" class="" dir="auto">Problems</h2><h3 id="2b4e4019-aad5-820c-ba51-81331c6197e8" class="" dir="auto">1. Cultivation System</h3><p id="c38e4019-aad5-82df-9fb6-81a914d8e7a7" class="" dir="auto">With the introduction of <a href="https://docs.pinto.money/pinto-mechanics/toolshed/tractor-automating-the-farm">Tractor</a> support for <a href="https://docs.pinto.money/resources/glossary#sow">Sowing</a>, there was an inefficiency discovered in how the Cultivation System worked. </p><p id="448e4019-aad5-8210-b447-816f4f1c7c80" class="" dir="auto">In particular, the <a href="https://docs.pinto.money/resources/glossary#cultivation-factor">Cultivation Factor</a> decreased when Soil did not sell out. In instances where there was a Tractor Requisition to Sow at the <a href="https://docs.pinto.money/resources/glossary#maximum-temperature">Maximum Temperature</a> in a <a href="https://docs.pinto.money/resources/glossary#season">Season</a> in which Soil sold out, and there were no Tractor Requisitions to Sow at lower <a href="https://docs.pinto.money/resources/glossary#temperature">Temperatures</a>, the Cultivation Factor got &quot;stuck&quot; oscillating at the level it was prior to the Tractor Requisition being filled (typically the minimum Cultivation Factor). The result was that the available Soil never increased, even if there was demand to Sow in excess of the available Soil. In practice this had resulted in the <a href="https://docs.pinto.money/resources/glossary#field">Field</a> never offering enough Soil to meaningfully affect the state of the system.</p><p id="e93e4019-aad5-8295-a040-0135cd5833da" class="" dir="auto">Additionally, there was no Steady case in which the Cultivation Factor stayed the same, which could lead to suboptimal numbers of Soil being issued in the instance where there was a consistent amount of demand for Soil across multiple Seasons.</p><h3 id="2ace4019-aad5-82f5-8e00-818391e8e78b" class="" dir="auto">2. Soil Sold Out Threshold</h3><p id="4d2e4019-aad5-8279-88fd-81e45e417e9f" class="" dir="auto">The threshold at which the protocol considered Soil to be sold out was not manipulation resistant.</p><h3 id="bcce4019-aad5-8337-ba43-81c7ffcc8768" class="" dir="auto">3. Convert Down Penalty</h3><p id="287e4019-aad5-821c-9eea-0157197dcce2" class="" dir="auto">The Convert Down Penalty was insufficiently aggressive in instances where the <a href="https://docs.pinto.money/resources/glossary#liquidity-to-supply-ratio-l2sr">L2SR</a> was Reasonably Low.</p><h3 id="fb6e4019-aad5-82af-9f4d-01d201e87066" class="" dir="auto">4. Batch Plot Transfers</h3><p id="853e4019-aad5-83d4-b2c6-818e861b404a" class="" dir="auto">A bug in the protocol allowed a malicious actor to bypass the approval process and transfer another user&#x27;s <a href="https://docs.pinto.money/resources/glossary#plot">Plots</a> without their permission. The vulnerable functionality was removed in an <a href="https://basescan.org/tx/0xc92ae596b338366d70c46325f4def34f98cde83874ce81aa01a196eeb2acf675">Emergency PI</a> leaving users unable to transfer multiple Plots in a gas efficient way.</p><h3 id="427e4019-aad5-83b5-b58e-01ca3fd410a7" class="" dir="auto">5. Plot Listing Payments</h3><p id="66ee4019-aad5-83db-bdbc-81448528867e" class="" dir="auto">A bug in the protocol allowed small <a href="https://docs.pinto.money/resources/glossary#pod-listing">Plot Listings</a> (<code>podAmount &lt;= 1e6</code>) with a certain <a href="https://docs.pinto.money/resources/glossary#pods">Pod</a> price to be purchased without Pinto.</p><h2 id="21be4019-aad5-82b6-8f57-01a7eaa84cbc" class="" dir="auto">Solutions</h2><h3 id="780e4019-aad5-8281-bb2c-81405e4e0196" class="" dir="auto">1. Cultivation System</h3><p id="f8be4019-aad5-83af-a7a5-812d573c5854" class="" dir="auto">Introduce a new threshold in which the protocol considers Soil mostly sold out.</p><p id="bb5e4019-aad5-8328-9f52-818ec87505bd" class="" dir="auto">Set the &quot;Mostly Sold Out&quot; threshold as a function of the Soil issued at the start of the Season, <span data-notion-inline-equation="S" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></span>, and the Sold Out threshold (<a href="/pi/10/">see below</a>):</p><p id="004e4019-aad5-8315-a6d0-818fef9e12f7" class="" dir="auto"><span data-notion-inline-equation="S_{Mostly Sold Out} = \frac{S - S_{Sold out}}{5} + S_{Sold out}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span><span class="mord mathnormal mtight">os</span><span class="mord mathnormal mtight" style="margin-right:0.01968em;">tl</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8942em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">5</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.4159em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mbin mtight">−</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3488em;margin-left:-0.0576em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1512em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>.</p><p id="f5ee4019-aad5-834a-ad7c-81b60f69f542" class="" dir="auto">Introduce the <a href="https://docs.pinto.money/resources/glossary#cultivation-temperature">Cultivation Temperature</a>, which is set at the previous Season’s Maximum Temperature when Soil is Sold Out or Mostly Sold Out, and demand for Soil is steady or increasing.</p><p id="a6ae4019-aad5-83cd-a6fc-015b91fa8c4f" class="" dir="auto">Update the Cultivation Factor Gauge to increase, stay the same, or decrease based on the following logic: increase when Sold Out. Remain unchanged when Mostly Sold Out, or when demand is decreasing and the previous Season’s Maximum Temperature is below the Cultivation Temperature. Decrease otherwise. The Cultivation Factor remains between 1% and 100%.<div class="indented"><figure id="c2ee4019-aad5-8299-9aa6-0138acf0e8af" class="image" data-notion-image="https://github.com/user-attachments/assets/fefebe4f-63c6-46dc-a677-48dc1667725a" dir="ltr"><a href="https://github.com/user-attachments/assets/fefebe4f-63c6-46dc-a677-48dc1667725a"><img src="https://github.com/user-attachments/assets/fefebe4f-63c6-46dc-a677-48dc1667725a"/></a></figure></div></p><h3 id="141e4019-aad5-82e3-9a72-81c4b9632683" class="" dir="auto">2. Soil Sold Out Threshold</h3><p id="499e4019-aad5-829f-84a4-81dc175f2709" class="" dir="auto">Update the &quot;Sold Out&quot; threshold to be a function of Soil issued at the start of the Season, <span data-notion-inline-equation="S" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span></span>, as:</p><p id="81fe4019-aad5-82fa-a178-015175a8e356" class="" dir="auto"><span data-notion-inline-equation="S_{Sold out} = \min(50, \frac{S}{10})" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2173em;vertical-align:-0.345em;"></span><span class="mop">min</span><span class="mopen">(</span><span class="mord">50</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8723em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">10</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span></span></span></span></span></p><h3 id="da3e4019-aad5-826c-b00c-019a31fe8789" class="" dir="auto">3. Convert Down Penalty</h3><p id="05ce4019-aad5-838a-b8cd-8112533122e4" class="" dir="auto">Update the Convert Down Penalty such that the penalty is a function of <span data-notion-inline-equation="R^{W^{lower}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0119em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0119em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.927em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, rather than <span data-notion-inline-equation="R^{W^{*}}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8973em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8973em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7633em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">∗</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>. Here, <em><span data-notion-inline-equation="R" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span></span></em> denotes the previous Season’s L2SR, the lower bound (12%) replaces the optimal bound (40%), <em><span data-notion-inline-equation="\mathbb{D}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6889em;"></span><span class="mord mathbb">D</span></span></span></span></span></em> is the rolling counter after its current update, and <em><span data-notion-inline-equation="\mathbb{D}_{\max}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbb">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></em> is its cap of 12. The counter increases by 1 when time-weighted <code>deltaB</code> is positive and decreases by 1 otherwise, bounded between 0 and 12. At zero L2SR, the prior penalty ratio is retained instead of using this formula. The penalty is waived when the Pinto price in the conversion Well exceeds the Excessively High Price threshold. A minimum number of <a href="https://docs.pinto.money/resources/glossary#grown-stalk">Grown Stalk</a> is retained to keep the converted Deposit from germinating.</p><p id="527e4019-aad5-83f6-a90e-016ca77a1d0a" class="" dir="auto"><span data-notion-inline-equation="\max\left(0,\ \frac{\min(R_{t-1}^{W},\ R^{W^{lower}})}{R^{W^{lower}}} \times \left(1 - \log_{\mathbb{D}_{\text{max}} + 1}(\mathbb{D}_t + 1)\right)\right)" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mop">max</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4028em;"><span style="top:-2.4956em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.992em;"><span style="top:-2.992em;margin-right:0.0714em;"><span class="pstrut" style="height:2.706em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9884em;"><span style="top:-2.9884em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.5519em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9191em;"><span style="top:-2.214em;margin-left:-0.0077em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3455em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.2156em;"><span style="top:-3.2156em;margin-right:0.0714em;"><span class="pstrut" style="height:2.7846em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">W</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0984em;"><span style="top:-3.0984em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span><span class="mord mathnormal mtight" style="margin-right:0.02778em;">er</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5044em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size1">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2381em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathbb mtight">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">max</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3442em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathbb">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size1">)</span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p><h3 id="846e4019-aad5-8207-805c-01cec3bfc9de" class="" dir="auto">4. Batch Plot Transfers</h3><p id="a2ae4019-aad5-83b6-9bf6-01f28353ae71" class="" dir="auto">Reintroduce the <code>transferPlots</code> function to properly decrement the allowance of a sender when sending another <a href="https://docs.pinto.money/resources/glossary#farmers">Farmer</a>&#x27;s Plot(s).</p><h3 id="a48e4019-aad5-83c5-9856-8110ca906ac3" class="" dir="auto">5. Plot Listing Payments</h3><p id="5e9e4019-aad5-8334-a632-8104f01960f7" class="" dir="auto">Update the <code>fillPodListing</code> function to revert when a user attempts to fill a Listing with 0 Pinto. Tighten the remaining-Pod rounding comparison to prevent an entire additional payment unit from being rounded away.</p><h2 id="549e4019-aad5-834d-bd36-016b8c8826c5" class="" dir="auto">Rationale</h2><h3 id="fafe4019-aad5-82fd-bd87-01451025eb7d" class="" dir="auto">1. Cultivation System</h3><p id="5b2e4019-aad5-82e6-9668-01571f509ba8" class="" dir="auto">The Cultivation Factor getting stuck such that it never increases effectively cripples the efficacy of the Field. By tracking the Cultivation Temperature the protocol is able to prevent itself from getting stuck and reenables the Field to meaningfully contribute to peg maintenance.</p><p id="e13e4019-aad5-82b2-8e17-811b6831068f" class="" dir="auto">Introducing a Steady case to the Cultivation Factor changes means that the protocol can more granularly adjust the number of available Soil, leading to even more efficient Soil issuance.</p><h3 id="6ace4019-aad5-836f-addd-81d9e073ff90" class="" dir="auto">2. Soil Sold Out Threshold </h3><p id="b76e4019-aad5-83cf-a75e-01e610fb0d16" class="" dir="auto">Prior to this upgrade Soil was considered Sold Out if at most one Soil was not sold. Because the number was so low, there was the potential for manipulation that could prevent the protocol from logging Soil being Sold Out by someone Sowing all but just over 1 Soil. </p><p id="57fe4019-aad5-8393-b2d3-01a0a8873b7b" class="" dir="auto">When initial Soil is at least 50, less than 5 Soil remaining qualifies as Sold Out. With low gas costs, a Farmer with demand is likely to Sow the remaining Soil. When initial Soil is at least 500, the threshold is capped at 50 Soil. The cap was chosen to leave enough value that a Farmer with demand is expected to find Sowing worthwhile, while avoiding a threshold that grows indefinitely with Soil issuance.</p><h3 id="0a3e4019-aad5-83a6-9af7-818e5f0e7251" class="" dir="auto">3. Convert Down Penalty</h3><p id="764e4019-aad5-822b-866b-01e3f1865477" class="" dir="auto">By changing the Convert Down Penalty to be 100% when the counter is zero, the Pinto price in the conversion Well does not exceed the Excessively High Price threshold, and the L2SR is at least the Excessively Low L2SR threshold instead of the Optimal L2SR threshold, the protocol will have at least one Season where the penalty will be 100% in more instances when the Pinto price crosses the value target. This should cause <a href="https://docs.pinto.money/resources/glossary#deltap">TWA∆P</a> &gt; 0 and a mint to occur, which in instances where the L2SR is not Excessively Low would generally be healthy for the protocol. A 100% penalty does not burn all Grown Stalk. The minimum retained Grown Stalk keeps the converted Deposit from germinating.</p><h3 id="ccbe4019-aad5-8394-9e62-01638da49415" class="" dir="auto">4. Batch Plot Transfers</h3><p id="c00e4019-aad5-83c9-b71f-814e1aba3648" class="" dir="auto">Correct allowance accounting restores batch transfers while requiring a delegated sender to have sufficient approval for the total number of Pods transferred.</p><h3 id="3a0e4019-aad5-83c6-8a12-017ae33202c9" class="" dir="auto">5. Plot Listing Payments</h3><p id="0ffe4019-aad5-83cc-aece-019f4fb03c62" class="" dir="auto">Requiring a positive payment prevents a zero-Pinto fill. The stricter rounding boundary prevents an entire additional payment unit from being rounded away.</p><h2 id="47de4019-aad5-8248-a148-81758204bd63" class="" dir="auto">Contract Changes</h2><h3 id="d4fe4019-aad5-8345-bdad-01dce848e615" class="" dir="auto">Initialization</h3><p id="1dce4019-aad5-82ca-bd7e-01237cc60627" class="" dir="auto">Executed <code>InitPI10.init()</code> at <code><a href="https://basescan.org/address/0xcc7578d84785c30a45306c8afc75955ba1767709#code">0xcc7578d84785c30a45306c8afc75955ba1767709</a></code>. Extended the Cultivation Gauge data from four to six <code>uint256</code> values, preserving its existing adjustment and factor bounds and initializing <code>cultivationTemp</code> and <code>prevSeasonTemp</code> to zero. The stored Cultivation Factor and Convert Down Penalty value were unchanged by initialization. The new stored <code>initialSoil</code> field was not populated by the initializer. Both new threshold getters returned zero at the execution block, before the next Sunrise stored the new Season’s initial Soil.</p><h3 id="1b5e4019-aad5-8333-b9fd-8164f41c41bb" class="" dir="auto">Facet Changes</h3><p id="217e4019-aad5-8389-8674-019bcf8cfd00" class="" dir="auto">Replaced four facets and added five selectors: two Soil threshold getters, two Gauge-result getters, and the restored <code>transferPlots</code> function. Other selectors in these facets were replaced without implying that every function changed.</p><table id="5b6e4019-aad5-8379-90ca-014ef2abaadc" class="simple-table" dir="ltr"><tbody><tr id="e91e4019-aad5-83c4-b241-8167d90cb230" dir="ltr"><td id="TKk{" class=""><strong>Facet</strong></td><td id="QUv^" class=""><strong>Action</strong></td><td id="[MTP" class=""><strong>Previous Implementation</strong></td><td id="@VkC" class=""><strong>New Implementation</strong></td></tr><tr id="1d2e4019-aad5-8342-9404-018ad746c50d" dir="ltr"><td id="TKk{" class=""><code>GaugeFacet</code></td><td id="QUv^" class="">Add / Replace</td><td id="[MTP" class=""><code><a href="https://basescan.org/address/0x42575b2f01d18cf3ed670c9fe82ee90332739d03#code">0x42575b2f01d18cf3ed670c9fe82ee90332739d03</a></code></td><td id="@VkC" class=""><code><a href="https://basescan.org/address/0x046c76aee5d109fba8708ee58a50d76eea1f98dc#code">0x046c76aee5d109fba8708ee58a50d76eea1f98dc</a></code></td></tr><tr id="8e0e4019-aad5-832f-90f4-0121b963d521" dir="ltr"><td id="TKk{" class=""><code>SeasonFacet</code></td><td id="QUv^" class="">Replace</td><td id="[MTP" class=""><code><a href="https://basescan.org/address/0x5545a4ab5cd3f6e7db0883e73ea4805f6e1270a9#code">0x5545a4ab5cd3f6e7db0883e73ea4805f6e1270a9</a></code></td><td id="@VkC" class=""><code><a href="https://basescan.org/address/0x9c74f623d22c4132211c9a8c605de7d2cda01700#code">0x9c74f623d22c4132211c9a8c605de7d2cda01700</a></code></td></tr><tr id="7ffe4019-aad5-8269-8d01-812059d539a6" dir="ltr"><td id="TKk{" class=""><code>FieldFacet</code></td><td id="QUv^" class="">Add / Replace</td><td id="[MTP" class=""><code><a href="https://basescan.org/address/0x0b5888a4c6fb90d26fb4d5f782d45c9e86dcc974#code">0x0b5888a4c6fb90d26fb4d5f782d45c9e86dcc974</a></code></td><td id="@VkC" class=""><code><a href="https://basescan.org/address/0x36e4dd6f2be854962174c3e398cd0e11d49e404c#code">0x36e4dd6f2be854962174c3e398cd0e11d49e404c</a></code></td></tr><tr id="331e4019-aad5-835b-aea8-81f1afbcd59c" dir="ltr"><td id="TKk{" class=""><code>MarketplaceFacet</code></td><td id="QUv^" class="">Add / Replace</td><td id="[MTP" class=""><code><a href="https://basescan.org/address/0x1f4504295c5bd57cdbd8caf4df9ab13381cb0ad4#code">0x1f4504295c5bd57cdbd8caf4df9ab13381cb0ad4</a></code></td><td id="@VkC" class=""><code><a href="https://basescan.org/address/0x5aeb7c0a256b167bae026056d32818539b1734b4#code">0x5aeb7c0a256b167bae026056d32818539b1734b4</a></code></td></tr></tbody></table><h3 id="b42e4019-aad5-8292-8a52-016b446d63ab" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="9abe4019-aad5-83ef-87be-0128bb56f9a8" class="" dir="auto"><code>SeasonFacet</code> linked the libraries listed below. <code>GaugeFacet</code>, <code>FieldFacet</code> and <code>MarketplaceFacet</code> have no externally linked libraries. <code>LibEvaluate</code> changed demand classification. <code>LibWeather</code> is a new external dependency containing the Temperature logic and the previous-Season Temperature update. The other six libraries have new deployment addresses but unchanged own-source files. Shared compiled dependencies may still differ.</p><table id="8b0e4019-aad5-8336-b568-01894c4a1c4a" class="simple-table" dir="ltr"><tbody><tr id="812e4019-aad5-8241-ad21-01a829857879" dir="ltr"><td id="`[xM" class=""><strong>Library</strong></td><td id=";bfP" class=""><strong>Previous Implementation</strong></td><td id="xcxw" class=""><strong>New Implementation</strong></td><td id="i}\j" class=""><strong>Used By</strong></td></tr><tr id="ca5e4019-aad5-83f6-a369-81551fe57565" dir="ltr"><td id="`[xM" class=""><code>LibEvaluate</code></td><td id=";bfP" class=""><code><a href="https://basescan.org/address/0x311877f9ffbaf12b905df3e1f8c3b5f3c5527bd4#code">0x311877f9ffbaf12b905df3e1f8c3b5f3c5527bd4</a></code></td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0x1687f3eccced54e4ea4d98ffa13e2108954501e5#code">0x1687f3eccced54e4ea4d98ffa13e2108954501e5</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr><tr id="c60e4019-aad5-822f-8fa9-818a95b1115c" dir="ltr"><td id="`[xM" class=""><code>LibGauge</code></td><td id=";bfP" class=""><code><a href="https://basescan.org/address/0x28d436b9bbbe755dea4db747483f693d71847984#code">0x28d436b9bbbe755dea4db747483f693d71847984</a></code></td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0xfa27f1b255a02a929a7a4e668066ce76cadcc09c#code">0xfa27f1b255a02a929a7a4e668066ce76cadcc09c</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr><tr id="b59e4019-aad5-83bf-a440-01342f053373" dir="ltr"><td id="`[xM" class=""><code>LibIncentive</code></td><td id=";bfP" class=""><code><a href="https://basescan.org/address/0x09240a6c83350caaf110d9de6e23a659625d5476#code">0x09240a6c83350caaf110d9de6e23a659625d5476</a></code></td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0xb3f71bf8362cbaafebb99e1e5fac02c85e1ecfcc#code">0xb3f71bf8362cbaafebb99e1e5fac02c85e1ecfcc</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr><tr id="0e0e4019-aad5-8333-acf0-01978c28294c" dir="ltr"><td id="`[xM" class=""><code>LibShipping</code></td><td id=";bfP" class=""><code><a href="https://basescan.org/address/0x3e3442a75ed4dd47e64e4522da625701049d6477#code">0x3e3442a75ed4dd47e64e4522da625701049d6477</a></code></td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0x166ab367e077e65f1a4f273f05d8c25a3c3ea398#code">0x166ab367e077e65f1a4f273f05d8c25a3c3ea398</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr><tr id="45ae4019-aad5-833e-be4f-81215dbcfe49" dir="ltr"><td id="`[xM" class=""><code>LibWellMinting</code></td><td id=";bfP" class=""><code><a href="https://basescan.org/address/0x6dd836e7fe603bd73532bf6b5cbb188b7fcc7fa9#code">0x6dd836e7fe603bd73532bf6b5cbb188b7fcc7fa9</a></code></td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0xd76d2011647f57071cca0d182f0d524abeaee84e#code">0xd76d2011647f57071cca0d182f0d524abeaee84e</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr><tr id="e72e4019-aad5-82d6-a5a9-014d4e4674a7" dir="ltr"><td id="`[xM" class=""><code>LibFlood</code></td><td id=";bfP" class=""><code><a href="https://basescan.org/address/0xff823fbb0ae114b8e41c0529c7d87702cc5d06a8#code">0xff823fbb0ae114b8e41c0529c7d87702cc5d06a8</a></code></td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0x20a9aeac56fee169dec4d8a5c454e818b55fa8af#code">0x20a9aeac56fee169dec4d8a5c454e818b55fa8af</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr><tr id="d9de4019-aad5-8294-891a-012e202d364c" dir="ltr"><td id="`[xM" class=""><code>LibGerminate</code></td><td id=";bfP" class=""><code><a href="https://basescan.org/address/0x74f0910564523a9a9a0b4db23505f653af20548c#code">0x74f0910564523a9a9a0b4db23505f653af20548c</a></code></td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0xaedabcc13a7c44d612cb3776b6a2f3a81fd3d932#code">0xaedabcc13a7c44d612cb3776b6a2f3a81fd3d932</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr><tr id="765e4019-aad5-82f1-a42a-81315c8821eb" dir="ltr"><td id="`[xM" class=""><code>LibWeather</code></td><td id=";bfP" class="">N/A — new dependency</td><td id="xcxw" class=""><code><a href="https://basescan.org/address/0x82e2cfe47cf2ddd23755f81abb1349bdd96b5bfe#code">0x82e2cfe47cf2ddd23755f81abb1349bdd96b5bfe</a></code></td><td id="i}\j" class=""><code>SeasonFacet</code></td></tr></tbody></table><p id="a0ee4019-aad5-8344-83c9-81f6fb3f34dd" class="" dir="auto">Changed the fixed 1 Soil sellout threshold to min(50 Soil, 10% of initial Soil), and added a Mostly Sold Out threshold equal to the sold-out threshold plus 20% of the remaining initial Soil. Integer calculations round down in 6-decimal Soil units. Changed the Convert Down Penalty scaling denominator from the optimal (40%) to the lower L2SR bound (12%). Added an L2SR input cap at the lower bound, while retaining the final 100% penalty cap. The counter rate of 1 per Season and cap of 12 were unchanged.</p><h3 id="760e4019-aad5-8267-b593-01a316dc3498" class="" dir="auto">Function Changes</h3><ul id="5b6e4019-aad5-829c-8b95-818fcd7d4717" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>cultivationFactor(bytes,bytes,bytes)</code> to use six-field Gauge data and distinguish Sold Out, Mostly Sold Out and other demand conditions. It returns encoded value and data. Sold Out increases the factor. Mostly Sold Out preserves it. Otherwise, decreasing demand with <code>prevSeasonTemp &lt; cultivationTemp</code> preserves it, and other cases decrease it. The existing zero-price return and factor bounds remain.</li></ul><ul id="880e4019-aad5-82ab-9f94-8144ac66772d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated the Sunrise path through <code>gm</code> and <code>sunrise</code>. <code>LibWeather.updateTemperature</code> stores the previous Maximum Temperature before adjusting it, and <code>Sun.setSoil</code> stores <code>initialSoil</code> for the new Season. <code>LibEvaluate.calcDeltaPodDemand</code> distinguishes the Mostly Sold Out sentinel from elapsed sellout time, so Mostly Sold Out alone does not trigger the sellout-time demand override.</li></ul><ul id="c32e4019-aad5-83bd-9b19-81edfdcd45c0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>getGaugeResult(Gauge,bytes)</code> and <code>getGaugeIdResult(GaugeId,bytes)</code>, which return the computed encoded Gauge value and data without storing them. Both use <code>LibGaugeHelpers.getGaugeResult</code>, retaining its original value/data fallback for a missing selector or failed static call.</li></ul><ul id="9ace4019-aad5-829e-8e34-81cd2e8ec524" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>sow</code> and <code>sowWithMin</code> through <code>LibDibbler._saveSowTime</code> to record Mostly Sold Out and Sold Out states. An initial observation exactly at the sold-out threshold records Mostly Sold Out. After that state is recorded, a subsequent qualifying Sow at or below the threshold records Sold Out.</li></ul><ul id="83ce4019-aad5-820b-a36a-019445665f52" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>getSoilSoldOutThreshold()</code> and <code>getSoilMostlySoldOutThreshold()</code>, each returning a <code>uint256</code> threshold in 6-decimal Soil units calculated from stored <code>initialSoil</code>. The existing <code>initialSoil()</code> getter remains unchanged and returns remaining <code>s.sys.soil</code>, not the new stored starting-Soil field.</li></ul><ul id="556e4019-aad5-8238-81a2-81411d12e944" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>convertDownPenaltyGauge(bytes,bytes,bytes)</code> to scale against <code>lpToSupplyRatioLowerBound</code> instead of <code>lpToSupplyRatioOptimal</code>. The new input cap means L2SR above the lower bound cannot offset the counter’s penalty decay. The return remains encoded penalty ratio and rolling counter, plus Gauge data. The counter updates before the zero-L2SR fallback, which retains the prior penalty ratio. This change does not remove the existing downstream price bypass or minimum retained Grown Stalk.</li></ul><ul id="bf3e4019-aad5-8210-ad15-81961b84bed5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Re-added <code>transferPlots</code> with the corrected <code>fieldId</code> and <code>totalAmount</code> argument order when decrementing delegated Pod allowance. Updated shared <code>decrementAllowancePods</code> to reject zero allowance as well as insufficient allowance. <code>transferPlot</code> also uses this helper. Owner transfers and unlimited approvals retain their existing exceptions.</li></ul><ul id="768e4019-aad5-8208-904f-81512627fc6d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>fillPodListing</code> through <code>_fillListing</code> to require <code>beanPayAmount &gt; 0</code> and changed the remaining-Pod rounding comparison from <code>&lt;=</code> to <code>&lt;</code> against <code>1000000 / pricePerPod</code>. A zero-payment fill now reverts with <code>Marketplace: Zero payment.</code></li></ul><h3 id="3d9e4019-aad5-83bf-b56c-011fdd71902b" class="" dir="auto">Event Changes</h3><ul id="a69e4019-aad5-8399-9289-81a3055aa8e7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>EngagedData(uint8,bytes)</code>, emitted alongside the existing <code>Engaged</code> event when a Gauge is engaged. Added <code>UpdatedGaugeData(uint8,bytes)</code>, emitted by the initializer and when <code>LibWeather</code> records the previous Season’s Maximum Temperature. <code>TemperatureChange</code> and <code>BeanToMaxLpGpPerBdvRatioChange</code> moved to <code>LibWeather</code> with unchanged event signatures.</li></ul><ul id="b45e4019-aad5-8237-ac3a-81bd7bf46c4a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>SoilMostlySoldOut(uint256)</code> and <code>SoilSoldOut(uint256)</code>, emitting seconds since the Season started when the corresponding state is first recorded. A Sow directly below the sold-out threshold can emit only <code>SoilSoldOut</code>.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

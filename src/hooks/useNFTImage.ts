@@ -1,8 +1,12 @@
 import { abiSnippets } from "@/constants/abiSnippets";
 import { imageCache, imageToDataUrl, metadataCache } from "@/utils/imageCache";
-import { type NFTMetadata, fetchNFTMetadata, getOptimizedImageUrl } from "@/utils/ipfs";
+import { type NFTMetadata, fetchNFTMetadata, loadNFTImageUrl } from "@/utils/ipfs";
+import Bottleneck from "bottleneck";
 import { useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
+
+// Grid cards mount together; keep gateway requests bounded across all cards.
+const imageLoader = new Bottleneck({ maxConcurrent: 4 });
 
 interface UseNFTImageResult {
   imageUrl: string | null;
@@ -12,110 +16,87 @@ interface UseNFTImageResult {
 }
 
 export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTImageResult => {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [metadata, setMetadata] = useState<NFTMetadata | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Query tokenURI from contract
-  const { data: tokenURI, error: contractError } = useReadContract({
+  const [state, setState] = useState<UseNFTImageResult>({ imageUrl: null, metadata: null, loading: true, error: null });
+  const enabled = !!contractAddress && tokenId > 0;
+  const {
+    data: tokenURI,
+    error: contractError,
+    isPending,
+  } = useReadContract({
     address: contractAddress as `0x${string}`,
     abi: abiSnippets.erc721Enum,
     functionName: "tokenURI",
     args: [BigInt(tokenId)],
-    query: {
-      enabled: !!contractAddress && tokenId > 0,
-    },
+    query: { enabled },
   });
 
   useEffect(() => {
-    const loadNFTImage = async () => {
-      if (!tokenURI || contractError) {
-        setLoading(false);
-        setError(contractError?.message || "No token URI available");
+    const controller = new AbortController();
+    const { signal } = controller;
+    setState({
+      imageUrl: null,
+      metadata: null,
+      loading: enabled && !contractError && (isPending || !!tokenURI),
+      error: contractError?.message ?? null,
+    });
+    if (!enabled || !tokenURI || contractError) return () => controller.abort();
+
+    const load = async () => {
+      signal.throwIfAborted();
+      setState({ imageUrl: null, metadata: null, loading: true, error: null });
+      const cacheKey = `${contractAddress.toLowerCase()}_${tokenId}`;
+      const cachedImage = await imageCache.get(cacheKey);
+      const cachedMetadata = metadataCache.get(cacheKey) as NFTMetadata | null;
+      signal.throwIfAborted();
+      if (cachedImage && cachedMetadata) {
+        setState({ imageUrl: cachedImage, metadata: cachedMetadata, loading: false, error: null });
         return;
       }
-
+      if (cachedImage) setState({ imageUrl: cachedImage, metadata: cachedMetadata, loading: false, error: null });
       try {
-        setLoading(true);
-        setError(null);
-
-        const cacheKey = `${contractAddress}_${tokenId}`;
-
-        // Check cached image first
-        const cachedImageUrl = await imageCache.get(tokenId);
-        if (cachedImageUrl) {
-          setImageUrl(cachedImageUrl);
-
-          // Still load metadata if not cached
-          const cachedMetadata = metadataCache.get(cacheKey);
-          if (cachedMetadata) {
-            setMetadata(cachedMetadata);
-            setLoading(false);
-          }
-        }
-
-        // Fetch metadata from IPFS
-        const nftMetadata = await fetchNFTMetadata(tokenURI);
-
-        // Cache metadata
-        metadataCache.set(cacheKey, nftMetadata);
-        setMetadata(nftMetadata);
-
-        if (nftMetadata.image) {
-          const optimizedImageUrl = getOptimizedImageUrl(nftMetadata.image);
-
-          // Try to load original high-quality image first
-          try {
-            // Test if we can load the original image directly
-            const testImage = new Image();
-            testImage.crossOrigin = "anonymous";
-
-            const canLoadOriginal = await new Promise<boolean>((resolve) => {
-              testImage.onload = () => resolve(true);
-              testImage.onerror = () => resolve(false);
-              testImage.src = optimizedImageUrl;
-            });
-
-            if (canLoadOriginal) {
-              setImageUrl(optimizedImageUrl);
-
-              // Also cache it for future fallback
-              try {
-                const dataUrl = await imageToDataUrl(optimizedImageUrl);
-                await imageCache.set(tokenId, optimizedImageUrl, dataUrl);
-              } catch (cacheError) {
-                // Silently ignore cache errors
-              }
-            } else {
-              throw new Error("Cannot load original image");
-            }
-          } catch (imageError) {
-            // Fallback to cached version if available
-            if (cachedImageUrl) {
-              setImageUrl(cachedImageUrl);
-            } else {
-              setImageUrl(optimizedImageUrl); // Last resort - try direct URL anyway
+        await imageLoader.schedule(async () => {
+          signal.throwIfAborted();
+          const metadata = cachedMetadata ?? (await fetchNFTMetadata(tokenURI, signal));
+          metadataCache.set(cacheKey, metadata);
+          const imageUrl = cachedImage ?? (await loadNFTImageUrl(metadata.image, signal));
+          signal.throwIfAborted();
+          setState({ imageUrl, metadata, loading: false, error: null });
+          if (!cachedImage) {
+            // Caching is optional and must never hide a successfully loaded image.
+            try {
+              const data = await imageToDataUrl(imageUrl, signal);
+              signal.throwIfAborted();
+              await imageCache.set(cacheKey, imageUrl, data);
+            } catch {
+              // Artwork is already displayed; CORS/storage failures only skip caching.
             }
           }
-        }
-
-        setLoading(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load NFT data");
-        setLoading(false);
+        });
+      } catch (error) {
+        if (signal.aborted) return;
+        if (cachedImage) setState({ imageUrl: cachedImage, metadata: cachedMetadata, loading: false, error: null });
+        else
+          setState({
+            imageUrl: null,
+            metadata: null,
+            loading: false,
+            error: error instanceof Error ? error.message : "Failed to load NFT data",
+          });
       }
     };
+    void load().catch((error) => {
+      if (!signal.aborted)
+        setState({
+          imageUrl: null,
+          metadata: null,
+          loading: false,
+          error: error instanceof Error ? error.message : "Failed to load NFT data",
+        });
+    });
+    return () => controller.abort();
+  }, [tokenURI, contractError, contractAddress, tokenId, enabled, isPending]);
 
-    loadNFTImage();
-  }, [tokenURI, contractError, contractAddress, tokenId]);
-
-  return {
-    imageUrl,
-    metadata,
-    loading,
-    error,
-  };
+  return state;
 };
 
 // Hook for batch loading multiple NFTs (for grid views)
@@ -150,8 +131,8 @@ export const useNFTImages = (contractAddress: string, tokenIds: number[]) => {
             try {
               // This is a simplified version - in practice you'd want to implement
               // the full loading logic here or use the individual hook
-              const cacheKey = `${contractAddress}_${tokenId}`;
-              const cachedImageUrl = await imageCache.get(tokenId);
+              const cacheKey = `${contractAddress.toLowerCase()}_${tokenId}`;
+              const cachedImageUrl = await imageCache.get(cacheKey);
               const cachedMetadata = metadataCache.get(cacheKey);
 
               newResults[tokenId] = {

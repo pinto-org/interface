@@ -20,6 +20,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
+import { tryExtractErrorMessage } from "@/utils/error";
 import { guardedWalletConnector } from "@/utils/guardedWallet";
 import { REDEMPTION_WARMUP_MESSAGE, parseRedemptionAmount } from "@/utils/siloRedemption";
 import type { Token } from "@/utils/types";
@@ -114,7 +115,16 @@ export default function RoutedRedemption({
     setError(undefined);
   }, [key]);
   const pools = useQuery({
-    queryKey: ["siloRoutedRedemption", chainId, diamond, "readiness", account.address, siloToken.address, wells.join(","), kind],
+    queryKey: [
+      "siloRoutedRedemption",
+      chainId,
+      diamond,
+      "readiness",
+      account.address,
+      siloToken.address,
+      wells.join(","),
+      kind,
+    ],
     queryFn: () =>
       readRoutePoolState(client, {
         account: account.address!,
@@ -168,7 +178,7 @@ export default function RoutedRedemption({
       }
     } catch (cause) {
       if (!abort.signal.aborted && mounted.current && currentKey.current === expectedKey)
-        setError((cause as Error).message);
+        setError(tryExtractErrorMessage(cause, "Could not fetch a route. Try again."));
     } finally {
       if (controller.current === abort && mounted.current) setQuoting(false);
     }
@@ -188,10 +198,34 @@ export default function RoutedRedemption({
     /* Wait for valid input. */
   }
   useEffect(() => {
-    if (!unified || !walletMatchesChain || !eligibleAmount || pools.isPending || pools.isError || busy) return;
+    // Preserve a failed preparation's error and reviewed quote until the user
+    // explicitly refreshes. Finishing preparation must not silently re-quote.
+    if (
+      !unified ||
+      !walletMatchesChain ||
+      !eligibleAmount ||
+      pools.isPending ||
+      pools.isError ||
+      busy ||
+      error ||
+      quoting ||
+      route
+    )
+      return;
     const timer = setTimeout(() => void quoteAction.current(), 600);
     return () => clearTimeout(timer);
-  }, [key, Boolean(unified), walletMatchesChain, eligibleAmount, pools.isPending, pools.isError, busy]);
+  }, [
+    key,
+    Boolean(unified),
+    walletMatchesChain,
+    eligibleAmount,
+    pools.isPending,
+    pools.isError,
+    busy,
+    error,
+    quoting,
+    Boolean(route),
+  ]);
   async function submit() {
     if (!route || busy || expired || lock.current || pools.isError) return;
     lock.current = true;
@@ -252,8 +286,9 @@ export default function RoutedRedemption({
         connector: guardedWalletConnector(expected.connector, { account: route.account, chainId }, assertCurrent),
       });
     } catch (cause) {
-      setError((cause as Error).message);
-      toast.error((cause as Error).message);
+      const message = tryExtractErrorMessage(cause, "Withdrawal failed. Refresh the route and try again.");
+      setError(message);
+      toast.error(message);
     } finally {
       unwatch();
       lock.current = false;

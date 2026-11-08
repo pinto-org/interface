@@ -21,8 +21,10 @@ export function useFarmerPlotsQuery() {
     args: [account.address ?? ZERO_ADDRESS, 0n],
     query: {
       enabled: !!account.address,
-      staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
-      refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
+      // A listing can be filled by another wallet while this account is inactive.
+      // Refetch cached ownership when returning to it, and poll for external fills.
+      staleTime: 0,
+      refetchInterval: 15_000,
     },
   });
 

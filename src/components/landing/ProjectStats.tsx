@@ -21,6 +21,12 @@ interface StatContentProps {
   isMobile: boolean;
 }
 
+function yearsSinceBeanstalkLaunch(today = new Date()) {
+  const year = today.getUTCFullYear();
+  const anniversary = Date.UTC(year, 7, 6);
+  return year - 2021 - Number(today.getTime() < anniversary);
+}
+
 function StatContent({ activeButton, isMobile }: StatContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -172,7 +178,7 @@ export default function ProjectStats() {
         <span
           className={`text-[2rem] sm:text-[4rem] leading-[1.4] text-black transition-all duration-300 ${getElementOpacity(activeButton === "upgrades")}`}
         >
-          {/* Protocol Upgrades + Pinto Launch (+1)*/}
+          {/* Include the Pinto launch in the historical upgrade count. */}
           {PROTOCOL_UPGRADES.length + 1}
         </span>
         <Button
@@ -245,7 +251,7 @@ export default function ProjectStats() {
         <span
           className={`text-[2rem] sm:text-[4rem] leading-[1.4] text-black transition-all duration-300 ${getElementOpacity(activeButton === "years")}`}
         >
-          4+
+          {yearsSinceBeanstalkLaunch()}+
         </span>
         <Button
           variant={"outline-rounded"}

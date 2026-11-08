@@ -1,0 +1,798 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-3: Bug Fixes and Parameter Changes</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-8016-a9de-ed8707ac4a68" class="page sans"><header><h1 class="page-title" dir="auto">PI-3: Bug Fixes and Parameter Changes</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="cd3e4019-aad5-82c2-8ef9-0170cf03bdee" class="" dir="auto">Executed on December 5, 2024 at 02:52 UTC.</p><h2 id="00ae4019-aad5-83f2-b986-018058c55d2e" class="" dir="auto">Summary</h2><ol type="1" id="0f7e4019-aad5-827e-84f3-018d6d66f6f7" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#rain">Rain</a></strong><strong> </strong><strong><a href="https://docs.pinto.money/resources/glossary#stalk">Stalk</a></strong><strong> Preservation:</strong> Update the <a href="https://docs.pinto.money/resources/glossary#silo">Silo</a> such that <a href="https://docs.pinto.money/resources/glossary#deposit">Deposits</a> do not lose Rain Stalk upon transfer or <a href="https://docs.pinto.money/resources/glossary#convert">Convert</a> into non-Germinating Deposits.</li></ol><ol type="1" id="0eee4019-aad5-8291-aef1-81c0a8f4d000" class="numbered-list" start="2" dir="auto"><li><strong>AL2L Converts:</strong> Re-add Anti Lambda to Lambda (AL2L) Converts.</li></ol><ol type="1" id="f1ae4019-aad5-82a6-bc9f-01ebd2e0b985" class="numbered-list" start="3" dir="auto"><li><code><strong><a href="https://docs.pinto.money/resources/glossary#gm">gm</a></strong></code><strong> Reward:</strong> Update the <code>gm</code> reward to properly issue <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> when the <code>gm</code> function is called 239 to 240 seconds late.</li></ol><ol type="1" id="36de4019-aad5-83ee-a10d-819ebaaa64e4" class="numbered-list" start="4" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#flood">Flood</a></strong><strong> </strong><strong><a href="https://docs.pinto.money/resources/glossary#pods">Pods</a></strong><strong>:</strong> Update <a href="https://docs.pinto.money/resources/glossary#soil">Soil</a> issuance above peg to properly account for Pods that became <a href="https://docs.pinto.money/resources/glossary#harvestable-pods">Harvestable</a> due to a Flood.</li></ol><ol type="1" id="21ae4019-aad5-83d0-a2d1-01a527fdc19b" class="numbered-list" start="5" dir="auto"><li><strong>Soil Issuance Above Peg:</strong> Change the Soil issuance above peg multiplier on Pods that became Harvestable from 1.5x to 1.2x when the <a href="https://docs.pinto.money/resources/glossary#pod-rate">Pod Rate</a> is Excessively Low. Stop halving above-peg Soil issuance when the Pod Rate is Reasonably High and Pinto’s price is above the excessive-price threshold. Retain the 0.5x multiplier for Excessively High Pod Rates.</li></ol><ol type="1" id="0b6e4019-aad5-8363-a076-811f0fba310c" class="numbered-list" start="6" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#morning">Morning</a></strong><strong> Auction Duration:</strong> Extend the duration of the Morning from 5 to 10 minutes.</li></ol><ol type="1" id="ed5e4019-aad5-83c4-94f8-81e5ebeeccf3" class="numbered-list" start="7" dir="auto"><li><strong>Minimum </strong><strong><a href="https://docs.pinto.money/resources/glossary#temperature">Temperature</a></strong><strong>:</strong> Change the minimum Temperature at the beginning of the Morning from a fixed 1% to 1% of the <a href="https://docs.pinto.money/resources/glossary#maximum-temperature">Maximum Temperature</a>.</li></ol><ol type="1" id="d0be4019-aad5-8225-a6bd-81fcf8d0930b" class="numbered-list" start="8" dir="auto"><li><strong>Maximum Temperature Increases:</strong> Reduce the Maximum Temperature increase from 3 percentage points to 2 percentage points wherever it currently increases by 3 percentage points.</li></ol><ol type="1" id="381e4019-aad5-82e5-a5e8-016a37379f2b" class="numbered-list" start="9" dir="auto"><li><strong>Excessively Low Pod Rate Threshold:</strong> Lower the Excessively Low Pod Rate threshold from 5% to 3%.</li></ol><h2 id="ad2e4019-aad5-838e-a9c3-8192733e8554" class="" dir="auto">Links</h2><ul id="858e4019-aad5-8388-a280-011bddccd233" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/4">Implementation PR</a></li></ul><ul id="8e9e4019-aad5-833c-911e-014fa08c31fa" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/6f65b5ecbe83fe07cf48982963e0203379cfaf0e">6f65b5ecbe83fe07cf48982963e0203379cfaf0e</a></li></ul><ul id="1c4e4019-aad5-82d8-b127-01bdde3e2be8" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0x2ca93d84049bb826b2aacf90fcd435e9e36386b9d32c9a2ab679d03e189caa18&amp;safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507">Safe Transaction</a></li></ul><ul id="892e4019-aad5-83fb-9d15-813bab23deac" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0xc46d5654d9f00ae082afcb9d994f24b72fccde65f534a2200e1cc3beb6a754e9">Diamond Cut Transaction</a></li></ul><h2 id="779e4019-aad5-82c9-a930-01c4a6934b51" class="" dir="auto">Problems</h2><h3 id="693e4019-aad5-820f-85d9-813fd4597dce" class="" dir="auto">1. Rain Stalk Preservation</h3><p id="571e4019-aad5-82ef-9c8a-81c050aae9f4" class="" dir="auto">Rain Stalk is the snapshot of Stalk holdings taken each time it begins to Rain, which determines pro rata ownership of the proceeds from the Flood sale. Rain Stalk was erroneously burned upon the transfer or Convert of a Deposit.</p><h3 id="25ce4019-aad5-82ee-ac77-81402a70f033" class="" dir="auto">2. AL2L Converts</h3><p id="71fe4019-aad5-831b-bc6c-81a4196438aa" class="" dir="auto">AL2L Converts were disabled in <a href="/pi/2/">PI-2</a> due to a bug where all Rain Stalk was erroneously removed as a result of an AL2L Convert while it was Raining. </p><h3 id="695e4019-aad5-8304-8e6e-0198b5cf811c" class="" dir="auto">3. <code>gm</code> Reward</h3><p id="3d8e4019-aad5-825d-8741-8174f4a45a9a" class="" dir="auto">The <code>gm</code> reward was 0 Pinto when the <code>gm</code> function was called 239 to 240 seconds after it could have been called.</p><h3 id="e64e4019-aad5-82f7-9660-812ea18e8ab8" class="" dir="auto">4. Flood Pods</h3><p id="b51e4019-aad5-83e1-a42e-8134c0b4a5ef" class="" dir="auto">Soil issuance above peg is intended to be a function of the number of Pods that became Harvestable at the beginning of the <a href="https://docs.pinto.money/resources/glossary#season">Season</a>. Pods that became Harvestable due to a Flood were erroneously omitted from this calculation.</p><h3 id="656e4019-aad5-82b5-b3f0-01c77802372c" class="" dir="auto">5. Soil Issuance Above Peg</h3><p id="81ae4019-aad5-826a-8c62-81548c63a594" class="" dir="auto">Soil issuance above peg was too aggressive when the Pod Rate was Excessively Low. The 0.5x multiplier intended for Excessively High Pod Rates also applied when the Pod Rate was Reasonably High and Pinto’s price was above the excessive-price threshold. This incorrectly halved Soil issuance in those cases.</p><h3 id="e51e4019-aad5-830f-8c18-0180b0919daf" class="" dir="auto">6. Morning Auction Duration</h3><p id="7a1e4019-aad5-8312-87fc-01efd3837056" class="" dir="auto">The previous 5 minute duration of the Morning did not give sufficient time to participants in the Morning Auction who are submitting transactions manually to participate.</p><h3 id="0e0e4019-aad5-827c-ac34-018b6f95ac6a" class="" dir="auto">7. Minimum Temperature</h3><p id="1f0e4019-aad5-8332-991c-015c2d471a36" class="" dir="auto">The minimum Temperature of 1% at the beginning of the Morning resulted in paying more interest than necessary at lower Maximum Temperatures.</p><h3 id="8a7e4019-aad5-8370-b1a1-0174484737ff" class="" dir="auto">8. Maximum Temperature Increases</h3><p id="76ce4019-aad5-8367-9d97-810feeedcaf2" class="" dir="auto">The Maximum Temperature increased too quickly below peg, which disincentivized lending to the protocol in an efficient fashion and resulted in the protocol overpaying for loans.</p><h3 id="5b0e4019-aad5-83c0-9308-01401216c12d" class="" dir="auto">9. Excessively Low Pod Rate Threshold</h3><p id="2e5e4019-aad5-8237-9688-81ce0f5632ca" class="" dir="auto">The Excessively Low Pod Rate threshold was too high.</p><h2 id="1e9e4019-aad5-834c-b9e0-01bcfcbd1f5e" class="" dir="auto">Solutions</h2><h3 id="a89e4019-aad5-835f-ad3e-01680aaad566" class="" dir="auto">1. Rain Stalk Preservation</h3><ul id="2bce4019-aad5-822a-bcd2-01d827f2f9fc" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibSilo.transferStalk</code> such that <code>rainRoots</code> are transferred rather than burned upon a Deposit transfer.</li></ul><ul id="57ce4019-aad5-83af-85dd-814739554729" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibSilo.burnActiveStalk</code> to return <code>deltaRainRoots</code>, which corresponds to the number of Rain Stalk removed when burning active Stalk.</li></ul><ul id="320e4019-aad5-8296-98b2-812c7bdc1751" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Add a new <code>LibSilo.mintRainRoots</code> function that restores Rain Stalk to the user that performs the Convert.</li></ul><ul id="a3fe4019-aad5-834b-92a9-014d0cdeed0d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibConvert._withdrawTokens</code> to return the Rain Stalk removed from the user.</li></ul><ul id="915e4019-aad5-8269-b2db-0166fa24943c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibConvert._depositTokensForConvert</code> to take in <code>deltaRainRoots</code>, and to call <code>LibSilo.mintRainRoots</code>, if <code>deltaRainRoots &gt; 0</code> and the output is non-Germinating.</li></ul><h3 id="776e4019-aad5-8313-8798-01f9166b6f22" class="" dir="auto">2. AL2L Converts</h3><p id="c39e4019-aad5-83f9-aef2-01b62021340b" class="" dir="auto">Re-add <code>ANTI_LAMBDA_LAMBDA</code> as a valid Convert type with a fix to the bug that removed all of the Rain Stalk during an AL2L Convert instead of reducing it by the appropriate number.</p><h3 id="213e4019-aad5-8283-9da2-0109cc7adc82" class="" dir="auto">3. <code>gm</code> Reward</h3><p id="4c2e4019-aad5-832b-84f3-81dade47445c" class="" dir="auto">Update <code>LibIncentive.fracExp</code> to properly return the scaled reward when the <code>gm</code> function is 239 to 240 seconds late.</p><h3 id="3b4e4019-aad5-82d6-a46b-01bee7c89faa" class="" dir="auto">4. Flood Pods</h3><ul id="8abe4019-aad5-82f4-a539-01c0f493fd1e" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Add a new storage variable in the <code>Rain</code> struct, <code>floodHarvestablePods</code>.</li></ul><ul id="77ae4019-aad5-82e7-af94-0199aa32e614" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibFlood.handleRain</code> to reset <code>floodHarvestablePods</code> to 0 each Season, and <code>LibFlood.floodPodline</code> to store the actual Pods made Harvestable by the Flood.</li></ul><ul id="e9de4019-aad5-8202-bf87-012f86713759" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>Sun.stepSun</code> to always use <code>floodHarvestablePods</code> when calculating the newly Harvestable Pods when issuing Soil above peg.</li></ul><h3 id="391e4019-aad5-82bf-bdb4-816e6fd3226b" class="" dir="auto">5. Soil Issuance Above Peg</h3><p id="243e4019-aad5-82b6-a165-810daf09e7c8" class="" dir="auto">Update <code>soilCoefficientLow</code> in the <code>evaluationParameters</code> struct from <code>1.5e18</code> to <code>1.2e18</code> (<em>i.e.</em>, 1.5x -&gt; 1.2x). Update <code>Sun.setSoilAbovePeg</code> to apply the 0.5x Soil multiplier only when the Pod Rate is Excessively High. When the Pod Rate is Reasonably High and Pinto’s price is above the excessive-price threshold, issue the unadjusted Soil quantity instead of halving it.</p><h3 id="d43e4019-aad5-83f9-84a3-81ca28432646" class="" dir="auto">6. Morning Auction Duration</h3><p id="e90e4019-aad5-8281-8f20-81bb0bcf142b" class="" dir="auto">Update <code>delta</code> in <code>LibDibbler.morningTemperature</code> such that each interval during the Morning lasts 24 seconds (12 blocks) instead of 12 seconds (6 blocks), extending the length of the Morning from 5 minutes to 10 minutes.</p><h3 id="766e4019-aad5-830c-800b-01709f099e6b" class="" dir="auto">7. Minimum Temperature</h3><ul id="19de4019-aad5-8269-a364-8108993d1176" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibDibbler._scaleTemperature</code> such that there is no longer a Temperature floor (previously set to 1%).</li></ul><ul id="f52e4019-aad5-8231-be71-81eecca12029" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibDibbler.morningTemperature</code> such that when <code>delta == 0</code>, the function returns 1% of the Maximum Temperature.</li></ul><h3 id="425e4019-aad5-82e6-a10d-0113f483b333" class="" dir="auto">8. Maximum Temperature Increases</h3><ul id="b94e4019-aad5-8382-9d26-81a28f878d9b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Replace <code>T_PLUS_3_L_MINUS_FIFTY</code>, <code>T_PLUS_3_L_PLUS_ONE</code> and <code>T_PLUS_3_L_PLUS_TWO</code> in <code>LibCases</code> with <code>T_PLUS_2_L_MINUS_FIFTY</code>, <code>T_PLUS_2_L_PLUS_ONE</code> and <code>T_PLUS_2_L_PLUS_TWO</code>, respectively, which decreases the absolute Maximum Temperature increases from +3 percentage points to +2 percentage points.</li></ul><ul id="ed3e4019-aad5-8316-802d-01ea0dcb9df0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>s.sys.casesV2</code> with the new case values.</li></ul><h3 id="4e8e4019-aad5-82c5-a530-81d2ea1030cb" class="" dir="auto">9. Excessively Low Pod Rate Threshold</h3><p id="af9e4019-aad5-82af-8591-014a33c0d78a" class="" dir="auto">Update <code>podRateLowerBound</code> in the <code>evaluationParameters</code> struct from <code>0.05e18</code> (5%) to <code>0.03e18</code> (3%).</p><h2 id="7fee4019-aad5-83e2-b776-8170d22f35b6" class="" dir="auto">Rationale</h2><h3 id="be8e4019-aad5-8317-b90c-81dad777c581" class="" dir="auto">1. Rain Stalk Preservation</h3><p id="a3be4019-aad5-82bf-9d11-01784ed994a4" class="" dir="auto">Preserving Rain Roots through Deposit transfers and Converts into non-Germinating Deposits preserves ownership of Flood proceeds while allowing those operations.</p><h3 id="ccce4019-aad5-824a-82eb-017f7f401ca0" class="" dir="auto">2. AL2L Converts</h3><p id="b03e4019-aad5-831a-b127-819933390103" class="" dir="auto">Restoring AL2L Converts with the Rain Stalk fix restores their functionality without removing all of a user’s Rain Stalk.</p><h3 id="c37e4019-aad5-82b8-b2d7-810125716190" class="" dir="auto">3. <code>gm</code> Reward</h3><p id="bbee4019-aad5-83b1-a85a-01e8ef55af92" class="" dir="auto">Correcting the reward calculation preserves the intended incentive to call <code>gm</code> throughout the 239-to-240-second interval.</p><h3 id="94de4019-aad5-83ec-a99f-011e74e623fa" class="" dir="auto">4. Flood Pods</h3><p id="1c3e4019-aad5-8232-9243-81f67a3dbde3" class="" dir="auto">Including Pods made Harvestable by a Flood keeps above-peg Soil issuance consistent with the total number of Pods made Harvestable.</p><h3 id="2f3e4019-aad5-83c8-b747-0108dd2b895c" class="" dir="auto">5. Soil Issuance Above Peg</h3><p id="a8be4019-aad5-833f-904a-01b63e80d6dc" class="" dir="auto">There is no need for the protocol to so aggressively try to increase the Pod Rate when the protocol has an excessively low Pod Rate. Removing the unintended 0.5x multiplier approximately doubles Soil issuance in the affected Reasonably High Pod Rate cases, restoring the quantity calculated from newly Harvestable Pods and the Maximum Temperature. The 0.5x reduction remains in place when the Pod Rate is Excessively High, when the protocol more strongly limits new debt.</p><h3 id="a3ce4019-aad5-831c-83cc-81d264d134f4" class="" dir="auto">6. Morning Auction Duration</h3><p id="e80e4019-aad5-8344-81c2-015a752a2259" class="" dir="auto">By doubling the duration of the Morning Auction – and each interval of the auction – farmers will have more opportunity to participate manually, which should generally result in the protocol having to pay lower interest rates. A longer Morning Auction has minimal downside because the protocol will still offer Soil at the Maximum Temperature for 50 minutes during each Season, which leaves ample time for farmers to participate once the Morning Auction ends.</p><h3 id="ffbe4019-aad5-83e0-b4db-810acc1ab850" class="" dir="auto">7. Minimum Temperature</h3><p id="170e4019-aad5-8342-adec-01f259c84cd5" class="" dir="auto">The hard set minimum of 1% Temperature during the Morning Auction reduced the effectiveness of the auction during periods where the Maximum Temperature was very low. In instances where the protocol has little to no outstanding debt, it is highly plausible that some farmers would be willing to lend to the protocol at less than 1%. This minimum made it such that even if farmers were willing to do so, they would be unable to, resulting in the protocol potentially overpaying to issue debt.</p><h3 id="9a0e4019-aad5-8386-98fe-81282da7d843" class="" dir="auto">8. Maximum Temperature Increases</h3><p id="ce8e4019-aad5-821b-bb18-81e8f5693349" class="" dir="auto">The protocol raised the Maximum Temperature too quickly. By changing the Maximum Temperature increases from 3 percentage points to 2 percentage points it should decrease the rate the protocol needs to pay to attract creditors without decreasing its ability to do so. </p><p id="7dee4019-aad5-8341-a66e-0143377c23d5" class="" dir="auto">The protocol was experiencing a nearly constantly increasing Maximum Temperature, which poses a short term threat to the protocol because it creates an incentive for potential creditors to wait for a higher interest rate, and a long term threat because if the Maximum Temperature increases in perpetuity, the protocol may eventually collapse under the weight of excessive outstanding debt. </p><p id="765e4019-aad5-8233-9d2b-011cffecd532" class="" dir="auto">By lowering the rate at which the Maximum Temperature increases, it should create a more efficient market for Soil in the short term and give contributors more time to design a better mechanism to prevent runaway Maximum Temperature in the long run.</p><h3 id="8a9e4019-aad5-83f5-b264-81e9844501d7" class="" dir="auto">9. Excessively Low Pod Rate Threshold</h3><p id="754e4019-aad5-83ab-8718-811c4db2ae99" class="" dir="auto">The Excessively Low Pod Rate threshold indicates the rate below which the protocol strongly prefers to take on more debt. It is likely safer for the protocol to be slightly more conservative and set this threshold to be 3% instead of 5%.</p><h2 id="95ae4019-aad5-83c7-b1b1-81fa0c4c2e26" class="" dir="auto">Contract Changes</h2><h3 id="d6ee4019-aad5-8329-927f-01e5808f4bce" class="" dir="auto">Initialization</h3><p id="415e4019-aad5-8369-991a-81e4b56c0169" class="" dir="auto">Executed <code>InitPI3.init()</code> at <code><a href="https://basescan.org/address/0xa35c864c9154ef9fccdc037c489ee8bc30631477#code">0xa35c864c9154ef9fccdc037c489ee8bc30631477</a></code>. It updated <code>podRateLowerBound</code> from <code>0.05e18</code> (5%) to <code>0.03e18</code> (3%), <code>soilCoefficientLow</code> from <code>1.5e18</code> (1.5x) to <code>1.2e18</code> (1.2x), and <code>s.sys.casesV2</code> with the revised Temperature adjustments. If <code>lastSopSeason</code> equaled the current Season, it added <code>totalSupply / 1000</code> to Soil.</p><h3 id="68ee4019-aad5-83f6-8e0e-813bc8fba729" class="" dir="auto">Facet Changes</h3><p id="826e4019-aad5-82e5-9897-01ef05de4ec5" class="" dir="auto"><code>ApprovalFacet</code>, <code>ConvertGettersFacet</code>, <code>ClaimFacet</code>, <code>SiloFacet</code>, <code>SiloGettersFacet</code> and <code>SeasonGettersFacet</code> were replaced without changes to their facet source files. Shared-library changes are described below.</p><table id="a78e4019-aad5-82d9-aec5-81a67bd360b4" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="b1ce4019-aad5-83e6-9aa2-01b417bf352c" dir="ltr"><th id="LXz_" class="simple-table-header-color simple-table-header">Facet</th><th id="@Rt~" class="simple-table-header-color simple-table-header">Action</th><th id="{N?N" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="oRa=" class="simple-table-header-color simple-table-header">New Implementation</th></tr></thead><tbody><tr id="6a3e4019-aad5-83ee-8d52-817db341d0ec" dir="ltr"><td id="LXz_" class=""><code>ConvertFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0xf07c34e81d56ff02c01869bf1f833c07bb52bf2b#code">0xf07c34e81d56ff02c01869bf1f833c07bb52bf2b</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0x7bab1d09727be8f0427c6dd1d503b3d4ba697d93#code">0x7bab1d09727be8f0427c6dd1d503b3d4ba697d93</a></code></td></tr><tr id="7d1e4019-aad5-829b-94ac-81d6c95b85f2" dir="ltr"><td id="LXz_" class=""><code>PipelineConvertFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x9d108e7f673c773ac196bde4bebc6758088d2e59#code">0x9d108e7f673c773ac196bde4bebc6758088d2e59</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0x508320dcc2b4e9f79555bcae1478e6ce736b22ab#code">0x508320dcc2b4e9f79555bcae1478e6ce736b22ab</a></code></td></tr><tr id="136e4019-aad5-83c2-b077-81d58b115a1b" dir="ltr"><td id="LXz_" class=""><code>FieldFacet</code></td><td id="@Rt~" class="">Add</td><td id="{N?N" class="">N/A</td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0x0ab2b647fdfaa3abffca2a10fe78eb0ded438faf#code">0x0ab2b647fdfaa3abffca2a10fe78eb0ded438faf</a></code></td></tr><tr id="b2ae4019-aad5-8295-be7a-811d24e6c1a6" dir="ltr"><td id="LXz_" class=""><code>FieldFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x6430f859a3b8825d25382ebc7941fcd719635797#code">0x6430f859a3b8825d25382ebc7941fcd719635797</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0x0ab2b647fdfaa3abffca2a10fe78eb0ded438faf#code">0x0ab2b647fdfaa3abffca2a10fe78eb0ded438faf</a></code></td></tr><tr id="97fe4019-aad5-833b-9629-8198c699e9c4" dir="ltr"><td id="LXz_" class=""><code>SeasonFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x269c8386be50c176f03355c7c7925356fdef9f84#code">0x269c8386be50c176f03355c7c7925356fdef9f84</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0x6ea855d9473168f4540d4818976ea814ecbf3456#code">0x6ea855d9473168f4540d4818976ea814ecbf3456</a></code></td></tr><tr id="118e4019-aad5-82ae-aa76-01d93218a29a" dir="ltr"><td id="LXz_" class=""><code>ApprovalFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x540e776e8f0eac5dfa82110b827cb6cea6705669#code">0x540e776e8f0eac5dfa82110b827cb6cea6705669</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0xa7df4372b0404cd468703451950e2af8615996b2#code">0xa7df4372b0404cd468703451950e2af8615996b2</a></code></td></tr><tr id="d9ae4019-aad5-828e-9c9c-016e01a0af47" dir="ltr"><td id="LXz_" class=""><code>ConvertGettersFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x518f109e57c872f8acec3b3e9a6ce5f5e8e80097#code">0x518f109e57c872f8acec3b3e9a6ce5f5e8e80097</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0xb70708268fff1b6038def6f7d29a3bee037e901c#code">0xb70708268fff1b6038def6f7d29a3bee037e901c</a></code></td></tr><tr id="4f4e4019-aad5-83ac-bd2a-81ed55e6d893" dir="ltr"><td id="LXz_" class=""><code>ClaimFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0xea0aad388e2df06f90a218ca2eda199294fbaadb#code">0xea0aad388e2df06f90a218ca2eda199294fbaadb</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0x28bcfb5ad84dd460f2fd080dfd706105b8fc21c6#code">0x28bcfb5ad84dd460f2fd080dfd706105b8fc21c6</a></code></td></tr><tr id="abee4019-aad5-82e1-8e79-016ba4cb31ca" dir="ltr"><td id="LXz_" class=""><code>SiloFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x3235540bb01ef11e4208a9b99c2f2dd9860e721a#code">0x3235540bb01ef11e4208a9b99c2f2dd9860e721a</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0xd2d3d44edbbc66ef90b29627dfd0a06d3ca0cad4#code">0xd2d3d44edbbc66ef90b29627dfd0a06d3ca0cad4</a></code></td></tr><tr id="4afe4019-aad5-83b7-8648-0173caeaa310" dir="ltr"><td id="LXz_" class=""><code>SiloGettersFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x039ec53bb37f8fe240798e3591d9439c68e72b7b#code">0x039ec53bb37f8fe240798e3591d9439c68e72b7b</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0x6abfe707418d80a6e06b77853ed6c098b8af6711#code">0x6abfe707418d80a6e06b77853ed6c098b8af6711</a></code></td></tr><tr id="468e4019-aad5-832e-ba2c-0104a8313d80" dir="ltr"><td id="LXz_" class=""><code>SeasonGettersFacet</code></td><td id="@Rt~" class="">Replace</td><td id="{N?N" class=""><code><a href="https://basescan.org/address/0x8b1ba2ea90916eca3d5b0ba428a8c5909768492a#code">0x8b1ba2ea90916eca3d5b0ba428a8c5909768492a</a></code></td><td id="oRa=" class=""><code><a href="https://basescan.org/address/0xd0813e2378a73b7cb49bd4ff6a4bf67edcea1264#code">0xd0813e2378a73b7cb49bd4ff6a4bf67edcea1264</a></code></td></tr></tbody></table><h3 id="b94e4019-aad5-828f-b3ff-8155770f5685" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="0c9e4019-aad5-832f-bfec-017807cfe2dc" class="" dir="auto"><strong>Externally Linked Libraries</strong></p><p id="e20e4019-aad5-82b7-b57c-01e34bbb3d8a" class="" dir="auto">The table lists the external library deployments linked by the replaced facets. Where previous deployments differed by facet, the previous address is labeled with its consuming facets.</p><p id="8e7e4019-aad5-8249-a47f-810b555cd365" class="" dir="auto"><code>FieldFacet</code>, <code>ApprovalFacet</code>, <code>ConvertGettersFacet</code> and <code>SiloGettersFacet</code> had no externally linked libraries in either implementation.</p><p id="7fee4019-aad5-82b3-963a-819fb055178a" class="" dir="auto"><code>LibPipelineConvert</code>, <code>LibTokenSilo</code>, <code>LibEvaluate</code>, <code>LibGauge</code>, <code>LibShipping</code>, <code>LibWellMinting</code> and <code>LibGerminate</code> were redeployed with unchanged library source files. Their new addresses do not indicate additional source changes beyond those described below.</p><table id="d4fe4019-aad5-8263-b654-81b65e61ba21" class="simple-table" dir="ltr"><tbody><tr id="f63e4019-aad5-83ec-81b4-0112724c5dd6" dir="ltr"><td id="QzoL" class="">Library</td><td id="?\yM" class="">Previous Implementation</td><td id="hvG[" class="">New Implementation</td><td id="&gt;ZQ\" class="">Used By</td></tr><tr id="e7fe4019-aad5-83aa-aac8-01c453d7ae4f" dir="ltr"><td id="QzoL" class=""><code>LibConvert</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x67e19ab71b645b8b42062b2a5c8e49ef900fee9e#code">0x67e19ab71b645b8b42062b2a5c8e49ef900fee9e</a></code></td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0xcce6631b13ee44ad9d8146241b20f10c1a803aa2#code">0xcce6631b13ee44ad9d8146241b20f10c1a803aa2</a></code></td><td id="&gt;ZQ\" class=""><code>ConvertFacet</code></td></tr><tr id="1aae4019-aad5-8256-935b-011444c528d7" dir="ltr"><td id="QzoL" class=""><code>LibPipelineConvert</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x2fc411d1ed590416ec2bc398f624bf462b60ff49#code">0x2fc411d1ed590416ec2bc398f624bf462b60ff49</a></code> (<code>ConvertFacet</code>); <code><a href="https://basescan.org/address/0x4917dcbafc47b57b9ec004424a44ccdc5834d054#code">0x4917dcbafc47b57b9ec004424a44ccdc5834d054</a></code> (<code>PipelineConvertFacet</code>)</td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0xb387ad744cc1a80ab629eea5ca15459076719a7a#code">0xb387ad744cc1a80ab629eea5ca15459076719a7a</a></code></td><td id="&gt;ZQ\" class=""><code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr><tr id="6f9e4019-aad5-825e-8e96-0162a7aeb07b" dir="ltr"><td id="QzoL" class=""><code>LibSilo</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x453c79a1c29d81b67b3be4e2b8810674f63606d8#code">0x453c79a1c29d81b67b3be4e2b8810674f63606d8</a></code> (<code>ConvertFacet</code>); <code><a href="https://basescan.org/address/0x351ca256f86c10b01f2640f22ca379cf1e74d8e2#code">0x351ca256f86c10b01f2640f22ca379cf1e74d8e2</a></code> (<code>PipelineConvertFacet</code>, <code>ClaimFacet</code>, <code>SiloFacet</code>)</td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0x5a686e6024d1d40994ae99979ceb63bf67724b04#code">0x5a686e6024d1d40994ae99979ceb63bf67724b04</a></code></td><td id="&gt;ZQ\" class=""><code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>ClaimFacet</code>, <code>SiloFacet</code></td></tr><tr id="fd6e4019-aad5-8226-8ba1-01714cad1021" dir="ltr"><td id="QzoL" class=""><code>LibTokenSilo</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x1915dcd16475dd25e2f5588888421cf80fc8d116#code">0x1915dcd16475dd25e2f5588888421cf80fc8d116</a></code> (<code>ConvertFacet</code>); <code><a href="https://basescan.org/address/0xbbe1d3e7bb0b50d1999f631674efd5446881612a#code">0xbbe1d3e7bb0b50d1999f631674efd5446881612a</a></code> (<code>PipelineConvertFacet</code>, <code>ClaimFacet</code>, <code>SiloFacet</code>)</td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0x0da233676f46427c31928f5f85678d6737f4ec7e#code">0x0da233676f46427c31928f5f85678d6737f4ec7e</a></code></td><td id="&gt;ZQ\" class=""><code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>ClaimFacet</code>, <code>SiloFacet</code></td></tr><tr id="623e4019-aad5-830d-a9b2-01b79c4f7bc3" dir="ltr"><td id="QzoL" class=""><code>LibEvaluate</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x7f1770fa1b43abdbe8095295ecae37c00d4ba7f8#code">0x7f1770fa1b43abdbe8095295ecae37c00d4ba7f8</a></code></td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0x7a7d5a8899f9d68530ef3c551b9cb5610bc9bd02#code">0x7a7d5a8899f9d68530ef3c551b9cb5610bc9bd02</a></code></td><td id="&gt;ZQ\" class=""><code>SeasonFacet</code></td></tr><tr id="063e4019-aad5-822a-8099-81921feb9568" dir="ltr"><td id="QzoL" class=""><code>LibGauge</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0xcd376159cfa7ff6c60a3b6d55e2ce75cec515669#code">0xcd376159cfa7ff6c60a3b6d55e2ce75cec515669</a></code></td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0x6c2736cfc57c1328b7d3db611812297c9754e230#code">0x6c2736cfc57c1328b7d3db611812297c9754e230</a></code></td><td id="&gt;ZQ\" class=""><code>SeasonFacet</code></td></tr><tr id="ca5e4019-aad5-834d-ae96-818e145e066a" dir="ltr"><td id="QzoL" class=""><code>LibIncentive</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x86da3aba20454a441eceae9d5b960564abd0cba1#code">0x86da3aba20454a441eceae9d5b960564abd0cba1</a></code></td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0xeb9bd84e354e68142e8e996823887edb4dfcf433#code">0xeb9bd84e354e68142e8e996823887edb4dfcf433</a></code></td><td id="&gt;ZQ\" class=""><code>SeasonFacet</code></td></tr><tr id="207e4019-aad5-821d-b70a-017ae14d2f4b" dir="ltr"><td id="QzoL" class=""><code>LibShipping</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x2b6a87195446b28c404cd5d78351998a1e8b31f9#code">0x2b6a87195446b28c404cd5d78351998a1e8b31f9</a></code></td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0x64d40771f9f6490afe20c135dc07ea48b8addc78#code">0x64d40771f9f6490afe20c135dc07ea48b8addc78</a></code></td><td id="&gt;ZQ\" class=""><code>SeasonFacet</code></td></tr><tr id="face4019-aad5-82af-9c3c-817a16924f1f" dir="ltr"><td id="QzoL" class=""><code>LibWellMinting</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x78e2a41721b97f33e13a383d15726b1ac96c2a19#code">0x78e2a41721b97f33e13a383d15726b1ac96c2a19</a></code> (<code>SeasonFacet</code>); <code><a href="https://basescan.org/address/0x4910f9a342c79ea50a4395477cfdb11f36a010ad#code">0x4910f9a342c79ea50a4395477cfdb11f36a010ad</a></code> (<code>SeasonGettersFacet</code>)</td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0x7124f182847880f4961de89068b249c3299304af#code">0x7124f182847880f4961de89068b249c3299304af</a></code></td><td id="&gt;ZQ\" class=""><code>SeasonFacet</code>, <code>SeasonGettersFacet</code></td></tr><tr id="840e4019-aad5-834c-8750-018b0724076b" dir="ltr"><td id="QzoL" class=""><code>LibFlood</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0xd668ecc7df030202ee50f9c465db7f7da7581a48#code">0xd668ecc7df030202ee50f9c465db7f7da7581a48</a></code></td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0xed513e167369af0119090d67b8910c02b2b468f6#code">0xed513e167369af0119090d67b8910c02b2b468f6</a></code></td><td id="&gt;ZQ\" class=""><code>SeasonFacet</code></td></tr><tr id="288e4019-aad5-8212-b5b0-81351bd18c46" dir="ltr"><td id="QzoL" class=""><code>LibGerminate</code></td><td id="?\yM" class=""><code><a href="https://basescan.org/address/0x06cc9fb93b3cefa5dc6bb5f418c7358cd3ea0a85#code">0x06cc9fb93b3cefa5dc6bb5f418c7358cd3ea0a85</a></code></td><td id="hvG[" class=""><code><a href="https://basescan.org/address/0x384374407a64aa24d3335ff12c870debaa04c3e5#code">0x384374407a64aa24d3335ff12c870debaa04c3e5</a></code></td><td id="&gt;ZQ\" class=""><code>SeasonFacet</code></td></tr></tbody></table><ul id="594e4019-aad5-82a9-8067-01c8cf70d20d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Doubled each Morning interval from 6 to 12 Base blocks (12 to 24 seconds), extending the auction from 5 to 10 minutes.</li></ul><ul id="384e4019-aad5-83a7-8efc-01d00f7704b7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Changed the initial Morning Temperature from a fixed 1% to 1% of the Maximum Temperature.</li></ul><ul id="7a5e4019-aad5-83c7-961f-81d50f6f28c8" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Reduced selected Maximum Temperature increases from +3 to +2 percentage points. Initialization applied the 1.5x-to-1.2x low-Pod-Rate Soil coefficient and 5%-to-3% lower Pod Rate threshold described above.</li></ul><h3 id="19be4019-aad5-82ee-8ac5-016f15a6d0ad" class="" dir="auto">Function Changes</h3><ul id="d65e4019-aad5-83bc-bdff-81c216fed28b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibSilo.transferStalk</code> to transfer Rain Roots exceeding the sender’s remaining Roots to the recipient instead of burning them from the system.</li></ul><ul id="546e4019-aad5-83b2-9b49-011d08db946f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibSilo.burnActiveStalk</code> to return <code>deltaRainRoots</code> in addition to <code>roots</code>. Updated <code>LibConvert._withdrawTokens</code> to return <code>deltaRainRoots</code> in addition to grown Stalk and PDV. Updated <code>ConvertFacet</code> and <code>PipelineConvertFacet</code> to pass this value through to <code>_depositTokensForConvert</code>, which calls the new internal <code>LibSilo.mintRainRoots</code> helper to restore burned Rain Roots for non-Germinating output.</li></ul><ul id="776e4019-aad5-8271-a225-01f7ac6d5733" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Restored <code>ANTI_LAMBDA_LAMBDA</code> dispatch in <code>LibConvert.convert</code> to <code>LibLambdaConvert.antiConvert</code>.</li></ul><ul id="89ae4019-aad5-83df-879a-81b13e7af886" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Corrected the <code>LibIncentive.fracExp</code> branch cutoff from 240 to 238 seconds so the <code>gm</code> reward calculation covers 239–240 seconds.</li></ul><ul id="40ce4019-aad5-8247-a681-01642c80d7d5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibFlood.handleRain</code> to reset <code>floodHarvestablePods</code> to 0 each Season and <code>LibFlood.floodPodline</code> to store the actual number of Pods made Harvestable after the cap. Updated <code>Sun.stepSun</code> to include that count in above-peg Soil issuance. </li></ul><ul id="1a8e4019-aad5-82f8-8e55-8111e3f5f7b7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>FieldFacet.floodHarvestablePods()</code>, which returns the stored count.</li></ul><ul id="50ee4019-aad5-83a5-baba-01475beae5a4" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>Sun.setSoilAbovePeg</code> to apply the 0.5x high-Pod-Rate coefficient when <code>caseId.mod(36) &gt;= 27</code> instead of <code>&gt;= 24</code>. This excludes cases 24–26 within each 36-case group, where the Pod Rate is Reasonably High and Pinto’s price is above the excessive-price threshold. Those cases now use the unadjusted Soil quantity instead of half that quantity.</li></ul><ul id="147e4019-aad5-827d-b2da-814594261427" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibDibbler.morningTemperature</code> to use 12 Base blocks per interval instead of 6. Removed the fixed 1% floor in <code>LibDibbler._scaleTemperature</code>. At <code>delta == 0</code>, <code>morningTemperature</code> returns 1% of the Maximum Temperature.</li></ul><ul id="3e2e4019-aad5-8247-9827-814920ce6d97" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibCases.setCasesV2</code> to use +2-percentage-point adjustments in the cases that previously used +3-percentage-point adjustments.</li></ul><h3 id="72fe4019-aad5-825b-bba5-0136262b74f1" class="" dir="auto">Event Changes</h3><p id="2c1e4019-aad5-8266-84a6-8148ad606b09" class="" dir="auto">Existing event signatures were unchanged. The revised calculations changed the following emitted values.</p><ul id="859e4019-aad5-82ed-a9d0-8171ee850a45" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><code>Incentivization</code> now reports the corrected <code>gm</code> reward in <code>beans</code> for calls 239–240 seconds late.</li></ul><ul id="5e5e4019-aad5-825b-a446-013ae9eb0cb0" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><code>Soil</code> reports soil issuance that includes Pods made Harvestable by Floods and applies the revised low- and high-Pod-Rate multiplier rules.</li></ul><ul id="13fe4019-aad5-828b-8941-81e4e0842b56" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><code>Sow</code> reports <code>pods</code> calculated using the revised Morning Temperature schedule and minimum.</li></ul><ul id="dc1e4019-aad5-83e8-a075-018d7035ba26" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><code>TemperatureChange</code> reports +2 instead of +3 in <code>absChange</code> for the revised cases.</li></ul><ul id="79fe4019-aad5-83f3-a123-01310b8993e6" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><code>TemperatureChange</code> and <code>BeanToMaxLpGpPerBdvRatioChange</code> report <code>caseId</code> using the 3% lower Pod Rate threshold instead of 5%. The ratio-change event remains conditional on no oracle failure.</li></ul><p id="f62e4019-aad5-82a6-85f2-0144cd0c408f" class="" dir="auto">
+</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

@@ -8,7 +8,7 @@ interface CachedImage {
   url: string;
   dataUrl: string;
   timestamp: number;
-  tokenId: number;
+  tokenId: number | string;
 }
 
 // Simple localStorage cache for metadata
@@ -76,7 +76,7 @@ const initDB = (): Promise<IDBDatabase> => {
 
 // Image cache operations
 export const imageCache = {
-  async get(tokenId: number): Promise<string | null> {
+  async get(tokenId: number | string): Promise<string | null> {
     try {
       const database = await initDB();
       const transaction = database.transaction(["images"], "readonly");
@@ -103,7 +103,7 @@ export const imageCache = {
     }
   },
 
-  async set(tokenId: number, imageUrl: string, dataUrl: string): Promise<void> {
+  async set(tokenId: number | string, imageUrl: string, dataUrl: string): Promise<void> {
     try {
       const database = await initDB();
 
@@ -126,7 +126,7 @@ export const imageCache = {
     }
   },
 
-  async delete(tokenId: number): Promise<void> {
+  async delete(tokenId: number | string): Promise<void> {
     try {
       const database = await initDB();
       const transaction = database.transaction(["images"], "readwrite");
@@ -188,12 +188,27 @@ export const imageCache = {
 };
 
 // Convert image URL to data URL for caching
-export const imageToDataUrl = (imageUrl: string): Promise<string> => {
+export const imageToDataUrl = (imageUrl: string, signal?: AbortSignal): Promise<string> => {
   return new Promise((resolve, reject) => {
+    signal?.throwIfAborted();
     const img = new Image();
+    const cleanup = () => {
+      clearTimeout(timeout);
+      signal?.removeEventListener("abort", abort);
+      img.onload = img.onerror = null;
+    };
+    const fail = (error: unknown) => {
+      cleanup();
+      img.src = "";
+      reject(error);
+    };
+    const abort = () => fail(signal?.reason ?? new Error("Image caching cancelled"));
+    const timeout = setTimeout(() => fail(new Error("Image caching timed out")), 6_000);
+    signal?.addEventListener("abort", abort, { once: true });
     img.crossOrigin = "anonymous";
 
     img.onload = () => {
+      cleanup();
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
@@ -226,7 +241,7 @@ export const imageToDataUrl = (imageUrl: string): Promise<string> => {
       }
     };
 
-    img.onerror = () => reject(new Error("Failed to load image"));
+    img.onerror = () => fail(new Error("Failed to load image"));
     img.src = imageUrl;
   });
 };

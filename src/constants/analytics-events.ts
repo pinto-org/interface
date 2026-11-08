@@ -410,7 +410,7 @@ const LANDING_EVENTS = {
 
   // Bug Bounty Section
   BUG_BOUNTY_AUDITS_CLICK: "landing_bug_bounty_audits_click", // Learn More - Audits
-  BUG_BOUNTY_IMMUNEFI_CLICK: "landing_bug_bounty_immunefi_click", // Learn More - Bug Bounty
+  BUG_BOUNTY_SHERLOCK_CLICK: "landing_bug_bounty_sherlock_click", // Learn More - Bug Bounty
   BUG_BOUNTY_HYPERNATIVE_CLICK: "landing_bug_bounty_hypernative_click", // Learn More - Off-chain Monitoring
 
   // Resources Section

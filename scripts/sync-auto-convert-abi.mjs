@@ -3,7 +3,12 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const root = resolve(process.argv[2] || '../protocol');
 const names = ['OrderedDepositsFacet', 'AutoConvertFacet', 'AutoConvertAdminFacet', 'AutoConvertPolicyFacet', 'AutoConvertViewFacet', 'SiloRedemptionFacet'];
-const artifact = name => JSON.parse(readFileSync(`${root}/out/${name}.sol/${name}.json`)).abi;
+// Keep output stable across Foundry/Hardhat ABI property and entry ordering.
+const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
+  ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+const order = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+const artifact = name => canonical(JSON.parse(readFileSync(`${root}/out/${name}.sol/${name}.json`)).abi)
+  .sort((a, b) => order(a.type, b.type) || order(a.name || '', b.name || '') || order(JSON.stringify(a.inputs), JSON.stringify(b.inputs)));
 const abis = names.flatMap(artifact);
 abis.push(...artifact('WhitelistFacet').filter(x => x.type === 'function' && x.name === 'whitelistTokenWithAutoConvertPolicy'));
 for (const name of ['LibOrderedDeposits', 'LibAutoConvert', 'LibAutoConvertStable2', 'LibAutoConvertStable2Policy', 'LibAutoConvertWellSafety']) {

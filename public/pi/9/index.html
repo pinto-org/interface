@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-9: Helper Function Bug Fix</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-8092-b10f-ede1dacda10f" class="page sans"><header><h1 class="page-title" dir="auto">PI-9: Helper Function Bug Fix</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="74be4019-aad5-838d-aea1-81b5245a1cfe" class="" dir="auto">Executed on April 18, 2025 at 18:48 UTC.</p><h2 id="bd2e4019-aad5-82e9-beb1-012bc534f038" class="" dir="auto">Summary</h2><p id="509e4019-aad5-834a-aa6f-81419cd7a69f" class="" dir="auto">Update the <code>_setSortedDepositIds</code> function to properly set the <a href="https://docs.pinto.money/resources/glossary#deposit">Deposit</a> ID-to-index mapping.</p><h2 id="590e4019-aad5-8387-84ac-01bdd5d6c8f1" class="" dir="auto">Links</h2><ul id="54fe4019-aad5-8227-a945-81095da8ce9d" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/77">Implementation PR</a></li></ul><ul id="bc5e4019-aad5-83e8-995e-81005a711f56" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/452ee9638e5c86cfa73b1c25f5f1cdac80cd84ff">452ee9638e5c86cfa73b1c25f5f1cdac80cd84ff</a></li></ul><ul id="a6ae4019-aad5-838f-acf9-01badb973c38" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507&amp;id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0x616f091ed00ade24e93c084e4baea1fc2d129d81113d94fc87eda017745c5d96">Safe Transaction</a></li></ul><ul id="ea0e4019-aad5-8293-a4fd-81845fb7ea05" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0xe3f532ddf06b5a70bd8c1be8a2f3c54e3ec2de18aa16a3d1e4d1f2bdd9c208c9">Diamond Cut Transaction</a></li></ul><h2 id="a77e4019-aad5-837d-9359-81ff504127e2" class="" dir="auto">Problem</h2><p id="a8ee4019-aad5-839c-8c4e-01e8a0bc9209" class="" dir="auto">The protocol stores a list of each <a href="https://docs.pinto.money/resources/glossary#farmers">Farmer&#x27;s</a> Deposits on-chain, which is used to allow clients like the <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> UI to easily query Deposit data. The protocol also stores a mapping of Deposit IDs to index in order to efficiently look up a Deposit&#x27;s index. <a href="https://github.com/pinto-org/protocol/pull/47">PI-8</a> introduced an <code>updateSortedDepositIds</code> function that allows anyone to submit a Deposit ordering for one token, validated in ascending Stem order, but this function did not properly update the mapping to reflect the new ordering. As a result, a later full Deposit removal could use a stale index and remove the wrong ID from the list.</p><h2 id="75de4019-aad5-83ff-a19b-8114f2469209" class="" dir="auto">Solution</h2><p id="8b4e4019-aad5-83fa-b52b-01c854b67082" class="" dir="auto">Update <code>LibSilo._setSortedDepositIds</code> to properly update the mapping based on the new ordering. Each Deposit ID is mapped to its zero-based index before the ordered list is stored.</p><h2 id="b62e4019-aad5-83ba-9ca5-8145349479c6" class="" dir="auto">Rationale</h2><p id="03fe4019-aad5-83be-81ea-817e2db8ef67" class="" dir="auto">Keeping the index mapping consistent with the ordered list preserves correct Deposit index lookup and removal after reordering. The existing validation requires a nonempty, complete list in strictly ascending Stem order.</p><h2 id="a62e4019-aad5-82b6-a412-814d3c300ddc" class="" dir="auto">Contract Changes</h2><h3 id="347e4019-aad5-838e-866e-01daa16df499" class="" dir="auto">Initialization</h3><p id="2ace4019-aad5-8341-90d9-019316b47e2e" class="" dir="auto">No initializer was called. The upgrade did not automatically rewrite existing account mappings. A successful call to <code>updateSortedDepositIds</code> updates the supplied account and token’s index mapping.</p><h3 id="415e4019-aad5-8211-a186-018dbbc67b1c" class="" dir="auto">Facet Changes</h3><table id="4e1e4019-aad5-82ae-99cf-81fa0cee0b6d" class="simple-table" dir="ltr"><tbody><tr id="049e4019-aad5-82bb-bc07-812435643bfa" dir="ltr"><td id="r~Tj" class="">Facet</td><td id="yhqi" class="">Action</td><td id="`vkh" class="">Previous Implementation</td><td id="MG[y" class="">New Implementation</td></tr><tr id="667e4019-aad5-83c6-a251-016a42ae064c" dir="ltr"><td id="r~Tj" class=""><code>ApprovalFacet</code></td><td id="yhqi" class="">Replace</td><td id="`vkh" class=""><code><a href="https://basescan.org/address/0x61b9a20a5fc4a9965c2309c2feff56b5ebe855cd#code">0x61b9a20a5fc4a9965c2309c2feff56b5ebe855cd</a></code></td><td id="MG[y" class=""><code><a href="https://basescan.org/address/0xa7c95ed70be8f91f8d8af91de193710fa7ab32bb#code">0xa7c95ed70be8f91f8d8af91de193710fa7ab32bb</a></code></td></tr><tr id="a40e4019-aad5-8265-bb55-81dc8e4551a0" dir="ltr"><td id="r~Tj" class=""><code>ClaimFacet</code></td><td id="yhqi" class="">Replace</td><td id="`vkh" class=""><code><a href="https://basescan.org/address/0x44df048857445cd8cba3b8cc26132816d827ff14#code">0x44df048857445cd8cba3b8cc26132816d827ff14</a></code></td><td id="MG[y" class=""><code><a href="https://basescan.org/address/0xd38c3e61bf08734cd808aca15c944389968612e0#code">0xd38c3e61bf08734cd808aca15c944389968612e0</a></code></td></tr><tr id="659e4019-aad5-8350-a598-01b7ace84340" dir="ltr"><td id="r~Tj" class=""><code>ConvertFacet</code></td><td id="yhqi" class="">Replace</td><td id="`vkh" class=""><code><a href="https://basescan.org/address/0x1af9097b043e26f41d082c5adb89cd606528e526#code">0x1af9097b043e26f41d082c5adb89cd606528e526</a></code></td><td id="MG[y" class=""><code><a href="https://basescan.org/address/0xdfa197784879926e2358a7c71c6a0bd487f919fd#code">0xdfa197784879926e2358a7c71c6a0bd487f919fd</a></code></td></tr><tr id="933e4019-aad5-82dd-87d1-8102a583b1fc" dir="ltr"><td id="r~Tj" class=""><code>PipelineConvertFacet</code></td><td id="yhqi" class="">Replace</td><td id="`vkh" class=""><code><a href="https://basescan.org/address/0xf26ab0c4a354f12c9e8fa86c423f463e2c72ddd8#code">0xf26ab0c4a354f12c9e8fa86c423f463e2c72ddd8</a></code></td><td id="MG[y" class=""><code><a href="https://basescan.org/address/0xc54cd71bfa5d0fe05d887eabbec4dbbc94cf74ba#code">0xc54cd71bfa5d0fe05d887eabbec4dbbc94cf74ba</a></code></td></tr><tr id="d39e4019-aad5-8322-8e3f-811a2b83df15" dir="ltr"><td id="r~Tj" class=""><code>SiloFacet</code></td><td id="yhqi" class="">Replace</td><td id="`vkh" class=""><code><a href="https://basescan.org/address/0xd954a3245a868ab3e991786d4e5e71892099a19d#code">0xd954a3245a868ab3e991786d4e5e71892099a19d</a></code></td><td id="MG[y" class=""><code><a href="https://basescan.org/address/0xf6af001b8879a2e30db294b4c8deccbd0d168b34#code">0xf6af001b8879a2e30db294b4c8deccbd0d168b34</a></code></td></tr><tr id="e2fe4019-aad5-831e-aa5e-01e847e1f59e" dir="ltr"><td id="r~Tj" class=""><code>SiloGettersFacet</code></td><td id="yhqi" class="">Replace</td><td id="`vkh" class=""><code><a href="https://basescan.org/address/0x6f9a49560a1db78cd32f1332e15fcaedc77aa66b#code">0x6f9a49560a1db78cd32f1332e15fcaedc77aa66b</a></code></td><td id="MG[y" class=""><code><a href="https://basescan.org/address/0xadfd7fbe59ca2624cec1b04f9bc65c7f90efed36#code">0xadfd7fbe59ca2624cec1b04f9bc65c7f90efed36</a></code></td></tr></tbody></table><p id="24fe4019-aad5-836e-8a2e-01045d715cce" class="" dir="auto">All six facets were replaced with unchanged external interfaces. The changed internal helper is called only by <code>SiloFacet.updateSortedDepositIds()</code>. The other replacements do not introduce additional function changes.</p><h3 id="c8de4019-aad5-8378-a287-81faf8242655" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="e74e4019-aad5-827b-90c1-81983804e9f2" class="" dir="auto">The externally linked libraries below were redeployed. Only <code>LibSilo</code>’s own source changed. <code>LibTokenSilo</code>, <code>LibConvert</code> and <code>LibPipelineConvert</code> retained their own source. <code>ApprovalFacet</code> and <code>SiloGettersFacet</code> have no externally linked libraries. No protocol parameters were changed.</p><table id="05ae4019-aad5-8386-8fa4-01ecd97c467c" class="simple-table" dir="ltr"><tbody><tr id="ceae4019-aad5-8290-a977-8128d7f4696f" dir="ltr"><td id="UNtU" class="">Library</td><td id="CmG:" class="">Previous Implementation</td><td id="JrNs" class="">New Implementation</td><td id="kheG" class="">Used By</td></tr><tr id="950e4019-aad5-8331-9517-81ead9853e05" dir="ltr"><td id="UNtU" class=""><code>LibSilo</code></td><td id="CmG:" class=""><code><a href="https://basescan.org/address/0x49bfc93e96d467d79fc809c8f6da466f8ebb8975#code">0x49bfc93e96d467d79fc809c8f6da466f8ebb8975</a></code></td><td id="JrNs" class=""><code><a href="https://basescan.org/address/0xefa4e6492966228a7af3d5d9045bd9c9e5dc72bf#code">0xefa4e6492966228a7af3d5d9045bd9c9e5dc72bf</a></code></td><td id="kheG" class=""><code>ClaimFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>SiloFacet</code></td></tr><tr id="c72e4019-aad5-83b8-905c-01883b609980" dir="ltr"><td id="UNtU" class=""><code>LibTokenSilo</code></td><td id="CmG:" class=""><code><a href="https://basescan.org/address/0xe47c1d275ceb1554ce802a0755cc679294f1ae81#code">0xe47c1d275ceb1554ce802a0755cc679294f1ae81</a></code></td><td id="JrNs" class=""><code><a href="https://basescan.org/address/0xf2a0e7fb0e9b1189b14274418e4ac78ae449b4ed#code">0xf2a0e7fb0e9b1189b14274418e4ac78ae449b4ed</a></code></td><td id="kheG" class=""><code>ClaimFacet</code>, <code>ConvertFacet</code>, <code>PipelineConvertFacet</code>, <code>SiloFacet</code></td></tr><tr id="c2be4019-aad5-8372-b469-014ed565c820" dir="ltr"><td id="UNtU" class=""><code>LibConvert</code></td><td id="CmG:" class=""><code><a href="https://basescan.org/address/0xd10b907e2f8f452c4d43848a4f632a00eff9530b#code">0xd10b907e2f8f452c4d43848a4f632a00eff9530b</a></code></td><td id="JrNs" class=""><code><a href="https://basescan.org/address/0x71e8ab0a025c0b96d64c34759880e6ba2ba0baa0#code">0x71e8ab0a025c0b96d64c34759880e6ba2ba0baa0</a></code></td><td id="kheG" class=""><code>ConvertFacet</code></td></tr><tr id="584e4019-aad5-838f-975b-81b99244e4ff" dir="ltr"><td id="UNtU" class=""><code>LibPipelineConvert</code></td><td id="CmG:" class=""><code><a href="https://basescan.org/address/0x9b42c78bd19fdf3cf3b3c16c9184e1169bf2c7aa#code">0x9b42c78bd19fdf3cf3b3c16c9184e1169bf2c7aa</a></code></td><td id="JrNs" class=""><code><a href="https://basescan.org/address/0xa4a2d1e394faac3e60297a55cdceeb38c0b6ca18#code">0xa4a2d1e394faac3e60297a55cdceeb38c0b6ca18</a></code></td><td id="kheG" class=""><code>ConvertFacet</code>, <code>PipelineConvertFacet</code></td></tr></tbody></table><h3 id="d85e4019-aad5-8202-aa9b-814335cbf27d" class="" dir="auto">Function Changes</h3><ul id="054e4019-aad5-82d4-a794-816439971d21" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibSilo._setSortedDepositIds()</code>, called by <code>SiloFacet.updateSortedDepositIds()</code>, to assign <code>idIndex[sortedDepositIds[i]] = i</code> for every validated Deposit ID before storing the array. This keeps the existing <code>getIndexForDepositId()</code> getter and index-based Deposit removal consistent with the new ordering. The external validation, return types and event interfaces were unchanged.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

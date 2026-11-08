@@ -15,6 +15,15 @@ const key = e => e.name + '(' + e.inputs.map(type).join(',') + ')';
 const actual = abi.filter(e => e.type === 'function');
 assert.deepEqual(actual.map(key).sort(), expected.map(key).sort(), 'Public selectors diverged');
 for (const entry of expected) assert.deepEqual(actual.find(e => key(e) === key(entry)), entry, `ABI shape drift: ${key(entry)}`);
+const complete = facets.flatMap(artifact);
+complete.push(...artifact('WhitelistFacet').filter(e => e.type === 'function' && e.name === 'whitelistTokenWithAutoConvertPolicy'));
+for (const name of ['LibOrderedDeposits', 'LibAutoConvert', 'LibAutoConvertStable2', 'LibAutoConvertStable2Policy', 'LibAutoConvertWellSafety']) {
+  complete.push(...artifact(name).filter(e => e.type === 'event' || e.type === 'error'));
+}
+const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
+  ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+const shapes = entries => [...new Set(entries.filter(e => ['function', 'event', 'error'].includes(e.type)).map(e => JSON.stringify(canonical(e))))].sort();
+assert.deepEqual(shapes(abi), shapes(complete), 'Full function/event/error ABI drift');
 const sow = readFileSync(new URL('../src/constants/abi/tractorReleaseABI.ts', import.meta.url), 'utf8');
 assert.deepEqual(JSON.parse(sow.slice(sow.indexOf(' = ') + 3, sow.lastIndexOf(' as const'))), artifact('SowBlueprint').filter(e => e.type === 'function' && e.name === 'sowBlueprint'));
-console.log(`Verified ${actual.length} public function shapes and the Sow entry point against compiled protocol artifacts.`);
+console.log(`Verified all ${abi.length} function/event/error shapes (${actual.length} public functions) and the Sow entry point against compiled protocol artifacts.`);

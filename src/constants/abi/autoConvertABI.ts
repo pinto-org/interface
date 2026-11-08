@@ -586,6 +586,11 @@ export const autoConvertABI = [
   },
   {
     "inputs": [],
+    "name": "AutoConvertNoPositionsSelected",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "AutoConvertNotActive",
     "type": "error"
   },
@@ -1274,7 +1279,7 @@ export const autoConvertABI = [
       {
         "indexed": false,
         "internalType": "uint32",
-        "name": "durationSeconds",
+        "name": "durationSunrises",
         "type": "uint32"
       }
     ],
@@ -1293,13 +1298,13 @@ export const autoConvertABI = [
       {
         "indexed": false,
         "internalType": "uint40",
-        "name": "previousUntil",
+        "name": "previousPauseUntilSeason",
         "type": "uint40"
       },
       {
         "indexed": false,
         "internalType": "uint40",
-        "name": "pauseUntil",
+        "name": "pauseUntilSeason",
         "type": "uint40"
       }
     ],
@@ -1633,7 +1638,7 @@ export const autoConvertABI = [
     "inputs": [
       {
         "internalType": "uint32",
-        "name": "durationSeconds",
+        "name": "durationSunrises",
         "type": "uint32"
       }
     ],
@@ -1664,7 +1669,7 @@ export const autoConvertABI = [
       },
       {
         "internalType": "uint32",
-        "name": "durationSeconds",
+        "name": "durationSunrises",
         "type": "uint32"
       }
     ],
@@ -2530,7 +2535,7 @@ export const autoConvertABI = [
       },
       {
         "internalType": "uint40",
-        "name": "pauseUntil",
+        "name": "pauseUntilSeason",
         "type": "uint40"
       }
     ],
@@ -2543,7 +2548,7 @@ export const autoConvertABI = [
     "outputs": [
       {
         "internalType": "uint32",
-        "name": "durationSeconds",
+        "name": "durationSunrises",
         "type": "uint32"
       },
       {
@@ -3935,7 +3940,7 @@ export const autoConvertABI = [
       {
         "indexed": false,
         "internalType": "uint40",
-        "name": "pauseUntil",
+        "name": "pauseUntilSeason",
         "type": "uint40"
       }
     ],
@@ -3954,7 +3959,7 @@ export const autoConvertABI = [
       {
         "indexed": false,
         "internalType": "uint40",
-        "name": "pauseUntil",
+        "name": "pauseUntilSeason",
         "type": "uint40"
       }
     ],
@@ -3985,13 +3990,13 @@ export const autoConvertABI = [
       {
         "indexed": false,
         "internalType": "uint40",
-        "name": "previousPauseUntil",
+        "name": "previousPauseUntilSeason",
         "type": "uint40"
       },
       {
         "indexed": false,
         "internalType": "uint40",
-        "name": "pauseUntil",
+        "name": "pauseUntilSeason",
         "type": "uint40"
       }
     ],
@@ -4114,10 +4119,5 @@ export const autoConvertABI = [
     ],
     "name": "AutoConvertNonCanonicalAmount",
     "type": "error"
-  },
-  {
-    "type": "error",
-    "name": "AutoConvertNoPositionsSelected",
-    "inputs": []
   }
 ] as const;
