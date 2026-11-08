@@ -39,6 +39,7 @@ import { useSeason } from "@/state/useSunData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { getSiloDepositUsdValue } from "@/utils/silo";
+import { getTotalDepositedUsd } from "@/utils/siloValue";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
@@ -137,7 +138,7 @@ function SiloTokenInner({ siloToken }: { siloToken: Token }) {
               {(!isMobile || (!currentAction && isMobile)) && (
                 <SiloTokenAbout
                   siloToken={siloToken}
-                  price={siloToken.isMain ? priceData.price : poolPrice}
+                  tokenUsdPrice={siloToken.isMain ? priceData.price : pool?.lpUsd}
                   siloData={siloData}
                 />
               )}
@@ -343,7 +344,7 @@ const UndepositedSiloTokenInfoHeader = ({ siloToken, farmerBalanceSiloTokenAmoun
 };
 
 interface ISiloTokenAbout extends IBaseSiloToken {
-  price: TokenValue;
+  tokenUsdPrice: TokenValue | undefined;
   siloData: ReturnType<typeof useSiloData>;
 }
 
@@ -352,7 +353,7 @@ type SiloBDVs = {
   liquidityTVD: TokenValue;
 };
 
-const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
+const SiloTokenAbout = ({ siloToken, tokenUsdPrice, siloData }: ISiloTokenAbout) => {
   const seedGauge = useSeedGauge();
   const siloTokenData = siloData.tokenData.get(siloToken);
   const denomination = useDenomination();
@@ -380,7 +381,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
   const liquidityRatio = depositedBDV?.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100);
   const optimalDepositedRatio = gaugeData?.optimalPctDepositedBdv;
 
-  const tvdUSD = depositedBDV?.mul(price);
+  const tvdUSD = getTotalDepositedUsd(siloTokenData, tokenUsdPrice);
   const depositedRatio = depositedBDV?.div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE).mul(100);
 
   return (
@@ -392,7 +393,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
         <div>
           <div className="pinto-sm-light font-thin sm:font-light text-pinto-secondary">Total Value Deposited</div>
           <div className="pinto-body sm:pinto-h4 pt-1">
-            {denomination === "USD" ? formatter.usd(tvdUSD) : formatter.pdv(depositedBDV)}
+            {denomination === "USD" ? (tvdUSD ? formatter.usd(tvdUSD) : "-") : formatter.pdv(depositedBDV)}
           </div>
         </div>
         <div>

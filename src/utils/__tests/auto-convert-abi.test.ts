@@ -1,15 +1,49 @@
-import { describe, expect, it } from "vitest";
+import { autoConvertABI } from "@/constants/abi/autoConvertABI";
 import {
   decodeErrorResult,
+  decodeEventLog,
   decodeFunctionData,
   decodeFunctionResult,
   encodeAbiParameters,
   encodeFunctionData,
+  toEventSelector,
   toFunctionSelector,
 } from "viem";
-import { autoConvertABI } from "@/constants/abi/autoConvertABI";
+import { describe, expect, it } from "vitest";
 
 describe("current Auto Convert release ABI", () => {
+  it("decodes reset pause Seasons separately from the reset timestamp", () => {
+    const topics = [
+      toEventSelector("AutoConvertResetPauseStarted(uint32,uint32,uint40,uint40,uint40)"),
+      encodeAbiParameters([{ type: "uint32" }], [1]),
+      encodeAbiParameters([{ type: "uint32" }], [100]),
+    ] as const;
+    const data = encodeAbiParameters(
+      [{ type: "uint40" }, { type: "uint40" }, { type: "uint40" }],
+      [1700000000, 0, 124],
+    );
+    const decoded = decodeEventLog({
+      abi: autoConvertABI,
+      eventName: "AutoConvertResetPauseStarted",
+      topics: [...topics],
+      data,
+    });
+    expect(decoded.args).toEqual({
+      programId: 1,
+      season: 100,
+      triggeredAt: 1700000000,
+      previousPauseUntilSeason: 0,
+      pauseUntilSeason: 124,
+    });
+    const getter = autoConvertABI.find(
+      (entry) => entry.type === "function" && entry.name === "getAutoConvertResetPauseDuration",
+    );
+    expect(getter?.outputs[0].name).toBe("durationSunrises");
+    const pause = autoConvertABI.find(
+      (entry) => entry.type === "function" && entry.name === "getAutoConvertResetPause",
+    );
+    expect(pause?.outputs[1].name).toBe("pauseUntilSeason");
+  });
   it("decodes the two-word EMA redemption policy response", () => {
     const data = encodeAbiParameters([{ type: "uint96" }, { type: "uint32" }], [96n, 200]);
     expect(decodeFunctionResult({ abi: autoConvertABI, functionName: "getSiloRedemptionPolicy", data })).toEqual([

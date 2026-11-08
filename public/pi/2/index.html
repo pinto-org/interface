@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-2: Remove Anti Lambda to Lambda Convert</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-806a-ae90-f9133840645f" class="page sans"><header><h1 class="page-title" dir="auto">PI-2: Remove Anti Lambda to Lambda Convert</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="3d7e4019-aad5-82e2-a93e-813711995563" class="" dir="auto">Executed on November 27, 2024 at 21:11 UTC.</p><h2 id="2b5e4019-aad5-82ad-a702-01f3b741faf3" class="" dir="auto">Summary</h2><p id="88be4019-aad5-82c1-aa3a-019b4f9a7210" class="" dir="auto">Remove the Anti Lambda to Lambda (AL2L) <a href="https://docs.pinto.money/resources/glossary#convert">Convert</a> functionality from the <a href="https://docs.pinto.money/resources/glossary#silo">Silo</a> to prevent users from removing each other&#x27;s <a href="https://docs.pinto.money/responding-to-state/flood">Rain Stalk</a>.</p><h2 id="f63e4019-aad5-82e5-9fbd-81967111f69f" class="" dir="auto">Links</h2><ul id="a60e4019-aad5-82a4-9a21-81418b8e8811" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/3">Implementation PR</a></li></ul><ul id="039e4019-aad5-8277-98e9-01b4444b5280" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/c2077d53a84646f1fa2f09099547a628b6c2f590">c2077d53a84646f1fa2f09099547a628b6c2f590</a></li></ul><ul id="7f7e4019-aad5-82af-b328-0112e415c1bc" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0x30f277db1b5031458c29c956098640f619ef294e97b5c1a88677527a8fcac6ea&amp;safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507">Safe Transaction</a></li></ul><ul id="a66e4019-aad5-8306-b232-8112d5de0797" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0xe7c0c6056e73e12ba8a55d67492887132d9ba2589f7d8d07e1b0f0c9f97896dc">Diamond Cut Transaction</a></li></ul><h2 id="971e4019-aad5-8351-bf69-01fe8ff8f765" class="" dir="auto">Background</h2><p id="dcbe4019-aad5-83ac-b136-01d96e38eb76" class="" dir="auto">Before this upgrade, AL2L Converts allowed any <a href="https://docs.pinto.money/resources/glossary#farmers">Farmer</a> to Convert another Farmer&#x27;s <a href="https://docs.pinto.money/resources/glossary#deposit">Deposit</a> in order to decrease its <a href="https://docs.pinto.money/resources/glossary#pinto-denominated-value-pdv">Pinto-Denominated Value (PDV)</a> if the current PDV of the Deposit (i.e., the PDV per token * the number of tokens) is less than the recorded PDV (i.e., the PDV stored onchain, which is used by the protocol to determine how many <a href="https://docs.pinto.money/resources/glossary#stalk">Stalk</a> and <a href="https://docs.pinto.money/resources/glossary#seeds">Seeds</a> to award the Deposit).</p><p id="5c7e4019-aad5-8239-976a-017cdb5720f0" class="" dir="auto">The ability to decrease a Deposit&#x27;s PDV is necessary because as the value in liquidity pools changes due to changes in the price of the non-<a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> asset in the liquidity pool and/or the ratio of the assets in the liquidity pool changes, it is possible for the PDV of the Deposit to decrease substantially. By enabling anyone to decrease the PDV associated with a Deposit that is recorded by the protocol, the instances where the protocol is awarding excess Stalk and Seeds to a Deposit beyond the current value the Deposit is contributing to the protocol can be drastically reduced without requiring the protocol to regularly check the PDV of each Deposit, which would be expensive.  Of course, there is no incentive for a Farmer to decrease their own PDV. Thus, the AL2L Convert is callable by any user on eligible Deposits that had completed <a href="https://docs.pinto.money/resources/glossary#germination">Germination</a>.</p><h2 id="018e4019-aad5-83ec-b188-818ab40c84c6" class="" dir="auto">Problem</h2><p id="ad9e4019-aad5-83aa-905e-01395e2aebc8" class="" dir="auto">AL2L Converts had a bug in their implementation that would result in a loss of the Rain Stalk associated with the Deposit while it&#x27;s <a href="https://docs.pinto.money/resources/glossary#rain">Raining</a> and/or <a href="https://docs.pinto.money/resources/glossary#flood">Flooding</a>. Rain Stalk is the snapshot of Stalk holdings taken each time it begins to Rain, which determines pro rata ownership of the proceeds from the Flood sale. While an AL2L Convert should decrease the Rain Stalk associated with a Deposit in the instance where its PDV is decreased, the AL2L Convert erroneously removed Rain Stalk during withdrawal without restoring the Farmer&#x27;s Rain Stalk snapshot when the Deposit was recreated.</p><h2 id="a7ae4019-aad5-839f-ae43-014f326c3e73" class="" dir="auto">Solution</h2><p id="6e0e4019-aad5-827f-a101-8133c88011ac" class="" dir="auto">Remove AL2L Converts until a fix can be implemented to allow Farmers to retain the appropriate number of Rain Stalk during Converts.</p><h2 id="3e2e4019-aad5-8380-8add-8166025c2ce5" class="" dir="auto">Rationale</h2><p id="b01e4019-aad5-826e-8b9a-8132d264633b" class="" dir="auto">Temporarily removing AL2L Converts prevents another Farmer from triggering the erroneous Rain Stalk removal while a fix is developed. The tradeoff is that AL2L Converts cannot reduce overstated Deposit PDV during this period.</p><h2 id="729e4019-aad5-8291-91e9-010d236a6bf3" class="" dir="auto">Contract Changes</h2><h3 id="02ee4019-aad5-830c-965f-01855a602542" class="" dir="auto">Initialization</h3><p id="a7ce4019-aad5-837f-8f0d-0154c2dd83c5" class="" dir="auto">No initializer was called. The Diamond Cut used the zero address for its initializer and empty initialization calldata.</p><h3 id="5f3e4019-aad5-82ab-8926-81c984a9b996" class="" dir="auto">Facet Changes</h3><table id="861e4019-aad5-83a9-ad79-81c7dece71be" class="simple-table" dir="ltr"><tbody><tr id="971e4019-aad5-8296-ab8d-8181197661e0" dir="ltr"><td id="EQo]" class=""><strong>Facet</strong></td><td id="&lt;OXO" class=""><strong>Action</strong></td><td id="W&gt;F&lt;" class=""><strong>Previous Implementation</strong></td><td id="wsn?" class=""><strong>New Implementation</strong></td></tr><tr id="132e4019-aad5-823e-bbf1-014a044388ea" dir="ltr"><td id="EQo]" class=""><code>ConvertFacet</code></td><td id="&lt;OXO" class="">Replace</td><td id="W&gt;F&lt;" class=""><code><a href="https://basescan.org/address/0x379D2d7FF9907F127f1226a9024BCF0789619734#code">0x379D2d7FF9907F127f1226a9024BCF0789619734</a></code></td><td id="wsn?" class=""><code><a href="https://basescan.org/address/0xF07C34E81D56fF02c01869bf1F833C07BB52BF2b#code">0xF07C34E81D56fF02c01869bf1F833C07BB52BF2b</a></code></td></tr><tr id="3f7e4019-aad5-8204-a591-019c60dca524" dir="ltr"><td id="EQo]" class=""><code>ConvertGettersFacet</code></td><td id="&lt;OXO" class="">Replace</td><td id="W&gt;F&lt;" class=""><code><a href="https://basescan.org/address/0xfE55E1e7f3FdAef6b1E6E3d6D53f84a374151817#code">0xfE55E1e7f3FdAef6b1E6E3d6D53f84a374151817</a></code></td><td id="wsn?" class=""><code><a href="https://basescan.org/address/0x518F109e57c872F8aceC3b3e9a6Ce5f5e8E80097#code">0x518F109e57c872F8aceC3b3e9a6Ce5f5e8E80097</a></code></td></tr></tbody></table><h3 id="9ace4019-aad5-8305-b64f-81d6b06b030e" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="911e4019-aad5-837d-8c07-8108fb82dbb6" class="" dir="auto">No protocol parameters changed. The replacement <code>ConvertFacet</code> links to the following libraries (previous → new addresses):</p><table id="311e4019-aad5-8350-96b2-81019351160d" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="203e4019-aad5-83b7-b19f-01de37add549" dir="ltr"><th id="Zqkm" class="simple-table-header-color simple-table-header">Library</th><th id="u~C=" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="B]Cw" class="simple-table-header-color simple-table-header">New Implementation</th><th id="fOP|" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="c00e4019-aad5-83be-a4a5-81e3ec043b52" dir="ltr"><td id="Zqkm" class=""><code>LibConvert</code></td><td id="u~C=" class=""><code><a href="https://basescan.org/address/0x3dedd64cfbf6db642cf6a22ce747fdfb9f17b570#code">0x3dedd64cfbf6db642cf6a22ce747fdfb9f17b570</a></code></td><td id="B]Cw" class=""><code><a href="https://basescan.org/address/0x67e19ab71b645b8b42062b2a5c8e49ef900fee9e#code">0x67e19ab71b645b8b42062b2a5c8e49ef900fee9e</a></code></td><td id="fOP|" class=""><code>ConvertFacet</code></td></tr><tr id="8bde4019-aad5-82be-be17-01dda5040452" dir="ltr"><td id="Zqkm" class=""><code>LibPipelineConvert</code></td><td id="u~C=" class=""><code><a href="https://basescan.org/address/0x4917dcbafc47b57b9ec004424a44ccdc5834d054#code">0x4917dcbafc47b57b9ec004424a44ccdc5834d054</a></code></td><td id="B]Cw" class=""><code><a href="https://basescan.org/address/0x2fc411d1ed590416ec2bc398f624bf462b60ff49#code">0x2fc411d1ed590416ec2bc398f624bf462b60ff49</a></code></td><td id="fOP|" class=""><code>ConvertFacet</code></td></tr><tr id="ae4e4019-aad5-829e-a7bd-014c9251e1ed" dir="ltr"><td id="Zqkm" class=""><code>LibSilo</code></td><td id="u~C=" class=""><code><a href="https://basescan.org/address/0x351ca256f86c10b01f2640f22ca379cf1e74d8e2#code">0x351ca256f86c10b01f2640f22ca379cf1e74d8e2</a></code></td><td id="B]Cw" class=""><code><a href="https://basescan.org/address/0x453c79a1c29d81b67b3be4e2b8810674f63606d8#code">0x453c79a1c29d81b67b3be4e2b8810674f63606d8</a></code></td><td id="fOP|" class=""><code>ConvertFacet</code></td></tr><tr id="de7e4019-aad5-8238-92c2-81b42d752aa1" dir="ltr"><td id="Zqkm" class=""><code>LibTokenSilo</code></td><td id="u~C=" class=""><code><a href="https://basescan.org/address/0xbbe1d3e7bb0b50d1999f631674efd5446881612a#code">0xbbe1d3e7bb0b50d1999f631674efd5446881612a</a></code></td><td id="B]Cw" class=""><code><a href="https://basescan.org/address/0x1915dcd16475dd25e2f5588888421cf80fc8d116#code">0x1915dcd16475dd25e2f5588888421cf80fc8d116</a></code></td><td id="fOP|" class=""><code>ConvertFacet</code></td></tr></tbody></table><h3 id="e7ee4019-aad5-8238-b008-01944441b723" class="" dir="auto">Function Changes</h3><ul id="736e4019-aad5-830e-b290-01837c7af33b" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibConvert.convert</code> to reject AL2L conversions instead of calling <code>LibLambdaConvert.antiConvert</code>. <code>ConvertFacet.convert</code> keeps its existing selector (<code>0xb362a6e8</code>) but now reverts for <code>ANTI_LAMBDA_LAMBDA</code> with <code>&quot;Convert: Anti-lambda-lambda not supported&quot;</code>. No public functions or events were added or removed. A rejected AL2L call returns no values and commits no state changes or event logs.</li></ul><ul id="44ce4019-aad5-8318-addd-019b2f792555" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><code>ConvertGettersFacet</code> was redeployed alongside <code>ConvertFacet</code> as part of the <code>LibConvert</code> update. Its getter functionality is unchanged. The old and new deployed implementations have identical executable code after excluding compiler metadata. <code>ConvertGettersFacet</code> has no externally linked libraries. </li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

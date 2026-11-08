@@ -1,0 +1,116 @@
+{
+  "seasons": [
+    {
+      "id": "17028",
+      "sunriseBlock": "53313155",
+      "rewardBeans": "0",
+      "price": "0.033041",
+      "deltaBeans": "1780901",
+      "raining": false,
+      "season": 17028,
+      "createdAt": "1793415657"
+    },
+    {
+      "id": "17027",
+      "sunriseBlock": "53311355",
+      "rewardBeans": "0",
+      "price": "0.033025",
+      "deltaBeans": "1780901",
+      "raining": false,
+      "season": 17027,
+      "createdAt": "1793412057"
+    }
+  ],
+  "fieldHourlySnapshots": [
+    {
+      "id": "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f-17028",
+      "caseId": "1027",
+      "issuedSoil": "266480000",
+      "deltaSownBeans": "0",
+      "sownBeans": "13512605109982",
+      "deltaPodDemand": "0",
+      "blocksToSoldOutSoil": null,
+      "podRate": "3259.178343635143932583281748148457",
+      "temperature": "4755",
+      "deltaTemperature": "0.5",
+      "season": 17028,
+      "cultivationTemperature": "3488.5",
+      "harvestableIndex": "3155543269527",
+      "harvestablePods": "21777279235",
+      "harvestedPods": "3133765990292",
+      "numberOfSowers": 390,
+      "numberOfSows": 5691,
+      "podIndex": "46436088761157",
+      "realRateOfReturn": "1469.386519778457068490663115523138",
+      "seasonBlock": "53313155",
+      "soil": "266480000",
+      "soilSoldOut": false,
+      "unharvestablePods": "43280545491630"
+    },
+    {
+      "id": "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f-17027",
+      "caseId": "1027",
+      "issuedSoil": "266478717",
+      "deltaSownBeans": "0",
+      "sownBeans": "13512605109982",
+      "deltaPodDemand": "0",
+      "blocksToSoldOutSoil": null,
+      "podRate": "3259.615484643863734878209906363725",
+      "temperature": "4754.5",
+      "deltaTemperature": "0.5",
+      "season": 17027,
+      "cultivationTemperature": "3488.5",
+      "harvestableIndex": "3155543269527",
+      "harvestablePods": "21777279235",
+      "harvestedPods": "3133765990292",
+      "numberOfSowers": 390,
+      "numberOfSows": 5691,
+      "podIndex": "46436088761157",
+      "realRateOfReturn": "1469.947009841029523088569265707797",
+      "seasonBlock": "53311355",
+      "soil": "266478717",
+      "soilSoldOut": false,
+      "unharvestablePods": "43280545491630"
+    }
+  ],
+  "siloHourlySnapshots": [
+    {
+      "id": "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f-17028",
+      "beanToMaxLpGpPerBdvRatio": "0",
+      "deltaBeanToMaxLpGpPerBdvRatio": "0",
+      "season": 17028,
+      "stalk": "392841813830493899432259",
+      "cropRatio": "50",
+      "deltaCropRatio": "0"
+    },
+    {
+      "id": "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f-17027",
+      "beanToMaxLpGpPerBdvRatio": "0",
+      "deltaBeanToMaxLpGpPerBdvRatio": "0",
+      "season": 17027,
+      "stalk": "392841813830493899432259",
+      "cropRatio": "50",
+      "deltaCropRatio": "0"
+    }
+  ],
+  "gaugesInfoHourlySnapshots": [
+    {
+      "id": "gauges-17028",
+      "g0CultivationFactor": "1",
+      "g1BlightFactor": "0",
+      "g1ConvertDownPenalty": "0.08466532500037156",
+      "g2BdvConvertedThisSeason": "0",
+      "g2BonusStalkPerBdv": "1940949367",
+      "g2MaxConvertCapacity": "51381879"
+    },
+    {
+      "id": "gauges-17027",
+      "g0CultivationFactor": "1",
+      "g1BlightFactor": "0",
+      "g1ConvertDownPenalty": "0.08474835557550424",
+      "g2BdvConvertedThisSeason": "0",
+      "g2BonusStalkPerBdv": "1940949367",
+      "g2MaxConvertCapacity": "51381879"
+    }
+  ]
+}

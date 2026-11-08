@@ -1,6 +1,5 @@
 import HypernativeLogo from "@/assets/misc/hypernative-logo.png";
-import ImmunefiLogo from "@/assets/misc/immunefi-logo.png";
-import PintoTokenLogo from "@/assets/tokens/PINTO.png";
+import UsdcTokenLogo from "@/assets/tokens/USDC.png";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { trackClick } from "@/utils/analytics";
@@ -24,7 +23,7 @@ export default function BugBounty() {
           // Mark animation as started to prevent repeating
           valueChanged.current = true;
 
-          setValue(100000);
+          setValue(5000);
         }
       },
       {
@@ -50,8 +49,7 @@ export default function BugBounty() {
         {/* Title */}
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="pinto-body sm:pinto-h2 font-light text-black">
-            Pinto is secured by repeated audits, a large bug bounty program and state of the art off-chain security
-            measures.
+            Pinto is secured by repeated audits, a bug bounty program and state of the art off-chain security measures.
           </h2>
         </div>
       </div>
@@ -99,8 +97,8 @@ export default function BugBounty() {
             <div className="flex flex-col items-center h-[2rem] sm:h-[5rem] justify-center">
               <div className="flex flex-row gap-2 sm:gap-4 items-center">
                 <img
-                  src={PintoTokenLogo}
-                  alt={"Pinto Token Icon"}
+                  src={UsdcTokenLogo}
+                  alt={"USDC"}
                   className="h-8 w-8 min-w-8 min-h-8 sm:w-16 sm:h-16 sm:min-h-16 sm:min-w-16"
                 />
                 <NumberFlow
@@ -122,19 +120,19 @@ export default function BugBounty() {
             <div className="flex flex-col items-center h-[2rem] sm:h-[3.25rem] justify-center">
               <div className="pinto-body sm:text-2xl font-light flex flex-row gap-2 sm:gap-4 items-center">
                 <span>Bug Bounty with</span>
-                <img src={ImmunefiLogo} alt={"ImmuneFi"} className="h-4 sm:h-8" />
+                <span className="font-medium">Sherlock</span>
               </div>
             </div>
 
             {/* Bottom section - button */}
             <div className="flex items-center justify-center h-[2.5rem] sm:h-[4rem]">
               <Link
-                to={"https://immunefi.com/bug-bounty/pinto/information/"}
+                to={"https://audits.sherlock.xyz/bug-bounties/221"}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={trackClick(ANALYTICS_EVENTS.LANDING.BUG_BOUNTY_IMMUNEFI_CLICK, {
+                onClick={trackClick(ANALYTICS_EVENTS.LANDING.BUG_BOUNTY_SHERLOCK_CLICK, {
                   section: "bug_bounty",
-                  destination: "https://immunefi.com/bug-bounty/pinto/information/",
+                  destination: "https://audits.sherlock.xyz/bug-bounties/221",
                 })}
               >
                 <Button

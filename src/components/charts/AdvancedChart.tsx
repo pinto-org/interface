@@ -158,7 +158,7 @@ export const AdvancedChart = () => {
       const _output: TVChartFormattedData[] = [];
       seasonsData.data.forEach((seasonData) => {
         // Verify a datapoint is available for this season (some data, like tractor, is not since season 1)
-        if (selectedChart.priceScaleKey in seasonData) {
+        if (seasonData[selectedChart.priceScaleKey] !== undefined && seasonData[selectedChart.priceScaleKey] !== null) {
           const formatValue = selectedChart.valueFormatter;
           const dataPoint = {
             value: formatValue(seasonData[selectedChart.priceScaleKey]),
@@ -262,6 +262,11 @@ export const AdvancedChart = () => {
         </div>
         <CalendarButton setTimePeriod={setTimePeriod} />
       </div>
+      {seasonsData.hasUnavailableApiData && (
+        <p role="status" className="px-4 py-2 text-sm text-pinto-light">
+          Some chart data is temporarily unavailable. Available charts are still shown.
+        </p>
+      )}
       {selectedCharts.length > 0 ? (
         <TVChart
           selected={selectedCharts}

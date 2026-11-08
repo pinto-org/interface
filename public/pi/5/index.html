@@ -1,0 +1,807 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>PI-5: Soil Issuance and Parameter Changes</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><style>body{padding:1rem;overflow-wrap:anywhere}img{max-width:100%;height:auto}figure{overflow-x:auto}nav{margin-bottom:2rem}</style></head><body><nav><a href="/pi/">Pinto Improvements</a></nav><article id="410e4019-aad5-804a-88e0-c51681f133d3" class="page sans"><header><h1 class="page-title" dir="auto">PI-5: Soil Issuance and Parameter Changes</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="886e4019-aad5-8320-a64d-814811ff75e7" class="" dir="auto">Executed on January 2, 2025 at 06:11 UTC.</p><h2 id="1a3e4019-aad5-8362-b8e5-019a303488f3" class="" dir="auto">Summary</h2><ol type="1" id="255e4019-aad5-830e-b854-81074d4018a8" class="numbered-list" start="1" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#maximum-temperature">Maximum Temperature</a></strong><strong> Decimals:</strong> Upgrade the Maximum Temperature from 0 to 6 decimal precision.</li></ol><ol type="1" id="101e4019-aad5-83e7-b834-817e6731db01" class="numbered-list" start="2" dir="auto"><li><strong><a href="https://docs.pinto.money/resources/glossary#soil">Soil</a></strong><strong> Issuance Below Peg Changes:</strong> Scale Soil issuance when time-weighted average ΔP (<a href="https://docs.pinto.money/resources/glossary#deltap">TWAΔP</a>) &lt;= 0 and instantaneous ΔP (INSTΔP) &lt;= 0 by (1 - min(<a href="https://docs.pinto.money/resources/glossary#liquidity-to-supply-ratio-l2sr">L2SR</a>, 0.99)) and set a minimum Soil issued to 1% of min(|TWAΔP|, |INSTΔP|), before rounding. ΔP measures a <a href="https://docs.pinto.money/resources/glossary#pinto">Pinto</a> supply imbalance, while P denotes price.</li></ol><ol type="1" id="6dde4019-aad5-8359-a27d-81f356be0efe" class="numbered-list" start="3" dir="auto"><li><strong>Soil Issuance Above Peg Changes:</strong> Change the scalar on <a href="https://docs.pinto.money/resources/glossary#pods">Pods</a> that became <a href="https://docs.pinto.money/resources/glossary#harvestable-pods">Harvestable</a> at the beginning of the <a href="https://docs.pinto.money/resources/glossary#season">Season</a> for Soil issuance above peg:<ul id="face4019-aad5-8354-b1b8-8196605120f1" class="bulleted-list" dir="auto"><li style="list-style-type:disc">from 0.5 to 0.25 when the <a href="https://docs.pinto.money/resources/glossary#pod-rate">Pod Rate</a> is Excessively High.</li></ul><ul id="953e4019-aad5-8246-a435-81bce2e4a7e6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">from 1 to 0.5 when the Pod Rate is Reasonably High. </li></ul><ul id="fe4e4019-aad5-83fd-9c67-010d38d22143" class="bulleted-list" dir="auto"><li style="list-style-type:disc">from 1 to 1.2 when the Pod Rate is Excessively Low, price is Excessively High, and Soil demand is increasing.</li></ul></li></ol><ol type="1" id="92ae4019-aad5-821a-82ce-8173fd6ad57c" class="numbered-list" start="4" dir="auto"><li><strong>Soil Issuance Fix When INSTΔP &gt; 0 and TWAΔP &lt; 0:</strong> Change Soil issuance when the inter-block MEV manipulation resistant instantaneous ΔP (INSTΔP) &gt; 0 and TWAΔP &lt; 0 to be 1% of |TWAΔP| scaled by:<ul id="a17e4019-aad5-839b-a73e-013b412dd299" class="bulleted-list" dir="auto"><li style="list-style-type:disc">0.25 when the Pod Rate is Excessively High.</li></ul><ul id="288e4019-aad5-839c-ae88-0199a8a43cbd" class="bulleted-list" dir="auto"><li style="list-style-type:disc">0.5 when the Pod Rate is Reasonably High.</li></ul><ul id="692e4019-aad5-824c-9cf2-01ff9481e757" class="bulleted-list" dir="auto"><li style="list-style-type:disc">1 when the Pod Rate is Reasonably Low.</li></ul><ul id="9c5e4019-aad5-83db-a24f-81403d376ad3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">1.2 when the Pod Rate is Excessively Low.</li></ul></li></ol><ol type="1" id="5bde4019-aad5-820b-84cf-01baede55560" class="numbered-list" start="5" dir="auto"><li><strong>Case Adjustment Changes:</strong> Lower the Maximum Temperature adjustments in several instances when TWAΔP &lt;= 0 (detailed below).</li></ol><ol type="1" id="d68e4019-aad5-82b8-80d3-01bd6c5bca73" class="numbered-list" start="6" dir="auto"><li><strong>Intended </strong><strong><a href="https://docs.pinto.money/responding-to-state/crop-ratio-changes">Crop Scalar</a></strong><strong> Adjustment:</strong> PI-5 intended to increase certain Crop Scalar decreases from 1 to 2 percentage points per Season, but an encoding error left them unchanged. PI-6 implemented the correction.</li></ol><ol type="1" id="67de4019-aad5-82a6-a4eb-013f9bec6b04" class="numbered-list" start="7" dir="auto"><li><strong>New Events:</strong> Introduce new events <code>SeasonMetrics</code> and <code>RainStatus</code>, and add <code>beans</code> to <code>SeasonOfPlentyWell</code>.</li></ol><h2 id="9cde4019-aad5-8354-a986-81ef08cb1924" class="" dir="auto">Links</h2><ul id="bfbe4019-aad5-8232-8b3f-019445b556e9" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://github.com/pinto-org/protocol/pull/7">Implementation PR</a></li></ul><ul id="5a0e4019-aad5-82b4-aa34-011b4805fb8c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Implementation Commit: <a href="https://github.com/pinto-org/protocol/commit/fa54250b36cf4b2173dff9a4633cf98a177be8bd">fa54250b36cf4b2173dff9a4633cf98a177be8bd</a></li></ul><ul id="cc4e4019-aad5-8272-9a05-0163e8f44d15" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://app.safe.global/transactions/tx?safe=base:0x2cf82605402912C6a79078a9BBfcCf061CbfD507&amp;id=multisig_0x2cf82605402912C6a79078a9BBfcCf061CbfD507_0x137187214292dcd7dc9cb1028059c6f2b44bc00732e99fd3daa54676012a2670">Safe Transaction</a></li></ul><ul id="331e4019-aad5-835b-892d-017e5c5fcad5" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><a href="https://basescan.org/tx/0xc914c1ae83310b23259d329cefc7f04560dbb1a37254688b517bad571b0a9145">Diamond Cut Transaction</a></li></ul><h2 id="ad9e4019-aad5-832e-9182-810ce81c8466" class="" dir="auto">Problems</h2><h3 id="45be4019-aad5-8248-a2cb-01fb869dcf55" class="" dir="auto">1. Maximum Temperature Decimals</h3><p id="98be4019-aad5-82b6-8167-81fba76d54d4" class="" dir="auto">Maximum Temperature adjustments were limited to 100-basis-point changes, which reduced the granularity available to adjust the Maximum Temperature in each case.</p><h3 id="925e4019-aad5-82c0-a787-01022ba17728" class="" dir="auto">2. Soil Issuance Below Peg Changes</h3><p id="2a2e4019-aad5-8369-af55-81da095636d4" class="" dir="auto">Pinto did not factor the L2SR into its Soil issuance. </p><h3 id="f76e4019-aad5-8219-8675-0178957c7449" class="" dir="auto">3. Soil Issuance Above Peg Changes</h3><p id="0c4e4019-aad5-8305-92b3-81773693d90f" class="" dir="auto">The protocol is willing to issue Pods every Season in order to measure changing demand for Soil, including when TWAΔP &gt; 0, but the protocol did so at higher coefficients than this adjustment targets.</p><h3 id="3d8e4019-aad5-827e-8c99-810ab5525565" class="" dir="auto">4. Soil Issuance Fix When INSTΔP &gt; 0 and TWAΔP &lt; 0</h3><p id="13ee4019-aad5-8291-abac-81deb55e0685" class="" dir="auto">When issuing Soil below peg, the protocol compared INSTΔP and TWAΔP and issued the minimum of the absolute values of the two in order to minimize debt issuance. However, when INSTΔP &gt; 0 and TWAΔP &lt; 0, the protocol issued |TWAΔP| Soil which led to excessive debt issuance in instances where there was a large |TWAΔP| but the protocol was over its value target at the time of the <code><a href="https://docs.pinto.money/resources/glossary#gm">gm</a></code> call.</p><h3 id="c5be4019-aad5-8318-abd9-017b47eafa3d" class="" dir="auto">5. Case Adjustment Changes</h3><p id="eb2e4019-aad5-833c-9a26-81027aa23959" class="" dir="auto">The Maximum Temperature was likely increasing more aggressively than necessary in certain instances when TWAΔP &lt;= 0, particularly when the Pod Rate is above its optimal level or when the Pod Rate is Reasonably Low and there is increasing demand for Soil.</p><h3 id="912e4019-aad5-8216-8afe-01b1d8a1e2dd" class="" dir="auto">6. Intended Crop Scalar Adjustment</h3><p id="304e4019-aad5-828d-adb7-816382d4f8da" class="" dir="auto">The selected cases decreased the Crop Scalar by one percentage point per Season. PI-5 intended a two-percentage-point decrease, but its constant encoding did not implement it.</p><h3 id="49fe4019-aad5-837c-892a-01c48f72cfda" class="" dir="auto">7. New Events</h3><p id="c97e4019-aad5-830b-9918-818a1d3b2594" class="" dir="auto">There was no straightforward off-chain method to get certain <a href="https://docs.pinto.money/resources/glossary#flood">Flood</a> and Season data.</p><h2 id="557e4019-aad5-8294-99e1-0173937fbd1d" class="" dir="auto">Solutions</h2><h3 id="1d2e4019-aad5-8256-a30d-812b5cd75393" class="" dir="auto">1. Maximum Temperature Decimals</h3><ul id="04de4019-aad5-8254-b5c7-01fd956b0369" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Expand the Temperature adjustment field <code>bT</code> to 4 bytes in <code>LibCases</code> and adjust the relevant bytes and handle decoding.</li></ul><ul id="317e4019-aad5-820f-af1f-81760fd3ca7c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Upcast <code>bT</code> to an <code>int32</code> and adjust the corresponding <code>TemperatureChange</code> event.</li></ul><ul id="832e4019-aad5-83a1-9339-01a25d699ba0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Omit scaling of <code>s.sys.weather.temp</code> and assume 6 decimal precision by default.</li></ul><ul id="40be4019-aad5-82ee-a744-81a127690168" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Update <code>LibDibbler</code> and the <a href="https://docs.pinto.money/resources/glossary#morning">Morning</a> Auction to support decimals for Maximum Temperature.</li></ul><ul id="20ce4019-aad5-83f9-8597-017ec78c5a95" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Scale the current Maximum Temperature by <code>1e6</code> upon PI execution.</li></ul><h3 id="ba3e4019-aad5-83f5-92b1-01847c54278f" class="" dir="auto">2. Soil Issuance Below Peg Changes</h3><ul id="2c2e4019-aad5-82f3-9bc9-8170f326b6bf" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Introduce a <code>scaleSoilBelowPeg</code> function in <code>Sun.sol</code> that scales the Soil issuance below peg according to the L2SR.</li></ul><ul id="26fe4019-aad5-82c1-a3f8-01651ccf5c60" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Add a new evaluation parameter <code>belowPegSoilL2SRScalar</code> in storage that scales L2SR before applying the 99% cap.</li></ul><ul id="686e4019-aad5-8364-b1ff-01dcfe6df79a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Initialize <code>belowPegSoilL2SRScalar</code> to <code>1e6</code> so this parameter has no additional effect on Soil issuance.</li></ul><ul id="bf7e4019-aad5-83de-9dd1-01911a750202" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Enforce a minimum Soil issued of 1% of <code>min(|TWAΔP|, |INSTΔP|)</code> when INSTΔP &lt;= 0, before rounding. Soil issuance is zero when INSTΔP = 0.</li></ul><h3 id="1aee4019-aad5-8379-bb73-01eefb303b35" class="" dir="auto">3. Soil Issuance Above Peg Changes</h3><ul id="a1be4019-aad5-828b-870c-012ed8f4fbc2" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Add new evaluation parameters <code>soilCoefficientRelativelyHigh</code> and <code>soilCoefficientRelativelyLow</code> to storage for the Reasonably High and Reasonably Low Pod Rate categories, respectively.</li></ul><ul id="94ae4019-aad5-8295-bf78-013d43bece1c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Instantiate the new parameters to <code>0.5e18</code> and <code>1e18</code>, respectively, alongside the existing coefficients, so Soil issuance above peg is scaled by:<ul id="c53e4019-aad5-8211-911f-010199bec561" class="bulleted-list" dir="auto"><li style="list-style-type:circle">0.25 when the Pod Rate is Excessively High.</li></ul><ul id="300e4019-aad5-8288-95b9-018f1115f49a" class="bulleted-list" dir="auto"><li style="list-style-type:circle">0.5 when the Pod Rate is Reasonably High.</li></ul><ul id="f1ce4019-aad5-829e-a53d-0112fa744adf" class="bulleted-list" dir="auto"><li style="list-style-type:circle">1 when the Pod Rate is Reasonably Low.</li></ul><ul id="c6fe4019-aad5-8297-8891-018178a937bb" class="bulleted-list" dir="auto"><li style="list-style-type:circle">1.2 when the Pod Rate is Excessively Low. This now includes Excessively High price with increasing Soil demand, which previously used a coefficient of 1.</li></ul></li></ul><h3 id="e83e4019-aad5-83d7-9dbf-817b9b815eb1" class="" dir="auto">4. Soil Issuance Fix When INSTΔP &gt; 0 and TWAΔP &lt; 0</h3><ul id="712e4019-aad5-83fa-ba2e-017ed93c9edc" class="bulleted-list" dir="auto"><li style="list-style-type:disc">When <code>twaDeltaB &lt; 0</code> and <code>instDeltaB &gt; 0</code>, set the Soil supply to 1% of |TWAΔP|, scaled by:<ul id="c94e4019-aad5-8312-9a85-011a4e1c5714" class="bulleted-list" dir="auto"><li style="list-style-type:circle">0.25 when the Pod Rate is Excessively High.</li></ul><ul id="da2e4019-aad5-8216-8201-01a9e25c53a3" class="bulleted-list" dir="auto"><li style="list-style-type:circle">0.5 when the Pod Rate is Reasonably High.</li></ul><ul id="05ce4019-aad5-8259-8fe8-01a09b1ab451" class="bulleted-list" dir="auto"><li style="list-style-type:circle">1 when the Pod Rate is Reasonably Low.</li></ul><ul id="812e4019-aad5-83a3-ad2c-0186381b5b9d" class="bulleted-list" dir="auto"><li style="list-style-type:circle">1.2 when the Pod Rate is Excessively Low.</li></ul></li></ul><h3 id="ad9e4019-aad5-821c-ba58-81acc87a76bc" class="" dir="auto">5. Case Adjustment Changes</h3><p id="8fce4019-aad5-835c-9ac5-815231d31a71" class="" dir="auto">Update <code>s.sys.casesV2</code> with the new Maximum Temperature adjustments bolded on the right. Across all L2SR tiers with TWAΔP &lt;= 0, change +1 to 0 percentage points for Reasonably Low Pod Rate with increasing Soil demand. For Reasonably or Excessively High Pod Rate, change +2, +1, and 0 to +1, +0.5, and −0.5 percentage points for decreasing, steady, and increasing Soil demand, respectively.</p><figure id="156e7ecc-0c1f-4987-b8bb-4db3f20020f9" class="image" data-notion-image="PI-5%20Soil%20Issuance%20and%20Parameter%20Changes/pi5-cases-highlighted.png" dir="ltr"><a href="pi5-cases-highlighted.png"><img style="width:687.9921875px" src="pi5-cases-highlighted.png"/></a><figcaption>PI-5 as executed. The intended Crop Scalar decrease from −0.01 to −0.02 was implemented in PI-6.</figcaption></figure><h3 id="425e4019-aad5-83fa-ab07-01834a8a4dca" class="" dir="auto">6. Intended Crop Scalar Adjustment</h3><p id="618e4019-aad5-830c-abc3-017fe2ef2bc0" class="" dir="auto">The intended two-percentage-point decrease applied to Reasonably Low L2SR, Reasonably High price, and Reasonably or Excessively High Pod Rate. PI-5 installed constants that still encoded a one-percentage-point decrease. PI-6 corrected the encoding.</p><h3 id="8fce4019-aad5-8396-8612-81559127dabe" class="" dir="auto">7. New Events</h3><ul id="10fe4019-aad5-83aa-bfed-0156164cd805" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Add <code>beans</code> to the <code>SeasonOfPlentyWell</code> event.</li></ul><ul id="241e4019-aad5-8203-ad71-81434cba1c66" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Add the <code>SeasonMetrics</code> event to keep track of various metrics each Season.</li></ul><ul id="e90e4019-aad5-8399-866c-013210d4d0cc" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Add the <code>RainStatus</code> event to keep track of when the protocol starts or stops <a href="https://docs.pinto.money/resources/glossary#rain">Raining</a>.</li></ul><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="45de4019-aad5-8213-8203-81ddc14323c7" class="code code-wrap"><code style="white-space:pre-wrap;word-break:break-all">event SeasonMetrics(
+    uint256 indexed season,
+    uint256 deltaPodDemand,
+    uint256 lpToSupplyRatio,
+    uint256 podRate,
+    uint256 thisSowTime,
+    uint256 lastSowTime
+);
+
+event RainStatus(uint256 indexed season, bool raining);
+</code></pre><h2 id="9b4e4019-aad5-83b5-85d8-81cde6089f3d" class="" dir="auto">Rationale</h2><h3 id="9b7e4019-aad5-8234-b7cf-8177610e007c" class="" dir="auto">1. Maximum Temperature Decimals</h3><p id="49ce4019-aad5-83a1-b9c7-01f7dfb3a798" class="" dir="auto">Changing the Maximum Temperature by a minimum of 100 basis points does not allow the protocol to respond with a sufficiently high level of granularity. By changing the minimum change to .0001 basis points (or 0.000001%), the protocol will be well equipped to change the Maximum Temperature as it grows in complexity well into the future.</p><h3 id="4b5e4019-aad5-827a-bf86-0191dfa6fbee" class="" dir="auto">2. Soil Issuance Below Peg Changes</h3><p id="dfee4019-aad5-83a1-9db4-81d3cdb62f6c" class="" dir="auto">The protocol does not need to issue enough Soil to return the price to peg if all of it were <a href="https://docs.pinto.money/resources/glossary#sow">Sown</a>. Issuing less Soil each Season gives the market more time to respond in ways other than issuing debt (e<em>.g.</em>, via <a href="https://docs.pinto.money/resources/glossary#convert">Converts</a>, new <a href="https://docs.pinto.money/resources/glossary#deposit">Deposits</a>, etc).</p><p id="568e4019-aad5-83a7-8f98-0197820eca24" class="" dir="auto">When the L2SR is high and P &lt; 1, the protocol <a href="https://bean.money/beanstalk-state-space.pdf">should </a>rely more heavily on Converts from LP tokens to Pinto to increase the price rather than issuing more debt. Scaling Soil when P &lt; 1 by 1 - L2SR reflects this. At higher L2SR, the protocol marginally prefers sacrificing liquidity through LP → Pinto Converts than to issue additional debt. See the <a href="https://bean.money/beanstalk-state-space.pdf">Beanstalk State Space</a> for the underlying liquidity/debt framework. </p><p id="ba6e4019-aad5-8367-aa8d-01c43e96d7e1" class="" dir="auto">A minimum of 1% of min(|TWAΔP|, |INSTΔP|) when INSTΔP &lt;= 0 caps the effect of the (1 - L2SR) scalar at 99%, before integer rounding. Soil can still be zero when the input is zero or rounding removes the remaining amount.</p><h3 id="a02e4019-aad5-8380-bf88-01efde2b0a83" class="" dir="auto">3. Soil Issuance Above Peg Changes</h3><p id="0e3e4019-aad5-8306-b8c6-014277dcfac1" class="" dir="auto">When TWAΔP &gt; 0, the protocol issues debt in order to measure changing demand for Soil and to avoid entering a situation where the protocol has no outstanding debt. This Soil issuance is based on the number of Pods that became Harvestable at the beginning of the Season.</p><p id="b30e4019-aad5-8372-8ce6-81d083395eaa" class="" dir="auto">However, the protocol is aiming to reduce replacement debt with respect to the amount of Soil that it issues relative to the number of Pods that became Harvestable. This solution allows for greater granularity with respect to the ratio of how much Soil is issued relative to how many Pods became Harvestable, and lowers the ratio in two Pod Rate categories to reduce replacement debt. Applying 1.2 to the previously excluded case makes all Excessively Low Pod Rate cases use the same coefficient. </p><h3 id="4d2e4019-aad5-82d0-8951-010bece1fd3a" class="" dir="auto">4. Soil Issuance Fix When INSTΔP &gt; 0 and TWAΔP &lt; 0</h3><p id="743e4019-aad5-829b-b359-8156b15707fd" class="" dir="auto">Issuing |TWAΔP| Soil when INSTΔP &gt; 0 and TWAΔP &lt; 0 does not achieve the goal of minimizing Soil issuance when INSTΔP &gt; 0. Instead, when INSTΔP &gt; 0, the protocol should take a similar approach to how it issues Soil when TWAΔP &gt; 0, (<em>i.e.</em>, issue enough Soil to measure changing demand).</p><p id="20ce4019-aad5-8261-8df2-01e22bf91934" class="" dir="auto">However, because in this scenario no Pods became Harvestable at the beginning of the Season, the Soil issuance mechanic when TWAΔP &gt; 0 cannot be used. By instead issuing 1% of | TWAΔP | scaled according to the same coefficients based on the Pod Rate when TWAΔP &gt; 0, the protocol is able to issue enough Soil to measure demand while factoring in the Pod Rate and limiting additional debt issuance.</p><h3 id="462e4019-aad5-83f5-bcbc-81bad83b885b" class="" dir="auto">5. Case Adjustment Changes</h3><p id="d7fe4019-aad5-8233-876c-0109884184c3" class="" dir="auto">If the protocol increases the Maximum Temperature too quickly, it can disincentivize prospective lenders to lend to the protocol by creating a greater potential benefit for them to lend to the protocol later on. By leveraging the new Maximum Temperature decimal precision to increase the Maximum Temperature more conservatively, the protocol can minimize the incentive to wait to lend to the protocol and decrease the overall rate at which the Maximum Temperature increases which will likely enable the protocol to more sustainably issue debt over time.</p><h3 id="311e4019-aad5-8291-b92e-81645c2ec639" class="" dir="auto">6. Intended Crop Scalar Adjustment</h3><p id="101e4019-aad5-825e-996b-01b553a4aedf" class="" dir="auto">The intended faster decrease would favor LP over Pinto exposure in the selected cases. PI-5 did not realize that adjustment because its encoded constants were unchanged. The correction belongs to PI-6.</p><h3 id="a40e4019-aad5-8265-8296-81c220b3bfe8" class="" dir="auto">7. New Events</h3><p id="13de4019-aad5-8363-8325-81bee547cfdc" class="" dir="auto">The added metrics and Rain transitions allow off-chain consumers to reconstruct Season state, while the added <code>beans</code> field records the number of Pinto minted to each <a href="https://docs.basin.exchange/components/well">Well</a> during a Flood.</p><h2 id="1c3e4019-aad5-83ec-9a5f-019066b0ff3d" class="" dir="auto">Contract Changes</h2><h3 id="9d1e4019-aad5-82e8-a50a-812308a0c02b" class="" dir="auto">Initialization</h3><p id="cfce4019-aad5-820b-b7ef-011d93052bf3" class="" dir="auto"><code>InitPI5.init()</code> at <code><a href="https://basescan.org/address/0x78a9b261e59dd31d2f50230103d07e3e65bbe02b#code">0x78a9b261e59dd31d2f50230103d07e3e65bbe02b</a></code> initialized the Soil scalars and Pod Rate coefficients, installed the V2 case table, and multiplied the stored Maximum Temperature by <code>1e6</code> to preserve its value at six-decimal precision.</p><h3 id="5fae4019-aad5-82e2-a3dc-0199c6a16b16" class="" dir="auto">Facet Changes</h3><table id="32ae4019-aad5-832e-b574-01e01d4ccc0f" class="simple-table" dir="ltr"><tbody><tr id="bd7e4019-aad5-83d4-8b3c-018a891dfb08" dir="ltr"><td id="~G_}" class=""><strong>Facet</strong></td><td id="RDCm" class=""><strong>Action</strong></td><td id="JNUn" class=""><strong>Previous Implementation</strong></td><td id="rg\a" class=""><strong>New Implementation</strong></td></tr><tr id="5f1e4019-aad5-826b-9ffe-814557d5a770" dir="ltr"><td id="~G_}" class=""><code>SeasonFacet</code></td><td id="RDCm" class="">Replace</td><td id="JNUn" class=""><code><a href="https://basescan.org/address/0x15cBDFaF5715F2a1B6e23b3ef7c4D67843a6C836#code">0x15cBDFaF5715F2a1B6e23b3ef7c4D67843a6C836</a></code></td><td id="rg\a" class=""><code><a href="https://basescan.org/address/0xFC52fC3C8a29F74603006fF03915770014D9F049#code">0xFC52fC3C8a29F74603006fF03915770014D9F049</a></code></td></tr><tr id="802e4019-aad5-836a-8ac6-017176d6d683" dir="ltr"><td id="~G_}" class=""><code>FieldFacet</code></td><td id="RDCm" class="">Replace</td><td id="JNUn" class=""><code><a href="https://basescan.org/address/0x0Ab2b647Fdfaa3Abffca2a10fe78Eb0dED438fAf#code">0x0Ab2b647Fdfaa3Abffca2a10fe78Eb0dED438fAf</a></code></td><td id="rg\a" class=""><code><a href="https://basescan.org/address/0x8906b9131B7c6354f3e14b8656B546CfCfc9eDF1#code">0x8906b9131B7c6354f3e14b8656B546CfCfc9eDF1</a></code></td></tr><tr id="6d3e4019-aad5-82ba-9a75-819aac5cf0df" dir="ltr"><td id="~G_}" class=""><code>GaugeGettersFacet</code></td><td id="RDCm" class="">Replace</td><td id="JNUn" class=""><code><a href="https://basescan.org/address/0x34eaa05624E0B8cFAB251571E429fD88Cec7ec12#code">0x34eaa05624E0B8cFAB251571E429fD88Cec7ec12</a></code></td><td id="rg\a" class=""><code><a href="https://basescan.org/address/0x04912D77F69Bd03f8846A432B0AbacfC028bea33#code">0x04912D77F69Bd03f8846A432B0AbacfC028bea33</a></code></td></tr><tr id="2c1e4019-aad5-8222-b1a6-81b3d6c2c4f2" dir="ltr"><td id="~G_}" class=""><code>SeasonGettersFacet</code></td><td id="RDCm" class="">Replace</td><td id="JNUn" class=""><code><a href="https://basescan.org/address/0x995E1cA9Bd858bff94448dCC0E097bd4d564e74B#code">0x995E1cA9Bd858bff94448dCC0E097bd4d564e74B</a></code></td><td id="rg\a" class=""><code><a href="https://basescan.org/address/0xFA0093b9CA5D00c9E6623767eb09489d90aBF150#code">0xFA0093b9CA5D00c9E6623767eb09489d90aBF150</a></code></td></tr><tr id="f8ee4019-aad5-83d9-ab53-8157bca5b50d" dir="ltr"><td id="~G_}" class=""><code>SeasonGettersFacet</code></td><td id="RDCm" class="">Add</td><td id="JNUn" class="">Not applicable — new selectors</td><td id="rg\a" class=""><code><a href="https://basescan.org/address/0xFA0093b9CA5D00c9E6623767eb09489d90aBF150#code">0xFA0093b9CA5D00c9E6623767eb09489d90aBF150</a></code></td></tr><tr id="2f3e4019-aad5-8226-a766-815469056272" dir="ltr"><td id="~G_}" class=""><code>ConvertGettersFacet</code></td><td id="RDCm" class="">Replace</td><td id="JNUn" class=""><code><a href="https://basescan.org/address/0xb70708268fff1b6038dEf6F7d29a3bEe037e901c#code">0xb70708268fff1b6038dEf6F7d29a3bEe037e901c</a></code></td><td id="rg\a" class=""><code><a href="https://basescan.org/address/0x115E83Bcb217A06D13210009e7CD8b44cE1af509#code">0x115E83Bcb217A06D13210009e7CD8b44cE1af509</a></code></td></tr><tr id="448e4019-aad5-836b-b25b-819b77701a72" dir="ltr"><td id="~G_}" class=""><code>SiloGettersFacet</code></td><td id="RDCm" class="">Replace</td><td id="JNUn" class=""><code><a href="https://basescan.org/address/0x6aBFE707418D80a6E06b77853ED6c098B8aF6711#code">0x6aBFE707418D80a6E06b77853ED6c098B8aF6711</a></code></td><td id="rg\a" class=""><code><a href="https://basescan.org/address/0x6C1dc649E93be43FfF670a2407Fa4Edc4996BB95#code">0x6C1dc649E93be43FfF670a2407Fa4Edc4996BB95</a></code></td></tr></tbody></table><h3 id="e4ce4019-aad5-83a0-901e-01448df063dd" class="" dir="auto">Other Contract / Parameter Changes</h3><p id="8d4e4019-aad5-836c-8b65-011ed7656ddf" class="" dir="auto">Maximum Temperature storage and case adjustments moved from whole percentage points to six decimal places. The initializer rescaled existing Temperature without changing its economic value.</p><p id="519e4019-aad5-8235-b449-81d1602728f0" class="" dir="auto">Initialized <code>belowPegSoilL2SRScalar</code> to <code>1e6</code> (1) and <code>abovePegDeltaBSoilScalar</code> to <code>0.01e6</code> (1%). Above-target Soil coefficients changed from 0.5 to 0.25 for Excessively High Pod Rate and from 1 to 0.5 for Reasonably High Pod Rate. Reasonably Low remained 1 and the configured Excessively Low coefficient remained 1.2, as set by PI-3.</p><p id="615e4019-aad5-8354-8700-81e44fb4fe04" class="" dir="auto"><strong>External Library Deployments</strong></p><p id="2bae4019-aad5-826d-9618-016b572079d3" class="" dir="auto">All seven linked libraries were redeployed. <code>LibEvaluate</code>, <code>LibWellMinting</code>, and <code>LibFlood</code> changed their own source files. <code>LibGauge</code>, <code>LibIncentive</code>, <code>LibShipping</code>, and <code>LibGerminate</code> did not. <code>FieldFacet</code>, <code>GaugeGettersFacet</code>, <code>ConvertGettersFacet</code>, and <code>SiloGettersFacet</code> have no externally linked libraries. <code>GaugeGettersFacet</code>, <code>ConvertGettersFacet</code>, and <code>SiloGettersFacet</code> retained their own source files and getter interfaces despite their replacement.</p><table id="744e4019-aad5-83bb-93f5-81849520a77e" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="555e4019-aad5-83db-b6d0-813930fc9bd8" dir="ltr"><th id="I:\K" class="simple-table-header-color simple-table-header">Library</th><th id="p&lt;wR" class="simple-table-header-color simple-table-header">Previous Implementation</th><th id="E]cN" class="simple-table-header-color simple-table-header">New Implementation</th><th id="M&gt;|[" class="simple-table-header-color simple-table-header">Used By</th></tr></thead><tbody><tr id="df5e4019-aad5-82e7-b528-8129ce22d89b" dir="ltr"><td id="I:\K" class=""><code>LibEvaluate</code></td><td id="p&lt;wR" class=""><code><a href="https://basescan.org/address/0x595eb8aa763325235f988eedc582d74046fd7bca#code">0x595eb8aa763325235f988eedc582d74046fd7bca</a></code></td><td id="E]cN" class=""><code><a href="https://basescan.org/address/0x69c7d1feb4b963ff9b8338a765c13bb5c3b19792#code">0x69c7d1feb4b963ff9b8338a765c13bb5c3b19792</a></code></td><td id="M&gt;|[" class=""><code>SeasonFacet</code></td></tr><tr id="3cde4019-aad5-826f-8cb5-013d28bb9a45" dir="ltr"><td id="I:\K" class=""><code>LibGauge</code></td><td id="p&lt;wR" class=""><code><a href="https://basescan.org/address/0xe7e55a27a369bef6d20dd081ff7ddff90d6f7482#code">0xe7e55a27a369bef6d20dd081ff7ddff90d6f7482</a></code></td><td id="E]cN" class=""><code><a href="https://basescan.org/address/0x07b75f35e90eb114035d3c67ac7738f11fb70a26#code">0x07b75f35e90eb114035d3c67ac7738f11fb70a26</a></code></td><td id="M&gt;|[" class=""><code>SeasonFacet</code></td></tr><tr id="ae6e4019-aad5-8355-b6db-0194eb68b4aa" dir="ltr"><td id="I:\K" class=""><code>LibIncentive</code></td><td id="p&lt;wR" class=""><code><a href="https://basescan.org/address/0xfe1fe5508b33401c20e45fcd10161783de443479#code">0xfe1fe5508b33401c20e45fcd10161783de443479</a></code></td><td id="E]cN" class=""><code><a href="https://basescan.org/address/0x4e5dae995c2e8eef23b44a95034064262326e703#code">0x4e5dae995c2e8eef23b44a95034064262326e703</a></code></td><td id="M&gt;|[" class=""><code>SeasonFacet</code></td></tr><tr id="bbce4019-aad5-8283-bc3a-01e1864f1651" dir="ltr"><td id="I:\K" class=""><code>LibShipping</code></td><td id="p&lt;wR" class=""><code><a href="https://basescan.org/address/0x86c9bdf4b2a7ab22c90048f0d741b81c546895b7#code">0x86c9bdf4b2a7ab22c90048f0d741b81c546895b7</a></code></td><td id="E]cN" class=""><code><a href="https://basescan.org/address/0x6ccdfc6fd7885a07e5d4ee5e998a66afe6a65705#code">0x6ccdfc6fd7885a07e5d4ee5e998a66afe6a65705</a></code></td><td id="M&gt;|[" class=""><code>SeasonFacet</code></td></tr><tr id="661e4019-aad5-8351-b951-011376c5bf52" dir="ltr"><td id="I:\K" class=""><code>LibWellMinting</code></td><td id="p&lt;wR" class=""><code><a href="https://basescan.org/address/0x4e81e73a1ca24ff99a79914a887d13b9c641e2f2#code">0x4e81e73a1ca24ff99a79914a887d13b9c641e2f2</a></code></td><td id="E]cN" class=""><code><a href="https://basescan.org/address/0xd972df7cfd286778951aa829a40e9ab7f7db1d5a#code">0xd972df7cfd286778951aa829a40e9ab7f7db1d5a</a></code></td><td id="M&gt;|[" class=""><code>SeasonFacet, SeasonGettersFacet</code></td></tr><tr id="f25e4019-aad5-83f9-a61e-81914c669bcf" dir="ltr"><td id="I:\K" class=""><code>LibFlood</code></td><td id="p&lt;wR" class=""><code><a href="https://basescan.org/address/0x249ae0deb8f7ebccaa574c7396c7d099d87e7e3d#code">0x249ae0deb8f7ebccaa574c7396c7d099d87e7e3d</a></code></td><td id="E]cN" class=""><code><a href="https://basescan.org/address/0x0b316cb760a677ed1c581041c7d2118bc66aa87c#code">0x0b316cb760a677ed1c581041c7d2118bc66aa87c</a></code></td><td id="M&gt;|[" class=""><code>SeasonFacet</code></td></tr><tr id="d1ee4019-aad5-82b0-8bf8-013cdfc17748" dir="ltr"><td id="I:\K" class=""><code>LibGerminate</code></td><td id="p&lt;wR" class=""><code><a href="https://basescan.org/address/0x7c748262b168e85a5e0973021e44b163fcb578d9#code">0x7c748262b168e85a5e0973021e44b163fcb578d9</a></code></td><td id="E]cN" class=""><code><a href="https://basescan.org/address/0x636234f909174c764d216ef9bd22175f01a107b2#code">0x636234f909174c764d216ef9bd22175f01a107b2</a></code></td><td id="M&gt;|[" class=""><code>SeasonFacet</code></td></tr></tbody></table><h3 id="bd6e4019-aad5-82c6-a5de-812c24840477" class="" dir="auto">Function Changes</h3><ul id="003e4019-aad5-829f-aefc-8186ed55b042" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibCases</code> encoding/decoding, <code>Weather.updateTemperature()</code>, and <code>LibDibbler</code> calculations to use six-decimal Temperature precision. <code>FieldFacet.maxTemperature()</code> returns the stored scaled value. <code>totalSoil()</code> uses that value in above-peg Morning scaling without multiplying it again.</li></ul><ul id="374e4019-aad5-8262-919c-012bc4d94fec" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Changed <code>getChangeFromCaseId(uint256)</code> to return an <code>int32 bT</code> instead of <code>int8</code>. Its other outputs remain <code>mT</code>, <code>mL</code>, and <code>bL</code>. Changed <code>getAbsTemperatureChangeFromCaseId(uint256)</code> to return the six-decimal signed Temperature adjustment as <code>int32</code>.</li></ul><ul id="4d5e4019-aad5-8249-a0f4-8184b187f040" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>LibWellMinting.getTotalInstantaneousDeltaB()</code> to sum instantaneous <code>deltaB</code> across whitelisted Wells, and <code>totalInstantaneousDeltaB()</code> as its external getter.</li></ul><ul id="d80e4019-aad5-836c-b9ec-01d159ad99b6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibEvaluate.evaluateBeanstalk()</code> and <code>calcCaseIdAndHandleRain()</code> to return the evaluated state alongside the case ID, allowing <code>stepSun()</code> to use the computed L2SR. These are shared internal/library changes, not new diamond entry points.</li></ul><ul id="df3e4019-aad5-8219-98e1-813828966ad3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the internal <code>scaleSoilBelowPeg()</code> helper and updated <code>stepSun()</code> to issue <code>min(|TWAΔP|, |INSTΔP|) × (1 − min(L2SR, 0.99))</code> when both deltas are nonpositive, subject to integer rounding. <code>setSoil()</code> stores the result in <code>s.sys.soil</code>. At INSTΔP = 0, issuance becomes zero instead of the previous |TWAΔP|.</li></ul><ul id="1e9e4019-aad5-834e-b312-0180aa629ee6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>getExtEvaluationParameters()</code>, which returns the new Soil-scaling parameters.</li></ul><ul id="981e4019-aad5-8229-8ff7-81d6fa6c36e0" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the internal <code>scaleSoilAbovePeg()</code> helper to apply four Pod Rate coefficients. The 1.2 coefficient now also applies when <code>caseId % 36 = 8</code>, which previously used 1. For positive TWAΔP, <code>setSoilAbovePeg()</code> scales the Soil corresponding to newly Harvestable Pods. For nonpositive TWAΔP and positive INSTΔP, <code>stepSun()</code> instead scales 1% of |TWAΔP|.</li></ul><ul id="5f5e4019-aad5-83e8-809d-81884118024d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Updated <code>LibCases.setCasesV2()</code> with lower Temperature adjustments in the selected nonpositive-TWAΔP cases. The intended Crop Scalar constants still encoded <code>−1e18</code> rather than <code>−2e18</code> in PI-5.</li></ul><h3 id="f15e4019-aad5-827c-b82e-01dc9ed8700e" class="" dir="auto">Event Changes</h3><ul id="305e4019-aad5-8236-bc45-018095525fd7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Changed <code>TemperatureChange.absChange</code> from <code>int8</code> to <code>int32</code> and emitted it in six-decimal Temperature units.</li></ul><ul id="fcae4019-aad5-83b9-a473-01502390560f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>SeasonMetrics(season, deltaPodDemand, lpToSupplyRatio, podRate, thisSowTime, lastSowTime)</code> to expose the state used during evaluation. The Sow-time fields reflect storage after the times are updated.</li></ul><ul id="2d5e4019-aad5-8200-b5be-011525137eb2" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added <code>RainStatus(season, raining)</code> when Rain starts or stops.</li></ul><ul id="ef8e4019-aad5-8322-b718-8133adc03a1a" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Added the <code>beans</code> field to <code>SeasonOfPlentyWell</code>, recording Pinto minted to the Well separately from the existing number of output tokens received.</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
