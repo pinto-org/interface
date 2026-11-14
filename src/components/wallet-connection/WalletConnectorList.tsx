@@ -1,6 +1,4 @@
-import { useMemo } from "react";
-import { useConnect } from "wagmi";
-import type { Connector } from "wagmi";
+import { useConnectors } from "wagmi";
 import { WalletConnectorButton } from "./WalletConnectorButton";
 
 import coinbaseIcon from "@/assets/wallets/coinbase.png";
@@ -12,37 +10,27 @@ interface WalletConnectorListProps {
   onConnect?: () => void;
 }
 
-interface WalletConfig {
-  id: string;
-  name: string;
-  icon: string;
-  checkInstalled?: () => boolean;
-}
-
-const WALLET_ORDER: WalletConfig[] = [
+const WALLET_ORDER = [
   {
-    id: "rabby",
+    id: "io.rabby",
     name: "Rabby Wallet",
     icon: rabbyIcon,
-    checkInstalled: () => typeof window !== "undefined" && window.ethereum?.isRabby === true,
   },
   {
-    id: "metamask",
+    id: "io.metamask",
+    fallbackId: "io.metamask.flask",
     name: "MetaMask",
     icon: metamaskIcon,
-    checkInstalled: () => typeof window !== "undefined" && window.ethereum?.isMetaMask === true,
   },
   {
-    id: "walletconnect",
+    id: "walletConnect",
     name: "WalletConnect",
     icon: walletconnectIcon,
-    checkInstalled: () => true, // WalletConnect is always available (QR code)
   },
   {
-    id: "coinbase",
+    id: "coinbaseWalletSDK",
     name: "Coinbase Wallet",
     icon: coinbaseIcon,
-    checkInstalled: () => true, // Coinbase Wallet can use QR code if extension not installed
   },
 ];
 
@@ -51,44 +39,20 @@ const WALLET_ORDER: WalletConfig[] = [
  * Shows: Rabby, MetaMask, WalletConnect, Coinbase Wallet
  */
 export function WalletConnectorList({ onConnect }: WalletConnectorListProps) {
-  const { connectors } = useConnect();
-
-  const orderedWallets = useMemo(() => {
-    return WALLET_ORDER.map((walletConfig) => {
-      // Find matching connector
-      const connector = connectors.find((c) => {
-        const idLower = c.id.toLowerCase();
-        const nameLower = c.name.toLowerCase();
-        const configIdLower = walletConfig.id.toLowerCase();
-
-        return (
-          idLower.includes(configIdLower) ||
-          nameLower.includes(configIdLower) ||
-          (configIdLower === "walletconnect" && (c.type === "walletConnect" || c.type === "wallet_connect"))
-        );
-      });
-
-      const isInstalled = walletConfig.checkInstalled?.() ?? false;
-
-      return {
-        config: walletConfig,
-        connector,
-        isInstalled,
-        icon: walletConfig.icon,
-      };
-    });
-  }, [connectors]);
+  const connectors = useConnectors();
 
   return (
     <>
-      {orderedWallets.map(({ config, connector, isInstalled, icon }) => (
+      {WALLET_ORDER.map(({ id, fallbackId, name, icon }) => (
         <WalletConnectorButton
-          key={config.id}
-          connector={connector}
-          walletName={config.name}
+          key={id}
+          connector={
+            connectors.find((connector) => connector.id === id) ??
+            connectors.find((connector) => connector.id === fallbackId)
+          }
+          walletName={name}
           walletIcon={icon}
-          isInstalled={isInstalled}
-          onConnect={() => onConnect?.()}
+          onConnect={onConnect}
         />
       ))}
     </>

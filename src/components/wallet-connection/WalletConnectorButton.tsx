@@ -6,23 +6,14 @@ interface WalletConnectorButtonProps {
   connector?: Connector;
   walletName: string;
   walletIcon: string;
-  isInstalled: boolean;
-  onConnect: () => void;
-  disabled?: boolean;
+  onConnect?: () => void;
 }
 
 /**
  * Single wallet connector button with icon and loading state
  * Handles connection to a specific wallet connector
  */
-export function WalletConnectorButton({
-  connector,
-  walletName,
-  walletIcon,
-  isInstalled,
-  onConnect,
-  disabled,
-}: WalletConnectorButtonProps) {
+export function WalletConnectorButton({ connector, walletName, walletIcon, onConnect }: WalletConnectorButtonProps) {
   const { connect, isPending, connectingWalletId } = useWalletConnection({
     onSuccess: onConnect,
   });
@@ -30,11 +21,7 @@ export function WalletConnectorButton({
   const isConnecting = connector && isPending && connectingWalletId === connector.id;
 
   const handleClick = () => {
-    // Only connect if wallet is installed and connector exists
-    if (!isInstalled || !connector) {
-      return;
-    }
-    connect(connector.id);
+    if (connector) connect(connector.id);
   };
 
   return (
@@ -42,11 +29,9 @@ export function WalletConnectorButton({
       variant="outline"
       size="xl"
       width="full"
-      className={`flex flex-row items-center justify-start gap-3 h-14 text-pinto-gray-5 hover:text-pinto-gray-5 disabled:opacity-50 disabled:cursor-not-allowed ${
-        !isInstalled ? "opacity-50 cursor-not-allowed" : ""
-      }`}
+      className="flex flex-row items-center justify-start gap-3 h-14 text-pinto-gray-5 hover:text-pinto-gray-5 disabled:opacity-50 disabled:cursor-not-allowed"
       onClick={handleClick}
-      disabled={disabled || (isPending && !isConnecting)}
+      disabled={!connector || (isPending && !isConnecting)}
     >
       <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 relative">
         <img
