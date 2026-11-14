@@ -4,6 +4,7 @@ import { Chain, Transport, createTestClient } from "viem";
 import { http, createStorage } from "wagmi";
 import type { CreateConnectorFn } from "wagmi";
 import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
+import { getLegacyWalletProvider } from "./legacyWalletProviders";
 
 export const anvilTestClient = createTestClient({
   mode: "anvil",
@@ -39,8 +40,28 @@ const getWalletConnectMetadataUrl = () => {
   return import.meta.env.VITE_SITE_URL || "https://pinto.money/";
 };
 
+function legacyWalletConnector(id: string, name: string, wallet: "rabby" | "metamask"): CreateConnectorFn {
+  const createInjected = injected({ target: { id, name, provider: () => getLegacyWalletProvider(wallet) } });
+
+  return (config) => {
+    const connector = createInjected(config);
+    return {
+      ...connector,
+      // A discovered connector can point to the same provider and already listens for unsolicited connections.
+      setup: undefined,
+      async isAuthorized() {
+        return (await config.storage?.getItem("recentConnectorId")) === id && connector.isAuthorized();
+      },
+    };
+  };
+}
+
 export const getBaseConnectors = (): CreateConnectorFn[] => {
-  const connectors: CreateConnectorFn[] = [injected({ shimDisconnect: true })];
+  const connectors: CreateConnectorFn[] = [
+    injected({ shimDisconnect: true }),
+    legacyWalletConnector("rabbyLegacy", "Rabby Wallet", "rabby"),
+    legacyWalletConnector("metamaskLegacy", "MetaMask", "metamask"),
+  ];
 
   if (import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID) {
     connectors.push(
